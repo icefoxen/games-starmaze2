@@ -8,6 +8,8 @@ import pymunk
 from pymunk import Vec2d
 import pymunk.pyglet_util
 
+import shader
+
 DISPLAY_FPS = True
 PHYSICS_FPS = 60.0
 PHYSICS_STEPS = 10.0
@@ -17,6 +19,18 @@ class Room(object):
     def __init__(self):
         pass
 
+
+vprog = '''
+void main() {
+   gl_Position = ftransform();
+}
+'''
+
+fprog = '''
+void main() {
+   gl_FragColor = vec4(1,0,1,1);
+}
+'''
 
 def main():
     screenw = 1024
@@ -34,6 +48,8 @@ def main():
     circ = pymunk.Circle(body, 10)
     circ.friction = 0.8
     space.add(body, circ)
+
+    shader = Shader([vprog, fprog])
 
     static_body = pymunk.Body()
     static_lines = [
@@ -53,8 +69,13 @@ def main():
     @window.event
     def on_draw():
         window.clear()
+        if shader_on:
+            shader.bind()
         pymunk.pyglet_util.draw(space)
+        shader.unbind()
         fps_display.draw()
+
+    shader_on = True
 
     @window.event
     def on_key_press(k, modifiers):
@@ -71,6 +92,8 @@ def main():
             body2.position = (screenw / 2, screenh / 2)
             circ2 = pymunk.Circle(body2, 10)
             space.add(body2, circ2)
+        elif k == key.ENTER:
+            shader_on = not shader_on
             
     pyglet.clock.schedule_interval(update, 1/PHYSICS_FPS)
     pyglet.app.run()
