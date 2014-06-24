@@ -8,7 +8,7 @@ import pymunk
 from pymunk import Vec2d
 import pymunk.pyglet_util
 
-import shader
+from shader import *
 
 DISPLAY_FPS = True
 PHYSICS_FPS = 60.0
@@ -20,17 +20,24 @@ class Room(object):
         pass
 
 
-vprog = '''
+vprog = '''#version 130
+// That's opengl 3.0
+
 void main() {
-   gl_Position = ftransform();
+   gl_Position = ftransform() + 3;
 }
 '''
 
-fprog = '''
+fprog = '''#version 130
+
 void main() {
    gl_FragColor = vec4(1,0,1,1);
 }
 '''
+
+shader_on = True
+
+
 
 def main():
     screenw = 1024
@@ -49,7 +56,7 @@ def main():
     circ.friction = 0.8
     space.add(body, circ)
 
-    shader = Shader([vprog, fprog])
+    shader = Shader([vprog], [fprog])
 
     static_body = pymunk.Body()
     static_lines = [
@@ -68,17 +75,18 @@ def main():
 
     @window.event
     def on_draw():
+        global shader_on
         window.clear()
+        # Unbinds whatever
+        shader.unbind()
         if shader_on:
             shader.bind()
         pymunk.pyglet_util.draw(space)
-        shader.unbind()
         fps_display.draw()
-
-    shader_on = True
 
     @window.event
     def on_key_press(k, modifiers):
+        global shader_on
         if k == key.LEFT:
             body.apply_impulse(Vec2d(-100, 0))
         elif k == key.RIGHT:
@@ -94,6 +102,7 @@ def main():
             space.add(body2, circ2)
         elif k == key.ENTER:
             shader_on = not shader_on
+            print shader_on
             
     pyglet.clock.schedule_interval(update, 1/PHYSICS_FPS)
     pyglet.app.run()
