@@ -23,15 +23,26 @@ class Room(object):
 vprog = '''#version 130
 // That's opengl 3.0
 
-void main() {
-   gl_Position = ftransform() + 3;
+
+uniform mat4 projection_matrix;
+uniform mat4 modelview_matrix;
+ 
+in vec3 vertex;
+ 
+void main(void) {
+//	gl_Position = projection_matrix * modelview_matrix * vec4(vertex, 1.0);
+   gl_Position = ftransform();
 }
+
 '''
 
 fprog = '''#version 130
 
+uniform sampler2D tex;
+
 void main() {
    gl_FragColor = vec4(1,0,1,1);
+   //gl_FragColor = texture2D(tex, gl_TexCoord[0].st);
 }
 '''
 
