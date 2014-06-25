@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import itertools
 import os
 
 import pyglet
@@ -49,6 +50,32 @@ void main() {
 shader_on = True
 
 
+lines = [
+    (300, 100, 600, 100), 
+    (300, 100, 300, 300), 
+    (600, 100, 600, 300)
+]
+
+colors = [
+    (255, 255, 255, 255), (128, 255, 128, 255),
+    (128, 0, 255, 255), (255, 0, 128, 255),
+    (255, 255, 0, 255), (255, 0, 255, 255)
+]
+
+def points2vertlist(pts, cols, batch):
+    "Takes a list of pairs of points and adds it to a batch... hmr"
+    coordsPerVert = 2
+    vertFormat = 'v2f'
+    colorFormat = 'c4B'
+    # Unpack list
+    v = list(itertools.chain.from_iterable(pts))
+    c = list(itertools.chain.from_iterable(cols))
+    numPoints = len(v) / coordsPerVert
+    batch.add(numPoints, pyglet.graphics.GL_LINES, None, (vertFormat, v),
+              (colorFormat, c))
+    #vertex_list = pyglet.graphics.vertex_list(numPoints, (vertFormat, v))
+    #return vertex_list
+        
 
 def main():
     screenw = 1024
@@ -70,11 +97,17 @@ def main():
     shader = Shader([vprog], [fprog])
 
     static_body = pymunk.Body()
-    static_lines = [
-        pymunk.Segment(static_body, Vec2d(300, 100), Vec2d(600, 100), 1),
-        pymunk.Segment(static_body, Vec2d(300, 100), Vec2d(300, 300), 1),
-        pymunk.Segment(static_body, Vec2d(600, 100), Vec2d(600, 300), 1),
-    ]
+    static_lines = [pymunk.Segment(static_body, 
+                                   Vec2d(x1, y1), Vec2d(x2, y2), 
+                                   1)
+                    for (x1, y1, x2, y2) in lines]
+    batch = pyglet.graphics.Batch()
+    points2vertlist(lines, colors, batch)
+    #static_lines = [
+    #    pymunk.Segment(static_body, Vec2d(300, 100), Vec2d(600, 100), 1),
+    #    pymunk.Segment(static_body, Vec2d(300, 100), Vec2d(300, 300), 1),
+    #    pymunk.Segment(static_body, Vec2d(600, 100), Vec2d(600, 300), 1),
+    #]
 
     for l in static_lines:
         l.friction = 0.8
@@ -89,10 +122,12 @@ def main():
         global shader_on
         window.clear()
         # Unbinds whatever
-        shader.unbind()
-        if shader_on:
-            shader.bind()
-        pymunk.pyglet_util.draw(space)
+        #shader.unbind()
+        #if shader_on:
+        #    shader.bind()
+        batch.draw()
+        pymunk.pyglet_util.draw(circ)
+        #pymunk.pyglet_util.draw(space)
         fps_display.draw()
 
     @window.event
@@ -111,9 +146,9 @@ def main():
             body2.position = (screenw / 2, screenh / 2)
             circ2 = pymunk.Circle(body2, 10)
             space.add(body2, circ2)
-        elif k == key.ENTER:
-            shader_on = not shader_on
-            print shader_on
+        #elif k == key.ENTER:
+        #    shader_on = not shader_on
+        #    print shader_on
             
     pyglet.clock.schedule_interval(update, 1/PHYSICS_FPS)
     pyglet.app.run()
