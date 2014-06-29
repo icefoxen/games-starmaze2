@@ -7,7 +7,7 @@
 #
  
 from pyglet.gl import *
- 
+
 class Shader:
     # vert, frag and geom take arrays of source strings
     # the arrays will be concattenated into one string by OpenGL
@@ -87,7 +87,8 @@ class Shader:
     def bind(self):
         # bind the program
         glUseProgram(self.handle)
- 
+
+    @classmethod
     def unbind(self):
         # unbind whatever program is currently bound - not necessarily this program,
         # so this should probably be a class method instead

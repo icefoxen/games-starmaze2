@@ -16,38 +16,43 @@ PHYSICS_FPS = 60.0
 PHYSICS_STEPS = 10.0
 
 
-class Room(object):
-    def __init__(self):
-        pass
+vprog = '''#version 120
+// That's opengl 2.1
+// WHICH I GUESS WE'RE USING CAUSE I CAN'T FIND DOCS ON ANYTHING ELSE
+// AND WE GOTTA AIM AT THE LOWEST COMMON DENOMINATOR ANYWAY
+// BECAUSE COMPUTERS SUCK AND I HATE THEM.
 
-
-vprog = '''#version 130
-// That's opengl 3.0
+// Vertex shader
 
 
 uniform mat4 projection_matrix;
 uniform mat4 modelview_matrix;
  
-in vec3 vertex;
+uniform vec4 inp;
  
 void main(void) {
 //	gl_Position = projection_matrix * modelview_matrix * vec4(vertex, 1.0);
-   gl_Position = ftransform();
+   gl_Position = ftransform() + inp;
+   //gl_Position = ftransform();
+   gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex + inp;
+   //gl_Color = vec4(0, 0, 1, 1);
 }
 
 '''
 
-fprog = '''#version 130
+fprog = '''#version 120
+// Fragment shader
 
 uniform sampler2D tex;
 
 void main() {
-   gl_FragColor = vec4(1,0,1,1);
+   gl_FragColor = vec4(0, 0, 0.8, 1);
+   //gl_FragColor = vec4(1,0,1,1);
    //gl_FragColor = texture2D(tex, gl_TexCoord[0].st);
 }
 '''
 
-shader_on = True
+shader_on = False
 
 
 lines = [
@@ -76,6 +81,7 @@ def points2vertlist(pts, cols, batch):
     #vertex_list = pyglet.graphics.vertex_list(numPoints, (vertFormat, v))
     #return vertex_list
         
+loc = 0.0
 
 def main():
     screenw = 1024
@@ -119,15 +125,19 @@ def main():
 
     @window.event
     def on_draw():
+        global loc 
         global shader_on
+        loc += 0.01
         window.clear()
         # Unbinds whatever
-        #shader.unbind()
-        #if shader_on:
-        #    shader.bind()
+        Shader.unbind()
+        if shader_on:
+            shader.bind()
+            shader.uniformf("inp", loc, loc, 1.0, 3.0)
         batch.draw()
         pymunk.pyglet_util.draw(circ)
         #pymunk.pyglet_util.draw(space)
+        Shader.unbind()
         fps_display.draw()
 
     @window.event
@@ -146,9 +156,9 @@ def main():
             body2.position = (screenw / 2, screenh / 2)
             circ2 = pymunk.Circle(body2, 10)
             space.add(body2, circ2)
-        #elif k == key.ENTER:
-        #    shader_on = not shader_on
-        #    print shader_on
+        elif k == key.ENTER:
+            shader_on = not shader_on
+            print shader_on
             
     pyglet.clock.schedule_interval(update, 1/PHYSICS_FPS)
     pyglet.app.run()
