@@ -5,6 +5,7 @@ import os
 
 import pyglet
 import pyglet.window.key as key
+from pyglet.gl import *
 import pymunk
 from pymunk import Vec2d
 import pymunk.pyglet_util
@@ -32,10 +33,11 @@ uniform vec4 inp;
  
 void main(void) {
 //	gl_Position = projection_matrix * modelview_matrix * vec4(vertex, 1.0);
-   gl_Position = ftransform() + inp;
+   //gl_Position = ftransform() + inp;
    //gl_Position = ftransform();
    gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex + inp;
-   //gl_Color = vec4(0, 0, 1, 1);
+   //gl_PointSize = 100;
+   gl_FrontColor = gl_Color;
 }
 
 '''
@@ -46,7 +48,8 @@ fprog = '''#version 120
 uniform sampler2D tex;
 
 void main() {
-   gl_FragColor = vec4(0, 0, 0.8, 1);
+   //gl_FragColor = vec4(0, 0, 0.8, 1);
+   gl_FragColor = gl_Color;
    //gl_FragColor = vec4(1,0,1,1);
    //gl_FragColor = texture2D(tex, gl_TexCoord[0].st);
 }
@@ -54,6 +57,61 @@ void main() {
 
 shader_on = False
 
+
+class Room(object):
+    def __init__(s, lines, colors):
+        s.lines = lines
+        s.colors = colors
+        s.body = pymunk.Body()
+        s.physicsObjects = [pymunk.Segment(
+            s.body, 
+            Vec2d(x1, y1), Vec2d(x2, y2), 
+            1
+        )
+                            for (x1, y1, x2, y2) in lines]
+        for o in s.physicsObjects:
+            o.friction = 0.8
+
+        s.batch = pyglet.graphics.Batch()
+        Room.points2vertlist(lines, colors, s.batch)
+
+    @classmethod
+    def points2vertlist(s, pts, colors, batch):
+        "Takes a list of pairs of points and adds it to a batch... hmr"
+        coordsPerVert = 2
+        vertFormat = 'v2f'
+        colorFormat = 'c4B'
+        # Unpack/flatten list
+        v = list(itertools.chain.from_iterable(pts))
+        c = list(itertools.chain.from_iterable(colors))
+        numPoints = len(v) / coordsPerVert
+        batch.add(numPoints, pyglet.graphics.GL_LINES, None, (vertFormat, v),
+                  (colorFormat, c))
+        
+    def draw(s):
+        s.batch.draw()
+
+    def activatePhysics(s, space):
+        space.add(s.physicsObjects)
+
+    def deactivatePhysics(s, space):
+        space.remove(s.physicsObjects)
+
+class Actor(object):
+    def __init__(s, x, y):
+        s.body = pymunk.Body(1, 2000)
+        s.shape = pymunk.Circle(s.body, 10)
+        s.shape.friction = 0.8
+        s.body.position = (x,y)
+
+    def activatePhysics(s, space):
+        space.add(s.body, s.shape)
+
+    def deactivatePhysics(s, space):
+        space.remove(s.body, s.shape)
+
+    def draw(s):
+        pymunk.pyglet_util.draw(s.shape)
 
 lines = [
     (300, 100, 600, 100), 
@@ -67,22 +125,6 @@ colors = [
     (255, 255, 0, 255), (255, 0, 255, 255)
 ]
 
-def points2vertlist(pts, cols, batch):
-    "Takes a list of pairs of points and adds it to a batch... hmr"
-    coordsPerVert = 2
-    vertFormat = 'v2f'
-    colorFormat = 'c4B'
-    # Unpack list
-    v = list(itertools.chain.from_iterable(pts))
-    c = list(itertools.chain.from_iterable(cols))
-    numPoints = len(v) / coordsPerVert
-    batch.add(numPoints, pyglet.graphics.GL_LINES, None, (vertFormat, v),
-              (colorFormat, c))
-    #vertex_list = pyglet.graphics.vertex_list(numPoints, (vertFormat, v))
-    #return vertex_list
-        
-loc = 0.0
-
 def main():
     screenw = 1024
     screenh = 768
@@ -94,49 +136,36 @@ def main():
     space = pymunk.Space()
     space.gravity = (0.0, -500.0)
 
-    body = pymunk.Body(1, 2000)
-    body.position = (screenw / 2, screenh / 2)
-    circ = pymunk.Circle(body, 10)
-    circ.friction = 0.8
-    space.add(body, circ)
+    a = Actor(screenw / 2, screenh / 2)
+    a.activatePhysics(space)
 
-    shader = Shader([vprog], [fprog])
-
-    static_body = pymunk.Body()
-    static_lines = [pymunk.Segment(static_body, 
-                                   Vec2d(x1, y1), Vec2d(x2, y2), 
-                                   1)
-                    for (x1, y1, x2, y2) in lines]
-    batch = pyglet.graphics.Batch()
-    points2vertlist(lines, colors, batch)
-    #static_lines = [
-    #    pymunk.Segment(static_body, Vec2d(300, 100), Vec2d(600, 100), 1),
-    #    pymunk.Segment(static_body, Vec2d(300, 100), Vec2d(300, 300), 1),
-    #    pymunk.Segment(static_body, Vec2d(600, 100), Vec2d(600, 300), 1),
-    #]
-
-    for l in static_lines:
-        l.friction = 0.8
-    space.add(static_lines)
+    r = Room(lines, colors)
+    r.activatePhysics(space)
 
     def update(dt):
         for _ in range(int(PHYSICS_STEPS)):
             space.step(dt/PHYSICS_STEPS)
 
+    shader = Shader([vprog], [fprog])
+
+
     @window.event
     def on_draw():
-        global loc 
-        global shader_on
-        loc += 0.01
+        glEnable(GL_LINE_SMOOTH)
+        glLineWidth(3)
         window.clear()
         # Unbinds whatever
         Shader.unbind()
         if shader_on:
             shader.bind()
-            shader.uniformf("inp", loc, loc, 1.0, 3.0)
-        batch.draw()
-        pymunk.pyglet_util.draw(circ)
-        #pymunk.pyglet_util.draw(space)
+            # X, Y, Z, scale
+            shader.uniformf("inp", 0.0, 0.0, 0.0, 0.0)
+        #glPushMatrix()
+        r.draw()
+        a.draw()
+        #glPopMatrix()
+        pymunk.pyglet_util.draw(space)
+
         Shader.unbind()
         fps_display.draw()
 
@@ -144,13 +173,13 @@ def main():
     def on_key_press(k, modifiers):
         global shader_on
         if k == key.LEFT:
-            body.apply_impulse(Vec2d(-100, 0))
+            a.body.apply_impulse(Vec2d(-100, 0))
         elif k == key.RIGHT:
-            body.apply_impulse(Vec2d(100, 0))
+            a.body.apply_impulse(Vec2d(100, 0))
         elif k == key.UP:
-            body.apply_impulse(Vec2d(0, 100))
+            a.body.apply_impulse(Vec2d(0, 100))
         elif k == key.DOWN:
-            body.apply_impulse(Vec2d(0, -100))
+            a.body.apply_impulse(Vec2d(0, -100))
         elif k == key.SPACE:
             body2 = pymunk.Body(1, 2000)
             body2.position = (screenw / 2, screenh / 2)
