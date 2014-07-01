@@ -88,19 +88,16 @@ def main():
     def on_draw():
         #glLineWidth(3)
         window.clear()
-        # Unbinds whatever
-        Shader.unbind()
         if shader_on:
-            shader.bind()
-            # X, Y, Z, scale
-            shader.uniformf("inp", 0.0, 0.0, 0.0, 0.0)
-        #glPushMatrix()
-        room.draw()
-        a.draw()
-        #glPopMatrix()
-        #pymunk.pyglet_util.draw(space)
+            with shader:
+                # X, Y, Z, scale
+                shader.uniformf("inp", 0.0, 0.0, 0.0, 0.0)
+                room.draw()
+                a.draw()
+        else:
+            room.draw()
+            a.draw()
 
-        Shader.unbind()
         fps_display.draw()
 
     @window.event

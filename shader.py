@@ -8,6 +8,9 @@
  
 from pyglet.gl import *
 
+# XXX: Not thread-safe!
+_root_shader = None
+
 class Shader:
     # vert, frag and geom take arrays of source strings
     # the arrays will be concattenated into one string by OpenGL
@@ -26,6 +29,14 @@ class Shader:
  
         # attempt to link the program
         self.link()
+
+        self.parent = None
+
+    def __enter__(self):
+        self.bind()
+
+    def __exit__(self, type, val, backtrace):
+        self.unbind()
  
     def createShader(self, strings, type):
         count = len(strings)
@@ -85,14 +96,21 @@ class Shader:
             self.linked = True
  
     def bind(self):
-        # bind the program
+        """Bind the program, pushing itself onto the stack of programs."""
+        global _root_shader
+        self._parent = _root_shader
+        _root_shader = self
         glUseProgram(self.handle)
 
-    @classmethod
     def unbind(self):
-        # unbind whatever program is currently bound - not necessarily this program,
-        # so this should probably be a class method instead
-        glUseProgram(0)
+        """Unbind the program, restoring the previous one (or none, if
+it was at the top of the stack."""
+        global _root_shader
+        _root_shader = self._parent
+        if _root_shader is None:
+            glUseProgram(0)
+        else:
+            glUseProgram(_root_shader.handle)
  
     # upload a floating point uniform
     # this program must be currently bound
