@@ -12,12 +12,12 @@ class Affine(object):
 
 You use it something like::
 
-  with Affine(translation, rotation, scale) as _:
+  with Affine(translation, rotation, scale):
       draw_stuff()
 
-Pretty cool, huh?  I should do something similar with shaders maybe...
+Pretty cool, huh?
 """
-    def __init__(s, translation=(0.0, 0.0), rotation=0.0, scale=(0.0, 0.0)):
+    def __init__(s, translation=(0.0, 0.0), rotation=0.0, scale=(1.0, 1.0)):
         s.x, s.y = translation
         s.rotation = rotation
         s.scaleX, s.scaleY = scale
@@ -30,6 +30,10 @@ Pretty cool, huh?  I should do something similar with shaders maybe...
 
     def __exit__(s, kind, exception, traceback):
         glPopMatrix()
+
+    def __repr__(s):
+        return "Affine(({}, {}), {}, ({}, {})".format(
+            s.x, s.y, s.rotation, s.scaleX, s.scaleY)
 
 class LineImage(object):
     """A collection of lines that can be drawn like an image.
@@ -236,8 +240,10 @@ at a time."""
 
     def draw(s):
         "Draws the room and all its contents."
-        for t in s.terrain:
-            t.draw()
+        for ter in s.terrain:
+            ter.draw()
+        for act in s.actors:
+            act.draw()
 
 class Zone(object):
     """A collection of interconnected `Room`s.  A Zone

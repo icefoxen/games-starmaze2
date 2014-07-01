@@ -84,19 +84,21 @@ def main():
 
     shader = Shader([vprog], [fprog])
 
+    affine = Affine()
+
     @window.event
     def on_draw():
         #glLineWidth(3)
         window.clear()
-        if shader_on:
-            with shader:
-                # X, Y, Z, scale
-                shader.uniformf("inp", 0.0, 0.0, 0.0, 0.0)
+        with affine:
+            if shader_on:
+                with shader:
+                    # X, Y, Z, scale
+                    shader.uniformf("inp", 0.0, 0.0, 0.0, 0.0)
+                    room.draw()
+                    a.draw()
+            else:
                 room.draw()
-                a.draw()
-        else:
-            room.draw()
-            a.draw()
 
         fps_display.draw()
 
@@ -104,18 +106,20 @@ def main():
     def on_key_press(k, modifiers):
         global shader_on
         if k == key.LEFT:
-            a.body.apply_force(Vec2d(-100, 0))
+            #a.body.apply_force(Vec2d(-100, 0))
+            affine.x -= 30
         elif k == key.RIGHT:
-            a.body.apply_force(Vec2d(100, 0))
+            #a.body.apply_force(Vec2d(100, 0))
+            affine.x += 30
         elif k == key.UP:
-            a.body.apply_force(Vec2d(0, 100))
+            #a.body.apply_force(Vec2d(0, 100))
+            affine.y += 30
         elif k == key.DOWN:
-            a.body.apply_force(Vec2d(0, -100))
+            #a.body.apply_force(Vec2d(0, -100))
+            affine.y -= 30
         elif k == key.SPACE:
-            body2 = pymunk.Body(1, 2000)
-            body2.position = (screenw / 2, screenh / 2)
-            circ2 = pymunk.Circle(body2, 10)
-            room.space.add(body2, circ2)
+            act = Actor(screenw / 2, screenh / 2)
+            room.addActor(act)
         elif k == key.ENTER:
             shader_on = not shader_on
             print shader_on
