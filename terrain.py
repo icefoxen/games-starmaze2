@@ -35,6 +35,31 @@ Pretty cool, huh?
         return "Affine(({}, {}), {}, ({}, {})".format(
             s.x, s.y, s.rotation, s.scaleX, s.scaleY)
 
+class Camera(Affine):
+    """An `Affine` which takes a target `Actor` and
+updates its transform to follow it, moving smoothly.
+
+TODO: Make it actually scroll smoothly.  For now
+it just follows directly."""
+
+    def __init__(s, target, screenw, screenh):
+        super(Camera, s).__init__()
+        s.target = target
+        s.speedFactor = 0.3
+        s.halfScreenW = screenw / 2
+        s.halfScreenH = screenh / 2
+
+    def update(s, dt):
+        targetX, targetY = s.target.body.position
+        #deltaX = s.x - targetX
+        #deltaY = s.y - targetY
+        #print(s.x, s.y, deltaX, deltaY)
+        #velX = deltaX * s.speedFactor
+        #velY = deltaY * s.speedFactor
+        s.x = -targetX + s.halfScreenW
+        s.y = -targetY + s.halfScreenH
+        #print(s.x, s.y)
+
 class LineImage(object):
     """A collection of lines that can be drawn like an image.
 
@@ -82,7 +107,7 @@ and be generally nicer."""
                               )
 
     def draw(s, x, y):
-        """This shouldn't really be here, we should usually do drawing from the batch."""
+        """This shouldn't really be here, we should usually do drawing from the batch.  But, I guess it's valid."""
         s._vertexList.draw(GL_LINE_LOOP)
         
 
@@ -213,6 +238,8 @@ at a time."""
         s.space.gravity = (0.0, -500.0)
 
         s.actors = set()
+
+        s.name = ""
 
     def addTerrain(s, t):
         "Adds a `Terrain` object to the room."

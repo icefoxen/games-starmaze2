@@ -77,20 +77,23 @@ def main():
     a = Actor(screenw / 2, screenh / 2)
     room.addActor(a)
 
+    shader = Shader([vprog], [fprog])
+
+    camera = Camera(a, screenw, screenh)
+
     def update(dt):
         step = dt / PHYSICS_STEPS
         for _ in range(int(PHYSICS_STEPS)):
             room.update(step)
-
-    shader = Shader([vprog], [fprog])
-
-    affine = Affine()
+        x, y = a.body.position
+        camera.update(dt)
+        #room.focusOn(x - (screenw / 2), y - (screenh / 2))
 
     @window.event
     def on_draw():
         #glLineWidth(3)
         window.clear()
-        with affine:
+        with camera:
             if shader_on:
                 with shader:
                     # X, Y, Z, scale
@@ -106,17 +109,17 @@ def main():
     def on_key_press(k, modifiers):
         global shader_on
         if k == key.LEFT:
-            #a.body.apply_force(Vec2d(-100, 0))
-            affine.x -= 30
+            a.body.apply_force(Vec2d(-100, 0))
+            #room.camera.x -= 30
         elif k == key.RIGHT:
-            #a.body.apply_force(Vec2d(100, 0))
-            affine.x += 30
+            a.body.apply_force(Vec2d(100, 0))
+            #room.camera.x += 30
         elif k == key.UP:
-            #a.body.apply_force(Vec2d(0, 100))
-            affine.y += 30
+            a.body.apply_force(Vec2d(0, 100))
+            #affine.y += 30
         elif k == key.DOWN:
-            #a.body.apply_force(Vec2d(0, -100))
-            affine.y -= 30
+            a.body.apply_force(Vec2d(0, -100))
+            #affine.y -= 30
         elif k == key.SPACE:
             act = Actor(screenw / 2, screenh / 2)
             room.addActor(act)
