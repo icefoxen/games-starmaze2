@@ -40,10 +40,10 @@ class Camera(Affine):
 updates its transform to follow it, moving smoothly.
 
 hardBoundaryFactor is a hard limit of how far the target
-can be off-center.  It defaults to 70% of the screen.
+can be off-center.  It defaults to 50% of the screen.
 """
 
-    def __init__(s, target, screenw, screenh, hardBoundaryFactor = 0.70):
+    def __init__(s, target, screenw, screenh, hardBoundaryFactor = 0.50):
         super(Camera, s).__init__()
         s.target = target
         s.speedFactor = 2.5
@@ -65,19 +65,27 @@ Basically, we lerp towards the target's position."""
         deltaX = s.aimedAtX - s.currentX
         deltaY = s.aimedAtY - s.currentY
 
-        if deltaX > s.hardBoundaryX:
-            s.currentX = s.aimedAtX - s.hardBoundaryX
-        elif deltaX < -s.hardBoundaryX:
-            s.currentX = s.aimedAtX + s.hardBoundaryX
-        else:
-            s.currentX += deltaX * s.speedFactor * dt
+        s.currentX += deltaX * s.speedFactor * dt
+        s.currentY += deltaY * s.speedFactor * dt
 
-        if deltaY > s.hardBoundaryY:
+        # We have to test whether the _next_ frame
+        # will be out of bounds and account for that;
+        # if we do it on the current frame's numbers
+        # then once you get close to the corners
+        # of the screen the view gets 'sucked' into them.
+        deltaX2 = s.aimedAtX - s.currentX
+        deltaY2 = s.aimedAtY - s.currentY
+
+        if deltaX2 > s.hardBoundaryX:
+            s.currentX = s.aimedAtX - s.hardBoundaryX
+        elif deltaX2 < -s.hardBoundaryX:
+            s.currentX = s.aimedAtX + s.hardBoundaryX
+
+        if deltaY2 > s.hardBoundaryY:
             s.currentY = s.aimedAtY - s.hardBoundaryY
-        elif deltaY < -s.hardBoundaryY:
+        elif deltaY2 < -s.hardBoundaryY:
             s.currentY = s.aimedAtY + s.hardBoundaryY
-        else:
-            s.currentY += deltaY * s.speedFactor * dt
+
         #print("Current:", s.currentX, s.currentY)
         #print("Target: ", s.aimedAtX, s.aimedAtY)
         #print("Delta:  ", deltaX, deltaY)
