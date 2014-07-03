@@ -98,9 +98,7 @@ class World(object):
             s.room.update(step)
         s.camera.update(dt)
 
-    #@s.window.event
     def on_draw(s):
-        #glLineWidth(3)
         s.window.clear()
         with s.camera:
             if shader_on:
@@ -113,7 +111,6 @@ class World(object):
 
         s.fps_display.draw()
 
-    #@s.window.event
     def on_key_press(s, k, modifiers):
         global shader_on
         if k == key.LEFT:
