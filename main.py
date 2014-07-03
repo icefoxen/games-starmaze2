@@ -58,77 +58,110 @@ void main() {
 shader_on = False
 
 
+class World(object):
+    """Contains all the state for the game."""
+    def __init__(s, screenw, screenh):
+        s.window = pyglet.window.Window(width=screenw, height=screenh)
+        s.screenw = screenw
+        s.screenh = screenh
+        s.fps_display = pyglet.clock.ClockDisplay()
+
+        s.setupWorld()
+        s.camera = Camera(s.player, screenw, screenh)
+        s.physicsSteps = 10
+
+        s.shader = Shader([vprog], [fprog])
+
+        s.window.push_handlers(
+            on_draw = lambda: s.on_draw(),
+            on_key_press = lambda k, mods: s.on_key_press(k, mods)
+        )
+        #s.window.event.on_draw = lambda: s.on_draw()
+        #s.window.event.on_keypress = lambda k, mods: s.on_keypress(k, mods)
+        
+    def setupWorld(s):
+        s.room = Room()
+        b1 = createBlock(300, 100, 300, 5)
+        b2 = createBlock(300, 100, 5, 300)
+        b3 = createBlock(600, 100, 5, 300)
+        s.room.addTerrain(b1)
+        s.room.addTerrain(b2)
+        s.room.addTerrain(b3)
+
+        s.player = Actor(s.screenw / 2, s.screenh / 2)
+        s.room.addActor(s.player)
+
+
+    def update(s, dt):
+        step = dt / s.physicsSteps
+        for _ in range(int(s.physicsSteps)):
+            s.room.update(step)
+        s.camera.update(dt)
+
+    #@s.window.event
+    def on_draw(s):
+        #glLineWidth(3)
+        s.window.clear()
+        with s.camera:
+            if shader_on:
+                with s.shader:
+                    # X, Y, Z, scale
+                    s.shader.uniformf("inp", 0.0, 0.0, 0.0, 0.0)
+                    s.room.draw()
+            else:
+                s.room.draw()
+
+        s.fps_display.draw()
+
+    #@s.window.event
+    def on_key_press(s, k, modifiers):
+        global shader_on
+        if k == key.LEFT:
+            s.player.body.apply_force(Vec2d(-100, 0))
+            #room.camers.player.x -= 30
+        elif k == key.RIGHT:
+            s.player.body.apply_force(Vec2d(100, 0))
+            #room.camers.player.x += 30
+        elif k == key.UP:
+            s.player.body.apply_force(Vec2d(0, 100))
+            #affine.y += 30
+        elif k == key.DOWN:
+            s.player.body.apply_force(Vec2d(0, -100))
+            #affine.y -= 30
+        elif k == key.SPACE:
+            act = Actor(screenw / 2, screenh / 2)
+            s.room.addActor(act)
+        elif k == key.ENTER:
+            shader_on = not shader_on
+            print("Shader on:", shader_on)
+            
+
 def main():
     screenw = 1024
     screenh = 768
 
-    window = pyglet.window.Window(width=screenw, height=screenh)
+    world = World(screenw, screenh)
 
-    fps_display = pyglet.clock.ClockDisplay()
-
-    room = Room()
-    b1 = createBlock(300, 100, 300, 5)
-    b2 = createBlock(300, 100, 5, 300)
-    b3 = createBlock(600, 100, 5, 300)
-    room.addTerrain(b1)
-    room.addTerrain(b2)
-    room.addTerrain(b3)
-
-    a = Actor(screenw / 2, screenh / 2)
-    room.addActor(a)
-
-    shader = Shader([vprog], [fprog])
-
-    camera = Camera(a, screenw, screenh)
-
-    def update(dt):
-        step = dt / PHYSICS_STEPS
-        for _ in range(int(PHYSICS_STEPS)):
-            room.update(step)
-        x, y = a.body.position
-        camera.update(dt)
-        #room.focusOn(x - (screenw / 2), y - (screenh / 2))
-
-    @window.event
-    def on_draw():
-        #glLineWidth(3)
-        window.clear()
-        with camera:
-            if shader_on:
-                with shader:
-                    # X, Y, Z, scale
-                    shader.uniformf("inp", 0.0, 0.0, 0.0, 0.0)
-                    room.draw()
-                    a.draw()
-            else:
-                room.draw()
-
-        fps_display.draw()
-
-    @window.event
-    def on_key_press(k, modifiers):
-        global shader_on
-        if k == key.LEFT:
-            a.body.apply_force(Vec2d(-100, 0))
-            #room.camera.x -= 30
-        elif k == key.RIGHT:
-            a.body.apply_force(Vec2d(100, 0))
-            #room.camera.x += 30
-        elif k == key.UP:
-            a.body.apply_force(Vec2d(0, 100))
-            #affine.y += 30
-        elif k == key.DOWN:
-            a.body.apply_force(Vec2d(0, -100))
-            #affine.y -= 30
-        elif k == key.SPACE:
-            act = Actor(screenw / 2, screenh / 2)
-            room.addActor(act)
-        elif k == key.ENTER:
-            shader_on = not shader_on
-            print shader_on
-            
-    pyglet.clock.schedule_interval(update, 1/PHYSICS_FPS)
+    pyglet.clock.schedule_interval(lambda dt: world.update(dt), 1/PHYSICS_FPS)
     pyglet.app.run()
+
+
+    ##window = pyglet.window.Window(width=screenw, height=screenh)
+
+    #fps_display = pyglet.clock.ClockDisplay()
+
+    #shader = Shader([vprog], [fprog])
+
+    #camera = Camera(a, screenw, screenh)
+
+    #def update(dt):
+    #    step = dt / PHYSICS_STEPS
+    #    for _ in range(int(PHYSICS_STEPS)):
+    #        room.update(step)
+    #    x, y = a.body.position
+    #    camera.update(dt)
+    #    #room.focusOn(x - (screenw / 2), y - (screenh / 2))
+
 
 if __name__ == '__main__':
     main()

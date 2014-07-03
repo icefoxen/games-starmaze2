@@ -39,26 +39,51 @@ class Camera(Affine):
     """An `Affine` which takes a target `Actor` and
 updates its transform to follow it, moving smoothly.
 
-TODO: Make it actually scroll smoothly.  For now
-it just follows directly."""
+hardBoundaryFactor is a hard limit of how far the target
+can be off-center.  It defaults to 70% of the screen.
+"""
 
-    def __init__(s, target, screenw, screenh):
+    def __init__(s, target, screenw, screenh, hardBoundaryFactor = 0.70):
         super(Camera, s).__init__()
         s.target = target
-        s.speedFactor = 0.3
+        s.speedFactor = 2.5
         s.halfScreenW = screenw / 2
         s.halfScreenH = screenh / 2
+        s.aimedAtX = 0.0
+        s.aimedAtY = 0.0
+        s.currentX = s.target.body.position[0]
+        s.currentY = s.target.body.position[1]
+
+        s.hardBoundaryX = s.halfScreenW * hardBoundaryFactor
+        s.hardBoundaryY = s.halfScreenH * hardBoundaryFactor
 
     def update(s, dt):
-        targetX, targetY = s.target.body.position
-        #deltaX = s.x - targetX
-        #deltaY = s.y - targetY
-        #print(s.x, s.y, deltaX, deltaY)
-        #velX = deltaX * s.speedFactor
-        #velY = deltaY * s.speedFactor
-        s.x = -targetX + s.halfScreenW
-        s.y = -targetY + s.halfScreenH
-        #print(s.x, s.y)
+        """Calculates the camera's position for a new frame.
+
+Basically, we lerp towards the target's position."""
+        s.aimedAtX, s.aimedAtY = s.target.body.position
+        deltaX = s.aimedAtX - s.currentX
+        deltaY = s.aimedAtY - s.currentY
+
+        if deltaX > s.hardBoundaryX:
+            s.currentX = s.aimedAtX - s.hardBoundaryX
+        elif deltaX < -s.hardBoundaryX:
+            s.currentX = s.aimedAtX + s.hardBoundaryX
+        else:
+            s.currentX += deltaX * s.speedFactor * dt
+
+        if deltaY > s.hardBoundaryY:
+            s.currentY = s.aimedAtY - s.hardBoundaryY
+        elif deltaY < -s.hardBoundaryY:
+            s.currentY = s.aimedAtY + s.hardBoundaryY
+        else:
+            s.currentY += deltaY * s.speedFactor * dt
+        #print("Current:", s.currentX, s.currentY)
+        #print("Target: ", s.aimedAtX, s.aimedAtY)
+        #print("Delta:  ", deltaX, deltaY)
+        s.x = -s.currentX + s.halfScreenW
+        s.y = -s.currentY + s.halfScreenH
+
 
 class LineImage(object):
     """A collection of lines that can be drawn like an image.
