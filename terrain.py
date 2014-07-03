@@ -46,7 +46,12 @@ def createBlock(x, y, w, h, color=(255, 255, 255, 255), batch=None):
     yf = float(y)
     wf = float(w)
     hf = float(h)
-    verts = [(xf, yf), (xf+wf, yf), (xf+wf, yf+hf), (xf, yf+hf)]
+    verts = [
+        (xf, yf), (xf+wf, yf), 
+        (xf+wf, yf), (xf+wf, yf+hf),
+        (xf+wf, yf+hf), (xf, yf+hf),
+        (xf, yf+hf), (xf, yf)
+    ]
     #print "FOO", verts
     colors = []
     if isinstance(color, list):

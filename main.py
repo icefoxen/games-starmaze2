@@ -48,8 +48,8 @@ fprog = '''#version 120
 uniform sampler2D tex;
 
 void main() {
-   //gl_FragColor = vec4(0, 0, 0.8, 1);
-   gl_FragColor = gl_Color;
+   gl_FragColor = vec4(0, 0, 0.8, 1);
+   //gl_FragColor = gl_Color;
    //gl_FragColor = vec4(1,0,1,1);
    //gl_FragColor = texture2D(tex, gl_TexCoord[0].st);
 }
