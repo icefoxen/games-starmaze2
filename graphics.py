@@ -125,87 +125,121 @@ TODO: Triangle strips?
 For now we use GL_LINE_LOOP and don't do anything fancy.
 Eventually we're going to tesselate this into triangles
 and be generally nicer."""
-        finalVerts = []
-        finalColors = []
-        for v1, v2 in zip(s._verts[::2], s._verts[1::2]):
-            v1x, v1y = v1
-            v2x, v2y = v2
-            #v1x, v1y = s._verts[0]
-            #v2x, v2y = s._verts[1]
-            l = s._line(v1x, v1y, v2x, v2y, 8)
-            colors = s._color((255, 0, 0, 255))
-            
-            unpackedVerts = list(itertools.chain.from_iterable(l))
-            unpackedColors = list(itertools.chain.from_iterable(colors))
-
-            finalVerts.append(unpackedVerts)
-            finalColors.append(unpackedColors)
         
-        vs = list(itertools.chain.from_iterable(finalVerts))
-        cs = list(itertools.chain.from_iterable(finalColors))
-        #print vs
-        #print cs
+        # First we take the list of (x,y) line endpoints
+        # and turn it into a list of (x1, y1, x2, y2) lines
 
-        coordsPerVert = 2
-        numPoints = len(vs) / coordsPerVert
+        lineses = [(x1, y1, x2, y2) 
+                   for ((x1, y1), (x2, y2))
+                   in zip(s._verts[::2], s._verts[1::2])]
+        # Then we use _line() to turn each line into a list of vertices
+        tesselatedLines = map(lambda l: s._line(*l, width=3), lineses)
+
+        # And get a list of colors for each vertex
+        tesselatedColors = map(lambda l: s._color((255, 0, 0, 255)), tesselatedLines)
+
+        # Then we make a vertex list for each line
+        s._vertexLists = []
+        for line, color in zip(tesselatedLines, tesselatedColors):
+            coordsPerVert = 2
+            numPoints = len(line) / coordsPerVert
 
             #print unpackedVerts
             #print unpackedColors
             #print numPoints
 
-        vertFormat = 'v2f/{}'.format(s._usage)
-        colorFormat = 'c4B/{}'.format(s._usage)
-        s._vertexList = s.batch.add(numPoints, 
-                                    pyglet.graphics.GL_TRIANGLES, 
-                                    None, 
-                                    (vertFormat, vs),
-                                    (colorFormat, cs)
-        )
-        return
-        
-        # Tesselate lines
-        # Oh man python is so cool
-        # This turns every pair of vertices in the list
-        # into a pair of endpoints which then get fed 
-        # through s._line
-        v1s = s._verts[::2]
-        v2s = s._verts[1::2]
+            vertFormat = 'v2f/{}'.format(s._usage)
+            colorFormat = 'c4B/{}'.format(s._usage)
+            #print line, color
+            vertexList = s.batch.add(
+                numPoints, 
+                pyglet.graphics.GL_TRIANGLE_STRIP, 
+                None, 
+                (vertFormat, line),
+                (colorFormat, color)
+            )
+            s._vertexLists.append(vertexList)
 
-        verts = [s._line(x1, y1, x2, y2, 3)
-                 for ((x1, y1), (x2, y2)) in zip(v1s, v2s)]
-        colors = s._color((255, 0, 0, 255))
-        # Verts is now a list of tesselated lines.
-        # [line] where line is [(x,y)]
-        #print 'RAWR'
-        #print verts
-        #print lines[0][0]
-        #print lines[1]
-        #for l in zip(v1s, v2s):
-        #    ((x1, y1), (x2, y2)) = l
+        return            
+
+        # finalVerts = []
+        # finalColors = []
+        # for v1, v2 in 
+        #     v1x, v1y = v1
+        #     v2x, v2y = v2
+        #     #v1x, v1y = s._verts[0]
+        #     #v2x, v2y = s._verts[1]
+        #     l = s._line(v1x, v1y, v2x, v2y, 8)
+        #     colors = s._color((255, 0, 0, 255))
+            
+        #     unpackedVerts = list(itertools.chain.from_iterable(l))
+        #     unpackedColors = list(itertools.chain.from_iterable(colors))
+
+        #     finalVerts.append(unpackedVerts)
+        #     finalColors.append(unpackedColors)
+        
+        # vs = list(itertools.chain.from_iterable(finalVerts))
+        # cs = list(itertools.chain.from_iterable(finalColors))
+        # #print vs
+        # #print cs
+
+        # coordsPerVert = 2
+        # numPoints = len(vs) / coordsPerVert
+
+        #     #print unpackedVerts
+        #     #print unpackedColors
+        #     #print numPoints
+
+        # vertFormat = 'v2f/{}'.format(s._usage)
+        # colorFormat = 'c4B/{}'.format(s._usage)
+        # s._vertexList = s.batch.add(numPoints, 
+        #                             pyglet.graphics.GL_TRIANGLES, 
+        #                             None, 
+        #                             (vertFormat, vs),
+        #                             (colorFormat, cs)
+        # )
+        # return
+        
+        # # Tesselate lines
+        # # Oh man python is so cool
+        # # This turns every pair of vertices in the list
+        # # into a pair of endpoints which then get fed 
+        # # through s._line
+        # v1s = s._verts[::2]
+        # v2s = s._verts[1::2]
+
+        # verts = [s._line(x1, y1, x2, y2, 3)
+        #          for ((x1, y1), (x2, y2)) in zip(v1s, v2s)]
+        # colors = s._color((255, 0, 0, 255))
+        # # Verts is now a list of tesselated lines.
+        # # [line] where line is [(x,y)]
+        # #print 'RAWR'
+        # #print verts
+        # #print lines[0][0]
+        # #print lines[1]
+        # #for l in zip(v1s, v2s):
+        # #    ((x1, y1), (x2, y2)) = l
             
 
-        # Unpack/flatten list
-        print verts
-        v = list(itertools.chain.from_iterable(verts))
-        v2 = list(itertools.chain.from_iterable(v))
-        c = list(itertools.chain.from_iterable(colors))
-        print len(v2), v2
-        print len(c), c
-        numPoints = len(v2) / coordsPerVert
-        s._vertexList = s.batch.add(numPoints, 
-                                    pyglet.graphics.GL_TRIANGLES, 
-                                    None, 
-                                    (vertFormat, v2),
-                                    (colorFormat, c)
-                              )
+        # # Unpack/flatten list
+        # print verts
+        # v = list(itertools.chain.from_iterable(verts))
+        # v2 = list(itertools.chain.from_iterable(v))
+        # c = list(itertools.chain.from_iterable(colors))
+        # print len(v2), v2
+        # print len(c), c
+        # numPoints = len(v2) / coordsPerVert
+        # s._vertexList = s.batch.add(numPoints, 
+        #                             pyglet.graphics.GL_TRIANGLE_STRIP, 
+        #                             None, 
+        #                             (vertFormat, v2),
+        #                             (colorFormat, c)
+        #                       )
 
-    def _line(s, x1, y1, x2, y2, width):
-        """Returns a (verts, colors) tuple, where verts is
-a list of (x,y) vertices and colors (r,g,b,a), outlining a quad
-with alpha-y edges when drawn with GL_TRIANGLES.
-
-Right now the lines are solid colors, only gradients.
-TODO: Do we need gradients?  They'd be easy to add."""
+    def _line(s, x1, y1, x2, y2, width=2):
+        """Returns a list of verts, creating a quad
+suitable for drawing with GL_TRIANGLE_STRIP.
+"""
         #print x1, y1, x2, y2
         rise = y2 - y1
         run = x2 - x1
@@ -215,36 +249,49 @@ TODO: Do we need gradients?  They'd be easy to add."""
         angle = math.atan2(rise, run)
         xoff = math.sin(angle) * width
         yoff = math.cos(angle) * width
-        v1 = (x1, y1)
-        v2 = (x2, y2)
         # Calculate points to the 'left' and 'right' of the endpoints
-        v1l = (x1 - xoff, y1 + yoff)
-        v1r = (x1 + xoff, y1 - yoff)
-        v2l = (x2 - xoff, y1 + yoff)
-        v2r = (x2 + xoff, y2 - yoff)
+        v1lx = x1 - xoff
+        v1ly = y1 + yoff
+        v1rx = x1 + xoff
+        v1ry = y1 - yoff
+
+        v2lx = x2 - xoff
+        v2ly = y2 + yoff
+        v2rx = x2 + xoff
+        v2ry = y2 - yoff
         
         # Construct triangles
         # Remember, OpenGL triangles go CCW
+        # And GL_TRIANGLE_STRIP draws v1, v2, v3,
+        # then v3, v2, v4.  Whew!
         verts = [
-            v1,  v1l, v2l,
-            v2l, v2,  v1,
-            v1,  v2,  v2r,
-            v2r, v1r, v1
+            v1lx, v1ly, 
+            v2lx, v2ly,
+            x1, y1,
+            x2, y2,
+            v1rx, v1ry,
+            v2rx, v2ry
         ]
         return verts
     
     def _color(s, color):
-        "Makes a list of colors for the verts returned by lines()"
+        """Makes a list of colors for the verts returned by lines()
+
+Right now the lines are solid colors, no gradients.
+TODO: Do we need gradients?  They'd be easy to add.
+"""
         # Construct colors
         r, g, b, a = color
         vc = (r, g, b, 0)
+        c1 = (0, 255, 0, 255)
+        c2 = (0, 0, 255, 255)
         colors = [
-            color, vc, vc,
-            vc, color, color,
-            color, color, vc,
-            vc, vc, color
+            c1, c1, c1,
+            c2, c2, c2
         ]
-        return colors
+        # Flatten the list-of-tuples into a list
+        unpackedColors = list(itertools.chain.from_iterable(colors))
+        return unpackedColors
             
             
 

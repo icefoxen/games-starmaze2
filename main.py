@@ -81,9 +81,9 @@ class World(object):
         
     def setupWorld(s):
         s.room = Room()
-        b1 = createBlock(300, 100, 300, 5)
-        b2 = createBlock(300, 100, 5, 300)
-        b3 = createBlock(600, 100, 5, 300)
+        b1 = createBlock(300, 100, 300, 30)
+        b2 = createBlock(300, 100, 30, 300)
+        b3 = createBlock(600, 100, 30, 300)
         s.room.addTerrain(b1)
         s.room.addTerrain(b2)
         s.room.addTerrain(b3)
