@@ -8,7 +8,7 @@ from graphics import *
 
 
 
-
+STATIC_BODY = pymunk.Body()
 
 # Of course.
 # Rooms should be constructed out of sub-objects.
@@ -26,10 +26,13 @@ things might come later.
         "Create a `Terrain` object."
         s.verts = verts
         s.colors = colors
-        s.body = pymunk.Body(mass=None, moment=None)
+        s.body = STATIC_BODY #pymunk.Body(mass=None, moment=None)
         poly = pymunk.Poly(s.body, verts)
         poly.friction = 0.8
-        s.physicsObjects = [poly]
+        line = pymunk.Segment(s.body, verts[0], verts[1], 2)
+        s.shapes = [poly]
+
+        s.batch = None or pyglet.graphics.Batch()
 
         s.image = LineImage(verts, colors, batch=batch)
         s.sprite = LineSprite(s.image, batch=batch)
@@ -38,7 +41,14 @@ things might come later.
         "Draws the terrain feature."
         s.sprite.draw()
         #pymunk.pyglet_util.draw(s.physicsObjects)
-        
+
+    def addToSpace(s, space):
+        space.add(s.shapes)
+        if s.body != STATIC_BODY:
+            space.add(s.body)
+
+    def update(s, dt):
+        pass
 
 def createBlock(x, y, w, h, color=(255, 255, 255, 255), batch=None):
     "Creates a `Terrain` object representing a block of the given size."
@@ -56,7 +66,7 @@ def createBlock(x, y, w, h, color=(255, 255, 255, 255), batch=None):
     colors = []
     if isinstance(color, list):
         if len(color) != len(verts):
-            raise Exception("Invalid set of colors: {}".format(color))
+            raise Exception("Color array not right size, expected {}, got {}: {}".format(len(verts), len(color), color))
         else:
             colors = color
     else:
@@ -75,7 +85,7 @@ at a time."""
     def __init__(s):
         s.terrain = set()
         s.space = pymunk.Space()
-        s.space.gravity = (0.0, -500.0)
+        s.space.gravity = (0.0, -400.0)
 
         s.actors = set()
 
@@ -84,12 +94,12 @@ at a time."""
     def addTerrain(s, t):
         "Adds a `Terrain` object to the room."
         s.terrain.add(t)
-        s.space.add(t.physicsObjects)
+        s.space.add(t.shapes)
 
     def removeTerrain(s, t):
         "Removes a `Terrain` object."
         s.terrain.remove(t)
-        s.space.remove(t.physicsObjects)
+        s.space.remove(t.shapes)
 
     def addActor(s, a):
         "Adds the given `Actor` to the room."
@@ -103,7 +113,11 @@ at a time."""
         
     def update(s,dt):
         "Updates all the physics objects in the room."
+        #print s.space.bodies
+        #print s.space.shapes
         s.space.step(dt)
+        for act in s.actors:
+            act.update(dt)
 
     def draw(s):
         "Draws the room and all its contents."

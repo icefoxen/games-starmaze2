@@ -111,12 +111,13 @@ These assumptions are probably pretty safe.
 
 TODO: Triangle strips?
 """
-    def __init__(s, verts, colors, batch=None, usage='static'):
+    def __init__(s, verts, colors, lineWidth=2, batch=None, usage='static'):
         s._verts = verts
         s._colors = colors
         s.batch = batch or pyglet.graphics.Batch()
         s._vertexList = None
         s._usage = usage
+        s._lineWidth = lineWidth
 
         s._addToBatch()
 
@@ -128,15 +129,19 @@ and be generally nicer."""
         
         # First we take the list of (x,y) line endpoints
         # and turn it into a list of (x1, y1, x2, y2) lines
-
         lineses = [(x1, y1, x2, y2) 
                    for ((x1, y1), (x2, y2))
                    in zip(s._verts[::2], s._verts[1::2])]
         # Then we use _line() to turn each line into a list of vertices
-        tesselatedLines = map(lambda l: s._line(*l, width=3), lineses)
+        tesselatedLines = map(lambda l: s._line(*l, width=s._lineWidth), lineses)
 
+        # We also have to pair up the colors similarly
+        #colorses = [(x1, y1, x2, y2) 
+        #           for ((r1, b1, g1, a1), (r1, g2, b2, a2))
+        #           in zip(s._colors[::2], s._colors[1::2])]
+        colorses = zip(s._colors[::2], s._colors[1::2])
         # And get a list of colors for each vertex
-        tesselatedColors = map(lambda l: s._color((255, 0, 0, 255), (0, 0, 255, 255)), tesselatedLines)
+        tesselatedColors = map(lambda col: s._color(*col), colorses)
 
         # Then we make a vertex list for each line
         s._vertexLists = []
@@ -199,22 +204,25 @@ suitable for drawing with GL_TRIANGLE_STRIP.
         ]
         return verts
     
-    def _color(s, lineColor, lineColor2=None):
+    def _color(s, lineColor1, lineColor2=None):
         """Makes a list of colors for the verts returned by lines().
 
 lineColor is the color of the line; if lineColor 2 is not None
 the line is a gradient between the two colors.
+
+TODO: We could easily add butt caps to the end of the lines,
+which might make them look rather nicer.
 """
         # Construct colors
         if lineColor2 is None:
-            lineColor2 = lineColor
-        r1, g1, b1, a1 = lineColor
+            lineColor2 = lineColor1
+        r1, g1, b1, a1 = lineColor1
         r2, g2, b2, a2 = lineColor2
         edgeColor1 = (r1, g1, b1, 0)
         edgeColor2 = (r2, g2, b2, 0)
         colors = [
             edgeColor1, edgeColor2, 
-            lineColor, lineColor2,
+            lineColor1, lineColor2,
             edgeColor1, edgeColor2
         ]
         # Flatten the list-of-tuples into a list

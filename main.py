@@ -14,7 +14,6 @@ from terrain import *
 
 DISPLAY_FPS = True
 PHYSICS_FPS = 60.0
-PHYSICS_STEPS = 10.0
 
 
 vprog = '''#version 120
@@ -68,25 +67,33 @@ class World(object):
 
         s.setupWorld()
         s.camera = Camera(s.player, screenw, screenh)
-        s.physicsSteps = 10
+        s.physicsSteps = 30.0
 
         s.shader = Shader([vprog], [fprog])
 
         s.window.push_handlers(
             on_draw = lambda: s.on_draw(),
-            on_key_press = lambda k, mods: s.on_key_press(k, mods)
+            on_key_press = lambda k, mods: s.on_key_press(k, mods),
+            on_key_release = lambda k, mods: s.on_key_release(k, mods)
         )
         #s.window.event.on_draw = lambda: s.on_draw()
         #s.window.event.on_keypress = lambda k, mods: s.on_keypress(k, mods)
         
     def setupWorld(s):
         s.room = Room()
-        b1 = createBlock(300, 100, 300, 30)
+        colors = [(0, 0, 255, 255), (0, 255, 0, 255), 
+                  (255, 0, 0, 255), (255, 255, 255, 255),
+                  (255, 0, 0, 255), (255, 0, 0, 255),
+                  (255, 255, 0, 255), (255, 255, 0, 255),
+                  ]
+        b1 = createBlock(330, 100, 570, 30)
         b2 = createBlock(300, 100, 30, 300)
-        b3 = createBlock(600, 100, 30, 300)
+        b3 = createBlock(800, 100, 30, 300)
+        b4 = createBlock(300, 200, 270, 30)
         s.room.addTerrain(b1)
         s.room.addTerrain(b2)
         s.room.addTerrain(b3)
+        s.room.addTerrain(b4)
 
         s.player = Actor(s.screenw / 2, s.screenh / 2)
         s.room.addActor(s.player)
@@ -108,38 +115,51 @@ class World(object):
                     s.room.draw()
             else:
                 s.room.draw()
+                #pymunk.pyglet_util.draw(s.room.space)
 
         s.fps_display.draw()
 
     def on_key_press(s, k, modifiers):
         global shader_on
         if k == key.LEFT:
-            s.player.body.apply_force(Vec2d(-100, 0))
+            s.player.moveLeft()
             #room.camers.player.x -= 30
         elif k == key.RIGHT:
-            s.player.body.apply_force(Vec2d(100, 0))
+            s.player.moveRight()
             #room.camers.player.x += 30
         elif k == key.UP:
-            s.player.body.apply_force(Vec2d(0, 100))
+            s.player.moveUp()
             #affine.y += 30
-        elif k == key.DOWN:
-            s.player.body.apply_force(Vec2d(0, -100))
+        #elif k == key.DOWN:
+        #    s.player.body.apply_force(Vec2d(0, -100))
             #affine.y -= 30
         elif k == key.SPACE:
-            act = Actor(screenw / 2, screenh / 2)
+            act = Actor(s.screenw / 2, s.screenh / 2)
             s.room.addActor(act)
         elif k == key.ENTER:
             shader_on = not shader_on
             print("Shader on:", shader_on)
-            
+        print s.player.body.force
 
+    def on_key_release(s, k, modifiers):
+        global shader_on
+        if k == key.LEFT:
+            s.player.moveRight()
+            #room.camers.player.x -= 30
+        elif k == key.RIGHT:
+            s.player.moveLeft()
+            #room.camers.player.x += 30
+        elif k == key.UP:
+            s.player.stopMoving()
+        print s.player.body.force
+        
 def main():
     screenw = 1024
     screenh = 768
 
     world = World(screenw, screenh)
 
-    pyglet.clock.schedule_interval(lambda dt: world.update(dt), 1/PHYSICS_FPS)
+    pyglet.clock.schedule_interval(lambda dt: world.update(dt), 1.0/PHYSICS_FPS)
     pyglet.app.run()
 
 
