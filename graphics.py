@@ -17,15 +17,8 @@ polygon into a list of (x1, y1) (x2, y2) line endpoints."""
     # Close the last side
     expandedEndpoints.append(corners[-1])
     expandedEndpoints.append(corners[0])
-    #print expandedEndpoints
-    #expandedEndpoints.reverse()
     
     return expandedEndpoints
-
-    #lineses = [(x1, y1, x2, y2) 
-    #           for ((x1, y1), (x2, y2))
-    #           in zip(s._verts[::2], s._verts[1::2])]    
-    #return []
 
 def circlePoints(cx, cy, r, numSegments=32):
     """Returns a list of points outlining an approximation
@@ -87,7 +80,7 @@ can be off-center.  It defaults to 50% of the screen.
 """
 
     def __init__(s, target, screenw, screenh, hardBoundaryFactor = 0.50):
-        super(Camera, s).__init__()
+        super(s.__class__, s).__init__()
         s.target = target
         s.speedFactor = 2.5
         s.halfScreenW = screenw / 2
@@ -176,7 +169,7 @@ Tesselates the lines to polygons, too."""
         
         # First we take the list of (x,y) line endpoints
         # and turn it into a list of (x1, y1, x2, y2) lines
-        print s._verts
+        #print s._verts
         lineses = [(x1, y1, x2, y2) 
                    for ((x1, y1), (x2, y2))
                    in zip(s._verts[::2], s._verts[1::2])]

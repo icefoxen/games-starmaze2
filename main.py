@@ -87,15 +87,16 @@ class World(object):
                   (255, 255, 0, 255), (255, 255, 0, 255),
                   ]
         b1 = createBlock(330, 100, 570, 30)
-        #b2 = createBlock(300, 100, 30, 300)
-        #b3 = createBlock(800, 100, 30, 300)
-        #b4 = createBlock(300, 200, 270, 30)
+        b2 = createBlock(300, 100, 30, 300)
+        b3 = createBlock(800, 100, 30, 300)
+        b4 = createBlock(300, 200, 270, 30)
         s.room.addTerrain(b1)
-        #s.room.addTerrain(b2)
-        #s.room.addTerrain(b3)
-        #s.room.addTerrain(b4)
+        s.room.addTerrain(b2)
+        s.room.addTerrain(b3)
+        s.room.addTerrain(b4)
 
-        s.player = Actor(s.screenw / 2, s.screenh / 2)
+        s.player = Actor()
+        s.player.position = (s.screenw / 2, s.screenh / 2)
         s.room.addActor(s.player)
 
 
@@ -123,35 +124,25 @@ class World(object):
         global shader_on
         if k == key.LEFT:
             s.player.moveLeft()
-            #room.camers.player.x -= 30
         elif k == key.RIGHT:
             s.player.moveRight()
-            #room.camers.player.x += 30
-        elif k == key.UP:
-            s.player.moveUp()
-            #affine.y += 30
-        #elif k == key.DOWN:
-        #    s.player.body.apply_force(Vec2d(0, -100))
-            #affine.y -= 30
         elif k == key.SPACE:
             act = Actor(s.screenw / 2, s.screenh / 2)
             s.room.addActor(act)
         elif k == key.ENTER:
             shader_on = not shader_on
             print("Shader on:", shader_on)
-        print s.player.body.force
 
     def on_key_release(s, k, modifiers):
         global shader_on
         if k == key.LEFT:
-            s.player.moveRight()
+            s.player.stopMoving()
             #room.camers.player.x -= 30
         elif k == key.RIGHT:
-            s.player.moveLeft()
+            s.player.stopMoving()
             #room.camers.player.x += 30
         elif k == key.UP:
             s.player.stopMoving()
-        print s.player.body.force
         
 def main():
     screenw = 1024
