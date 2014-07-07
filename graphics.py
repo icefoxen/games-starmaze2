@@ -27,6 +27,29 @@ polygon into a list of (x1, y1) (x2, y2) line endpoints."""
     #           in zip(s._verts[::2], s._verts[1::2])]    
     #return []
 
+def circlePoints(cx, cy, r, numSegments=32):
+    """Returns a list of points outlining an approximation
+of a circle.  Can then be turned into actual lines with
+`cornersToLines`.
+
+Uses the algorithm described at http://slabode.exofire.net/circle_draw.shtml"""
+    theta = (2 * math.pi) / float(numSegments)
+    tangentialFactor = math.tan(theta)
+    radialFactor = math.cos(theta)
+    x = r
+    y = 0
+
+    verts = []
+    for i in range(numSegments):
+        verts.append((x + cx, y + cy))
+        tx = -y
+        ty = x
+        x += tx * tangentialFactor
+        y += ty * tangentialFactor
+        x *= radialFactor
+        y *= radialFactor
+    return verts
+
 class Affine(object):
     """A class set up to do an OpenGL affine transform (in 2d).
 
