@@ -1,3 +1,4 @@
+import itertools
 import math
 
 import pyglet
@@ -90,16 +91,32 @@ class Player(Actor):
 
     def setupPhysics(s):
         s.radius = 20
-        s.corners = circleCorners(0, 0, s.radius)
         s.body = pymunk.Body(1, 200)
         s.shape = pymunk.Circle(s.body, radius=s.radius)
         s.shape.friction = 5.8
         s.body.position = (0,0)
 
     def setupSprite(s):
-        lines = cornersToLines(s.corners)
-        colors = [(128, 192, 128, 255) for _ in lines]
-        image = LineImage(lines, colors)
+        lineList = []
+        corners1 = circleCorners(0, 0, s.radius)
+        lineList.append(cornersToLines(corners1))
+        corners2 = circleCorners(0, 0, s.radius - 4)
+        #lineList.append(cornersToLines(corners2))
+
+        spokeLength = s.radius + 18
+        spokeBase = 8
+        lineList.append(lineCorners(0, spokeBase, spokeLength, 0))
+        lineList.append(lineCorners(0, -spokeBase, spokeLength, 0))
+        lineList.append(lineCorners(spokeBase, 0, 0, spokeLength))
+        lineList.append(lineCorners(-spokeBase, 0, 0, spokeLength))
+        lineList.append(lineCorners(0, spokeBase, -spokeLength, 0))
+        lineList.append(lineCorners(0, -spokeBase, -spokeLength, 0))
+        lineList.append(lineCorners(spokeBase, 0, 0, -spokeLength))
+        lineList.append(lineCorners(-spokeBase, 0, 0, -spokeLength))
+
+        allLines = list(itertools.chain.from_iterable(lineList))
+        colors = [(64, 224, 64, 255) for _ in allLines]
+        image = LineImage(allLines, colors)
         s.sprite = LineSprite(image)
 
 

@@ -55,6 +55,10 @@ def rectCorners(cx, cy, w, h):
     ]
     return verts
 
+def lineCorners(x1, y1, x2, y2):
+    """Returns a list of points making a single line."""
+    return [(x1, y1), (x2, y2)]
+
 
 
 class Affine(object):
