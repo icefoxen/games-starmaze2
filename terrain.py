@@ -107,12 +107,12 @@ at a time."""
     def addActor(s, a):
         "Adds the given `Actor` to the room."
         s.actors.add(a)
-        s.space.add(a.shape, a.body)
+        s.space.add(a.shapes, a.body)
 
     def removeActor(s, a):
         "Removes the given `Actor` from the room."
         s.actors.remove(a)
-        s.space.remove(a.shape, a.body)
+        s.space.remove(a.shapes, a.body)
         
     def update(s,dt):
         "Updates all the physics objects in the room."
@@ -121,6 +121,15 @@ at a time."""
         s.space.step(dt)
         for act in s.actors:
             act.update(dt)
+        aliveActors = []
+        deadActors = []
+        aliveActors = [act for act in s.actors if act.alive]
+        deadActors = [act for act in s.actors if not act.alive]
+        s.actors = aliveActors
+        for act in deadActors:
+            act.die()
+            s.space.remove(act.body, act.shapes)
+
 
     def draw(s):
         "Draws the room and all its contents."
@@ -139,3 +148,4 @@ all these things, or does a Zone just generate a Room with thematic
 properties?"""
     def __init__(s):
         pass
+

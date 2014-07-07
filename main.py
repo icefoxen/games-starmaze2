@@ -108,6 +108,9 @@ class World(object):
         s.player = Player(s.keyboard)
         s.player.position = (s.screenw / 2, s.screenh / 2)
         s.room.addActor(s.player)
+        c = Collectable()
+        c.position = (s.screenw / 3, s.screenh)
+        s.room.addActor(c)
         s.camera = Camera(s.player, s.screenw, s.screenh)
 
 

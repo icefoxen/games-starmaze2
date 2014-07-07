@@ -15,6 +15,8 @@ class Actor(object):
         s.setupPhysics()
         s.setupSprite()
 
+        s.alive = True
+
         s.moveForce = 400
         s.brakeForce = 400
         s.motionX = 0
@@ -25,8 +27,8 @@ class Actor(object):
 Override in children and it will be called in `__init__`."""
         s.corners = rectCorners(0, 0, 10, 10)
         s.body = pymunk.Body(1, 200)
-        s.shape = pymunk.Poly(s.body, s.corners, radius=1)
-        s.shape.friction = 5.8
+        s.shapes = [pymunk.Poly(s.body, s.corners, radius=1)]
+        s.shapes[0].friction = 5.8
         s.body.position = (0,0)
 
     def setupSprite(s):
@@ -78,6 +80,8 @@ Override in children and it will be called in `__init__`."""
         #fmtstr = "position: {} force: {} torque: {}"
         #print fmtstr.format(s.body.position, s.body.force, s.body.torque)
 
+    def die(s):
+        pass
 
 class Player(Actor):
     """The player object."""
@@ -92,16 +96,14 @@ class Player(Actor):
     def setupPhysics(s):
         s.radius = 20
         s.body = pymunk.Body(1, 200)
-        s.shape = pymunk.Circle(s.body, radius=s.radius)
-        s.shape.friction = 5.8
+        s.shapes = [pymunk.Circle(s.body, radius=s.radius)]
+        s.shapes[0].friction = 5.8
         s.body.position = (0,0)
 
     def setupSprite(s):
         lineList = []
         corners1 = circleCorners(0, 0, s.radius)
         lineList.append(cornersToLines(corners1))
-        corners2 = circleCorners(0, 0, s.radius - 4)
-        #lineList.append(cornersToLines(corners2))
 
         spokeLength = s.radius + 18
         spokeBase = 8
@@ -160,3 +162,45 @@ down."""
             print 'foo'
         elif k == key.E:
             print 'bar'
+
+
+class Collectable(Actor):
+    """Something you can collect which does things to you,
+whether restoring your health or unlocking a new Power or whatever."""
+
+    def __init__(s):
+        super(s.__class__, s).__init__()
+        s.life = 5.0
+
+    def setupPhysics(s):
+        s.corners = []
+        s.corners.append(rectCorners(0, 0, 10, 5))
+        s.corners.append(rectCorners(0, 0, 5, 10))
+
+        s.body = pymunk.Body(1, 200)
+        s.shapes = [
+            pymunk.Poly(s.body, c)
+            for c in s.corners
+            ]
+
+        for shape in s.shapes:
+            shape.friction = 5.8
+            shape.elasticity = 0.3
+        
+        s.body.position = (0,0)
+
+    def setupSprite(s):
+        lineList = [cornersToLines(cs) for cs in s.corners]
+
+        allLines = list(itertools.chain.from_iterable(lineList))
+        colors = [(192, 0, 0, 255) for _ in allLines]
+        image = LineImage(allLines, colors)
+        s.sprite = LineSprite(image)
+
+    def collect(s, player):
+        pass
+
+    def update(s, dt):
+        s.life -= dt
+        if s.life < 0:
+            s.alive = False
