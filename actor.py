@@ -75,14 +75,16 @@ class Player(Actor):
         """Handles level-triggered keyboard actions; ie
 things that keep happening as long as you hold the button
 down."""
-        print 'bop'
+        #print 'bop'
         s.stopBrake()
-        #s.stopMoving()
+        s.stopMoving()
         if s.keyboard[key.DOWN]:
             s.brake()
         elif s.keyboard[key.LEFT]:
+            print 'l'
             s.moveLeft()
         elif s.keyboard[key.RIGHT]:
+            print 'r'
             s.moveRight()
 
         # Jump, maybe

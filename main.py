@@ -71,11 +71,16 @@ class World(object):
 
         s.keyboard = key.KeyStateHandler()
 
+        # Apparently you can't have two handlers in the
+        # same handler stack that intercept the same events,
+        # in this case, key presses.  So we use multiple levels
+        # of the stack and let the events propegate down.
+        s.window.push_handlers(s.keyboard)
         s.window.push_handlers(
-            s.keyboard,
+            #s.keyboard,
             on_draw = lambda: s.on_draw(),
             
-            #on_key_press = lambda k, mods: s.on_key_press(k, mods),
+            on_key_press = lambda k, mods: s.on_key_press(k, mods),
             #on_key_release = lambda k, mods: s.on_key_release(k, mods)
         )
         #s.window.event.on_draw = lambda: s.on_draw()
