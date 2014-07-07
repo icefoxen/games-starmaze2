@@ -1,27 +1,41 @@
+import math
+
 import pyglet
 import pyglet.window.key as key
 import pymunk
 import pymunk.pyglet_util
 
+from graphics import *
 
 class Actor(object):
     """The basic thing-that-moves-and-does-stuff in a `Room`."""
-    def __init__(s):
-        s.verts = [
-            (-10, -10), (10, -10),
-            (10, 10), (-10, 10)
-        ]
-        s.verts.reverse()
-        s.body = pymunk.Body(1, 200)
-        s.shape = pymunk.Circle(s.body, 10)
-        #s.shape = pymunk.Poly(s.body, s.verts, radius=1)
-        s.shape.friction = 5.8
-        s.body.position = (0,0)
+    def __init__(s, batch=None):
+        s.batch = batch or pyglet.graphics.Batch()
+        s.setupPhysics()
+        s.setupSprite()
+
         s.moveForce = 400
         s.brakeForce = 400
-
         s.motionX = 0
         s.braking = False
+
+    def setupPhysics(s):
+        """Sets up the actor-specific shape and physics parameters.
+Override in children and it will be called in `__init__`."""
+        s.corners = rectCorners(0, 0, 10, 10)
+        s.body = pymunk.Body(1, 200)
+        s.shape = pymunk.Poly(s.body, s.corners, radius=1)
+        s.shape.friction = 5.8
+        s.body.position = (0,0)
+
+    def setupSprite(s):
+        """Sets up the actor-specific sprite and graphics stuff.
+Override in children and it will be called in `__init__`."""
+        lines = cornersToLines(s.corners)
+        colors = [(255, 255, 255, 255) for _ in lines]
+        image = LineImage(lines, colors)
+        s.sprite = LineSprite(image)
+
 
     def _setPosition(s, pt):
         s.body.position = pt
@@ -30,7 +44,10 @@ class Actor(object):
                         doc="The position of the Actor.")
 
     def draw(s):
-        pymunk.pyglet_util.draw(s.shape)
+        #pymunk.pyglet_util.draw(s.shape)
+        s.sprite.position = s.body.position
+        s.sprite.rotation = math.degrees(s.body.angle)
+        s.sprite.draw()
 
     def stopMoving(s):
         s.motionX = 0
@@ -71,6 +88,22 @@ class Player(Actor):
         s.handleInputState()
         super(s.__class__, s).update(dt)
 
+    def setupPhysics(s):
+        s.radius = 20
+        s.corners = circleCorners(0, 0, s.radius)
+        s.body = pymunk.Body(1, 200)
+        s.shape = pymunk.Circle(s.body, radius=s.radius)
+        s.shape.friction = 5.8
+        s.body.position = (0,0)
+
+    def setupSprite(s):
+        lines = cornersToLines(s.corners)
+        colors = [(128, 192, 128, 255) for _ in lines]
+        image = LineImage(lines, colors)
+        s.sprite = LineSprite(image)
+
+
+
     def handleInputState(s):
         """Handles level-triggered keyboard actions; ie
 things that keep happening as long as you hold the button
@@ -81,15 +114,16 @@ down."""
         if s.keyboard[key.DOWN]:
             s.brake()
         elif s.keyboard[key.LEFT]:
-            print 'l'
             s.moveLeft()
         elif s.keyboard[key.RIGHT]:
-            print 'r'
             s.moveRight()
 
         # Jump, maybe
         if s.keyboard[key.UP]:
             pass
+
+        if s.keyboard[key.SPACE]:
+            print "Enter room"
 
         # Powers
         if s.keyboard[key.A]:

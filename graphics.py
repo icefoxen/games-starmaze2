@@ -20,7 +20,7 @@ polygon into a list of (x1, y1) (x2, y2) line endpoints."""
     
     return expandedEndpoints
 
-def circlePoints(cx, cy, r, numSegments=32):
+def circleCorners(cx, cy, r, numSegments=32):
     """Returns a list of points outlining an approximation
 of a circle.  Can then be turned into actual lines with
 `cornersToLines`.
@@ -42,6 +42,20 @@ Uses the algorithm described at http://slabode.exofire.net/circle_draw.shtml"""
         x *= radialFactor
         y *= radialFactor
     return verts
+
+def rectCorners(cx, cy, w, h):
+    """Returns a list of points outlining a rectangle."""
+    ww = float(w) / 2
+    hh = float(h) / 2
+    verts = [
+        (cx - ww, cy - hh),
+        (cx + ww, cy - hh),
+        (cx + ww, cy + hh),
+        (cx - ww, cy + hh)
+    ]
+    return verts
+
+
 
 class Affine(object):
     """A class set up to do an OpenGL affine transform (in 2d).
@@ -310,10 +324,6 @@ be ideal for shaders and ordering maybe...
     def delete(s):
         pass
 
-    def set_position(self, x, y):
-        s._x = x
-        s._y = y
-
     def draw(s):
         glPushAttrib(GL_COLOR_BUFFER_BIT)
         glEnable(GL_BLEND)
@@ -339,6 +349,12 @@ be ideal for shaders and ordering maybe...
     def _set_y(s, y):
         s._y = y
     y = property(lambda s: s._y, _set_y)
+
+    def _set_position(s, pos):
+        (x, y) = pos
+        s._x = x
+        s._y = y
+    position = property(lambda s: (s._x, s._y), _set_position)
 
     def _set_rotation(s, rotation):
         s._rotation = rotation
