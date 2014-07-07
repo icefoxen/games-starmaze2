@@ -97,7 +97,9 @@ class Player(Actor):
         s.radius = 20
         s.body = pymunk.Body(1, 200)
         s.shapes = [pymunk.Circle(s.body, radius=s.radius)]
-        s.shapes[0].friction = 5.8
+        for shape in s.shapes:
+            shape.friction = 5.8
+            shape.collision_type = 1
         s.body.position = (0,0)
 
     def setupSprite(s):
@@ -182,10 +184,10 @@ whether restoring your health or unlocking a new Power or whatever."""
             pymunk.Poly(s.body, c)
             for c in s.corners
             ]
-
         for shape in s.shapes:
             #shape.friction = 5.8
             shape.elasticity = 0.9
+            shape.collision_type = 2
         
         s.body.position = (0,0)
 

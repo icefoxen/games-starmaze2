@@ -42,7 +42,7 @@ corners is a list of the corners of the polygon.  NOT line endpoins.
         #print corners
         #s.image = LineImage(corners, colors, batch=batch)
         s.sprite = LineSprite(s.image, batch=batch)
-        
+
     def draw(s):
         "Draws the terrain feature."
         s.sprite.draw()
@@ -90,6 +90,13 @@ at a time."""
         s.terrain = set()
         s.space = pymunk.Space()
         s.space.gravity = (0.0, -400.0)
+        def foo(space, arbiter, *args, **kwargs):
+            print space, arbiter, args, kwargs
+            return False
+        s.space.add_collision_handler(1, 2, 
+            begin=foo
+        )
+            
 
         s.actors = set()
 

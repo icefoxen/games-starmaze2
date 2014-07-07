@@ -102,7 +102,7 @@ class World(object):
         b1 = createBlock(-100, -200, 600, 30)
         b2 = createBlock(-100, -170, 30, 300)
         b3 = createBlock(470, -170, 30, 300)
-        b4 = createBlock(-100, -100, 270, 30)
+        b4 = createBlock(-70, -100, 270, 30)
         s.room.addTerrain(b1)
         s.room.addTerrain(b2)
         s.room.addTerrain(b3)
@@ -113,10 +113,10 @@ class World(object):
         s.room.addActor(s.player)
         for i in range(5):
             c = Collectable()
-            rx = random.random() * 100 - 50
-            ry = random.random() * 100
+            rx = random.random() * 1000 - 500
+            ry = random.random() * 1000
             c.position = (100+rx, 100+ry)
-            vx = random.random() * 10
+            vx = random.random() * 100
             vy = random.random() * 1000
             c.body.apply_impulse((vx, vy))
             s.room.addActor(c)
