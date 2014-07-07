@@ -170,12 +170,12 @@ whether restoring your health or unlocking a new Power or whatever."""
 
     def __init__(s):
         super(s.__class__, s).__init__()
-        s.life = 5.0
+        s.life = 15.0
 
     def setupPhysics(s):
         s.corners = []
-        s.corners.append(rectCorners(0, 0, 10, 5))
-        s.corners.append(rectCorners(0, 0, 5, 10))
+        s.corners.append(rectCorners(0, 0, 20, 10))
+        s.corners.append(rectCorners(0, 0, 10, 20))
 
         s.body = pymunk.Body(1, 200)
         s.shapes = [
@@ -184,8 +184,8 @@ whether restoring your health or unlocking a new Power or whatever."""
             ]
 
         for shape in s.shapes:
-            shape.friction = 5.8
-            shape.elasticity = 0.3
+            #shape.friction = 5.8
+            shape.elasticity = 0.9
         
         s.body.position = (0,0)
 

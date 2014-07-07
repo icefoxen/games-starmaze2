@@ -31,6 +31,7 @@ corners is a list of the corners of the polygon.  NOT line endpoins.
         s.body = STATIC_BODY #pymunk.Body(mass=None, moment=None)
         poly = pymunk.Poly(s.body, corners)
         poly.friction = 0.8
+        poly.elasticity = 0.5
         s.shapes = [poly]
 
         s.batch = None or pyglet.graphics.Batch()

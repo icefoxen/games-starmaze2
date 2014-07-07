@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
 import os
+import random
+import time
 
 import pyglet
 import pyglet.window.key as key
@@ -96,21 +98,28 @@ class World(object):
                   (255, 0, 0, 255), (255, 0, 0, 255),
                   (255, 255, 0, 255), (255, 255, 0, 255),
                   ]
-        b1 = createBlock(330, 100, 570, 30)
-        b2 = createBlock(300, 100, 30, 300)
-        b3 = createBlock(800, 100, 30, 300)
-        b4 = createBlock(300, 200, 270, 30)
+
+        b1 = createBlock(-100, -200, 600, 30)
+        b2 = createBlock(-100, -170, 30, 300)
+        b3 = createBlock(470, -170, 30, 300)
+        b4 = createBlock(-100, -100, 270, 30)
         s.room.addTerrain(b1)
         s.room.addTerrain(b2)
         s.room.addTerrain(b3)
         s.room.addTerrain(b4)
 
         s.player = Player(s.keyboard)
-        s.player.position = (s.screenw / 2, s.screenh / 2)
+        #s.player.position = (s.screenw / 2, s.screenh / 2)
         s.room.addActor(s.player)
-        c = Collectable()
-        c.position = (s.screenw / 3, s.screenh)
-        s.room.addActor(c)
+        for i in range(5):
+            c = Collectable()
+            rx = random.random() * 100 - 50
+            ry = random.random() * 100
+            c.position = (100+rx, 100+ry)
+            vx = random.random() * 10
+            vy = random.random() * 1000
+            c.body.apply_impulse((vx, vy))
+            s.room.addActor(c)
         s.camera = Camera(s.player, s.screenw, s.screenh)
 
 
@@ -146,6 +155,7 @@ def main():
 
     world = World(screenw, screenh)
 
+    #time.sleep(5)
     pyglet.clock.schedule_interval(lambda dt: world.update(dt), 1.0/PHYSICS_FPS)
     pyglet.app.run()
 
