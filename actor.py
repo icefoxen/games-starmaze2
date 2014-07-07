@@ -1,5 +1,5 @@
 import pyglet
-from pyglet.gl import *
+import pyglet.window.key as key
 import pymunk
 import pymunk.pyglet_util
 
@@ -18,10 +18,9 @@ class Actor(object):
         s.shape.friction = 5.8
         s.body.position = (0,0)
         s.moveForce = 400
-        s.brakeFactor = 400
+        s.brakeForce = 400
 
         s.motionX = 0
-        s.motionY = 0
         s.braking = False
 
     def _setPosition(s, pt):
@@ -33,10 +32,8 @@ class Actor(object):
     def draw(s):
         pymunk.pyglet_util.draw(s.shape)
 
-    # XXX: Is it better to track key state?  I sort of think so...
     def stopMoving(s):
         s.motionX = 0
-        s.motionY = 0
     
     def moveLeft(s):
         s.motionX = -1
@@ -46,11 +43,19 @@ class Actor(object):
 
     def brake(s):
         s.braking = True
+    def stopBrake(s):
+        s.braking = False
 
     def update(s, dt):
-        xImpulse = s.moveForce * s.motionX * dt
-        yImpulse = 0.0
-        s.body.apply_impulse((xImpulse, yImpulse))
+        if s.braking:
+            (vx, vy) = s.body.velocity
+            if vx > 0:
+                s.body.apply_impulse((-s.brakeForce * dt, 0))
+            else:
+                s.body.apply_impulse((s.brakeForce * dt, 0))
+        else:
+            xImpulse = s.moveForce * s.motionX * dt
+            s.body.apply_impulse((xImpulse, 0))
 
         #fmtstr = "position: {} force: {} torque: {}"
         #print fmtstr.format(s.body.position, s.body.force, s.body.torque)
@@ -58,5 +63,47 @@ class Actor(object):
 
 class Player(Actor):
     """The player object."""
-    def __init__(s):
+    def __init__(s, keyboard):
         super(s.__class__, s).__init__()
+        s.keyboard = keyboard
+
+    def update(s, dt):
+        s.handleInputState()
+        super(s.__class__, s).update(dt)
+
+    def handleInputState(s):
+        """Handles level-triggered keyboard actions; ie
+things that keep happening as long as you hold the button
+down."""
+        print 'bop'
+        s.stopBrake()
+        #s.stopMoving()
+        if s.keyboard[key.DOWN]:
+            s.brake()
+        elif s.keyboard[key.LEFT]:
+            s.moveLeft()
+        elif s.keyboard[key.RIGHT]:
+            s.moveRight()
+
+        # Jump, maybe
+        if s.keyboard[key.UP]:
+            pass
+
+        # Powers
+        if s.keyboard[key.A]:
+            pass
+        if s.keyboard[key.S]:
+            pass
+        if s.keyboard[key.D]:
+            pass
+        if s.keyboard[key.W]:
+            pass
+
+
+    def handleInputEvent(s, k, mod):
+        """Handles edge-triggered keyboard actions (key presses, not holds)"""
+        # Switch powers
+        if k == key.Q:
+            print 'foo'
+        elif k == key.E:
+            print 'bar'

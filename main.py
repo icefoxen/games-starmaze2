@@ -65,19 +65,24 @@ class World(object):
         s.screenh = screenh
         s.fps_display = pyglet.clock.ClockDisplay()
 
-        s.setupWorld()
-        s.camera = Camera(s.player, screenw, screenh)
         s.physicsSteps = 30.0
 
         s.shader = Shader([vprog], [fprog])
 
+        s.keyboard = key.KeyStateHandler()
+
         s.window.push_handlers(
+            s.keyboard,
             on_draw = lambda: s.on_draw(),
-            on_key_press = lambda k, mods: s.on_key_press(k, mods),
-            on_key_release = lambda k, mods: s.on_key_release(k, mods)
+            
+            #on_key_press = lambda k, mods: s.on_key_press(k, mods),
+            #on_key_release = lambda k, mods: s.on_key_release(k, mods)
         )
         #s.window.event.on_draw = lambda: s.on_draw()
         #s.window.event.on_keypress = lambda k, mods: s.on_keypress(k, mods)
+
+        s.setupWorld()
+
         
     def setupWorld(s):
         s.room = Room()
@@ -95,12 +100,14 @@ class World(object):
         s.room.addTerrain(b3)
         s.room.addTerrain(b4)
 
-        s.player = Actor()
+        s.player = Player(s.keyboard)
         s.player.position = (s.screenw / 2, s.screenh / 2)
         s.room.addActor(s.player)
+        s.camera = Camera(s.player, s.screenw, s.screenh)
 
 
     def update(s, dt):
+        #s.player.handleInput(s.keyboard)
         step = dt / s.physicsSteps
         for _ in range(int(s.physicsSteps)):
             s.room.update(step)
@@ -121,29 +128,10 @@ class World(object):
         s.fps_display.draw()
 
     def on_key_press(s, k, modifiers):
-        global shader_on
-        if k == key.LEFT:
-            s.player.moveLeft()
-        elif k == key.RIGHT:
-            s.player.moveRight()
-        elif k == key.SPACE:
-            act = Actor(s.screenw / 2, s.screenh / 2)
-            s.room.addActor(act)
-        elif k == key.ENTER:
-            shader_on = not shader_on
-            print("Shader on:", shader_on)
+        s.player.handleInputEvent(k, modifiers)
+        #return False
 
-    def on_key_release(s, k, modifiers):
-        global shader_on
-        if k == key.LEFT:
-            s.player.stopMoving()
-            #room.camers.player.x -= 30
-        elif k == key.RIGHT:
-            s.player.stopMoving()
-            #room.camers.player.x += 30
-        elif k == key.UP:
-            s.player.stopMoving()
-        
+
 def main():
     screenw = 1024
     screenh = 768
