@@ -87,13 +87,13 @@ class World(object):
                   (255, 255, 0, 255), (255, 255, 0, 255),
                   ]
         b1 = createBlock(330, 100, 570, 30)
-        b2 = createBlock(300, 100, 30, 300)
-        b3 = createBlock(800, 100, 30, 300)
-        b4 = createBlock(300, 200, 270, 30)
+        #b2 = createBlock(300, 100, 30, 300)
+        #b3 = createBlock(800, 100, 30, 300)
+        #b4 = createBlock(300, 200, 270, 30)
         s.room.addTerrain(b1)
-        s.room.addTerrain(b2)
-        s.room.addTerrain(b3)
-        s.room.addTerrain(b4)
+        #s.room.addTerrain(b2)
+        #s.room.addTerrain(b3)
+        #s.room.addTerrain(b4)
 
         s.player = Actor(s.screenw / 2, s.screenh / 2)
         s.room.addActor(s.player)

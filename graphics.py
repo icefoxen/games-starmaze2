@@ -4,6 +4,29 @@ import math
 import pyglet
 from pyglet.gl import *
 
+def cornersToLines(corners):
+    """Turns a list of (x,y) coordinates representing the corners of closed
+polygon into a list of (x1, y1) (x2, y2) line endpoints."""
+    # Sanity check
+    if len(corners) < 2:
+        return []
+
+    endpointPairs = zip(corners, corners[1:])
+    expandedEndpoints = list(itertools.chain.from_iterable(endpointPairs))
+    
+    # Close the last side
+    expandedEndpoints.append(corners[-1])
+    expandedEndpoints.append(corners[0])
+    #print expandedEndpoints
+    #expandedEndpoints.reverse()
+    
+    return expandedEndpoints
+
+    #lineses = [(x1, y1, x2, y2) 
+    #           for ((x1, y1), (x2, y2))
+    #           in zip(s._verts[::2], s._verts[1::2])]    
+    #return []
+
 class Affine(object):
     """A class set up to do an OpenGL affine transform (in 2d).
 
@@ -93,12 +116,17 @@ Basically, we lerp towards the target's position."""
 class LineImage(object):
     """A collection of lines that can be drawn like an image.
 
-Takes a list of (x,y) coordinates, a list of (r,g,b,a) colors (one
-for each coordinate), and optionally a `pyglet.graphics.Batch`
+Takes a list of (x,y) coordinates representing vertices
+(line endpoints, two per line; it doesn't assume a closed
+loop of lines!)
+a list of (r,g,b,a) colors (one
+for each vertex), and optionally a `pyglet.graphics.Batch`
 to draw in.
 
 Generates nice lines using the "fade-polygon" technique discussed
 here:
+
+http://www.codeproject.com/Articles/199525/Drawing-nearly-perfect-D-line-segments-in-OpenGL
 
 TODO:
 One open question is how we handle memory, since these create
@@ -108,8 +136,6 @@ a) we're going to load all of these and then cache them without
 creating new ones at random, and b) they'll all be freed more
 or less correctly by pyglet should they ever become redundant.
 These assumptions are probably pretty safe.
-
-TODO: Triangle strips?
 """
     def __init__(s, verts, colors, lineWidth=2, batch=None, usage='static'):
         s._verts = verts
@@ -123,18 +149,16 @@ TODO: Triangle strips?
 
     def _addToBatch(s):
         """Adds the verts and colors to the assigned batch.
-For now we use GL_LINE_LOOP and don't do anything fancy.
-Eventually we're going to tesselate this into triangles
-and be generally nicer."""
+Tesselates the lines to polygons, too."""
         
         # First we take the list of (x,y) line endpoints
         # and turn it into a list of (x1, y1, x2, y2) lines
+        print s._verts
         lineses = [(x1, y1, x2, y2) 
                    for ((x1, y1), (x2, y2))
                    in zip(s._verts[::2], s._verts[1::2])]
         # Then we use _line() to turn each line into a list of vertices
         tesselatedLines = map(lambda l: s._line(*l, width=s._lineWidth), lineses)
-
         # We also have to pair up the colors similarly
         #colorses = [(x1, y1, x2, y2) 
         #           for ((r1, b1, g1, a1), (r1, g2, b2, a2))
@@ -155,7 +179,7 @@ and be generally nicer."""
 
             vertFormat = 'v2f/{}'.format(s._usage)
             colorFormat = 'c4B/{}'.format(s._usage)
-            #print line, color
+            #print line #, color
             vertexList = s.batch.add(
                 numPoints, 
                 pyglet.graphics.GL_TRIANGLE_STRIP, 
@@ -169,13 +193,13 @@ and be generally nicer."""
     def _line(s, x1, y1, x2, y2, width=2):
         """Returns a list of verts, creating a quad
 suitable for drawing with GL_TRIANGLE_STRIP.
+
+TODO: Endcaps (fairly easy)
+TODO MORE: Polylines (harder)
+TODO (POWER GOAL): Handle overlapping nicely
 """
-        #print x1, y1, x2, y2
         rise = y2 - y1
         run = x2 - x1
-        # XXX div0
-        #slope = float(rise) / float(run)
-        #normal = 1.0 / slope
         angle = math.atan2(rise, run)
         xoff = math.sin(angle) * width
         yoff = math.cos(angle) * width

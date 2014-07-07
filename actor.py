@@ -8,8 +8,8 @@ class Actor(object):
     """The basic thing-that-moves-and-does-stuff in a `Room`."""
     def __init__(s, x, y):
         s.verts = [
-            (-10, -10), (-10, 10),
-            (10, 10), (10, -10)
+            (-10, -10), (10, -10),
+            (10, 10), (-10, 10)
         ]
         s.verts.reverse()
         s.body = pymunk.Body(1, 200)
@@ -36,5 +36,6 @@ class Actor(object):
 
 
     def update(s, dt):
-        fmtstr = "position: {} force: {} torque: {}"
-        print fmtstr.format(s.body.position, s.body.force, s.body.torque)
+        pass
+        #fmtstr = "position: {} force: {} torque: {}"
+        #print fmtstr.format(s.body.position, s.body.force, s.body.torque)

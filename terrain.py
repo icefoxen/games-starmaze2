@@ -21,20 +21,25 @@ class Terrain(object):
     """A wall, platform, or other terrain feature in a room.
 Currently, just uses a `pymunk.Poly` for its shape.  More complex
 things might come later.
+
+corners is a list of the corners of the polygon.  NOT line endpoins.
 """
-    def __init__(s, verts, colors, batch=None):
+    def __init__(s, corners, colors, batch=None):
         "Create a `Terrain` object."
-        s.verts = verts
+        s.corners = corners
         s.colors = colors
         s.body = STATIC_BODY #pymunk.Body(mass=None, moment=None)
-        poly = pymunk.Poly(s.body, verts)
+        poly = pymunk.Poly(s.body, corners)
         poly.friction = 0.8
-        line = pymunk.Segment(s.body, verts[0], verts[1], 2)
         s.shapes = [poly]
 
         s.batch = None or pyglet.graphics.Batch()
 
-        s.image = LineImage(verts, colors, batch=batch)
+        lines = cornersToLines(corners)
+        #print lines
+        s.image = LineImage(lines, colors, batch=batch)
+        #print corners
+        #s.image = LineImage(corners, colors, batch=batch)
         s.sprite = LineSprite(s.image, batch=batch)
         
     def draw(s):
@@ -56,26 +61,24 @@ def createBlock(x, y, w, h, color=(255, 255, 255, 255), batch=None):
     yf = float(y)
     wf = float(w)
     hf = float(h)
-    verts = [
+    corners = [
         (xf, yf), (xf+wf, yf), 
-        (xf+wf, yf), (xf+wf, yf+hf),
         (xf+wf, yf+hf), (xf, yf+hf),
-        (xf, yf+hf), (xf, yf)
     ]
     #print "FOO", verts
     colors = []
     if isinstance(color, list):
-        if len(color) != len(verts):
-            raise Exception("Color array not right size, expected {}, got {}: {}".format(len(verts), len(color), color))
+        if len(color) != len(corners) * 2:
+            raise Exception("Color array not right size, expected {}, got {}: {}".format(len(corners) * 2, len(color), color))
         else:
             colors = color
     else:
         if len(color) != 4:
             raise Exception("color is not a 4-tuple: {}".format(color))
         else:
-            colors = [color] * len(verts)
+            colors = [color, color] * len(corners)
 
-    t = Terrain(verts, colors, batch)
+    t = Terrain(corners, colors, batch)
     return t
 
 class Room(object):
