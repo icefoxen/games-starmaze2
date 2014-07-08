@@ -8,12 +8,22 @@ import pymunk.pyglet_util
 
 from graphics import *
 
+# COLLISION GROUPS!  \O/
+COLL_NONE = 0
+COLL_PLAYER = 1
+COLL_COLLECTABLE = 2
+COLL_ENEMY = 3
+COLL_PLAYERBULLET = 4
+COLL_ENEMYBULLET = 5
+
 class Actor(object):
     """The basic thing-that-moves-and-does-stuff in a `Room`."""
-    def __init__(s, batch=None):
+    def __init__(s, collisionType=COLL_NONE, batch=None):
         s.batch = batch or pyglet.graphics.Batch()
+        s.collisionType = collisionType
         s.setupPhysics()
         s.setupSprite()
+        s.setCollisionType()
 
         s.alive = True
 
@@ -22,13 +32,19 @@ class Actor(object):
         s.motionX = 0
         s.braking = False
 
+    def setCollisionType(s):
+        for shape in s.shapes:
+            shape.collision_type = s.collisionType
+        s.body.foo = s
+
     def setupPhysics(s):
         """Sets up the actor-specific shape and physics parameters.
 Override in children and it will be called in `__init__`."""
         s.corners = rectCorners(0, 0, 10, 10)
         s.body = pymunk.Body(1, 200)
         s.shapes = [pymunk.Poly(s.body, s.corners, radius=1)]
-        s.shapes[0].friction = 5.8
+        for shape in shapes:
+            shape.friction = 5.8
         s.body.position = (0,0)
 
     def setupSprite(s):
@@ -86,8 +102,9 @@ Override in children and it will be called in `__init__`."""
 class Player(Actor):
     """The player object."""
     def __init__(s, keyboard):
-        super(s.__class__, s).__init__()
+        super(s.__class__, s).__init__(collisionType=COLL_PLAYER)
         s.keyboard = keyboard
+
 
     def update(s, dt):
         s.handleInputState()
@@ -99,7 +116,6 @@ class Player(Actor):
         s.shapes = [pymunk.Circle(s.body, radius=s.radius)]
         for shape in s.shapes:
             shape.friction = 5.8
-            shape.collision_type = 1
         s.body.position = (0,0)
 
     def setupSprite(s):
@@ -171,7 +187,7 @@ class Collectable(Actor):
 whether restoring your health or unlocking a new Power or whatever."""
 
     def __init__(s):
-        super(s.__class__, s).__init__()
+        super(s.__class__, s).__init__(collisionType=COLL_COLLECTABLE)
         s.life = 15.0
 
     def setupPhysics(s):
@@ -187,7 +203,6 @@ whether restoring your health or unlocking a new Power or whatever."""
         for shape in s.shapes:
             #shape.friction = 5.8
             shape.elasticity = 0.9
-            shape.collision_type = 2
         
         s.body.position = (0,0)
 

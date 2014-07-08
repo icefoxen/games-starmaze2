@@ -4,7 +4,7 @@ import pymunk
 import pymunk.pyglet_util
 
 from graphics import *
-
+from actor import *
 
 
 
@@ -90,17 +90,22 @@ at a time."""
         s.terrain = set()
         s.space = pymunk.Space()
         s.space.gravity = (0.0, -400.0)
-        def foo(space, arbiter, *args, **kwargs):
-            print space, arbiter, args, kwargs
-            return False
-        s.space.add_collision_handler(1, 2, 
-            begin=foo
+        s.space.add_collision_handler(COLL_PLAYER, COLL_COLLECTABLE,
+            begin=Room.collidePlayerCollectable
         )
             
 
         s.actors = set()
 
         s.name = ""
+
+    @staticmethod
+    def collidePlayerCollectable(space, arbiter, *args, **kwargs):
+        print space, arbiter, args, kwargs
+        a, b = arbiter.shapes
+        print "FOO", a.body.foo, b.body.foo
+        return False
+
 
     def addTerrain(s, t):
         "Adds a `Terrain` object to the room."
