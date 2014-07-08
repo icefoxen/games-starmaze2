@@ -93,7 +93,7 @@ at a time."""
         s.space.add_collision_handler(COLL_PLAYER, COLL_COLLECTABLE,
             begin=Room.collidePlayerCollectable
         )
-            
+    
 
         s.actors = set()
 
@@ -101,9 +101,12 @@ at a time."""
 
     @staticmethod
     def collidePlayerCollectable(space, arbiter, *args, **kwargs):
-        print space, arbiter, args, kwargs
-        a, b = arbiter.shapes
-        print "FOO", a.body.foo, b.body.foo
+        #print space, arbiter, args, kwargs
+        playerShape, collectableShape = arbiter.shapes
+        player = playerShape.body.actor
+        collectable = collectableShape.body.actor
+        collectable.collect(player)
+        collectable.alive = False
         return False
 
 

@@ -35,7 +35,7 @@ class Actor(object):
     def setCollisionType(s):
         for shape in s.shapes:
             shape.collision_type = s.collisionType
-        s.body.foo = s
+        s.body.actor = s
 
     def setupPhysics(s):
         """Sets up the actor-specific shape and physics parameters.
@@ -215,7 +215,7 @@ whether restoring your health or unlocking a new Power or whatever."""
         s.sprite = LineSprite(image)
 
     def collect(s, player):
-        pass
+        print "Collected!"
 
     def update(s, dt):
         s.life -= dt
