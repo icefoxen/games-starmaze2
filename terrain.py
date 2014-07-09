@@ -24,10 +24,9 @@ things might come later.
 
 corners is a list of the corners of the polygon.  NOT line endpoins.
 """
-    def __init__(s, corners, colors, batch=None):
+    def __init__(s, corners, color, batch=None):
         "Create a `Terrain` object."
         s.corners = corners
-        s.colors = colors
         s.body = STATIC_BODY #pymunk.Body(mass=None, moment=None)
         poly = pymunk.Poly(s.body, corners)
         poly.friction = 0.8
@@ -37,10 +36,9 @@ corners is a list of the corners of the polygon.  NOT line endpoins.
         s.batch = None or pyglet.graphics.Batch()
 
         lines = cornersToLines(corners)
-        #print lines
+        colors = colorLines(lines, color)
+
         s.image = LineImage(lines, colors, batch=batch)
-        #print corners
-        #s.image = LineImage(corners, colors, batch=batch)
         s.sprite = LineSprite(s.image, batch=batch)
 
     def draw(s):
@@ -62,24 +60,8 @@ def createBlock(x, y, w, h, color=(255, 255, 255, 255), batch=None):
     yf = float(y)
     wf = float(w)
     hf = float(h)
-    corners = [
-        (xf, yf), (xf+wf, yf), 
-        (xf+wf, yf+hf), (xf, yf+hf),
-    ]
-    #print "FOO", verts
-    colors = []
-    if isinstance(color, list):
-        if len(color) != len(corners) * 2:
-            raise Exception("Color array not right size, expected {}, got {}: {}".format(len(corners) * 2, len(color), color))
-        else:
-            colors = color
-    else:
-        if len(color) != 4:
-            raise Exception("color is not a 4-tuple: {}".format(color))
-        else:
-            colors = [color, color] * len(corners)
-
-    t = Terrain(corners, colors, batch)
+    corners = rectCorners(x, y, w, h)
+    t = Terrain(corners, color, batch)
     return t
 
 class Room(object):
@@ -90,7 +72,7 @@ at a time."""
         s.terrain = set()
         s.space = pymunk.Space()
         s.space.gravity = (0.0, -400.0)
-        s.space.add_collision_handler(COLL_PLAYER, COLL_COLLECTABLE,
+        s.space.add_collision_handler(CGROUP_PLAYER, CGROUP_COLLECTABLE,
             begin=Room.collidePlayerCollectable
         )
     
@@ -101,6 +83,7 @@ at a time."""
 
     @staticmethod
     def collidePlayerCollectable(space, arbiter, *args, **kwargs):
+        "The handler for a player collecting a Collectable."
         #print space, arbiter, args, kwargs
         playerShape, collectableShape = arbiter.shapes
         player = playerShape.body.actor

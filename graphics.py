@@ -59,6 +59,14 @@ def lineCorners(x1, y1, x2, y2):
     """Returns a list of points making a single line."""
     return [(x1, y1), (x2, y2)]
 
+def colorLines(lines, color=(255,255,255,255)):
+    """Returns an array of colors suitable for coloring the
+given lines the given color."""
+    if len(color) != 4:
+        raise Exception("color is not a 4-tuple: {}".format(color))
+    else:
+        return [color, color] * len(lines)
+
 
 
 class Affine(object):

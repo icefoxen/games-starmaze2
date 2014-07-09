@@ -9,21 +9,44 @@ import pymunk.pyglet_util
 from graphics import *
 
 # COLLISION GROUPS!  \O/
-COLL_NONE = 0
-COLL_PLAYER = 1
-COLL_COLLECTABLE = 2
-COLL_ENEMY = 3
-COLL_PLAYERBULLET = 4
-COLL_ENEMYBULLET = 5
+# Collision groups in pymunk determine types
+# of objects; you can assign different callbacks to be called
+# when objects in different groups collide.
+CGROUP_NONE = 0
+CGROUP_PLAYER = 1
+CGROUP_COLLECTABLE = 2
+CGROUP_ENEMY = 3
+CGROUP_PLAYERBULLET = 4
+CGROUP_ENEMYBULLET = 5
+CGROUP_TERRAIN = 6
+
+# Collision layers
+# Determine what collides with what at all; probably faster
+# and certainly simpler than making a bunch of callbacks between
+# collision groups that do nothing.
+# Collectables do not collide with enemies or player/enemy bullets
+# Enemies do not collide with their own bullets,
+# players do not collide with their own bullets.
+LAYER_PLAYER       = 0X00000001
+LAYER_COLLECTABLE  = 0x00000002
+LAYER_ENEMY        = 0x00000004
+LAYER_PLAYERBULLET = 0x00000008
+LAYER_ENEMYBULLET  = 0x00000010
+LAYER_BULLET       = LAYER_PLAYERBULLET & LAYER_ENEMYBULLET
+LAYER_TERRAIN      = 0x00000020
+
+LAYERSPEC_ALL         = 0xFFFFFFFF
+LAYERSPEC_PLAYER      = LAYERSPEC_ALL & ~LAYER_PLAYERBULLET
+LAYERSPEC_ENEMY       = LAYERSPEC_ALL & ~LAYER_BULLET
+LAYERSPEC_COLLECTABLE = LAYERSPEC_ALL & ~LAYER_ENEMY 
+
 
 class Actor(object):
     """The basic thing-that-moves-and-does-stuff in a `Room`."""
-    def __init__(s, collisionType=COLL_NONE, batch=None):
+    def __init__(s, batch=None):
         s.batch = batch or pyglet.graphics.Batch()
-        s.collisionType = collisionType
         s.setupPhysics()
         s.setupSprite()
-        s.setCollisionType()
 
         s.alive = True
 
@@ -32,10 +55,33 @@ class Actor(object):
         s.motionX = 0
         s.braking = False
 
-    def setCollisionType(s):
+    def setCollisionProperties(s, group, layerspec):
+        "Set the actor's collision properties."
         for shape in s.shapes:
-            shape.collision_type = s.collisionType
+            shape.collision_type = group
+            shape.layers = layerspec
         s.body.actor = s
+
+    def setCollisionPlayer(s):
+        "Sets the actor's collision properties to that suitable for a player."
+        s.setCollisionProperties(CGROUP_PLAYER, LAYERSPEC_PLAYER)
+
+    def setCollisionEnemy(s):
+        "Sets the actor's collision properties to that suitable for an enemy."
+        s.setCollisionProperties(CGROUP_ENEMY, LAYERSPEC_ENEMY)
+
+    def setCollisionCollectable(s):
+        "Sets the actor's collision properties to that suitable for a collectable."
+        s.setCollisionProperties(CGROUP_COLLECTABLE, LAYERSPEC_ENEMY)
+
+    def setCollisionPlayerBullet(s):
+        "Sets the actor's collision properties to that suitable for a player bullet."
+        s.setCollisionProperties(CGROUP_PLAYERBULLET, LAYERSPEC_PLAYERBULLET)
+
+    def setCollisionEnemyBullet(s):
+        "Sets the actor's collision properties to that suitable for an enemy bullet."
+        s.setCollisionProperties(CGROUP_ENEMYBULLET, LAYERSPEC_ENEMYBULLET)
+
 
     def setupPhysics(s):
         """Sets up the actor-specific shape and physics parameters.
@@ -102,8 +148,9 @@ Override in children and it will be called in `__init__`."""
 class Player(Actor):
     """The player object."""
     def __init__(s, keyboard):
-        super(s.__class__, s).__init__(collisionType=COLL_PLAYER)
+        super(s.__class__, s).__init__()
         s.keyboard = keyboard
+        s.setCollisionPlayer()
 
 
     def update(s, dt):
@@ -187,8 +234,9 @@ class Collectable(Actor):
 whether restoring your health or unlocking a new Power or whatever."""
 
     def __init__(s):
-        super(s.__class__, s).__init__(collisionType=COLL_COLLECTABLE)
+        super(s.__class__, s).__init__()
         s.life = 15.0
+        s.setCollisionCollectable()
 
     def setupPhysics(s):
         s.corners = []

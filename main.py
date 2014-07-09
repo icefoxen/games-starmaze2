@@ -99,9 +99,9 @@ class World(object):
                   (255, 255, 0, 255), (255, 255, 0, 255),
                   ]
 
-        b1 = createBlock(-100, -200, 600, 30)
-        b2 = createBlock(-100, -170, 30, 300)
-        b3 = createBlock(470, -170, 30, 300)
+        b1 = createBlock(0, -200, 600, 30)
+        b2 = createBlock(-315, -65, 30, 300)
+        b3 = createBlock(315, -65, 30, 300)
         b4 = createBlock(-70, -100, 270, 30)
         s.room.addTerrain(b1)
         s.room.addTerrain(b2)
