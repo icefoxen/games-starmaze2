@@ -4,6 +4,26 @@ import math
 import pyglet
 from pyglet.gl import *
 
+class ShaderGroup(pyglet.graphics.Group):
+    def __init__(s, parent=None):
+        super(s.__class__, s).__init__(parent)
+        print 'made shader group'
+
+    def set_state(s):
+        print 'set state'
+
+    def unset_state(s):
+        print 'unset state'
+
+    def __hash__(s):
+        print 'hash'
+        return hash(1)
+
+    def __eq__(s, other):
+        print 'eq'
+        return True
+
+
 def cornersToLines(corners):
     """Turns a list of (x,y) coordinates representing the corners of closed
 polygon into a list of (x1, y1) (x2, y2) line endpoints."""
@@ -179,13 +199,14 @@ creating new ones at random, and b) they'll all be freed more
 or less correctly by pyglet should they ever become redundant.
 These assumptions are probably pretty safe.
 """
-    def __init__(s, verts, colors, lineWidth=2, batch=None, usage='static'):
+    def __init__(s, verts, colors, lineWidth=2, batch=None, group=None, usage='static'):
         s._verts = verts
         s._colors = colors
         s.batch = batch or pyglet.graphics.Batch()
-        s._vertexList = None
         s._usage = usage
         s._lineWidth = lineWidth
+
+        s._group = group #or ShaderGroup()
 
         s._addToBatch()
 
@@ -225,7 +246,7 @@ Tesselates the lines to polygons, too."""
             vertexList = s.batch.add(
                 numPoints, 
                 pyglet.graphics.GL_TRIANGLE_STRIP, 
-                None, 
+                s._group, 
                 (vertFormat, line),
                 (colorFormat, color)
             )
@@ -325,7 +346,7 @@ about it until I need to.  Though it looks like it might
 be ideal for shaders and ordering maybe...
 """
 
-    def __init__(s, lineimage, x=0, y=0, batch=None):
+    def __init__(s, lineimage, x=0, y=0, batch=None, group=None):
         s._image = lineimage
         s._x = x
         s._y = y

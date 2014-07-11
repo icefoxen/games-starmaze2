@@ -38,8 +38,7 @@ LAYER_TERRAIN      = 0x00000020
 LAYERSPEC_ALL         = 0xFFFFFFFF
 LAYERSPEC_PLAYER      = LAYERSPEC_ALL & ~LAYER_PLAYERBULLET
 LAYERSPEC_ENEMY       = LAYERSPEC_ALL & ~LAYER_BULLET
-LAYERSPEC_COLLECTABLE = LAYERSPEC_ALL & ~LAYER_ENEMY 
-
+LAYERSPEC_COLLECTABLE = LAYERSPEC_ALL & ~LAYER_ENEMY
 
 class Actor(object):
     """The basic thing-that-moves-and-does-stuff in a `Room`."""
@@ -60,6 +59,7 @@ class Actor(object):
         for shape in s.shapes:
             shape.collision_type = group
             shape.layers = layerspec
+        # XXX Circular reference, might be better as a weak reference
         s.body.actor = s
 
     def setCollisionPlayer(s):
@@ -147,8 +147,8 @@ Override in children and it will be called in `__init__`."""
 
 class Player(Actor):
     """The player object."""
-    def __init__(s, keyboard):
-        super(s.__class__, s).__init__()
+    def __init__(s, keyboard, batch=None):
+        super(s.__class__, s).__init__(batch)
         s.keyboard = keyboard
         s.setCollisionPlayer()
 
@@ -233,8 +233,8 @@ class Collectable(Actor):
     """Something you can collect which does things to you,
 whether restoring your health or unlocking a new Power or whatever."""
 
-    def __init__(s):
-        super(s.__class__, s).__init__()
+    def __init__(s, batch=None):
+        super(s.__class__, s).__init__(batch)
         s.life = 15.0
         s.setCollisionCollectable()
 
@@ -251,8 +251,6 @@ whether restoring your health or unlocking a new Power or whatever."""
         for shape in s.shapes:
             #shape.friction = 5.8
             shape.elasticity = 0.9
-        
-        s.body.position = (0,0)
 
     def setupSprite(s):
         lineList = [cornersToLines(cs) for cs in s.corners]
@@ -269,3 +267,32 @@ whether restoring your health or unlocking a new Power or whatever."""
         s.life -= dt
         if s.life < 0:
             s.alive = False
+
+class Powerup(Actor):
+    """A Collectable that doesn't time out and doesn't move."""
+    def __init__(s):
+        super(s.__class__, s).__init__()
+        s.setCollisionCollectable()
+
+    def setupPhysics(s):
+        s.corners = []
+        s.corners.append(rectCorners(0, 0, 20, 20))
+        s.body = pymunk.Body()
+        s.shapes = [
+            pymunk.Poly(s.body, c)
+            for c in s.corners
+            ]
+        for shape in s.shapes:
+            #shape.friction = 5.8
+            shape.elasticity = 0.9
+
+    def setupSprite(s):
+        lineList = [cornersToLines(cs) for cs in s.corners]
+
+        allLines = list(itertools.chain.from_iterable(lineList))
+        colors = [(128, 128, 255, 255) for _ in allLines]
+        image = LineImage(allLines, colors)
+        s.sprite = LineSprite(image)
+
+    def collect(s, player):
+        print "Powered up!"

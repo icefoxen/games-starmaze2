@@ -7,7 +7,6 @@ from graphics import *
 from actor import *
 
 
-
 STATIC_BODY = pymunk.Body()
 
 # Of course.
@@ -64,20 +63,46 @@ def createBlock(x, y, w, h, color=(255, 255, 255, 255), batch=None):
     t = Terrain(corners, color, batch)
     return t
 
+class Door(object):
+    def __init__(s, position, destination):
+        s.position = position
+        s.passable = True
+        s.destination = target
+
+        x, y = s.position
+        s.corners = rectCorners(x, y, 30, 30)
+        lines = cornersToLines(s.corners)
+        colors = colorLines(lines, (255, 0, 255, 255))
+        image = LineImage(lines, colors)
+        s.sprite = LineSprite(image)
+        s.sprite.position = s.position
+
+    def draw(s):
+        s.sprite.draw()
+
+    def intersecting(s, player):
+        """Returns true if the player is in the door, and can wander through it.
+Doors don't move, are rectangular, don't do physics-y things, and are only 
+tested for collision rarely, so we just use a simple bounding circle. """
+        pass
+
+    def enter(s, player):
+        pass
+
 class Room(object):
     """A collection of `Terrain` objects and environmental data.
 Also handles physics.  There's only ever one `Room` on screen
 at a time."""
     def __init__(s):
-        s.terrain = set()
         s.space = pymunk.Space()
         s.space.gravity = (0.0, -400.0)
         s.space.add_collision_handler(CGROUP_PLAYER, CGROUP_COLLECTABLE,
             begin=Room.collidePlayerCollectable
         )
     
-
+        s.terrain = set()
         s.actors = set()
+        s.doors = set()
 
         s.name = ""
 
@@ -97,37 +122,39 @@ at a time."""
         "Adds a `Terrain` object to the room."
         s.terrain.add(t)
         s.space.add(t.shapes)
+        if not t.body.is_static:
+            s.space.add(t.body)
 
     def removeTerrain(s, t):
         "Removes a `Terrain` object."
         s.terrain.remove(t)
         s.space.remove(t.shapes)
+        if not t.body.is_static:
+            s.space.remove(t.body)
 
     def addActor(s, a):
         "Adds the given `Actor` to the room."
         s.actors.add(a)
-        s.space.add(a.shapes, a.body)
+        s.space.add(a.shapes)
+        if not a.body.is_static:
+            s.space.add(a.body)
 
     def removeActor(s, a):
         "Removes the given `Actor` from the room."
         s.actors.remove(a)
-        s.space.remove(a.shapes, a.body)
+        s.space.remove(a.shapes)
+        if not a.body.is_static:
+            s.space.remove(a.body)
         
     def update(s,dt):
         "Updates all the physics objects in the room."
-        #print s.space.bodies
-        #print s.space.shapes
         s.space.step(dt)
         for act in s.actors:
             act.update(dt)
-        aliveActors = []
-        deadActors = []
-        aliveActors = [act for act in s.actors if act.alive]
         deadActors = [act for act in s.actors if not act.alive]
-        s.actors = aliveActors
         for act in deadActors:
             act.die()
-            s.space.remove(act.body, act.shapes)
+            s.removeActor(act)
 
 
     def draw(s):

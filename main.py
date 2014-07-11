@@ -56,6 +56,7 @@ void main() {
 }
 '''
 
+
 shader_on = False
 
 
@@ -63,6 +64,9 @@ class World(object):
     """Contains all the state for the game."""
     def __init__(s, screenw, screenh):
         s.window = pyglet.window.Window(width=screenw, height=screenh)
+        s.window.set_vsync(True)
+        #pyglet.clock.set_fps_limit(10)
+        print s.window.vsync
         s.screenw = screenw
         s.screenh = screenh
         s.fps_display = pyglet.clock.ClockDisplay()
@@ -92,12 +96,13 @@ class World(object):
 
         
     def setupWorld(s):
+        #s.batch = pyglet.graphics.Batch()
         s.room = Room()
-        colors = [(0, 0, 255, 255), (0, 255, 0, 255), 
-                  (255, 0, 0, 255), (255, 255, 255, 255),
-                  (255, 0, 0, 255), (255, 0, 0, 255),
-                  (255, 255, 0, 255), (255, 255, 0, 255),
-                  ]
+        #colors = [(0, 255, 255, 255), (0, 255, 0, 255), 
+        #          (255, 0, 0, 255), (255, 255, 255, 255),
+        #          (255, 0, 0, 255), (255, 0, 0, 255),
+        #          (255, 255, 0, 255), (255, 255, 0, 255),
+        #          ]
 
         b1 = createBlock(0, -200, 600, 30)
         b2 = createBlock(-315, -65, 30, 300)
@@ -120,6 +125,11 @@ class World(object):
             vy = random.random() * 1000
             c.body.apply_impulse((vx, vy))
             s.room.addActor(c)
+
+        p = Powerup()
+        p.position = (0, -150)
+        s.room.addActor(p)
+
         s.camera = Camera(s.player, s.screenw, s.screenh)
 
 
@@ -139,7 +149,9 @@ class World(object):
                     s.shader.uniformf("inp", 0.0, 0.0, 0.0, 0.0)
                     s.room.draw()
             else:
+                #s.batch.draw()
                 s.room.draw()
+
                 #pymunk.pyglet_util.draw(s.room.space)
 
         s.fps_display.draw()
