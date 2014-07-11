@@ -4,6 +4,7 @@ import math
 import pyglet
 from pyglet.gl import *
 
+
 class ShaderGroup(pyglet.graphics.Group):
     def __init__(s, parent=None):
         super(s.__class__, s).__init__(parent)
@@ -63,8 +64,8 @@ Uses the algorithm described at http://slabode.exofire.net/circle_draw.shtml"""
         y *= radialFactor
     return verts
 
-def rectCorners(cx, cy, w, h):
-    """Returns a list of points outlining a rectangle."""
+def rectCornersCenter(cx, cy, w, h):
+    """Returns a list of points outlining a rectangle, given the center point"""
     ww = float(w) / 2
     hh = float(h) / 2
     verts = [
@@ -73,6 +74,16 @@ def rectCorners(cx, cy, w, h):
         (cx + ww, cy + hh),
         (cx - ww, cy + hh)
     ]
+    return verts
+
+def rectCornersCorner(x, y, w, h):
+    """Returns a list of points outlining a rectangle, given the upper-left point."""
+    verts = [
+        (x, y+h),
+        (x, y),
+        (x+w, y),
+        (x+w, y+h)
+        ]
     return verts
 
 def lineCorners(x1, y1, x2, y2):

@@ -91,10 +91,10 @@ class Actor(object):
     def setupPhysics(s):
         """Sets up the actor-specific shape and physics parameters.
 Override in children and it will be called in `__init__`."""
-        s.corners = rectCorners(0, 0, 10, 10)
+        s.corners = rectCornersCenter(0, 0, 10, 10)
         s.body = pymunk.Body(1, 200)
         s.shapes = [pymunk.Poly(s.body, s.corners, radius=1)]
-        for shape in shapes:
+        for shape in s.shapes:
             shape.friction = 5.8
         s.body.position = (0,0)
 
@@ -326,3 +326,23 @@ class Power(object):
 
     def jump(s):
         print "jump"
+
+class BeginningsPower(Power):
+    "The Beginnings elemental power set."
+    def __init__(s, player):
+        super(s.__class__, s).__init__(player)
+
+    def update(s, dt):
+        pass
+
+    def attack1(s):
+        pass
+
+    def attack2(s):
+        pass
+
+    def defend(s):
+        pass
+
+    def jump(s):
+        pass

@@ -40,13 +40,25 @@ corners is a list of the corners of the polygon.  NOT line endpoins.
         s.sprite = LineSprite(image, batch=s.batch)
 
 
-def createBlock(x, y, w, h, color=(255, 255, 255, 255), batch=None):
-    "Creates a `Terrain` object representing a block of the given size."
+def createBlockCenter(x, y, w, h, color=(255, 255, 255, 255), batch=None):
+    """Creates a `Terrain` object representing a block of the given size.
+x and y are the coordinates of the center."""
     xf = float(x)
     yf = float(y)
     wf = float(w)
     hf = float(h)
-    corners = rectCorners(x, y, w, h)
+    corners = rectCornersCenter(x, y, w, h)
+    t = Block(corners, color, batch)
+    return t
+
+def createBlockCorner(x, y, w, h, color=(255, 255, 255, 255), batch=None):
+    """Creates a `Terrain` object representing a block of the given size.
+x and y are the coordinates of the center."""
+    xf = float(x)
+    yf = float(y)
+    wf = float(w)
+    hf = float(h)
+    corners = rectCornersCorner(x, y, w, h)
     t = Block(corners, color, batch)
     return t
 
