@@ -82,6 +82,9 @@ class Actor(object):
         "Sets the actor's collision properties to that suitable for an enemy bullet."
         s.setCollisionProperties(CGROUP_ENEMYBULLET, LAYERSPEC_ENEMYBULLET)
 
+    def setCollisionTerrain(s):
+        s.setCollisionProperties(CGROUP_TERRAIN, LAYERSPEC_ALL)
+
 
     def setupPhysics(s):
         """Sets up the actor-specific shape and physics parameters.
@@ -114,35 +117,10 @@ Override in children and it will be called in `__init__`."""
         s.sprite.rotation = math.degrees(s.body.angle)
         s.sprite.draw()
 
-    def stopMoving(s):
-        s.motionX = 0
-    
-    def moveLeft(s):
-        s.motionX = -1
-
-    def moveRight(s):
-        s.motionX = 1
-
-    def brake(s):
-        s.braking = True
-    def stopBrake(s):
-        s.braking = False
+    def onDeath(s):
+        pass
 
     def update(s, dt):
-        if s.braking:
-            (vx, vy) = s.body.velocity
-            if vx > 0:
-                s.body.apply_impulse((-s.brakeForce * dt, 0))
-            else:
-                s.body.apply_impulse((s.brakeForce * dt, 0))
-        else:
-            xImpulse = s.moveForce * s.motionX * dt
-            s.body.apply_impulse((xImpulse, 0))
-
-        #fmtstr = "position: {} force: {} torque: {}"
-        #print fmtstr.format(s.body.position, s.body.force, s.body.torque)
-
-    def die(s):
         pass
 
 class Player(Actor):
@@ -151,11 +129,6 @@ class Player(Actor):
         super(s.__class__, s).__init__(batch)
         s.keyboard = keyboard
         s.setCollisionPlayer()
-
-
-    def update(s, dt):
-        s.handleInputState()
-        super(s.__class__, s).update(dt)
 
     def setupPhysics(s):
         s.radius = 20
@@ -186,6 +159,34 @@ class Player(Actor):
         image = LineImage(allLines, colors)
         s.sprite = LineSprite(image)
 
+    def stopMoving(s):
+        s.motionX = 0
+    
+    def moveLeft(s):
+        s.motionX = -1
+
+    def moveRight(s):
+        s.motionX = 1
+
+    def brake(s):
+        s.braking = True
+    def stopBrake(s):
+        s.braking = False
+
+    def update(s, dt):
+        s.handleInputState()
+        if s.braking:
+            (vx, vy) = s.body.velocity
+            if vx > 0:
+                s.body.apply_impulse((-s.brakeForce * dt, 0))
+            else:
+                s.body.apply_impulse((s.brakeForce * dt, 0))
+        else:
+            xImpulse = s.moveForce * s.motionX * dt
+            s.body.apply_impulse((xImpulse, 0))
+
+        #fmtstr = "position: {} force: {} torque: {}"
+        #print fmtstr.format(s.body.position, s.body.force, s.body.torque)
 
 
     def handleInputState(s):

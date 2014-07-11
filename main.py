@@ -57,8 +57,6 @@ void main() {
 '''
 
 
-shader_on = False
-
 
 class World(object):
     """Contains all the state for the game."""
@@ -73,7 +71,7 @@ class World(object):
 
         s.physicsSteps = 30.0
 
-        s.shader = Shader([vprog], [fprog])
+        #s.shader = Shader([vprog], [fprog])
 
         s.keyboard = key.KeyStateHandler()
 
@@ -85,19 +83,57 @@ class World(object):
         s.window.push_handlers(
             #s.keyboard,
             on_draw = lambda: s.on_draw(),
-            
             on_key_press = lambda k, mods: s.on_key_press(k, mods),
-            #on_key_release = lambda k, mods: s.on_key_release(k, mods)
         )
-        #s.window.event.on_draw = lambda: s.on_draw()
-        #s.window.event.on_keypress = lambda k, mods: s.on_keypress(k, mods)
 
-        s.setupWorld()
+        #s.setupWorld()
+
+        s.initNewSpace()
+
+        s.player = Player(s.keyboard)
+        s.camera = Camera(s.player, s.screenw, s.screenh)
+        s.actors = set()
+        s.addActor(s.player)
+
+        s.currentRoom = makeSomeRoom()
+        s.enterRoom(s.currentRoom)
+
+
+    def initNewSpace(s):
+        s.space = pymunk.Space()
+        s.space.gravity = (0.0, -400.0)
+        s.space.add_collision_handler(CGROUP_PLAYER, CGROUP_COLLECTABLE,
+            begin=World.collidePlayerCollectable
+        )
+
+    def addActor(s, act):
+        s.actors.add(act)
+        s.space.add(act.shapes)
+        if not act.body.is_static:
+            s.space.add(act.body)
+
+    def removeActor(s, act):
+        s.actors.remove(act)
+        s.space.remove(act.shapes)
+        if not act.body.is_static:
+            s.space.remove(act.body)
+
+
+    def enterRoom(s, room):
+        """Actually creates all the game objects for the given room and adds them to the current state."""
+        actors = room.getActors()
+        for act in actors:
+            s.addActor(act)
+
+    def leaveRoom(s):
+        """Removes all the game objects in the current state (sans player) and preps for a new room."""
+        for act in list(s.actors):
+            s.removeActor(act)
+        s.addActor(s.player)
 
         
     def setupWorld(s):
         #s.batch = pyglet.graphics.Batch()
-        s.room = Room()
         #colors = [(0, 255, 255, 255), (0, 255, 0, 255), 
         #          (255, 0, 0, 255), (255, 255, 255, 255),
         #          (255, 0, 0, 255), (255, 0, 0, 255),
@@ -114,7 +150,6 @@ class World(object):
         s.room.addTerrain(b4)
 
         s.player = Player(s.keyboard)
-        #s.player.position = (s.screenw / 2, s.screenh / 2)
         s.room.addActor(s.player)
         for i in range(5):
             c = Collectable()
@@ -130,35 +165,43 @@ class World(object):
         p.position = (0, -150)
         s.room.addActor(p)
 
-        s.camera = Camera(s.player, s.screenw, s.screenh)
-
 
     def update(s, dt):
         #s.player.handleInput(s.keyboard)
         step = dt / s.physicsSteps
         for _ in range(int(s.physicsSteps)):
-            s.room.update(step)
+            s.space.step(step)
         s.camera.update(dt)
+        for act in s.actors:
+            act.update(dt)
+        deadActors = [act for act in s.actors if not act.alive]
+        for act in deadActors:
+            act.onDeath()
+            s.removeActor(act)
 
     def on_draw(s):
         s.window.clear()
         with s.camera:
-            if shader_on:
-                with s.shader:
-                    # X, Y, Z, scale
-                    s.shader.uniformf("inp", 0.0, 0.0, 0.0, 0.0)
-                    s.room.draw()
-            else:
-                #s.batch.draw()
-                s.room.draw()
-
-                #pymunk.pyglet_util.draw(s.room.space)
+            for act in s.actors:
+                act.draw()
 
         s.fps_display.draw()
 
     def on_key_press(s, k, modifiers):
         s.player.handleInputEvent(k, modifiers)
-        #return False
+
+    @staticmethod
+    def collidePlayerCollectable(space, arbiter, *args, **kwargs):
+        "The handler for a player collecting a Collectable."
+        #print space, arbiter, args, kwargs
+        playerShape, collectableShape = arbiter.shapes
+        player = playerShape.body.actor
+        collectable = collectableShape.body.actor
+        collectable.collect(player)
+        collectable.alive = False
+        return False
+
+
 
 
 def main():
@@ -167,27 +210,8 @@ def main():
 
     world = World(screenw, screenh)
 
-    #time.sleep(5)
     pyglet.clock.schedule_interval(lambda dt: world.update(dt), 1.0/PHYSICS_FPS)
     pyglet.app.run()
-
-
-    ##window = pyglet.window.Window(width=screenw, height=screenh)
-
-    #fps_display = pyglet.clock.ClockDisplay()
-
-    #shader = Shader([vprog], [fprog])
-
-    #camera = Camera(a, screenw, screenh)
-
-    #def update(dt):
-    #    step = dt / PHYSICS_STEPS
-    #    for _ in range(int(PHYSICS_STEPS)):
-    #        room.update(step)
-    #    x, y = a.body.position
-    #    camera.update(dt)
-    #    #room.focusOn(x - (screenw / 2), y - (screenh / 2))
-
 
 if __name__ == '__main__':
     main()
