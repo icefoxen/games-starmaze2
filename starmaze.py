@@ -151,6 +151,7 @@ update frame."""
         s._addActor(s.player)
 
     def update(s, dt):
+        #print 'foo'
         #s.player.handleInput(s.keyboard)
         step = dt / s.physicsSteps
         for _ in range(int(s.physicsSteps)):

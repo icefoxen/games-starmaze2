@@ -9,6 +9,7 @@ import pyglet.window.key as key
 from pyglet.gl import *
 
 from terrain import *
+import starmaze
 
 
 class LevelEditor(object):
@@ -40,7 +41,8 @@ class LevelEditor(object):
         s.cameraTarget = Actor()
         s.camera = Camera(s.cameraTarget, s.screenw, s.screenh)
 
-
+        s.world = None
+        s.worldUpdateFunc = None
 
     def update(s, dt):
         s.handleInputState()
@@ -57,6 +59,26 @@ class LevelEditor(object):
         s.fps_display.draw()
         #print s.cameraTarget.position
 
+    def startGameInstance(s):
+        if s.world is None:
+            print 'Starting new game instance'
+            s.world = starmaze.World(s.screenw, s.screenh)
+            s.worldUpdateFunc = lambda dt: s.world.update(dt)
+            pyglet.clock.schedule_interval(s.worldUpdateFunc, 1.0/starmaze.PHYSICS_FPS)
+
+            s.world.window.push_handlers(
+                on_close = lambda: s.killGameInstance()
+                )
+        else:
+            print "Game instance already running, should prolly close that first."
+
+    def killGameInstance(s):
+        print 'killing game instance'
+        if s.world is not None:
+            pyglet.clock.unschedule(s.worldUpdateFunc)
+            s.worldUpdateFunc = None
+            s.world = None
+
     def on_mouse_press(s, x, y, button, modifiers):
         #print "Mouse press:", x, y, button, modifiers
         s.currentTarget = createBlockCorner(x-s.camera.x, y-s.camera.y, 1, 1)
@@ -64,7 +86,7 @@ class LevelEditor(object):
 
     def on_mouse_drag(s, x, y, dx, dy, button, modifiers):
         #print "Mouse drag:", x, y, dx, dy, button, modifiers
-        print "Start drag", s.startDrag
+        #print "Start drag", s.startDrag
         if s.currentTarget is not None:
             tx, ty = s.startDrag
             #topleftx = tx - s.camera.x
@@ -83,7 +105,8 @@ class LevelEditor(object):
         print "Mouse scroll:", x, y, scroll_x, scroll_y
             
     def on_key_press(s, k, modifiers):
-        print s.cameraTarget.position
+        if k == key.P:
+            s.startGameInstance()
 
     def handleInputState(s):
         x, y = s.cameraTarget.position

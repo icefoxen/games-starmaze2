@@ -69,7 +69,7 @@ class Door(object):
         s.destination = target
 
         x, y = s.position
-        s.corners = rectCorners(x, y, 30, 30)
+        s.corners = rectCornersCenter(x, y, 30, 30)
         lines = cornersToLines(s.corners)
         colors = colorLines(lines, (255, 0, 255, 255))
         image = LineImage(lines, colors)
@@ -97,10 +97,10 @@ along with code to create them.
 
     def getActors(s):
         acts = []
-        acts.append(createBlock(0, -200, 600, 30))
-        acts.append(createBlock(-315, -65, 30, 300))
-        acts.append(createBlock(315, -65, 30, 300))
-        acts.append(createBlock(-70, -100, 270, 30))
+        acts.append(createBlockCenter(0, -200, 600, 30))
+        acts.append(createBlockCenter(-315, -65, 30, 300))
+        acts.append(createBlockCenter(315, -65, 30, 300))
+        acts.append(createBlockCenter(-70, -100, 270, 30))
 
         for i in range(5):
             c = Collectable()

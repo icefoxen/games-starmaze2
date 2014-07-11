@@ -229,9 +229,9 @@ down."""
         """Handles edge-triggered keyboard actions (key presses, not holds)"""
         # Switch powers
         if k == key.Q:
-            print 'foo'
+            print 'switch previous power'
         elif k == key.E:
-            print 'bar'
+            print 'switch next power'
 
     def switchPowers(s, power):
         "Switches to the given power.  Should eventually do shiny things and such."
@@ -249,8 +249,8 @@ whether restoring your health or unlocking a new Power or whatever."""
 
     def setupPhysics(s):
         s.corners = []
-        s.corners.append(rectCorners(0, 0, 20, 10))
-        s.corners.append(rectCorners(0, 0, 10, 20))
+        s.corners.append(rectCornersCenter(0, 0, 20, 10))
+        s.corners.append(rectCornersCenter(0, 0, 10, 20))
 
         s.body = pymunk.Body(1, 200)
         s.shapes = [
@@ -285,7 +285,7 @@ class Powerup(Actor):
 
     def setupPhysics(s):
         s.corners = []
-        s.corners.append(rectCorners(0, 0, 20, 20))
+        s.corners.append(rectCornersCenter(0, 0, 20, 20))
         s.body = pymunk.Body()
         s.shapes = [
             pymunk.Poly(s.body, c)
