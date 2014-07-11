@@ -53,6 +53,8 @@ class Actor(object):
         s.brakeForce = 400
         s.motionX = 0
         s.braking = False
+        # XXX Circular reference, might be better as a weak reference
+        s.world = None
 
     def setCollisionProperties(s, group, layerspec):
         "Set the actor's collision properties."
@@ -130,6 +132,8 @@ class Player(Actor):
         s.keyboard = keyboard
         s.setCollisionPlayer()
 
+        s.currentPower = Power(s)
+
     def setupPhysics(s):
         s.radius = 20
         s.body = pymunk.Body(1, 200)
@@ -175,6 +179,7 @@ class Player(Actor):
 
     def update(s, dt):
         s.handleInputState()
+        s.currentPower.update(dt)
         if s.braking:
             (vx, vy) = s.body.velocity
             if vx > 0:
@@ -203,22 +208,21 @@ down."""
         elif s.keyboard[key.RIGHT]:
             s.moveRight()
 
-        # Jump, maybe
-        if s.keyboard[key.UP]:
-            pass
-
         if s.keyboard[key.SPACE]:
             print "Enter room"
 
         # Powers
-        if s.keyboard[key.A]:
-            pass
-        if s.keyboard[key.S]:
-            pass
-        if s.keyboard[key.D]:
-            pass
-        if s.keyboard[key.W]:
-            pass
+        if s.keyboard[key.Z]:
+            s.currentPower.defend()
+        if s.keyboard[key.X]:
+            s.currentPower.attack2()
+        if s.keyboard[key.C]:
+            s.currentPower.attack1()
+        if s.keyboard[key.UP]:
+            s.currentPower.jump()
+
+        #if s.keyboard[key.W]:
+        #    pass
 
 
     def handleInputEvent(s, k, mod):
@@ -228,6 +232,10 @@ down."""
             print 'foo'
         elif k == key.E:
             print 'bar'
+
+    def switchPowers(s, power):
+        "Switches to the given power.  Should eventually do shiny things and such."
+        s.currentPower = power
 
 
 class Collectable(Actor):
@@ -297,3 +305,24 @@ class Powerup(Actor):
 
     def collect(s, player):
         print "Powered up!"
+
+
+class Power(object):
+    """A class representing a set of powers for the player."""
+    def __init__(s, player):
+        s.player = player
+
+    def update(s, dt):
+        pass
+
+    def attack1(s):
+        print "attack1"
+
+    def attack2(s):
+        print "attack2"
+
+    def defend(s):
+        print "Defend"
+
+    def jump(s):
+        print "jump"

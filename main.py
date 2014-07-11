@@ -93,7 +93,8 @@ class World(object):
         s.player = Player(s.keyboard)
         s.camera = Camera(s.player, s.screenw, s.screenh)
         s.actors = set()
-        s.addActor(s.player)
+        s.newActors = set()
+        s._addActor(s.player)
 
         s.currentRoom = makeSomeRoom()
         s.enterRoom(s.currentRoom)
@@ -106,65 +107,48 @@ class World(object):
             begin=World.collidePlayerCollectable
         )
 
-    def addActor(s, act):
+    def birthActor(s, act):
+        """You see, we can't have actors add or remove other actors inside
+their update() method, 'cause that'd modify the set of actors while we're
+iterating through it, which is a no-no.
+
+So instead of calling addActor directly, call this, which will cause the
+actor to be added next update frame."""
+        s.newActors.add(act)
+
+    def killActor(s, act):
+        """The complement to birthActor(), kills the given actor so it gets removed next
+update frame."""
+        act.alive = False
+
+    def _addActor(s, act):
         s.actors.add(act)
         s.space.add(act.shapes)
         if not act.body.is_static:
             s.space.add(act.body)
+        act.world = s
 
-    def removeActor(s, act):
+    def _removeActor(s, act):
         s.actors.remove(act)
         s.space.remove(act.shapes)
         if not act.body.is_static:
             s.space.remove(act.body)
+        # Break backlinks
+        act.body.actor = None
+        act.world = None
 
 
     def enterRoom(s, room):
         """Actually creates all the game objects for the given room and adds them to the current state."""
         actors = room.getActors()
         for act in actors:
-            s.addActor(act)
+            s._addActor(act)
 
     def leaveRoom(s):
         """Removes all the game objects in the current state (sans player) and preps for a new room."""
         for act in list(s.actors):
-            s.removeActor(act)
-        s.addActor(s.player)
-
-        
-    def setupWorld(s):
-        #s.batch = pyglet.graphics.Batch()
-        #colors = [(0, 255, 255, 255), (0, 255, 0, 255), 
-        #          (255, 0, 0, 255), (255, 255, 255, 255),
-        #          (255, 0, 0, 255), (255, 0, 0, 255),
-        #          (255, 255, 0, 255), (255, 255, 0, 255),
-        #          ]
-
-        b1 = createBlock(0, -200, 600, 30)
-        b2 = createBlock(-315, -65, 30, 300)
-        b3 = createBlock(315, -65, 30, 300)
-        b4 = createBlock(-70, -100, 270, 30)
-        s.room.addTerrain(b1)
-        s.room.addTerrain(b2)
-        s.room.addTerrain(b3)
-        s.room.addTerrain(b4)
-
-        s.player = Player(s.keyboard)
-        s.room.addActor(s.player)
-        for i in range(5):
-            c = Collectable()
-            rx = random.random() * 1000 - 500
-            ry = random.random() * 1000
-            c.position = (100+rx, 100+ry)
-            vx = random.random() * 100
-            vy = random.random() * 1000
-            c.body.apply_impulse((vx, vy))
-            s.room.addActor(c)
-
-        p = Powerup()
-        p.position = (0, -150)
-        s.room.addActor(p)
-
+            s._removeActor(act)
+        s._addActor(s.player)
 
     def update(s, dt):
         #s.player.handleInput(s.keyboard)
@@ -177,7 +161,7 @@ class World(object):
         deadActors = [act for act in s.actors if not act.alive]
         for act in deadActors:
             act.onDeath()
-            s.removeActor(act)
+            s._removeActor(act)
 
     def on_draw(s):
         s.window.clear()

@@ -77,9 +77,9 @@ tested for collision rarely, so we just use a simple bounding circle. """
         pass
 
 class Room(object):
-    """A collection of `Terrain` objects and environmental data.
-Also handles physics.  There's only ever one `Room` on screen
-at a time."""
+    """Basically a specification of a bunch of Actors to create,
+along with code to create them.
+    """
     def __init__(s):
         s.name = ""
 
