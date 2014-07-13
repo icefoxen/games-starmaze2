@@ -21,7 +21,8 @@ corners is a list of the corners of the polygon.  NOT line endpoins.
     def __init__(s, corners, color, batch=None):
         s.corners = corners
         s.color = color
-        super(s.__class__, s).__init__(batch)
+        Actor.__init__(s, batch)
+        s.physicsObj = BlockPhysicsObj(s)
 
     def setupPhysics(s):
         s.body = STATIC_BODY

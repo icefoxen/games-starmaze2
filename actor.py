@@ -40,8 +40,18 @@ LAYERSPEC_PLAYER      = LAYERSPEC_ALL & ~LAYER_PLAYERBULLET
 LAYERSPEC_ENEMY       = LAYERSPEC_ALL & ~LAYER_BULLET
 LAYERSPEC_COLLECTABLE = LAYERSPEC_ALL & ~LAYER_ENEMY
 
-class KeyboardController(object):
+class Component(object):
+    """Gameobjects are made out of components.
+We don't strictly need this class (yet), but having
+all components inherit from it is good for clarity
+and might be useful someday if we want a more generalized
+component system."""
+    def __init__(s, owner):
+        s.owner = owner
+
+class KeyboardController(Component):
     def __init__(s, owner, keyboard):
+        Component.__init__(s, owner)
         s.keyboard = keyboard
         s.moveForce = 400
         s.brakeForce = 400
@@ -49,7 +59,6 @@ class KeyboardController(object):
         s.braking = False
         s.owner = owner
         # XXX: Circ. reference here I guess...
-        s.body = s.owner.body
 
     def stopMoving(s):
         s.motionX = 0
@@ -83,6 +92,7 @@ class KeyboardController(object):
 things that keep happening as long as you hold the button
 down."""
         #print 'bop'
+        s.body = s.owner.physicsObj.body
         s.stopBrake()
         s.stopMoving()
         if s.keyboard[key.DOWN]:
@@ -118,31 +128,28 @@ down."""
             print 'switch next power'
 
 
-    
+class PhysicsObj(Component):
+    def __init__(s, owner):
+        Component.__init__(s, owner)
+        s.body = None # pymunk.Body(1, 200)
+        s.shapes = []
 
-class Actor(object):
-    """The basic thing-that-moves-and-does-stuff in a `Room`."""
-    def __init__(s, batch=None):
-        s.batch = batch or pyglet.graphics.Batch()
-        s.setupPhysics()
-        s.setupSprite()
 
-        s.alive = True
-
-        s.moveForce = 400
-        s.brakeForce = 400
-        s.motionX = 0
-        s.braking = False
-        # XXX Circular reference, might be better as a weak reference
-        s.world = None
+    def setupPhysics(s):
+        """Sets up the actor-specific shape and physics parameters."""
+        s.corners = rectCornersCenter(0, 0, 10, 10)
+        s.shapes = [pymunk.Poly(s.body, s.corners, radius=1)]
+        for shape in s.shapes:
+            shape.friction = 5.8
+        s.body.position = (0,0)
 
     def setCollisionProperties(s, group, layerspec):
         "Set the actor's collision properties."
         for shape in s.shapes:
             shape.collision_type = group
             shape.layers = layerspec
-        # XXX Circular reference, might be better as a weak reference
-        s.body.actor = s
+        # XXX Circular reference
+        s.body.physicsObj = s
 
     def setCollisionPlayer(s):
         "Sets the actor's collision properties to that suitable for a player."
@@ -167,17 +174,45 @@ class Actor(object):
     def setCollisionTerrain(s):
         s.setCollisionProperties(CGROUP_TERRAIN, LAYERSPEC_ALL)
 
-
-    def setupPhysics(s):
-        """Sets up the actor-specific shape and physics parameters.
-Override in children and it will be called in `__init__`."""
-        s.corners = rectCornersCenter(0, 0, 10, 10)
+class PlayerPhysicsObj(PhysicsObj):
+    def __init__(s, owner):
+        PhysicsObj.__init__(s, owner)
         s.body = pymunk.Body(1, 200)
-        s.shapes = [pymunk.Poly(s.body, s.corners, radius=1)]
+        s.shapes = [pymunk.Circle(s.body, radius=s.owner.radius)]
         for shape in s.shapes:
             shape.friction = 5.8
         s.body.position = (0,0)
 
+STATIC_BODY = pymunk.Body()
+
+class BlockPhysicsObj(PhysicsObj):
+    def __init__(s, owner):
+        PhysicsObj.__init__(s, owner)
+        s.body = STATIC_BODY
+        s.shapes = [pymunk.Poly(s.body, owner.corners)]
+        
+        for shape in s.shapes:
+            shape.friction = 0.8
+            shape.elasticity = 0.8
+
+        s.setCollisionTerrain()
+
+class Actor(object):
+    """The basic thing-that-moves-and-does-stuff in a `Room`."""
+    def __init__(s, batch=None):
+        s.batch = batch or pyglet.graphics.Batch()
+        s.physicsObj = None #PhysicsObj(s)
+        s.setupSprite()
+
+        s.alive = True
+
+        s.moveForce = 400
+        s.brakeForce = 400
+        s.motionX = 0
+        s.braking = False
+        # XXX Circular reference, might be better as a weak reference
+        s.world = None
+    
     def setupSprite(s):
         """Sets up the actor-specific sprite and graphics stuff.
 Override in children and it will be called in `__init__`."""
@@ -195,8 +230,8 @@ Override in children and it will be called in `__init__`."""
 
     def draw(s):
         #pymunk.pyglet_util.draw(s.shape)
-        s.sprite.position = s.body.position
-        s.sprite.rotation = math.degrees(s.body.angle)
+        s.sprite.position = s.physicsObj.body.position
+        s.sprite.rotation = math.degrees(s.physicsObj.body.angle)
         s.sprite.draw()
 
     def onDeath(s):
@@ -208,20 +243,13 @@ Override in children and it will be called in `__init__`."""
 class Player(Actor):
     """The player object."""
     def __init__(s, keyboard, batch=None):
-        super(s.__class__, s).__init__(batch)
+        s.radius = 20
+        Actor.__init__(s, batch)
         s.keyboard = keyboard
-        s.setCollisionPlayer()
         s.controller = KeyboardController(s, keyboard)
+        s.physicsObj = PlayerPhysicsObj(s)
 
         s.currentPower = Power(s)
-
-    def setupPhysics(s):
-        s.radius = 20
-        s.body = pymunk.Body(1, 200)
-        s.shapes = [pymunk.Circle(s.body, radius=s.radius)]
-        for shape in s.shapes:
-            shape.friction = 5.8
-        s.body.position = (0,0)
 
     def setupSprite(s):
         lineList = []
@@ -243,20 +271,6 @@ class Player(Actor):
         colors = [(64, 224, 64, 255) for _ in allLines]
         image = LineImage(allLines, colors)
         s.sprite = LineSprite(image)
-
-    def stopMoving(s):
-        s.motionX = 0
-    
-    def moveLeft(s):
-        s.motionX = -1
-
-    def moveRight(s):
-        s.motionX = 1
-
-    def brake(s):
-        s.braking = True
-    def stopBrake(s):
-        s.braking = False
 
     def update(s, dt):
         s.controller.update(dt)
@@ -284,7 +298,7 @@ class Collectable(Actor):
 whether restoring your health or unlocking a new Power or whatever."""
 
     def __init__(s, batch=None):
-        super(s.__class__, s).__init__(batch)
+        Actor.__init__(s, batch)
         s.life = 15.0
         s.setCollisionCollectable()
 
@@ -321,7 +335,7 @@ whether restoring your health or unlocking a new Power or whatever."""
 class Powerup(Actor):
     """A Collectable that doesn't time out and doesn't move."""
     def __init__(s):
-        super(s.__class__, s).__init__()
+        Actor.__init__(s)
         s.setCollisionCollectable()
 
     def setupPhysics(s):
@@ -371,7 +385,7 @@ class Power(object):
 class BeginningsPower(Power):
     "The Beginnings elemental power set."
     def __init__(s, player):
-        super(s.__class__, s).__init__(player)
+        Power.__init__(s, player)
 
     def update(s, dt):
         pass

@@ -11,7 +11,7 @@ COLOR_GREEN = (0, 255, 0, 255)
 
 class ShaderGroup(pyglet.graphics.Group):
     def __init__(s, parent=None):
-        super(s.__class__, s).__init__(parent)
+        pyglet.graphics.Group.__init__(s, parent)
         print 'made shader group'
 
     def set_state(s):
@@ -141,15 +141,16 @@ can be off-center.  It defaults to 50% of the screen.
 """
 
     def __init__(s, target, screenw, screenh, hardBoundaryFactor = 0.50):
-        super(s.__class__, s).__init__()
+        # 'target' is any pymunk.body
+        Affine.__init__(s)
         s.target = target
         s.speedFactor = 2.5
         s.halfScreenW = screenw / 2
         s.halfScreenH = screenh / 2
         s.aimedAtX = 0.0
         s.aimedAtY = 0.0
-        s.currentX = s.target.body.position[0]
-        s.currentY = s.target.body.position[1]
+        s.currentX = s.target.position[0]
+        s.currentY = s.target.position[1]
 
         s.hardBoundaryX = s.halfScreenW * hardBoundaryFactor
         s.hardBoundaryY = s.halfScreenH * hardBoundaryFactor
@@ -158,7 +159,7 @@ can be off-center.  It defaults to 50% of the screen.
         """Calculates the camera's position for a new frame.
 
 Basically, we lerp towards the target's position."""
-        s.aimedAtX, s.aimedAtY = s.target.body.position
+        s.aimedAtX, s.aimedAtY = s.target.position
         deltaX = s.aimedAtX - s.currentX
         deltaY = s.aimedAtY - s.currentY
 

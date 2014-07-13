@@ -91,7 +91,7 @@ class World(object):
         s.initNewSpace()
 
         s.player = Player(s.keyboard)
-        s.camera = Camera(s.player, s.screenw, s.screenh)
+        s.camera = Camera(s.player.physicsObj.body, s.screenw, s.screenh)
         s.actors = set()
         s.newActors = set()
         s._addActor(s.player)
@@ -123,16 +123,16 @@ update frame."""
 
     def _addActor(s, act):
         s.actors.add(act)
-        s.space.add(act.shapes)
-        if not act.body.is_static:
-            s.space.add(act.body)
+        s.space.add(act.physicsObj.shapes)
+        if not act.physicsObj.body.is_static:
+            s.space.add(act.physicsObj.body)
         act.world = s
 
     def _removeActor(s, act):
         s.actors.remove(act)
-        s.space.remove(act.shapes)
-        if not act.body.is_static:
-            s.space.remove(act.body)
+        s.space.remove(act.physicsObj.shapes)
+        if not act.physicsObj.body.is_static:
+            s.space.remove(act.physicsObj.body)
         # Break backlinks
         act.body.actor = None
         act.world = None
