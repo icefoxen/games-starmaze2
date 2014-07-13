@@ -4,6 +4,10 @@ import math
 import pyglet
 from pyglet.gl import *
 
+COLOR_WHITE = (255, 255, 255, 255)
+COLOR_RED   = (255, 0, 0, 255)
+COLOR_BLUE  = (0, 0, 255, 255)
+COLOR_GREEN = (0, 255, 0, 255)
 
 class ShaderGroup(pyglet.graphics.Group):
     def __init__(s, parent=None):
@@ -77,12 +81,12 @@ def rectCornersCenter(cx, cy, w, h):
     return verts
 
 def rectCornersCorner(x, y, w, h):
-    """Returns a list of points outlining a rectangle, given the upper-left point."""
+    """Returns a list of points outlining a rectangle, given the lower-left point."""
     verts = [
-        (x, y+h),
         (x, y),
         (x+w, y),
-        (x+w, y+h)
+        (x+w, y+h),
+        (x, y+h)
         ]
     return verts
 

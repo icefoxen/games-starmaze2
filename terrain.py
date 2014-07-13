@@ -39,6 +39,35 @@ corners is a list of the corners of the polygon.  NOT line endpoins.
         image = LineImage(lines, colors, batch=s.batch)
         s.sprite = LineSprite(image, batch=s.batch)
 
+class BlockDescription(object):
+    """An object that contains the description of a `Block` with none
+of the runtime data."""
+    def __init__(s, x, y, w, h, color):
+        s.x = x
+        s.y = y
+        s.w = w
+        s.h = h
+        s.color = color
+
+    def create(s):
+        """Returns the block described by this."""
+        return createBlockCorner(s.x, s.y, s.w, s.h, color=s.color)
+
+    @staticmethod
+    def fromObject(block):
+        """Returns a `BlockDescription` for the given `Block`."""
+        color = block.color
+        x = 999999
+        y = 999999
+        w = 0
+        h = 0
+        for corner in block.corners:
+            cx, cy = corner
+            x = min(x, cx)
+            y = min(y, cy)
+            w = max(w, cx - x)
+            h = max(h, cy - y)
+        return BlockDescription(x, y, w, h, color)
 
 def createBlockCenter(x, y, w, h, color=(255, 255, 255, 255), batch=None):
     """Creates a `Terrain` object representing a block of the given size.
@@ -53,7 +82,7 @@ x and y are the coordinates of the center."""
 
 def createBlockCorner(x, y, w, h, color=(255, 255, 255, 255), batch=None):
     """Creates a `Terrain` object representing a block of the given size.
-x and y are the coordinates of the center."""
+x and y are the coordinates of the lower-left point."""
     xf = float(x)
     yf = float(y)
     wf = float(w)
@@ -94,28 +123,15 @@ along with code to create them.
     """
     def __init__(s):
         s.name = ""
+        s.descr = [
+            BlockDescription(-300, -200, 600, 30, COLOR_WHITE),
+            BlockDescription(-330, -200, 30, 400, COLOR_WHITE),
+            BlockDescription(300, -200, 30, 400, COLOR_WHITE),
+            BlockDescription(-100, -100, 200, 30, COLOR_WHITE),
+            ]
 
     def getActors(s):
-        acts = []
-        acts.append(createBlockCenter(0, -200, 600, 30))
-        acts.append(createBlockCenter(-315, -65, 30, 300))
-        acts.append(createBlockCenter(315, -65, 30, 300))
-        acts.append(createBlockCenter(-70, -100, 270, 30))
-
-        for i in range(5):
-            c = Collectable()
-            rx = random.random() * 1000 - 500
-            ry = random.random() * 1000
-            c.position = (100+rx, 100+ry)
-            vx = random.random() * 100
-            vy = random.random() * 1000
-            c.body.apply_impulse((vx, vy))
-            acts.append(c)
-
-        p = Powerup()
-        p.position = (0, -150)
-        acts.append(p)
-        return acts
+        return map(lambda desc: desc.create(), s.descr)
 
 def makeSomeRoom():
     r = Room()
