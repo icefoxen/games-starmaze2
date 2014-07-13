@@ -370,7 +370,8 @@ class Powerup(Actor):
 
 
 class Power(object):
-    """A class representing a set of powers for the player."""
+    """A class representing a set of powers for the player.
+This is also a null class which does nothing, handily."""
     def __init__(s, player):
         s.player = player
 
@@ -407,4 +408,32 @@ class BeginningsPower(Power):
         pass
 
     def jump(s):
+        pass
+
+class PowerSet(Component):
+    def __init__(s, owner):
+        Component.__init__(owner)
+
+    def update(s, dt):
+        pass
+
+    def attack1(s):
+        pass
+
+    def attack2(s):
+        pass
+
+    def defend(s):
+        pass
+
+    def jump(s):
+        pass
+
+    def nextPower(s):
+        pass
+
+    def prevPower(s):
+        pass
+
+    def unlockPower(s, power):
         pass
