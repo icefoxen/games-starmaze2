@@ -163,6 +163,11 @@ update frame."""
         for _ in range(int(s.physicsSteps)):
             s.space.step(step)
         s.camera.update(dt)
+        
+        for act in s.newActors:
+            s.actors.add(act)
+            s._addActor(act)
+        s.newActors.clear()
         for act in s.actors:
             act.update(dt)
         deadActors = [act for act in s.actors if not act.alive]

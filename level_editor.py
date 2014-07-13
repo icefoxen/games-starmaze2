@@ -38,7 +38,7 @@ class LevelEditor(object):
         s.currentTarget = None
         s.startDrag = (0.0, 0.0)
         
-        s.cameraTarget = Actor()
+        s.cameraTarget = pymunk.Body()
         s.camera = Camera(s.cameraTarget, s.screenw, s.screenh)
 
         s.world = None
@@ -63,6 +63,12 @@ class LevelEditor(object):
         if s.world is None:
             print 'Starting new game instance'
             s.world = starmaze.World(s.screenw, s.screenh)
+
+            descrs = [BlockDescription.fromObject(block) for block in s.actors]
+            newobjs = set([block.create() for block in descrs])
+            for obj in newobjs:
+                s.world.birthActor(obj)
+            
             s.worldUpdateFunc = lambda dt: s.world.update(dt)
             pyglet.clock.schedule_interval(s.worldUpdateFunc, 1.0/starmaze.PHYSICS_FPS)
 
