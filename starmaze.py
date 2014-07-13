@@ -91,7 +91,7 @@ class World(object):
         s.initNewSpace()
 
         s.player = Player(s.keyboard)
-        s.camera = Camera(s.player.physicsObj.body, s.screenw, s.screenh)
+        s.camera = Camera(s.player.physicsObj, s.screenw, s.screenh)
         s.actors = set()
         s.newActors = set()
         s._addActor(s.player)
@@ -105,6 +105,9 @@ class World(object):
         s.space.gravity = (0.0, -400.0)
         s.space.add_collision_handler(CGROUP_PLAYER, CGROUP_COLLECTABLE,
             begin=World.collidePlayerCollectable
+        )
+        s.space.add_collision_handler(CGROUP_PLAYER, CGROUP_TERRAIN,
+            begin=World.collidePlayerTerrain
         )
 
     def birthActor(s, act):
@@ -124,17 +127,20 @@ update frame."""
     def _addActor(s, act):
         s.actors.add(act)
         s.space.add(act.physicsObj.shapes)
-        if not act.physicsObj.body.is_static:
-            s.space.add(act.physicsObj.body)
+        if not act.physicsObj.is_static:
+            s.space.add(act.physicsObj)
         act.world = s
 
     def _removeActor(s, act):
         s.actors.remove(act)
         s.space.remove(act.physicsObj.shapes)
-        if not act.physicsObj.body.is_static:
-            s.space.remove(act.physicsObj.body)
+        if not act.physicsObj.is_static:
+            s.space.remove(act.physicsObj)
         # Break backlinks
-        act.body.actor = None
+        # TODO: This should break all backlinks in an actor's
+        # components, too.  Or the actor should have a delete
+        # method that gets called here.  Probably the best way.
+        #act.physicsObj.body.actor = None
         act.world = None
 
 
@@ -185,6 +191,14 @@ update frame."""
         collectable.collect(player)
         collectable.alive = False
         return False
+
+    @staticmethod
+    def collidePlayerTerrain(space, arbiter, *args, **kwargs):
+        #playerShape, terrainShape = arbiter.shapes
+        #player = playerShape.body.owner
+        #terrain = terrainShape.body.owner
+        #print player, terrain
+        return True
 
 
 

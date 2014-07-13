@@ -92,7 +92,7 @@ class KeyboardController(Component):
 things that keep happening as long as you hold the button
 down."""
         #print 'bop'
-        s.body = s.owner.physicsObj.body
+        s.body = s.owner.physicsObj
         s.stopBrake()
         s.stopMoving()
         if s.keyboard[key.DOWN]:
@@ -128,28 +128,32 @@ down."""
             print 'switch next power'
 
 
-class PhysicsObj(Component):
-    def __init__(s, owner):
+# XXX You know you're doing it right when the best way to handle a
+# problem is multiple inheritance.
+# We could make this a wrapper instead and expose various methods
+# of the body via properties, instead?
+class PhysicsObj(Component, pymunk.Body):
+    def __init__(s, owner, mass=None, moment=None):
         Component.__init__(s, owner)
-        s.body = None # pymunk.Body(1, 200)
-        s.shapes = []
+        pymunk.Body.__init__(s, mass, moment)
+        s.owner = owner
+        #s.body = None # pymunk.Body(1, 200)
+        #s.shapes = []
 
 
-    def setupPhysics(s):
-        """Sets up the actor-specific shape and physics parameters."""
-        s.corners = rectCornersCenter(0, 0, 10, 10)
-        s.shapes = [pymunk.Poly(s.body, s.corners, radius=1)]
-        for shape in s.shapes:
-            shape.friction = 5.8
-        s.body.position = (0,0)
+    # def setupPhysics(s):
+    #     """Sets up the actor-specific shape and physics parameters."""
+    #     s.corners = rectCornersCenter(0, 0, 10, 10)
+    #     s.shapes = [pymunk.Poly(s.body, s.corners, radius=1)]
+    #     for shape in s.shapes:
+    #         shape.friction = 5.8
+    #     s.body.position = (0,0)
 
     def setCollisionProperties(s, group, layerspec):
         "Set the actor's collision properties."
         for shape in s.shapes:
             shape.collision_type = group
             shape.layers = layerspec
-        # XXX Circular reference
-        s.body.physicsObj = s
 
     def setCollisionPlayer(s):
         "Sets the actor's collision properties to that suitable for a player."
@@ -176,22 +180,25 @@ class PhysicsObj(Component):
 
 class PlayerPhysicsObj(PhysicsObj):
     def __init__(s, owner):
-        PhysicsObj.__init__(s, owner)
-        s.body = pymunk.Body(1, 200)
-        s.shapes = [pymunk.Circle(s.body, radius=s.owner.radius)]
-        for shape in s.shapes:
+        PhysicsObj.__init__(s, owner, 1, 200)
+        #s.body = pymunk.Body(1, 200)
+        pymunk.Circle(s, radius=s.owner.radius)
+        # BUGGO: We have to hold on to a reference to the shapes
+        # because it appears that the pymunk.Body doesn't do it
+        # for us!
+        s._shapes = [pymunk.Circle(s, radius=s.owner.radius)]
+        for shape in s._shapes:
             shape.friction = 5.8
-        s.body.position = (0,0)
-
-STATIC_BODY = pymunk.Body()
+        s.position = (0,0)
+        s.setCollisionPlayer()
 
 class BlockPhysicsObj(PhysicsObj):
     def __init__(s, owner):
+        # Static body init here
         PhysicsObj.__init__(s, owner)
-        s.body = STATIC_BODY
-        s.shapes = [pymunk.Poly(s.body, owner.corners)]
+        s._shapes = [pymunk.Poly(s, owner.corners)]
         
-        for shape in s.shapes:
+        for shape in s._shapes:
             shape.friction = 0.8
             shape.elasticity = 0.8
 
@@ -230,8 +237,8 @@ Override in children and it will be called in `__init__`."""
 
     def draw(s):
         #pymunk.pyglet_util.draw(s.shape)
-        s.sprite.position = s.physicsObj.body.position
-        s.sprite.rotation = math.degrees(s.physicsObj.body.angle)
+        s.sprite.position = s.physicsObj.position
+        s.sprite.rotation = math.degrees(s.physicsObj.angle)
         s.sprite.draw()
 
     def onDeath(s):
