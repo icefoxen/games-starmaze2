@@ -40,6 +40,86 @@ LAYERSPEC_PLAYER      = LAYERSPEC_ALL & ~LAYER_PLAYERBULLET
 LAYERSPEC_ENEMY       = LAYERSPEC_ALL & ~LAYER_BULLET
 LAYERSPEC_COLLECTABLE = LAYERSPEC_ALL & ~LAYER_ENEMY
 
+class KeyboardController(object):
+    def __init__(s, owner, keyboard):
+        s.keyboard = keyboard
+        s.moveForce = 400
+        s.brakeForce = 400
+        s.motionX = 0
+        s.braking = False
+        s.owner = owner
+        # XXX: Circ. reference here I guess...
+        s.body = s.owner.body
+
+    def stopMoving(s):
+        s.motionX = 0
+    
+    def moveLeft(s):
+        s.motionX = -1
+
+    def moveRight(s):
+        s.motionX = 1
+
+    def brake(s):
+        s.braking = True
+        
+    def stopBrake(s):
+        s.braking = False
+
+    def update(s, dt):
+        s.handleInputState()
+        if s.braking:
+            (vx, vy) = s.body.velocity
+            if vx > 0:
+                s.body.apply_impulse((-s.brakeForce * dt, 0))
+            else:
+                s.body.apply_impulse((s.brakeForce * dt, 0))
+        else:
+            xImpulse = s.moveForce * s.motionX * dt
+            s.body.apply_impulse((xImpulse, 0))
+    
+    def handleInputState(s):
+        """Handles level-triggered keyboard actions; ie
+things that keep happening as long as you hold the button
+down."""
+        #print 'bop'
+        s.stopBrake()
+        s.stopMoving()
+        if s.keyboard[key.DOWN]:
+            s.brake()
+        elif s.keyboard[key.LEFT]:
+            s.moveLeft()
+        elif s.keyboard[key.RIGHT]:
+            s.moveRight()
+
+        if s.keyboard[key.SPACE]:
+            print "Enter room"
+
+        # Powers
+        if s.keyboard[key.Z]:
+            s.owner.currentPower.defend()
+        if s.keyboard[key.X]:
+            s.owner.currentPower.attack2()
+        if s.keyboard[key.C]:
+            s.owner.currentPower.attack1()
+        if s.keyboard[key.UP]:
+            s.owner.currentPower.jump()
+
+        #if s.keyboard[key.W]:
+        #    pass
+
+
+    def handleInputEvent(s, k, mod):
+        """Handles edge-triggered keyboard actions (key presses, not holds)"""
+        # Switch powers
+        if k == key.Q:
+            print 'switch previous power'
+        elif k == key.E:
+            print 'switch next power'
+
+
+    
+
 class Actor(object):
     """The basic thing-that-moves-and-does-stuff in a `Room`."""
     def __init__(s, batch=None):
@@ -131,6 +211,7 @@ class Player(Actor):
         super(s.__class__, s).__init__(batch)
         s.keyboard = keyboard
         s.setCollisionPlayer()
+        s.controller = KeyboardController(s, keyboard)
 
         s.currentPower = Power(s)
 
@@ -178,60 +259,20 @@ class Player(Actor):
         s.braking = False
 
     def update(s, dt):
-        s.handleInputState()
+        s.controller.update(dt)
         s.currentPower.update(dt)
-        if s.braking:
-            (vx, vy) = s.body.velocity
-            if vx > 0:
-                s.body.apply_impulse((-s.brakeForce * dt, 0))
-            else:
-                s.body.apply_impulse((s.brakeForce * dt, 0))
-        else:
-            xImpulse = s.moveForce * s.motionX * dt
-            s.body.apply_impulse((xImpulse, 0))
+        # if s.braking:
+        #     (vx, vy) = s.body.velocity
+        #     if vx > 0:
+        #         s.body.apply_impulse((-s.brakeForce * dt, 0))
+        #     else:
+        #         s.body.apply_impulse((s.brakeForce * dt, 0))
+        # else:
+        #     xImpulse = s.moveForce * s.motionX * dt
+        #     s.body.apply_impulse((xImpulse, 0))
 
-        #fmtstr = "position: {} force: {} torque: {}"
-        #print fmtstr.format(s.body.position, s.body.force, s.body.torque)
-
-
-    def handleInputState(s):
-        """Handles level-triggered keyboard actions; ie
-things that keep happening as long as you hold the button
-down."""
-        #print 'bop'
-        s.stopBrake()
-        s.stopMoving()
-        if s.keyboard[key.DOWN]:
-            s.brake()
-        elif s.keyboard[key.LEFT]:
-            s.moveLeft()
-        elif s.keyboard[key.RIGHT]:
-            s.moveRight()
-
-        if s.keyboard[key.SPACE]:
-            print "Enter room"
-
-        # Powers
-        if s.keyboard[key.Z]:
-            s.currentPower.defend()
-        if s.keyboard[key.X]:
-            s.currentPower.attack2()
-        if s.keyboard[key.C]:
-            s.currentPower.attack1()
-        if s.keyboard[key.UP]:
-            s.currentPower.jump()
-
-        #if s.keyboard[key.W]:
-        #    pass
-
-
-    def handleInputEvent(s, k, mod):
-        """Handles edge-triggered keyboard actions (key presses, not holds)"""
-        # Switch powers
-        if k == key.Q:
-            print 'switch previous power'
-        elif k == key.E:
-            print 'switch next power'
+        # #fmtstr = "position: {} force: {} torque: {}"
+        # #print fmtstr.format(s.body.position, s.body.force, s.body.torque)
 
     def switchPowers(s, power):
         "Switches to the given power.  Should eventually do shiny things and such."

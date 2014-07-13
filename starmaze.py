@@ -173,7 +173,7 @@ update frame."""
         s.fps_display.draw()
 
     def on_key_press(s, k, modifiers):
-        s.player.handleInputEvent(k, modifiers)
+        s.player.controller.handleInputEvent(k, modifiers)
 
     @staticmethod
     def collidePlayerCollectable(space, arbiter, *args, **kwargs):
