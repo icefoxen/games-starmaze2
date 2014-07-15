@@ -94,6 +94,8 @@ class LevelEditor(object):
         #print "Mouse drag:", x, y, dx, dy, button, modifiers
         #print "Start drag", s.startDrag
         if s.currentTarget is not None:
+            # BUGGO: click-dragging to define a new shape
+            # doesn't handle winding order right.
             tx, ty = s.startDrag
             #topleftx = tx - s.camera.x
             #toplefty = tx - s.camera.y
