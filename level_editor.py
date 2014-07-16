@@ -8,6 +8,7 @@ import pyglet
 import pyglet.window.key as key
 from pyglet.gl import *
 
+from graphics import *
 from terrain import *
 import starmaze
 
@@ -78,6 +79,13 @@ class LevelEditor(object):
         else:
             print "Game instance already running, should prolly close that first."
 
+    def outputGameInstance(s):
+        descrs = [BlockDescription.fromObject(block) for block in s.actors]
+        print "["
+        for d in descrs:
+            print d, ","
+        print "]"
+
     def killGameInstance(s):
         print 'killing game instance'
         if s.world is not None:
@@ -122,6 +130,8 @@ class LevelEditor(object):
     def on_key_press(s, k, modifiers):
         if k == key.P:
             s.startGameInstance()
+        if k == key.O:
+            s.outputGameInstance()
 
     def handleInputState(s):
         x, y = s.cameraTarget.position

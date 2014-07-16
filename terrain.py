@@ -72,6 +72,17 @@ of the runtime data."""
             h = max(h, cy - y)
         return BlockDescription(x, y, w, h, color)
 
+    def __repr__(s):
+        return "BlockDescription({}, {}, {}, {}, {})".format(
+            s.x, s.y, s.w, s.h, s.color
+            )
+
+def createDescription(actor):
+    if isinstance(actor, Block):
+        return BlockDescription.fromObject(actor)
+    else:
+        raise Exception("Type is not describable: ")
+    
 def createBlockCenter(x, y, w, h, color=(255, 255, 255, 255), batch=None):
     """Creates a `Terrain` object representing a block of the given size.
 x and y are the coordinates of the center."""
@@ -124,21 +135,25 @@ class Room(object):
     """Basically a specification of a bunch of Actors to create,
 along with code to create them.
     """
-    def __init__(s):
+    def __init__(s, descr=[]):
         s.name = ""
-        s.descr = [
-            BlockDescription(-300, -200, 600, 30, COLOR_WHITE),
-            BlockDescription(-330, -200, 30, 400, COLOR_WHITE),
-            BlockDescription(300, -200, 30, 400, COLOR_WHITE),
-            BlockDescription(-100, -100, 200, 30, COLOR_WHITE),
-            ]
+        s.descr = descr
+        #[
+        #    BlockDescription(-300, -200, 600, 30, COLOR_WHITE),
+        #    BlockDescription(-330, -200, 30, 400, COLOR_WHITE),
+        #    BlockDescription(300, -200, 30, 400, COLOR_WHITE),
+        #    BlockDescription(-100, -100, 200, 30, COLOR_WHITE),
+        #    ]
 
     def getActors(s):
         return map(lambda desc: desc.create(), s.descr)
 
 def makeSomeRoom():
-    r = Room()
+    import zone_beginnings
+    s = zone_beginnings.STARTROOM
+    r = Room(descr=s)
     return r
+    
 
 class Zone(object):
     """A collection of interconnected `Room`s.  A Zone

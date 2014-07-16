@@ -4,8 +4,6 @@ import math
 import pyglet
 from pyglet.gl import *
 
-import actor
-
 COLOR_WHITE = (255, 255, 255, 255)
 COLOR_RED   = (255, 0, 0, 255)
 COLOR_BLUE  = (0, 0, 255, 255)

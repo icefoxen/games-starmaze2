@@ -4,6 +4,7 @@ import pymunk
 import pymunk.pyglet_util
 
 from graphics import *
+#import graphics
 
 # COLLISION GROUPS!  \O/
 # Collision groups in pymunk determine types
@@ -150,6 +151,7 @@ class PhysicsObj(Component):
     angle = property(lambda s: s.body.angle, _set_angle)
     position = property(lambda s: s.body.position, _set_position)
     is_static = property(lambda s: s.body.is_static)
+    velocity = property(lambda s: s.body.velocity)
     def apply_impulse(s, impulse):
         s.body.apply_impulse(impulse)
 
