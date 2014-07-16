@@ -106,7 +106,7 @@ class LevelEditor(object):
             cameray = s.camera.y - (s.camera.y % snapToSize)
             x = x - (x % snapToSize)
             y = y - (y % snapToSize)
-            
+
             #s.currentTarget = createBlock(tx, ty, tx-x, ty-y)
             s.currentTarget = createBlockCorner(tx - s.camera.x, ty - s.camera.y, -(tx-x), -(ty-y))
 

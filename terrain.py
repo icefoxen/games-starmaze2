@@ -7,6 +7,7 @@ import pymunk.pyglet_util
 
 from graphics import *
 from actor import *
+from component import *
 
 
 STATIC_BODY = pymunk.Body()
@@ -23,15 +24,16 @@ corners is a list of the corners of the polygon.  NOT line endpoins.
         s.color = color
         Actor.__init__(s, batch)
         s.physicsObj = BlockPhysicsObj(s)
+        s.sprite = BlockSprite(s, corners, color)
 
-    def setupPhysics(s):
-        s.body = STATIC_BODY
-        s.shapes=[pymunk.Poly(s.body, s.corners)]
-        for shape in s.shapes:
-            shape.friction = 0.8
-            shape.elasticity = 0.8
+    # def setupPhysics(s):
+    #     s.body = STATIC_BODY
+    #     s.shapes=[pymunk.Poly(s.body, s.corners)]
+    #     for shape in s.shapes:
+    #         shape.friction = 0.8
+    #         shape.elasticity = 0.8
 
-        s.setCollisionTerrain()
+    #     s.setCollisionTerrain()
 
     def setupSprite(s):        
         lines = cornersToLines(s.corners)

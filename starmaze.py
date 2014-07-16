@@ -128,14 +128,14 @@ update frame."""
         s.actors.add(act)
         s.space.add(act.physicsObj.shapes)
         if not act.physicsObj.is_static:
-            s.space.add(act.physicsObj)
+            s.space.add(act.physicsObj.body)
         act.world = s
 
     def _removeActor(s, act):
         s.actors.remove(act)
         s.space.remove(act.physicsObj.shapes)
         if not act.physicsObj.is_static:
-            s.space.remove(act.physicsObj)
+            s.space.remove(act.physicsObj.body)
         # Break backlinks
         # TODO: This should break all backlinks in an actor's
         # components, too.  Or the actor should have a delete

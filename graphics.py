@@ -4,6 +4,8 @@ import math
 import pyglet
 from pyglet.gl import *
 
+import actor
+
 COLOR_WHITE = (255, 255, 255, 255)
 COLOR_RED   = (255, 0, 0, 255)
 COLOR_BLUE  = (0, 0, 255, 255)
@@ -347,73 +349,3 @@ which might make them look rather nicer.
         s._vertexList.draw(GL_LINE_LOOP)
         glPopMatrix()
         
-
-class LineSprite(object):
-    """A class that draws a positioned, scaled, rotated
-and maybe someday animated `LineImage`s.
-
-The question is, how do we animate these things...
-
-Apart from animations, this is mostly API-compatible with
-`pyglet.sprite.Sprite`.  Huzzah~
-
-Except I took out all the group stuff so I can not worry
-about it until I need to.  Though it looks like it might
-be ideal for shaders and ordering maybe...
-"""
-
-    def __init__(s, lineimage, x=0, y=0, batch=None, group=None):
-        s._image = lineimage
-        s._x = x
-        s._y = y
-        s._batch = batch or lineimage.batch
-        s._rotation = 0.0
-        s._scale = 1.0
-
-    def delete(s):
-        pass
-
-    def draw(s):
-        glPushAttrib(GL_COLOR_BUFFER_BIT)
-        glEnable(GL_BLEND)
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-        with Affine((s._x, s._y), s.rotation, (s._scale, s._scale)):
-            s._batch.draw()
-        glPopAttrib()
-
-    # def _get_group(s):
-    #     return s._group
-    # def _set_group(s, group):
-    #     s._group = group
-    # group = property(_get_group, _set_group)
-
-    def _set_image(s, image):
-        s._image = image
-    image = property(lambda s: s._image, _set_image)
-    
-    def _set_x(s, x):
-        s._x = x
-    x = property(lambda s: s._x, _set_x)
-
-    def _set_y(s, y):
-        s._y = y
-    y = property(lambda s: s._y, _set_y)
-
-    def _set_position(s, pos):
-        (x, y) = pos
-        s._x = x
-        s._y = y
-    position = property(lambda s: (s._x, s._y), _set_position)
-
-    def _set_rotation(s, rotation):
-        s._rotation = rotation
-    rotation = property(lambda s: s._rotation, _set_rotation)
-
-    def _set_scale(s, scale):
-        s._scale = scale
-    scale = property(lambda s: s._scale, _set_scale)
-
-    #width = property(lambda s: s._y, _set_y)
-
-    #height = property(lambda s: s._y, _set_y)
-    
