@@ -132,9 +132,11 @@ down."""
         """Handles edge-triggered keyboard actions (key presses, not holds)"""
         # Switch powers
         if k == key.Q:
-            print 'switch previous power'
+            s.owner.powers.prevPower()
+            print "Current power: ", s.owner.powers.currentPower
         elif k == key.E:
-            print 'switch next power'
+            s.owner.powers.nextPower()
+            print "Current power: ", s.owner.powers.currentPower
 
 
 # XXX You know you're doing it right when the best way to handle a

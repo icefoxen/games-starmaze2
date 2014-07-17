@@ -160,6 +160,26 @@ class BeginningP1Bullet(Actor):
         pass
         print 'bullet died'
 
+class NullPower(object):
+    "A power set that does nothing."
+    def __init__(s):
+        pass
+
+    def update(s, dt):
+        pass
+
+    def attack1(s):
+        pass
+
+    def attack2(s):
+        pass
+
+    def defend(s):
+        pass
+
+    def jump(s):
+        pass
+        
 class BeginningsPower(object):
     "The Beginnings elemental power set."
     def __init__(s):
@@ -186,17 +206,24 @@ class BeginningsPower(object):
 class PowerSet(Component):
     def __init__(s, owner):
         Component.__init__(s, owner)
-        #s.currentPower = BeginningsPower(
+        s.powerIndex = 0
+        s.powers = [NullPower()]
+        s.currentPower = s.powers[s.powerIndex]
 
+    def addPower(s, power):
+        # Remove the null power if it exists before adding
+        # the other power
+        if len(s.powers) == 1 and isinstance(s.powers[0], NullPower):
+            s.powers = [power]
+        else:
+            s.powers.add(power)
+            s.powers.sort()
+        
     def update(s, dt):
-        pass
+        s.currentPower.update(dt)
 
     def attack1(s):
-        x, y = s.owner.physicsObj.position
-        direction = 1
-        bullet = BeginningP1Bullet(x, y, s.owner.facing)
-        s.owner.world.birthActor(bullet)
-
+        pass
 
     def attack2(s):
         pass
@@ -209,10 +236,9 @@ class PowerSet(Component):
 
 
     def nextPower(s):
-        pass
+        s.powerIndex = (s.powerIndex + 1) % len(s.powers)
+        s.currentPower = s.powers[s.powerIndex]
 
     def prevPower(s):
-        pass
-
-    def unlockPower(s, power):
-        pass
+        s.powerIndex = (s.powerIndex - 1) % len(s.powers)
+        s.currentPower = s.powers[s.powerIndex]
