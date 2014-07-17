@@ -102,21 +102,23 @@ class LevelEditor(object):
         #print "Mouse drag:", x, y, dx, dy, button, modifiers
         #print "Start drag", s.startDrag
         if s.currentTarget is not None:
-            # BUGGO: click-dragging to define a new shape
-            # doesn't handle winding order right.
-            tx, ty = s.startDrag
-            #topleftx = tx - s.camera.x
-            #toplefty = tx - s.camera.y
-            snapToSize = 10
-            tx = tx - (tx % snapToSize)
-            ty = ty - (ty % snapToSize)
-            camerax = s.camera.x - (s.camera.x % snapToSize)
-            cameray = s.camera.y - (s.camera.y % snapToSize)
-            x = x - (x % snapToSize)
-            y = y - (y % snapToSize)
+            # We have to make it so you can start dragging from
+            # any corner, but it will adjusted it to the bottom
+            # left corner that is the reference point for our
+            # box-creation code.
+            startx, starty = s.startDrag
+            bottomLeftX = min(x, startx)
+            bottomLeftY = min(y, starty)
+            maxX = max(x, startx)
+            maxY = max(y, starty)
+            width = maxX - bottomLeftX
+            height = maxY - bottomLeftY
 
-            #s.currentTarget = createBlock(tx, ty, tx-x, ty-y)
-            s.currentTarget = createBlockCorner(tx - s.camera.x, ty - s.camera.y, -(tx-x), -(ty-y))
+            cameraAdjustedX = bottomLeftX - s.camera.x
+            cameraAdjustedY = bottomLeftY - s.camera.y
+            
+            s.currentTarget = createBlockCorner(cameraAdjustedX, cameraAdjustedY,
+                                                width, height)
 
     def on_mouse_release(s, x, y, button, modifiers):
         #print "Mouse release:", x, y, button, modifiers
