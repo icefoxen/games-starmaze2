@@ -1,5 +1,6 @@
 import itertools
 import math
+import random
 
 import pyglet
 import pyglet.window.key as key
@@ -7,6 +8,8 @@ import pymunk
 import pymunk.pyglet_util
 
 from component import *
+import resource
+import images
 
 class Actor(object):
     """The basic thing-that-moves-and-does-stuff in a `Room`."""
@@ -30,11 +33,11 @@ class Actor(object):
         s.world = None
     
 
-    def _setPosition(s, pt):
-        s.body.position = pt
+    # def _setPosition(s, pt):
+    #     s.physicsObj.position = pt
 
-    position = property(lambda s: s.body.position, _setPosition,
-                        doc="The position of the Actor.")
+    # position = property(lambda s: s.body.position, _setPosition,
+    #                     doc="The position of the Actor.")
 
     def draw(s):
         if (s.sprite is not None) and (s.physicsObj is not None):
@@ -56,13 +59,14 @@ class Player(Actor):
         s.keyboard = keyboard
         s.controller = KeyboardController(s, keyboard)
         s.physicsObj = PlayerPhysicsObj(s)
-        s.sprite = PlayerSprite(s)
+        img = resource.getLineImage(images.playerImage)
+        s.sprite = LineSprite(s, img)
 
-        s.currentPower = Power(s)
+        s.powers = PowerSet(s)
 
     def update(s, dt):
         s.controller.update(dt)
-        s.currentPower.update(dt)
+        s.powers.update(dt)
         # if s.braking:
         #     (vx, vy) = s.body.velocity
         #     if vx > 0:
@@ -137,10 +141,37 @@ class Powerup(Actor):
         allLines = list(itertools.chain.from_iterable(lineList))
         colors = [(128, 128, 255, 255) for _ in allLines]
         image = LineImage(allLines, colors)
-        s.sprite = LineSprite(image)
+        s.sprite = LineSprite(s, image)
 
     def collect(s, player):
         print "Powered up!"
+
+class BeginningP1Bullet(Actor):
+    def __init__(s, x, y, direction):
+        Actor.__init__(s)
+        yVariance = 5
+        yOffset = (random.random() * yVariance) - (yVariance / 2)
+        s.physicsObj = PhysicsObj(s, 1, 1)
+        s.physicsObj.position = (x,y + yOffset)
+        s.physicsObj.setCollisionPlayerBullet()
+
+        image = resource.getLineImage(images.beginningsP1Bullet)
+        s.sprite = LineSprite(s, image)
+        xImpulse = 400 * direction
+        yImpulse = yOffset * 10
+        s.physicsObj.apply_impulse((xImpulse, yImpulse))
+        # Counteract gravity?
+        s.physicsObj.apply_force((0, 400))
+        s.life = 0.4 + (random.random() / 3.0)
+
+    def update(s, dt):
+        s.life -= dt
+        if s.life < 0.0:
+            s.alive = False
+
+    def onDeath(s):
+        pass
+        print 'bullet died'
 
 
 class Power(object):
@@ -153,6 +184,12 @@ This is also a null class which does nothing, handily."""
         pass
 
     def attack1(s):
+        pass
+        return
+        x, y = s.owner.position
+        direction = 1
+        bullet = BeginningP1Bullet(x, y, direction)
+        s.owner.world.addActor(bullet)
         print "attack1"
 
     def attack2(s):
@@ -164,16 +201,19 @@ This is also a null class which does nothing, handily."""
     def jump(s):
         print "jump"
 
-class BeginningsPower(Power):
+class BeginningsPower(object):
     "The Beginnings elemental power set."
-    def __init__(s, player):
-        Power.__init__(s, player)
+    def __init__(s):
+        pass
 
     def update(s, dt):
         pass
 
     def attack1(s):
-        pass
+        x, y = s.owner.physicsObj.position
+        direction = 1
+        bullet = BeginningP1Bullet(x, y, direction)
+        s.owner.world.addActor(bullet)
 
     def attack2(s):
         pass
@@ -186,13 +226,18 @@ class BeginningsPower(Power):
 
 class PowerSet(Component):
     def __init__(s, owner):
-        Component.__init__(owner)
+        Component.__init__(s, owner)
+        #s.currentPower = BeginningsPower(
 
     def update(s, dt):
         pass
 
     def attack1(s):
-        pass
+        x, y = s.owner.physicsObj.position
+        direction = 1
+        bullet = BeginningP1Bullet(x, y, direction)
+        s.owner.world.birthActor(bullet)
+
 
     def attack2(s):
         pass
@@ -202,6 +247,7 @@ class PowerSet(Component):
 
     def jump(s):
         pass
+
 
     def nextPower(s):
         pass

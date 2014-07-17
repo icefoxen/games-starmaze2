@@ -4,6 +4,7 @@ import pymunk
 import pymunk.pyglet_util
 
 from graphics import *
+import resource
 #import graphics
 
 # COLLISION GROUPS!  \O/
@@ -34,9 +35,14 @@ LAYER_BULLET       = LAYER_PLAYERBULLET & LAYER_ENEMYBULLET
 LAYER_TERRAIN      = 0x00000020
 
 LAYERSPEC_ALL         = 0xFFFFFFFF
+# Players touch everything except player bullets
 LAYERSPEC_PLAYER      = LAYERSPEC_ALL & ~LAYER_PLAYERBULLET
-LAYERSPEC_ENEMY       = LAYERSPEC_ALL & ~LAYER_BULLET
-LAYERSPEC_COLLECTABLE = LAYERSPEC_ALL & ~LAYER_ENEMY
+# Enemies touch everything except enemy bullets
+LAYERSPEC_ENEMY       = LAYERSPEC_ALL & ~LAYER_ENEMYBULLET
+# Collectables touch everything except enemies and bullets
+LAYERSPEC_COLLECTABLE = LAYERSPEC_ALL & ~LAYER_ENEMY & ~LAYER_BULLET
+# Player bullets touch everything I guess
+LAYERSPEC_PLAYERBULLET = LAYERSPEC_ALL
 
 class Component(object):
     """Gameobjects are made out of components.
@@ -106,13 +112,13 @@ down."""
 
         # Powers
         if s.keyboard[key.Z]:
-            s.owner.currentPower.defend()
+            s.owner.powers.defend()
         if s.keyboard[key.X]:
-            s.owner.currentPower.attack2()
+            s.owner.powers.attack2()
         if s.keyboard[key.C]:
-            s.owner.currentPower.attack1()
+            s.owner.powers.attack1()
         if s.keyboard[key.UP]:
-            s.owner.currentPower.jump()
+            s.owner.powers.jump()
 
         #if s.keyboard[key.W]:
         #    pass
@@ -138,6 +144,7 @@ class PhysicsObj(Component):
         s.owner = owner
         #s.body = None # pymunk.Body(1, 200)
         s.shapes = []
+        s.facing = 0
 
     def _set_position(s, pos):
         s.body.position = pos
@@ -154,6 +161,8 @@ class PhysicsObj(Component):
     velocity = property(lambda s: s.body.velocity)
     def apply_impulse(s, impulse):
         s.body.apply_impulse(impulse)
+    def apply_force(s, force):
+        s.body.apply_force(force)
 
     def setCollisionProperties(s, group, layerspec):
         "Set the actor's collision properties."
@@ -301,28 +310,6 @@ be ideal for shaders and ordering maybe...
 
     #height = property(lambda s: s._y, _set_y)
     
-class PlayerSprite(LineSprite):
-    def __init__(s, owner):
-        lineList = []
-        corners1 = circleCorners(0, 0, owner.radius)
-        lineList.append(cornersToLines(corners1))
-
-        spokeLength = owner.radius + 18
-        spokeBase = 8
-        lineList.append(lineCorners(0, spokeBase, spokeLength, 0))
-        lineList.append(lineCorners(0, -spokeBase, spokeLength, 0))
-        lineList.append(lineCorners(spokeBase, 0, 0, spokeLength))
-        lineList.append(lineCorners(-spokeBase, 0, 0, spokeLength))
-        lineList.append(lineCorners(0, spokeBase, -spokeLength, 0))
-        lineList.append(lineCorners(0, -spokeBase, -spokeLength, 0))
-        lineList.append(lineCorners(spokeBase, 0, 0, -spokeLength))
-        lineList.append(lineCorners(-spokeBase, 0, 0, -spokeLength))
-
-        allLines = list(itertools.chain.from_iterable(lineList))
-        colors = [(64, 224, 64, 255) for _ in allLines]
-        image = LineImage(allLines, colors)
-        LineSprite.__init__(s, owner, image)
-
 
 class CollectableSprite(LineSprite):
     def __init__(s, owner):
@@ -340,3 +327,4 @@ class BlockSprite(LineSprite):
 
         image = LineImage(lines, colors)
         LineSprite.__init__(s, owner, image)
+

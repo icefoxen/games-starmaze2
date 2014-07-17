@@ -23,3 +23,15 @@ def get_image(name):
 def get_sprite(name):
     img = get_image(name)
     return pyglet.sprite.Sprite(img)
+
+
+
+
+LINEIMAGECACHE = {}
+def getLineImage(linefunc):
+    try:
+        return LINEIMAGECACHE[linefunc]
+    except KeyError:
+        img = linefunc()
+        LINEIMAGECACHE[linefunc] = img
+        return img
