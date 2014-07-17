@@ -63,22 +63,11 @@ class Player(Actor):
         s.sprite = LineSprite(s, img)
 
         s.powers = PowerSet(s)
+        s.facing = FACING_RIGHT
 
     def update(s, dt):
         s.controller.update(dt)
         s.powers.update(dt)
-        # if s.braking:
-        #     (vx, vy) = s.body.velocity
-        #     if vx > 0:
-        #         s.body.apply_impulse((-s.brakeForce * dt, 0))
-        #     else:
-        #         s.body.apply_impulse((s.brakeForce * dt, 0))
-        # else:
-        #     xImpulse = s.moveForce * s.motionX * dt
-        #     s.body.apply_impulse((xImpulse, 0))
-
-        # #fmtstr = "position: {} force: {} torque: {}"
-        # #print fmtstr.format(s.body.position, s.body.force, s.body.torque)
 
     def switchPowers(s, power):
         "Switches to the given power.  Should eventually do shiny things and such."
@@ -151,9 +140,7 @@ class BeginningP1Bullet(Actor):
         Actor.__init__(s)
         yVariance = 5
         yOffset = (random.random() * yVariance) - (yVariance / 2)
-        s.physicsObj = PhysicsObj(s, 1, 1)
-        s.physicsObj.position = (x,y + yOffset)
-        s.physicsObj.setCollisionPlayerBullet()
+        s.physicsObj = PlayerBulletPhysicsObj(s, position=(x, y+yOffset))
 
         image = resource.getLineImage(images.beginningsP1Bullet)
         s.sprite = LineSprite(s, image)
@@ -172,34 +159,6 @@ class BeginningP1Bullet(Actor):
     def onDeath(s):
         pass
         print 'bullet died'
-
-
-class Power(object):
-    """A class representing a set of powers for the player.
-This is also a null class which does nothing, handily."""
-    def __init__(s, player):
-        s.player = player
-
-    def update(s, dt):
-        pass
-
-    def attack1(s):
-        pass
-        return
-        x, y = s.owner.position
-        direction = 1
-        bullet = BeginningP1Bullet(x, y, direction)
-        s.owner.world.addActor(bullet)
-        print "attack1"
-
-    def attack2(s):
-        print "attack2"
-
-    def defend(s):
-        print "Defend"
-
-    def jump(s):
-        print "jump"
 
 class BeginningsPower(object):
     "The Beginnings elemental power set."
@@ -235,7 +194,7 @@ class PowerSet(Component):
     def attack1(s):
         x, y = s.owner.physicsObj.position
         direction = 1
-        bullet = BeginningP1Bullet(x, y, direction)
+        bullet = BeginningP1Bullet(x, y, s.owner.facing)
         s.owner.world.birthActor(bullet)
 
 

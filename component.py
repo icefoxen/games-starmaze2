@@ -26,23 +26,24 @@ CGROUP_TERRAIN = 6
 # Collectables do not collide with enemies or player/enemy bullets
 # Enemies do not collide with their own bullets,
 # players do not collide with their own bullets.
-LAYER_PLAYER       = 0X00000001
-LAYER_COLLECTABLE  = 0x00000002
-LAYER_ENEMY        = 0x00000004
-LAYER_PLAYERBULLET = 0x00000008
-LAYER_ENEMYBULLET  = 0x00000010
+LAYER_PLAYER       = 1 << 0
+LAYER_COLLECTABLE  = 1 << 1
+LAYER_ENEMY        = 1 << 2
+LAYER_PLAYERBULLET = 1 << 3
+LAYER_ENEMYBULLET  = 1 << 4
 LAYER_BULLET       = LAYER_PLAYERBULLET & LAYER_ENEMYBULLET
-LAYER_TERRAIN      = 0x00000020
+#LAYER_TERRAIN      = 1 << 5
 
+# Terrain occupies all layers, it touches everything.
 LAYERSPEC_ALL         = 0xFFFFFFFF
-# Players touch everything except player bullets
-LAYERSPEC_PLAYER      = LAYERSPEC_ALL & ~LAYER_PLAYERBULLET
+# Players only touch
+LAYERSPEC_PLAYER      = LAYER_ENEMYBULLET
 # Enemies touch everything except enemy bullets
 LAYERSPEC_ENEMY       = LAYERSPEC_ALL & ~LAYER_ENEMYBULLET
 # Collectables touch everything except enemies and bullets
 LAYERSPEC_COLLECTABLE = LAYERSPEC_ALL & ~LAYER_ENEMY & ~LAYER_BULLET
-# Player bullets touch everything I guess
-LAYERSPEC_PLAYERBULLET = LAYERSPEC_ALL
+# Player bullets only touch enemies and terrain
+LAYERSPEC_PLAYERBULLET = LAYER_ENEMY
 
 class Component(object):
     """Gameobjects are made out of components.
@@ -53,7 +54,8 @@ component system."""
     def __init__(s, owner):
         s.owner = owner
 
-
+FACING_LEFT = -1
+FACING_RIGHT = 1
 class KeyboardController(Component):
     def __init__(s, owner, keyboard):
         Component.__init__(s, owner)
@@ -70,9 +72,11 @@ class KeyboardController(Component):
     
     def moveLeft(s):
         s.motionX = -1
+        s.owner.facing = FACING_LEFT
 
     def moveRight(s):
         s.motionX = 1
+        s.owner.facing = FACING_RIGHT
 
     def brake(s):
         s.braking = True
@@ -204,15 +208,22 @@ class PhysicsObj(Component):
 class PlayerPhysicsObj(PhysicsObj):
     def __init__(s, owner):
         PhysicsObj.__init__(s, owner, 1, 200)
-        pymunk.Circle(s.body, radius=s.owner.radius)
         # BUGGO: We have to hold on to a reference to the shapes
         # because it appears that the pymunk.Body doesn't do it
         # for us!
         s.shapes = [pymunk.Circle(s.body, radius=s.owner.radius)]
-        for shape in s.shapes:
-            shape.friction = 5.8
+        s.setFriction(6.0)
         s.position = (0,0)
         s.setCollisionPlayer()
+
+class PlayerBulletPhysicsObj(PhysicsObj):
+    """A generic physics object for small round things that hit stuff."""
+    def __init__(s, owner, position=(0, 0)):
+        PhysicsObj.__init__(s, owner, 1, 10)
+        s.body.position = position
+        s.shapes = [pymunk.Circle(s.body, radius=2)]
+        s.setElasticity(0.8)
+        s.setCollisionPlayerBullet()
 
 class BlockPhysicsObj(PhysicsObj):
     def __init__(s, owner):
