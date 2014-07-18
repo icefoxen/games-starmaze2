@@ -61,6 +61,8 @@ class Player(Actor):
         s.physicsObj = PlayerPhysicsObj(s)
         img = resource.getLineImage(images.playerImage)
         s.sprite = LineSprite(s, img)
+        glowImage = resource.getLineImage(images.playerImageGlow)
+        s.glowSprite = LineSprite(s, glowImage)
 
         s.powers = PowerSet(s)
         s.facing = FACING_RIGHT
@@ -72,6 +74,16 @@ class Player(Actor):
     def switchPowers(s, power):
         "Switches to the given power.  Should eventually do shiny things and such."
         s.currentPower = power
+
+    def draw(s):
+        if (s.sprite is not None) and (s.physicsObj is not None):
+            s.glowSprite.position = s.physicsObj.position
+            s.glowSprite.rotation = math.degrees(s.physicsObj.angle)
+            s.glowSprite.draw()
+
+            s.sprite.position = s.physicsObj.position
+            s.sprite.rotation = math.degrees(s.physicsObj.angle)
+            s.sprite.draw()
 
 
 class Collectable(Actor):
