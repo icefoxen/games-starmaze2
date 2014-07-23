@@ -347,3 +347,20 @@ which might make them look rather nicer.
         s._vertexList.draw(GL_LINE_LOOP)
         glPopMatrix()
         
+
+def vertsToIndexedVerts(verts):
+    """Turns a sequence of (x,y) vertices into a (smaller) sequence of verts and
+a list of indices to draw the shape the verts makes.
+
+BUGGO: Prolly doesn't entirely work yet, be careful."""
+    vertDict = {}
+    counter = 0
+    for v in verts:
+        if not vertDict.has_key(v):
+            vertDict[v] = counter
+            counter += 1
+    indices = [vertDict[i] for i in verts]
+    vertIndexList = [(val,key) for key,val in vertDict.iteritems()]
+    vertIndexList.sort()
+    vertList = [val for _, val in vertIndexList]
+    return vertList, indices

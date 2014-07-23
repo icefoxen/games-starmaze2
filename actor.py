@@ -118,34 +118,38 @@ whether restoring your health or unlocking a new Power or whatever."""
         if s.life < 0:
             s.alive = False
 
-class Powerup(Actor):
-    """A Collectable that doesn't time out and doesn't move."""
+class BeginningsPowerup(Actor):
+    "Powerups don't time out and don't move."
     def __init__(s):
         Actor.__init__(s)
-        s.setCollisionCollectable()
-
-    def setupPhysics(s):
-        s.corners = []
-        s.corners.append(rectCornersCenter(0, 0, 20, 20))
-        s.body = pymunk.Body()
-        s.shapes = [
-            pymunk.Poly(s.body, c)
-            for c in s.corners
-            ]
-        for shape in s.shapes:
-            #shape.friction = 5.8
-            shape.elasticity = 0.9
-
-    def setupSprite(s):
-        lineList = [cornersToLines(cs) for cs in s.corners]
-
-        allLines = list(itertools.chain.from_iterable(lineList))
-        colors = [(128, 128, 255, 255) for _ in allLines]
-        image = LineImage(allLines, colors)
-        s.sprite = LineSprite(s, image)
+        s.physicsObj = PowerupPhysicsObj(s)
+        img = resource.getLineImage(images.powerup)
+        s.sprite = LineSprite(s, img)
 
     def collect(s, player):
-        print "Powered up!"
+        print "Gained Beginnings power!"
+        player.powers.addPower(BeginningsPower())
+
+class BeginningsPowerupDescription(object):
+    def __init__(s, x, y):
+        s.x = x
+        s.y = y
+
+    def create(s):
+        p = BeginningsPowerup()
+        p.physicsObj.position = (s.x, s.y)
+        return p
+
+    @staticmethod
+    def fromObject(powerup):
+        x, y = powerup.position
+        return BeginningsPowerupDescription(x, y)
+
+    def __repr__(s):
+        return "BeginningsPowerupDescription({}, {})".format(
+            s.x, s.y
+            )
+
 
 class BeginningP1Bullet(Actor):
     def __init__(s, x, y, direction):
@@ -180,16 +184,16 @@ class NullPower(object):
     def update(s, dt):
         pass
 
-    def attack1(s):
+    def attack1(s, owner):
         pass
 
-    def attack2(s):
+    def attack2(s, owner):
         pass
 
-    def defend(s):
+    def defend(s, owner):
         pass
 
-    def jump(s):
+    def jump(s, owner):
         pass
         
 class BeginningsPower(object):
@@ -200,20 +204,21 @@ class BeginningsPower(object):
     def update(s, dt):
         pass
 
-    def attack1(s):
-        x, y = s.owner.physicsObj.position
+    def attack1(s, owner):
+        print "Attack1"
+        x, y = owner.physicsObj.position
         direction = 1
         bullet = BeginningP1Bullet(x, y, direction)
-        s.owner.world.addActor(bullet)
+        owner.world.birthActor(bullet)
 
-    def attack2(s):
-        pass
+    def attack2(s, owner):
+        print "Attack2"
 
-    def defend(s):
-        pass
+    def defend(s, owner):
+        print "Defend"
 
-    def jump(s):
-        pass
+    def jump(s, owner):
+        print "Jump"
 
 class PowerSet(Component):
     def __init__(s, owner):
@@ -230,21 +235,25 @@ class PowerSet(Component):
         else:
             s.powers.add(power)
             s.powers.sort()
+        s.currentPower = power
+        s.powerIndex = s.powers.index(power)
+        print "ADded power:", power
+        print s.powers
         
     def update(s, dt):
         s.currentPower.update(dt)
 
     def attack1(s):
-        pass
+        s.currentPower.attack1(s.owner)
 
     def attack2(s):
-        pass
+        s.currentPower.attack2(s.owner)
 
     def defend(s):
-        pass
+        s.currentPower.defend(s.owner)
 
     def jump(s):
-        pass
+        s.currentPower.jump(s.owner)
 
 
     def nextPower(s):

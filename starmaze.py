@@ -115,7 +115,7 @@ class World(object):
 their update() method, 'cause that'd modify the set of actors while we're
 iterating through it, which is a no-no.
 
-So instead of calling addActor directly, call this, which will cause the
+So instead of calling _addActor directly, call this, which will cause the
 actor to be added next update frame."""
         s.newActors.add(act)
 
@@ -191,8 +191,8 @@ update frame."""
         "The handler for a player collecting a Collectable."
         #print space, arbiter, args, kwargs
         playerShape, collectableShape = arbiter.shapes
-        player = playerShape.body.actor
-        collectable = collectableShape.body.actor
+        player = playerShape.body.component.owner
+        collectable = collectableShape.body.component.owner
         collectable.collect(player)
         collectable.alive = False
         return False

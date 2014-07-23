@@ -78,10 +78,14 @@ of the runtime data."""
             )
 
 def createDescription(actor):
+    """Creates a description object from *any* kind of `Actor`."""
     if isinstance(actor, Block):
         return BlockDescription.fromObject(actor)
+    elif isinstance(actor, BeginningsPowerupDescription):
+        return BeginningsPowerupDescription.fromObject(actor)
+        
     else:
-        raise Exception("Type is not describable: ")
+        raise Exception("Type is not describable: ", actor)
     
 def createBlockCenter(x, y, w, h, color=(255, 255, 255, 255), batch=None):
     """Creates a `Terrain` object representing a block of the given size.

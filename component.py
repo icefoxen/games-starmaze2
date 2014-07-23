@@ -147,8 +147,10 @@ class PhysicsObj(Component):
     def __init__(s, owner, mass=None, moment=None):
         Component.__init__(s, owner)
         s.body = pymunk.Body(mass, moment)
+        # Add a backlink to the Body so we can get this object
+        # from collision handler callbacks
+        s.body.component = s
         s.owner = owner
-        #s.body = None # pymunk.Body(1, 200)
         s.shapes = []
         s.facing = 0
 
@@ -186,7 +188,7 @@ class PhysicsObj(Component):
 
     def setCollisionCollectable(s):
         "Sets the actor's collision properties to that suitable for a collectable."
-        s.setCollisionProperties(CGROUP_COLLECTABLE, LAYERSPEC_ENEMY)
+        s.setCollisionProperties(CGROUP_COLLECTABLE, LAYERSPEC_COLLECTABLE)
 
     def setCollisionPlayerBullet(s):
         "Sets the actor's collision properties to that suitable for a player bullet."
@@ -250,6 +252,15 @@ class CollectablePhysicsObj(PhysicsObj):
             ]
         s.setElasticity(0.8)
         s.setFriction(2.0)
+        s.setCollisionCollectable()
+
+class PowerupPhysicsObj(PhysicsObj):
+    def __init__(s, owner):
+        PhysicsObj.__init__(s, owner) # Static object
+        corners = rectCornersCenter(0, 0, 10, 10)
+
+        s.shapes = [pymunk.Poly(s.body, corners)]
+        s.setCollisionCollectable()
 
 
 
