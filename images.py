@@ -19,11 +19,12 @@ def playerImage():
     lineList.append(lineCorners(spokeBase, 0, 0, -spokeLength))
     lineList.append(lineCorners(-spokeBase, 0, 0, -spokeLength))
 
+    #lineList.append(cornersToLines(circleCorners(0, 0, 400, numSegments=100000)))
+
     allLines = list(itertools.chain.from_iterable(lineList))
     colors = [(64, 224, 64, 255) for _ in allLines]
 
-    print allLines
-    print len(allLines)
+    #print "Number of lines:", len(allLines)
     image = LineImage(allLines, colors)
     return image
 
@@ -80,3 +81,14 @@ def crawler():
     colors = [(192, 192, 192, 255) for _ in allLines]
     image = LineImage(allLines, colors, lineWidth=2)
     return image
+
+def collectable():
+    lineList = []
+    lineList.append(cornersToLines(rectCornersCenter(0, 0, 20, 10)))
+    lineList.append(cornersToLines(rectCornersCenter(0, 0, 10, 20)))
+
+    allLines = list(itertools.chain.from_iterable(lineList))
+    colors = [(192, 0, 0, 255) for _ in allLines]
+    image = LineImage(allLines, colors)
+    return image
+

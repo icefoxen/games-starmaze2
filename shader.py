@@ -5,6 +5,9 @@
 # Distributed under the Boost Software License, Version 1.0
 # (see http://www.boost.org/LICENSE_1_0.txt)
 #
+# Modified by Simon Heath, 2014
+# Changes: Let you push and pop a stack of shaders
+# Though it's not thread-safe.
  
 from pyglet.gl import *
 
@@ -104,7 +107,7 @@ class Shader:
 
     def unbind(self):
         """Unbind the program, restoring the previous one (or none, if
-it was at the top of the stack."""
+it was at the top of the stack.)"""
         global _root_shader
         _root_shader = self._parent
         if _root_shader is None:

@@ -5,7 +5,6 @@ import pymunk.pyglet_util
 
 from graphics import *
 import resource
-#import graphics
 
 # COLLISION GROUPS!  \O/
 # Collision groups in pymunk determine types
@@ -23,6 +22,7 @@ CGROUP_TERRAIN = 6
 # Determine what collides with what at all; probably faster
 # and certainly simpler than making a bunch of callbacks between
 # collision groups that do nothing.
+# These layers aren't quite 100% right but are close enough for now.
 # Collectables do not collide with enemies or player/enemy bullets
 # Enemies do not collide with their own bullets,
 # players do not collide with their own bullets.
@@ -32,12 +32,13 @@ LAYER_ENEMY        = 1 << 2
 LAYER_PLAYERBULLET = 1 << 3
 LAYER_ENEMYBULLET  = 1 << 4
 LAYER_BULLET       = LAYER_PLAYERBULLET & LAYER_ENEMYBULLET
-#LAYER_TERRAIN      = 1 << 5
 
+# These get a little weird because we're specifying what layers
+# things occupy...
 # Terrain occupies all layers, it touches everything.
 LAYERSPEC_ALL         = 0xFFFFFFFF
-# Players only touch enemy bullets and terrain
-LAYERSPEC_PLAYER      = LAYER_ENEMYBULLET
+# Players have their own layer
+LAYERSPEC_PLAYER      = LAYER_PLAYER
 # Enemies touch everything except enemy bullets
 LAYERSPEC_ENEMY       = LAYERSPEC_ALL & ~LAYER_ENEMYBULLET
 # Collectables touch everything except enemies and bullets
@@ -48,7 +49,7 @@ LAYERSPEC_PLAYERBULLET = LAYER_ENEMY
 LAYERSPEC_ENEMYBULLET  = LAYER_ENEMYBULLET
 
 class Component(object):
-    """Gameobjects are made out of components.
+    """Actors are made out of components.
 We don't strictly need this class (yet), but having
 all components inherit from it is good for clarity
 and might be useful someday if we want a more generalized
@@ -56,9 +57,13 @@ component system."""
     def __init__(s, owner):
         s.owner = owner
 
+# TODO:
+# Be able to gauge jumping by how long you hold the button down
+# Have a maximum speed (should that be on the PhysicsObj instead?)
 FACING_LEFT = -1
 FACING_RIGHT = 1
 class KeyboardController(Component):
+    """Lets a keyboard move an `Actor` around."""
     def __init__(s, owner, keyboard):
         Component.__init__(s, owner)
         s.keyboard = keyboard
@@ -66,8 +71,9 @@ class KeyboardController(Component):
         s.brakeForce = 400
         s.motionX = 0
         s.braking = False
-        s.owner = owner
         # XXX: Circ. reference here I guess...
+        s.owner = owner
+        s.body = None  # BUGGO: Something weird with initialization order here, see below
 
     def stopMoving(s):
         s.motionX = 0
@@ -103,6 +109,8 @@ class KeyboardController(Component):
 things that keep happening as long as you hold the button
 down."""
         #print 'bop'
+        # BUGGO: It works if we initialize s.body here but not
+        # in the actual initializer.
         s.body = s.owner.physicsObj
         s.stopBrake()
         s.stopMoving()
@@ -126,10 +134,6 @@ down."""
         if s.keyboard[key.UP]:
             s.owner.powers.jump()
 
-        #if s.keyboard[key.W]:
-        #    pass
-
-
     def handleInputEvent(s, k, mod):
         """Handles edge-triggered keyboard actions (key presses, not holds)"""
         # Switch powers
@@ -141,11 +145,13 @@ down."""
             print "Current power: ", s.owner.powers.currentPower
 
 
-# XXX You know you're doing it right when the best way to handle a
-# problem is multiple inheritance.
-# We could make this a wrapper instead and expose various methods
-# of the body via properties, instead?
 class PhysicsObj(Component):
+    """A component that handles an `Actor`'s position and movement
+and physics interactions, all through pymunk.
+
+Pretty much all `Actor`s will have one of these.  Inherit from it
+and set the shapes and stuff in the initializer.
+Call one of the setCollision*() methods too."""
     def __init__(s, owner, mass=None, moment=None):
         Component.__init__(s, owner)
         s.body = pymunk.Body(mass, moment)
@@ -153,12 +159,14 @@ class PhysicsObj(Component):
         # from collision handler callbacks
         s.body.component = s
         s.owner = owner
+        # We have to hold on to a reference to the shapes
+        # because it appears that the pymunk.Body doesn't do it
+        # for us!
         s.shapes = []
         s.facing = 0
 
     def _set_position(s, pos):
         s.body.position = pos
-        
 
     def _set_angle(s, ang):
         s.body.angle = ang
@@ -214,12 +222,8 @@ class PhysicsObj(Component):
 class PlayerPhysicsObj(PhysicsObj):
     def __init__(s, owner):
         PhysicsObj.__init__(s, owner, 1, 200)
-        # BUGGO: We have to hold on to a reference to the shapes
-        # because it appears that the pymunk.Body doesn't do it
-        # for us!
         s.shapes = [pymunk.Circle(s.body, radius=s.owner.radius)]
         s.setFriction(6.0)
-        s.position = (0,0)
         s.setCollisionPlayer()
 
 class PlayerBulletPhysicsObj(PhysicsObj):
@@ -232,13 +236,13 @@ class PlayerBulletPhysicsObj(PhysicsObj):
         s.setCollisionPlayerBullet()
 
 class BlockPhysicsObj(PhysicsObj):
+    """Generic immobile rectangle physics object"""
     def __init__(s, owner):
-        # Static body init here
+        # Static body 
         PhysicsObj.__init__(s, owner)
         s.shapes = [pymunk.Poly(s.body, owner.corners)]
         s.setFriction(0.8)
         s.setElasticity(0.8)
-
         s.setCollisionTerrain()
 
 class CollectablePhysicsObj(PhysicsObj):
@@ -250,7 +254,7 @@ class CollectablePhysicsObj(PhysicsObj):
 
         s.shapes = [
             pymunk.Poly(s.body, c)
-            for c in s.corners
+            for c in corners
             ]
         s.setElasticity(0.8)
         s.setFriction(2.0)
@@ -258,7 +262,7 @@ class CollectablePhysicsObj(PhysicsObj):
 
 class PowerupPhysicsObj(PhysicsObj):
     def __init__(s, owner):
-        PhysicsObj.__init__(s, owner) # Static object
+        PhysicsObj.__init__(s, owner) # Static physics object
         corners = rectCornersCenter(0, 0, 10, 10)
 
         s.shapes = [pymunk.Poly(s.body, corners)]
@@ -267,7 +271,7 @@ class PowerupPhysicsObj(PhysicsObj):
 class CrawlerPhysicsObj(PhysicsObj):
     def __init__(s, owner):
         PhysicsObj.__init__(s, owner, 100, 200)
-        corners = rectCornersCenter(0, 0, 15, 10)
+        corners = rectCornersCenter(0, 0, 25, 20)
 
         s.shapes = [pymunk.Poly(s.body, corners)]
         s.setCollisionEnemy()
@@ -275,17 +279,23 @@ class CrawlerPhysicsObj(PhysicsObj):
 
 
 class LineSprite(Component):
-    """A class that draws a positioned, scaled, rotated
+    """A class that draws positioned, scaled, rotated
 and maybe someday animated `LineImage`s.
 
-The question is, how do we animate these things...
+Just inherit from it or make a function to pass it a
+LineImage.
+
+TODO: The question is, how do we animate these things...
 
 Apart from animations, this is mostly API-compatible with
 `pyglet.sprite.Sprite`.  Huzzah~
 
 Except I took out all the group stuff so I can not worry
 about it until I need to.  Though it looks like it might
-be ideal for shaders and ordering maybe...
+be ideal for shaders and ordering maybe...  So I might need
+to make that work.
+
+TODO: Glow layer???
 """
 
     def __init__(s, owner, lineimage, x=0, y=0, batch=None, group=None):
@@ -345,15 +355,6 @@ be ideal for shaders and ordering maybe...
     #height = property(lambda s: s._y, _set_y)
     
 
-class CollectableSprite(LineSprite):
-    def __init__(s, owner):
-        lineList = [cornersToLines(cs) for cs in s.corners]
-
-        allLines = list(itertools.chain.from_iterable(lineList))
-        colors = [(192, 0, 0, 255) for _ in allLines]
-        image = LineImage(allLines, colors)
-        LineSprite.__init__(s, owner, image)
-
 class BlockSprite(LineSprite):
     def __init__(s, owner, corners, color):
         lines = cornersToLines(corners)
@@ -362,3 +363,10 @@ class BlockSprite(LineSprite):
         image = LineImage(lines, colors)
         LineSprite.__init__(s, owner, image)
 
+
+
+# TODO:
+# A Life component?  At least three types: immortal, timed life, normal life
+# Might be useful for things like damage reduction (shields), only
+# being vulnerable from certain angles...  maybe at least.
+# Hitboxes????

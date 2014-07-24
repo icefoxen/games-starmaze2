@@ -98,25 +98,11 @@ whether restoring your health or unlocking a new Power or whatever."""
     def __init__(s, batch=None):
         Actor.__init__(s, batch)
         s.life = 15.0
-        s.setCollisionCollectable()
-        s.sprite = CollectableSprite(s)
-
-    def setupPhysics(s):
-        s.corners = []
-        s.corners.append(rectCornersCenter(0, 0, 20, 10))
-        s.corners.append(rectCornersCenter(0, 0, 10, 20))
-
-        s.body = pymunk.Body(1, 200)
-        s.shapes = [
-            pymunk.Poly(s.body, c)
-            for c in s.corners
-            ]
-        for shape in s.shapes:
-            #shape.friction = 5.8
-            shape.elasticity = 0.9
+        s.physicsObj = CollectablePhysicsObj(s)
+        s.sprite = LineSprite(s, resource.getLineImage(images.collectable))
 
     def collect(s, player):
-        print "Collected!"
+        print "Collected collectable!"
 
     def update(s, dt):
         s.life -= dt
@@ -360,6 +346,14 @@ class CrawlerEnemy(Actor):
             s.sprite.position = s.physicsObj.position
             s.sprite.rotation = math.degrees(s.physicsObj.angle)
             s.sprite.draw()
+
+    def onDeath(s, world):
+        c = Collectable()
+        c.physicsObj.position = s.physicsObj.position
+        yForce = 350
+        xForce = (random.random() * 150) - 75
+        c.physicsObj.apply_impulse((xForce, yForce))
+        world.birthActor(c)
 
 
 class CrawlerEnemyDescription(object):
