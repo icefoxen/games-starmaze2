@@ -11,6 +11,46 @@
  
 from pyglet.gl import *
 
+vprog = '''#version 120
+// That's opengl 2.1
+// WHICH I GUESS WE'RE USING CAUSE I CAN'T FIND DOCS ON ANYTHING ELSE
+// AND WE GOTTA AIM AT THE LOWEST COMMON DENOMINATOR ANYWAY
+// BECAUSE COMPUTERS SUCK AND I HATE THEM.
+
+// Vertex shader
+
+
+uniform mat4 projection_matrix;
+uniform mat4 modelview_matrix;
+ 
+uniform vec4 inp;
+ 
+void main(void) {
+//	gl_Position = projection_matrix * modelview_matrix * vec4(vertex, 1.0);
+   //gl_Position = ftransform() + inp;
+   //gl_Position = ftransform();
+   gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex + inp;
+   //gl_PointSize = 100;
+   gl_FrontColor = gl_Color;
+}
+
+'''
+
+fprog = '''#version 120
+// Fragment shader
+
+uniform sampler2D tex;
+
+void main() {
+   gl_FragColor = vec4(0, 0, 0.8, 1);
+   //gl_FragColor = gl_Color;
+   //gl_FragColor = vec4(1,0,1,1);
+   //gl_FragColor = texture2D(tex, gl_TexCoord[0].st);
+}
+'''
+
+
+
 # XXX: Not thread-safe!
 _root_shader = None
 

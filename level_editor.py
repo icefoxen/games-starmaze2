@@ -14,6 +14,9 @@ import starmaze
 
 
 class LevelEditor(object):
+    """Level editor!  For now, just click and drag to draw platforms,
+P starts playing the game, O outputs the level description in a form
+suitable for copy-pasting into a Python file."""
     def __init__(s, screenw, screenh):
         s.window = pyglet.window.Window(width=screenw, height=screenh)
         s.window.set_vsync(True)
@@ -61,6 +64,7 @@ class LevelEditor(object):
         #print s.cameraTarget.position
 
     def startGameInstance(s):
+        """Starts a new World with the objects specified in the level editor."""
         if s.world is None:
             print 'Starting new game instance'
             s.world = starmaze.World(s.screenw, s.screenh)
@@ -80,6 +84,8 @@ class LevelEditor(object):
             print "Game instance already running, should prolly close that first."
 
     def outputGameInstance(s):
+        """Prints out all the objects in the level, in a state suitable for copy-pasting
+into a python file"""
         descrs = [BlockDescription.fromObject(block) for block in s.actors]
         print "["
         for d in descrs:

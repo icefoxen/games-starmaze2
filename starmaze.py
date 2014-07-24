@@ -18,46 +18,6 @@ DISPLAY_FPS = True
 PHYSICS_FPS = 60.0
 
 
-vprog = '''#version 120
-// That's opengl 2.1
-// WHICH I GUESS WE'RE USING CAUSE I CAN'T FIND DOCS ON ANYTHING ELSE
-// AND WE GOTTA AIM AT THE LOWEST COMMON DENOMINATOR ANYWAY
-// BECAUSE COMPUTERS SUCK AND I HATE THEM.
-
-// Vertex shader
-
-
-uniform mat4 projection_matrix;
-uniform mat4 modelview_matrix;
- 
-uniform vec4 inp;
- 
-void main(void) {
-//	gl_Position = projection_matrix * modelview_matrix * vec4(vertex, 1.0);
-   //gl_Position = ftransform() + inp;
-   //gl_Position = ftransform();
-   gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex + inp;
-   //gl_PointSize = 100;
-   gl_FrontColor = gl_Color;
-}
-
-'''
-
-fprog = '''#version 120
-// Fragment shader
-
-uniform sampler2D tex;
-
-void main() {
-   gl_FragColor = vec4(0, 0, 0.8, 1);
-   //gl_FragColor = gl_Color;
-   //gl_FragColor = vec4(1,0,1,1);
-   //gl_FragColor = texture2D(tex, gl_TexCoord[0].st);
-}
-'''
-
-
-
 class World(object):
     """Contains all the state for the game."""
     def __init__(s, screenw, screenh):
@@ -69,7 +29,7 @@ class World(object):
         s.screenh = screenh
         s.fps_display = pyglet.clock.ClockDisplay()
 
-        s.physicsSteps = 30.0
+        s.physicsSteps = 10.0
 
         #s.shader = Shader([vprog], [fprog])
 
@@ -86,15 +46,13 @@ class World(object):
             on_key_press = lambda k, mods: s.on_key_press(k, mods),
         )
 
-        #s.setupWorld()
-
         s.initNewSpace()
 
         s.player = Player(s.keyboard)
         s.camera = Camera(s.player.physicsObj, s.screenw, s.screenh)
         s.actors = set()
         s.newActors = set()
-        s._addActor(s.player)
+        s.birthActor(s.player)
 
         s.currentRoom = makeSomeRoom()
         s.enterRoom(s.currentRoom)
@@ -144,7 +102,6 @@ update frame."""
         # TODO: This should break all backlinks in an actor's
         # components, too.  Or the actor should have a delete
         # method that gets called here.  Probably the best way.
-        #act.physicsObj.body.actor = None
         act.world = None
 
 
@@ -205,8 +162,6 @@ update frame."""
     def collidePlayerTerrain(space, arbiter, *args, **kwargs):
         playerShape, _ = arbiter.shapes
         player = playerShape.body.component.owner
-        #terrain = terrainShape.body.component.owner
-        #print arbiter.contacts
         for c in arbiter.contacts:
             normal = c.normal
             # This is not exactly 0 because floating point error
@@ -214,9 +169,13 @@ update frame."""
             # a vertical component of like -1.0e-15
             # But in general, if we hit something moving downward,
             # the y component of the normal is < 0
+            #
+            # TODO: Oooh, we should probably see if there's a
+            # callback for when two things _stop_ colliding with each other,
+            # I think there is.  Setting onGround to false in such a callback
+            # would be a good thing
             if normal.y < -0.001:
                 player.onGround = True
-        #print player, terrain
         return True
 
     @staticmethod

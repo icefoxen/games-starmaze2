@@ -183,7 +183,8 @@ class BeginningP1Bullet(Actor):
             s.alive = False
 
     def onDeath(s, world):
-        print 'bullet died'
+        #print 'bullet died'
+        pass
 
 class BeginningP2Bullet(Actor):
     def __init__(s, x, y, direction):
