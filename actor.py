@@ -31,6 +31,7 @@ class Actor(object):
         s.braking = False
         # XXX Circular reference, might be better as a weak reference
         s.world = None
+        s.facing = FACING_RIGHT
     
 
     # def _setPosition(s, pt):
@@ -207,7 +208,7 @@ class BeginningsPower(object):
     def attack1(s, owner):
         print "Attack1"
         x, y = owner.physicsObj.position
-        direction = 1
+        direction = owner.facing
         bullet = BeginningP1Bullet(x, y, direction)
         owner.world.birthActor(bullet)
 
