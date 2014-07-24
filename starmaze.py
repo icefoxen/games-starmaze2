@@ -201,10 +201,10 @@ update frame."""
 
     @staticmethod
     def collidePlayerTerrain(space, arbiter, *args, **kwargs):
-        playerShape, terrainShape = arbiter.shapes
+        playerShape, _ = arbiter.shapes
         player = playerShape.body.component.owner
-        terrain = terrainShape.body.component.owner
-        print arbiter.contacts
+        #terrain = terrainShape.body.component.owner
+        #print arbiter.contacts
         for c in arbiter.contacts:
             normal = c.normal
             # This is not exactly 0 because floating point error
