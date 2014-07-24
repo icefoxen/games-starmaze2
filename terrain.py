@@ -78,7 +78,17 @@ of the runtime data."""
             )
 
 def createDescription(actor):
-    """Creates a description object from *any* kind of `Actor`."""
+    """Creates a description object from *any* kind of `Actor`.
+
+    BUGGO: Keeping this in sync is a pain; it's already fallen out.
+    Also during the game we never actually use this... yet.  Room
+    creation goes strictly from static to dynamic, we should never
+    be _saving_ room state apart from Powerups which are collected
+    once and never respawn, and so should probably be some sort of
+    global state flag.
+
+    So do we need this at all?  Well it might be quite useful for
+    the level designer, perhaps...  Well maybe not."""
     if isinstance(actor, Block):
         return BlockDescription.fromObject(actor)
     elif isinstance(actor, BeginningsPowerupDescription):

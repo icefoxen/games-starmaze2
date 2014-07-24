@@ -62,3 +62,18 @@ def powerup():
     #allLines = list(itertools.chain.from_iterable(lineList))
     colors = [(192, 0, 0, 255) for _ in lineList]
     return LineImage(lineList, colors)
+
+def crawler():
+    lineList = []
+    lineList.append(cornersToLines(circleCorners(0, 0, 15, numSegments=6)))
+    lineList.append(cornersToLines(lineCorners(0, 0, 20, 20)))
+    lineList.append(cornersToLines(lineCorners(0, 0, -20, 20)))
+    lineList.append(cornersToLines(lineCorners(0, 0, 10, 25)))
+    lineList.append(cornersToLines(lineCorners(0, 0, -10, 25)))
+    lineList.append(cornersToLines(lineCorners(0, 0, 30, 10)))
+    lineList.append(cornersToLines(lineCorners(0, 0, -30, 10)))
+
+    allLines = list(itertools.chain.from_iterable(lineList))
+    colors = [(192, 192, 192, 255) for _ in allLines]
+    image = LineImage(allLines, colors, lineWidth=2)
+    return image

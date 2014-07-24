@@ -23,6 +23,7 @@ class Actor(object):
         #image = LineImage(lines, colors)
         s.sprite = None #LineSprite(image)
 
+        s.life = 1.0
         s.alive = True
 
         s.moveForce = 400
@@ -53,6 +54,12 @@ class Actor(object):
     def update(s, dt):
         pass
 
+    def takeDamage(s, damager, damage):
+        s.life -= damage
+        print "Damaged, life is now", s.life
+        if s.life < 0:
+            s.alive = False
+
 class Player(Actor):
     """The player object."""
     def __init__(s, keyboard, batch=None):
@@ -72,10 +79,6 @@ class Player(Actor):
     def update(s, dt):
         s.controller.update(dt)
         s.powers.update(dt)
-
-    def switchPowers(s, power):
-        "Switches to the given power.  Should eventually do shiny things and such."
-        s.currentPower = power
 
     def draw(s):
         if (s.sprite is not None) and (s.physicsObj is not None):
@@ -152,6 +155,20 @@ class BeginningsPowerupDescription(object):
             s.x, s.y
             )
 
+# TODO: Bullet class?
+# Should bullets keep a reference to their firer?
+# Might be useful, I dunno.  No immediate need for
+# it though.
+
+# TODO: WE MIGHT NEED SOME PROPER EVENTS TO OCCUR FOR ACTORS
+# Hit ground, leave ground
+# Hit terrain, leave contact with terrain
+# Hit with attack, touch enemy (useful for bullets)
+# Take damage, as well.
+# onDeath is already the start of this.
+# Other stuff maybe.  Hmmmm.
+# We could even consider the more fundamental methods to be
+# onDraw and onUpdate, really
 
 class BeginningP1Bullet(Actor):
     def __init__(s, x, y, direction):
@@ -168,6 +185,8 @@ class BeginningP1Bullet(Actor):
         # Counteract gravity?
         s.physicsObj.apply_force((0, 400))
         s.life = 0.4 + (random.random() / 3.0)
+        
+        s.damage = 1
 
     def update(s, dt):
         s.life -= dt
@@ -187,9 +206,14 @@ class BeginningP2Bullet(Actor):
         xImpulse = 300 * direction
         yImpulse = 200
         s.physicsObj.apply_impulse((xImpulse, yImpulse))
+        
+        s.damage = 10
 
     def update(s, dt):
         pass
+
+    def collideWithEnemy(s, enemy):
+        enemy.takeDamage(s.damage)
 
     def onDeath(s, world):
         return
@@ -297,3 +321,63 @@ class PowerSet(Component):
     def prevPower(s):
         s.powerIndex = (s.powerIndex - 1) % len(s.powers)
         s.currentPower = s.powers[s.powerIndex]
+
+class CrawlerEnemy(Actor):
+    """"""
+    def __init__(s, batch=None):
+        s.radius = 20
+        Actor.__init__(s, batch)
+        #s.controller = KeyboardController(s, keyboard)
+        s.physicsObj = CrawlerPhysicsObj(s)
+        img = resource.getLineImage(images.crawler)
+        s.sprite = LineSprite(s, img)
+        #glowImage = resource.getLineImage(images.playerImageGlow)
+        #s.glowSprite = LineSprite(s, glowImage)
+
+        #s.powers = PowerSet(s)
+        s.facing = FACING_RIGHT
+        s.life = 3
+
+    def update(s, dt):
+        # If it flips off of upright, apply restoring force.
+        # XXX: Can we make these beasties stick to walls?
+        # In the end that will all be the job of a Controller
+        # object; sticking to walls will be easy just by applying
+        # a force toward the wall with some friction, and maybe
+        # countering gravity if necessary
+        movementForce = 100 * dt
+        if s.physicsObj.angle < -0.3:
+            s.physicsObj.apply_impulse((-movementForce*10, 0), r=(0, 50))
+        elif s.physicsObj.angle > 0.3:
+            s.physicsObj.apply_impulse((movementForce*10, 0), r=(0, 50))
+        else:
+            s.physicsObj.apply_impulse((movementForce * s.facing, 0))
+        #s.controller.update(dt)
+        #s.powers.update(dt)
+
+    def draw(s):
+        if (s.sprite is not None) and (s.physicsObj is not None):
+            s.sprite.position = s.physicsObj.position
+            s.sprite.rotation = math.degrees(s.physicsObj.angle)
+            s.sprite.draw()
+
+
+class CrawlerEnemyDescription(object):
+    def __init__(s, x, y):
+        s.x = x
+        s.y = y
+
+    def create(s):
+        c = CrawlerEnemy()
+        c.physicsObj.position = (s.x, s.y)
+        return c
+
+    @staticmethod
+    def fromObject(crawler):
+        x, y = crawler.position
+        return CrawlerEnemyDescription(x, y)
+
+    def __repr__(s):
+        return "CrawlerEnemyDescription({}, {})".format(
+            s.x, s.y
+            )

@@ -36,7 +36,7 @@ LAYER_BULLET       = LAYER_PLAYERBULLET & LAYER_ENEMYBULLET
 
 # Terrain occupies all layers, it touches everything.
 LAYERSPEC_ALL         = 0xFFFFFFFF
-# Players only touch
+# Players only touch enemy bullets and terrain
 LAYERSPEC_PLAYER      = LAYER_ENEMYBULLET
 # Enemies touch everything except enemy bullets
 LAYERSPEC_ENEMY       = LAYERSPEC_ALL & ~LAYER_ENEMYBULLET
@@ -44,6 +44,8 @@ LAYERSPEC_ENEMY       = LAYERSPEC_ALL & ~LAYER_ENEMYBULLET
 LAYERSPEC_COLLECTABLE = LAYERSPEC_ALL & ~LAYER_ENEMY & ~LAYER_BULLET
 # Player bullets only touch enemies and terrain
 LAYERSPEC_PLAYERBULLET = LAYER_ENEMY
+# Enemy bullets only touch players and terrain...
+LAYERSPEC_ENEMYBULLET  = LAYER_ENEMYBULLET
 
 class Component(object):
     """Gameobjects are made out of components.
@@ -167,10 +169,10 @@ class PhysicsObj(Component):
     position = property(lambda s: s.body.position, _set_position)
     is_static = property(lambda s: s.body.is_static)
     velocity = property(lambda s: s.body.velocity)
-    def apply_impulse(s, impulse):
-        s.body.apply_impulse(impulse)
-    def apply_force(s, force):
-        s.body.apply_force(force)
+    def apply_impulse(s, impulse, r=(0,0)):
+        s.body.apply_impulse(impulse, r=r)
+    def apply_force(s, force, r=(0,0)):
+        s.body.apply_force(force, r=r)
 
     def setCollisionProperties(s, group, layerspec):
         "Set the actor's collision properties."
@@ -261,6 +263,14 @@ class PowerupPhysicsObj(PhysicsObj):
 
         s.shapes = [pymunk.Poly(s.body, corners)]
         s.setCollisionCollectable()
+
+class CrawlerPhysicsObj(PhysicsObj):
+    def __init__(s, owner):
+        PhysicsObj.__init__(s, owner, 100, 200)
+        corners = rectCornersCenter(0, 0, 15, 10)
+
+        s.shapes = [pymunk.Poly(s.body, corners)]
+        s.setCollisionEnemy()
 
 
 

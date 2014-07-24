@@ -109,6 +109,8 @@ class World(object):
                                       begin=World.collidePlayerTerrain)
         s.space.add_collision_handler(CGROUP_PLAYERBULLET, CGROUP_TERRAIN,
                                       begin=World.collideBulletTerrain)
+        s.space.add_collision_handler(CGROUP_PLAYERBULLET, CGROUP_ENEMY,
+                                      begin=World.collidePlayerBulletEnemy)
         s.space.add_collision_handler(CGROUP_ENEMYBULLET, CGROUP_TERRAIN,
                                       begin=World.collideBulletTerrain)
 
@@ -210,6 +212,8 @@ update frame."""
             # This is not exactly 0 because floating point error
             # means a lot of the time a horizontal collision has
             # a vertical component of like -1.0e-15
+            # But in general, if we hit something moving downward,
+            # the y component of the normal is < 0
             if normal.y < -0.001:
                 player.onGround = True
         #print player, terrain
@@ -222,6 +226,14 @@ update frame."""
         bullet.alive = False
         return False
 
+    @staticmethod
+    def collidePlayerBulletEnemy(space, arbiter, *args, **kwargs):
+        bulletShape, enemyShape = arbiter.shapes
+        bullet = bulletShape.body.component.owner
+        bullet.alive = False
+        enemy = enemyShape.body.component.owner
+        enemy.takeDamage(bullet, bullet.damage)
+        return False
 
 
 

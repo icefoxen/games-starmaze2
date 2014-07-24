@@ -14,4 +14,5 @@ BlockDescription(1507.55873375, -544.0, 390.0, 0, (255, 255, 255, 255)) ,
 BlockDescription(347.60437484, -383.628499229, 110.0, 110.0, (255, 255, 255, 255)) ,
 BlockDescription(657.968958096, -503.999999899, 100.0, 90.0, (255, 255, 255, 255)) ,
 BeginningsPowerupDescription(300, -200),
+CrawlerEnemyDescription(400, -200),
 ]
