@@ -5,7 +5,7 @@ def playerImage():
     """Returns a new LineImage with an image of the player."""
     lineList = []
     radius = 20
-    corners1 = circleCorners(0, 0, radius)
+    corners1 = circleCorners(0, 0, radius, numSegments=16)
     lineList.append(cornersToLines(corners1))
 
     spokeLength = radius + 18
@@ -22,6 +22,8 @@ def playerImage():
     allLines = list(itertools.chain.from_iterable(lineList))
     colors = [(64, 224, 64, 255) for _ in allLines]
 
+    print allLines
+    print len(allLines)
     image = LineImage(allLines, colors)
     return image
 
@@ -65,7 +67,8 @@ def powerup():
 
 def crawler():
     lineList = []
-    lineList.append(cornersToLines(circleCorners(0, 0, 15, numSegments=6)))
+    lineList.append(cornersToLines(arcCorners(0, 0, 15, 180, numSegments=6)))
+    #lineList.append(cornersToLines(circleCorners(0, 0, 15, numSegments=6)))
     lineList.append(cornersToLines(lineCorners(0, 0, 20, 20)))
     lineList.append(cornersToLines(lineCorners(0, 0, -20, 20)))
     lineList.append(cornersToLines(lineCorners(0, 0, 10, 25)))

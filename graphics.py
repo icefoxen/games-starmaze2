@@ -10,9 +10,13 @@ COLOR_BLUE  = (0, 0, 255, 255)
 COLOR_GREEN = (0, 255, 0, 255)
 
 class ShaderGroup(pyglet.graphics.Group):
-    def __init__(s, parent=None):
+    def __init__(s, vshader, fshader, parent=None):
         pyglet.graphics.Group.__init__(s, parent)
         print 'made shader group'
+        s.vshader = vshader
+        s.fshader = fshader
+
+        s.fullShader = vshader + fshader
 
     def set_state(s):
         print 'set state'
@@ -21,12 +25,10 @@ class ShaderGroup(pyglet.graphics.Group):
         print 'unset state'
 
     def __hash__(s):
-        print 'hash'
-        return hash(1)
+        return hash(s.fullShader)
 
     def __eq__(s, other):
-        print 'eq'
-        return True
+        return s.fullShader == other.fullShader
 
 
 def cornersToLines(corners):
@@ -37,13 +39,13 @@ polygon into a list of (x1, y1) (x2, y2) line endpoints."""
         return []
 
     endpointPairs = zip(corners, corners[1:])
-    expandedEndpoints = list(itertools.chain.from_iterable(endpointPairs))
+    flattenedEndpoints = list(itertools.chain.from_iterable(endpointPairs))
     
     # Close the last side
-    expandedEndpoints.append(corners[-1])
-    expandedEndpoints.append(corners[0])
+    flattenedEndpoints.append(corners[-1])
+    flattenedEndpoints.append(corners[0])
     
-    return expandedEndpoints
+    return flattenedEndpoints
 
 def circleCorners(cx, cy, r, numSegments=32):
     """Returns a list of points outlining an approximation
@@ -58,6 +60,8 @@ Uses the algorithm described at http://slabode.exofire.net/circle_draw.shtml"""
     y = 0
 
     verts = []
+    # There ISN'T an off-by-one error here because it automatically
+    # draws a closed loop between the last and first points.
     for i in range(numSegments):
         verts.append((x + cx, y + cy))
         tx = -y
@@ -67,6 +71,32 @@ Uses the algorithm described at http://slabode.exofire.net/circle_draw.shtml"""
         x *= radialFactor
         y *= radialFactor
     return verts
+
+def arcCorners(cx, cy, r, angle, numSegments=32):
+    """Same as `circleCorners` but only makes a partial arc instead
+of a full circle.
+
+Semi-unfortunately still draws it as a closed loop, but works for now.
+
+TODO: Be able to specify the starting angle!"""
+    radians = math.radians(angle)
+    theta = radians / float(numSegments)
+    tangentialFactor = math.tan(theta)
+    radialFactor = math.cos(theta)
+    x = r
+    y = 0
+
+    verts = []
+    for i in range(numSegments+1):
+        verts.append((x + cx, y + cy))
+        tx = -y
+        ty = x
+        x += tx * tangentialFactor
+        y += ty * tangentialFactor
+        x *= radialFactor
+        y *= radialFactor
+    return verts
+
 
 def rectCornersCenter(cx, cy, w, h):
     """Returns a list of points outlining a rectangle, given the center point"""
@@ -100,8 +130,7 @@ given lines the given color."""
     if len(color) != 4:
         raise Exception("color is not a 4-tuple: {}".format(color))
     else:
-        return [color, color] * len(lines)
-
+        return [color] * len(lines)
 
 
 class Affine(object):
@@ -214,6 +243,13 @@ a) we're going to load all of these and then cache them without
 creating new ones at random, and b) they'll all be freed more
 or less correctly by pyglet should they ever become redundant.
 These assumptions are probably pretty safe.
+
+Also we need to do proper polylines.  How to do that without assuming
+a line loop?  Well, more classes I guess.
+
+Also, doesn't really use groups right I think.
+
+Also, our framework code doesn't use batches at all argh
 """
     def __init__(s, verts, colors, lineWidth=2, batch=None, group=None, usage='static'):
         s._verts = verts
@@ -239,39 +275,44 @@ Tesselates the lines to polygons, too."""
         # Then we use _line() to turn each line into a list of vertices
         tesselatedLines = map(lambda l: s._line(*l, width=s._lineWidth), lineses)
         # We also have to pair up the colors similarly
-        #colorses = [(x1, y1, x2, y2) 
-        #           for ((r1, b1, g1, a1), (r1, g2, b2, a2))
-        #           in zip(s._colors[::2], s._colors[1::2])]
         colorses = zip(s._colors[::2], s._colors[1::2])
-        # And get a list of colors for each vertex
+        # And get a list of colors for each vertex instead of each line
         tesselatedColors = map(lambda col: s._color(*col), colorses)
 
-        # Then we make a vertex list for each line
+        flattenedLines = list(itertools.chain.from_iterable(tesselatedLines))
+        flattenedColors = list(itertools.chain.from_iterable(tesselatedColors))
+
+        # Then we make a vertex list for the lines
         s._vertexLists = []
-        for line, color in zip(tesselatedLines, tesselatedColors):
-            coordsPerVert = 2
-            numPoints = len(line) / coordsPerVert
+        coordsPerVert = 2
+        numPoints = len(flattenedLines) / coordsPerVert
 
-            #print unpackedVerts
-            #print unpackedColors
-            #print numPoints
+        #print unpackedVerts
+        #print unpackedColors
+        #print numPoints
 
-            vertFormat = 'v2f/{}'.format(s._usage)
-            colorFormat = 'c4B/{}'.format(s._usage)
-            #print line #, color
-            vertexList = s.batch.add(
-                numPoints, 
-                pyglet.graphics.GL_TRIANGLE_STRIP, 
-                s._group, 
-                (vertFormat, line),
-                (colorFormat, color)
-            )
-            s._vertexLists.append(vertexList)
+        vertFormat = 'v2f/{}'.format(s._usage)
+        colorFormat = 'c4B/{}'.format(s._usage)
+        #print len(flattenedLines), len(flattenedColors)
+        vertexList = s.batch.add(
+            numPoints, 
+            pyglet.graphics.GL_TRIANGLES, 
+            s._group, 
+            (vertFormat, flattenedLines),
+            (colorFormat, flattenedColors)
+        )
+        #vertexList = s.batch.add_indexed(
+        #    count, mode, group, indices, data)
+        s._vertexLists.append(vertexList)
 
 
     def _line(s, x1, y1, x2, y2, width=2):
         """Returns a list of verts, creating a quad
-suitable for drawing with GL_TRIANGLE_STRIP.
+suitable for drawing with GL_TRIANGLES.
+
+GL_TRIANGLE_STRIP is for losers.  And also causes isses
+if we ever try to group disconnected lines together in
+the same batch.
 
 TODO: Endcaps (fairly easy)
 TODO MORE: Polylines (harder)
@@ -294,16 +335,22 @@ TODO (POWER GOAL): Handle overlapping nicely
         v2ry = y2 - yoff
         
         # Construct triangles
-        # Remember, OpenGL triangles go CCW
-        # And GL_TRIANGLE_STRIP draws v1, v2, v3,
-        # then v3, v2, v4.  Whew!
         verts = [
-            v1lx, v1ly, 
+            v1lx, v1ly,
             v2lx, v2ly,
             x1, y1,
+
+            x1, y1,
+            v2lx, v2ly,
             x2, y2,
+
+            x2, y2,
+            x1, y1,
+            v2rx, v2ry,
+
+            v2rx, v2ry,
+            x1, y1,
             v1rx, v1ry,
-            v2rx, v2ry
         ]
         return verts
     
@@ -324,9 +371,10 @@ which might make them look rather nicer.
         edgeColor1 = (r1, g1, b1, 0)
         edgeColor2 = (r2, g2, b2, 0)
         colors = [
-            edgeColor1, edgeColor2, 
-            lineColor1, lineColor2,
-            edgeColor1, edgeColor2
+            edgeColor1, edgeColor2, lineColor1,
+            lineColor1, edgeColor2, lineColor2,
+            lineColor2, lineColor1, edgeColor2,
+            edgeColor2, lineColor1, edgeColor1,
         ]
         # Flatten the list-of-tuples into a list
         unpackedColors = list(itertools.chain.from_iterable(colors))
@@ -349,16 +397,30 @@ which might make them look rather nicer.
         
 
 def vertsToIndexedVerts(verts):
-    """Turns a sequence of (x,y) vertices into a (smaller) sequence of verts and
+    """Turns a sequence of vertex pairs into a (smaller) sequence of verts and
 a list of indices to draw the shape the verts makes.
 
-BUGGO: Prolly doesn't entirely work yet, be careful."""
+BUGGO: Doesn't really work.
+
+Also isn't really worth it unless we figure out a way to coalesce vertices that
+are almost but not exactly quite the same point, due to floating-point math having
+happened to them."""
     vertDict = {}
     counter = 0
-    for v in verts:
+    vertPairs = zip(verts[::2], verts[1::2])
+    for v in vertPairs:
+        # Turn floating-point-calculated nearly-zeros into 0
+        print v
+        x, y = v
+        if abs(x) < 0.0000001:
+            x = 0.0
+        if abs(y) < 0.0000001:
+            y = 0.0
+        v = (x,y)
         if not vertDict.has_key(v):
             vertDict[v] = counter
             counter += 1
+    print vertDict
     indices = [vertDict[i] for i in verts]
     vertIndexList = [(val,key) for key,val in vertDict.iteritems()]
     vertIndexList.sort()

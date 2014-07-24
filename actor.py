@@ -57,7 +57,7 @@ class Actor(object):
     def takeDamage(s, damager, damage):
         s.life -= damage
         print "Damaged, life is now", s.life
-        if s.life < 0:
+        if s.life <= 0:
             s.alive = False
 
 class Player(Actor):

@@ -64,7 +64,7 @@ class World(object):
         s.window = pyglet.window.Window(width=screenw, height=screenh)
         s.window.set_vsync(True)
         #pyglet.clock.set_fps_limit(10)
-        print s.window.vsync
+        #print s.window.vsync
         s.screenw = screenw
         s.screenh = screenh
         s.fps_display = pyglet.clock.ClockDisplay()
