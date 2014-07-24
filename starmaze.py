@@ -104,11 +104,13 @@ class World(object):
         s.space = pymunk.Space()
         s.space.gravity = (0.0, -400.0)
         s.space.add_collision_handler(CGROUP_PLAYER, CGROUP_COLLECTABLE,
-            begin=World.collidePlayerCollectable
-        )
+                                      begin=World.collidePlayerCollectable)
         s.space.add_collision_handler(CGROUP_PLAYER, CGROUP_TERRAIN,
-            begin=World.collidePlayerTerrain
-        )
+                                      begin=World.collidePlayerTerrain)
+        s.space.add_collision_handler(CGROUP_PLAYERBULLET, CGROUP_TERRAIN,
+                                      begin=World.collideBulletTerrain)
+        s.space.add_collision_handler(CGROUP_ENEMYBULLET, CGROUP_TERRAIN,
+                                      begin=World.collideBulletTerrain)
 
     def birthActor(s, act):
         """You see, we can't have actors add or remove other actors inside
@@ -172,7 +174,7 @@ update frame."""
             act.update(dt)
         deadActors = [act for act in s.actors if not act.alive]
         for act in deadActors:
-            act.onDeath()
+            act.onDeath(s)
             s._removeActor(act)
 
     def on_draw(s):
@@ -199,11 +201,26 @@ update frame."""
 
     @staticmethod
     def collidePlayerTerrain(space, arbiter, *args, **kwargs):
-        #playerShape, terrainShape = arbiter.shapes
-        #player = playerShape.body.owner
-        #terrain = terrainShape.body.owner
+        playerShape, terrainShape = arbiter.shapes
+        player = playerShape.body.component.owner
+        terrain = terrainShape.body.component.owner
+        print arbiter.contacts
+        for c in arbiter.contacts:
+            normal = c.normal
+            # This is not exactly 0 because floating point error
+            # means a lot of the time a horizontal collision has
+            # a vertical component of like -1.0e-15
+            if normal.y < -0.001:
+                player.onGround = True
         #print player, terrain
         return True
+
+    @staticmethod
+    def collideBulletTerrain(space, arbiter, *args, **kwargs):
+        bulletShape, collectableShape = arbiter.shapes
+        bullet = bulletShape.body.component.owner
+        bullet.alive = False
+        return False
 
 
 

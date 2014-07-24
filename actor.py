@@ -32,6 +32,7 @@ class Actor(object):
         # XXX Circular reference, might be better as a weak reference
         s.world = None
         s.facing = FACING_RIGHT
+        s.onGround = False
     
 
     # def _setPosition(s, pt):
@@ -46,7 +47,7 @@ class Actor(object):
             s.sprite.rotation = math.degrees(s.physicsObj.angle)
             s.sprite.draw()
 
-    def onDeath(s):
+    def onDeath(s, world):
         pass
 
     def update(s, dt):
@@ -173,9 +174,28 @@ class BeginningP1Bullet(Actor):
         if s.life < 0.0:
             s.alive = False
 
-    def onDeath(s):
-        pass
+    def onDeath(s, world):
         print 'bullet died'
+
+class BeginningP2Bullet(Actor):
+    def __init__(s, x, y, direction):
+        Actor.__init__(s)
+        s.physicsObj = PlayerBulletPhysicsObj(s, position=(x, y))
+        # TODO: Placeholder image
+        image = resource.getLineImage(images.powerup)
+        s.sprite = LineSprite(s, image)
+        xImpulse = 300 * direction
+        yImpulse = 200
+        s.physicsObj.apply_impulse((xImpulse, yImpulse))
+
+    def update(s, dt):
+        pass
+
+    def onDeath(s, world):
+        return
+        for i in range(5):
+            force = 100
+            xForce = math.cos(force)
 
 class NullPower(object):
     "A power set that does nothing."
@@ -200,26 +220,39 @@ class NullPower(object):
 class BeginningsPower(object):
     "The Beginnings elemental power set."
     def __init__(s):
-        pass
+        s.timer = 0.0
+        s.refireTime1 = 0.05
+        s.refireTime2 = 1.5
 
     def update(s, dt):
-        pass
+        s.timer -= dt
 
+    # BUGGO: It's concievable we'd have to fire multiple shots in the same frame...
+    # If we lag real bad at least.
+    # But since that'd currently involve going 20 FPS...
     def attack1(s, owner):
-        print "Attack1"
-        x, y = owner.physicsObj.position
-        direction = owner.facing
-        bullet = BeginningP1Bullet(x, y, direction)
-        owner.world.birthActor(bullet)
+        if s.timer < 0.0:
+            s.timer = s.refireTime1
+            x, y = owner.physicsObj.position
+            direction = owner.facing
+            bullet = BeginningP1Bullet(x, y, direction)
+            owner.world.birthActor(bullet)
 
     def attack2(s, owner):
-        print "Attack2"
+        if s.timer < 0.0:
+            s.timer = s.refireTime2
+            x, y = owner.physicsObj.position
+            direction = owner.facing
+            bullet = BeginningP2Bullet(x, y, direction)
+            owner.world.birthActor(bullet)
 
     def defend(s, owner):
         print "Defend"
 
     def jump(s, owner):
-        print "Jump"
+        if owner.onGround:
+            owner.physicsObj.apply_impulse((0, 500))
+            owner.onGround = False
 
 class PowerSet(Component):
     def __init__(s, owner):
