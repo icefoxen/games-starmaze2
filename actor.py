@@ -70,6 +70,9 @@ class Player(Actor):
         s.physicsObj = PlayerPhysicsObj(s)
         img = resource.getLineImage(images.playerImage)
         s.sprite = LineSprite(s, img)
+
+        # Experimental glow effect, just overlay the sprite
+        # with a diffuse, alpha-blended sprite.  Works surprisingly well.
         glowImage = resource.getLineImage(images.playerImageGlow)
         s.glowSprite = LineSprite(s, glowImage)
 
