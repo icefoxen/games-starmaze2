@@ -361,9 +361,10 @@ TODO: Glow layer???
 class BlockSprite(LineSprite):
     def __init__(s, owner, corners, color, batch=None):
         lines = cornersToLines(corners)
-        colors = colorLines(lines, color)
 
-        image = LineImage(lines, colors, batch=batch)
+        verts = [Vertex(x, y, color) for (x,y) in corners]
+        poly = Polygon(verts)
+        image = LineImage([poly], batch=batch)
         LineSprite.__init__(s, owner, image)
 
 

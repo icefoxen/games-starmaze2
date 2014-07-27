@@ -3,79 +3,71 @@ from graphics import *
 
 def playerImage():
     """Returns a new LineImage with an image of the player."""
-    lineList = []
+    polyList = []
     radius = 20
-    corners1 = circleCorners(0, 0, radius, numSegments=16)
-    lineList.append(cornersToLines(corners1))
+    pcol = (64, 224, 64, 255)
+    polyList.append(Polygon.circle(0, 0, radius, pcol, numSegments=16))
 
     spokeLength = radius + 18
     spokeBase = 8
-    lineList.append(lineCorners(0, spokeBase, spokeLength, 0))
-    lineList.append(lineCorners(0, -spokeBase, spokeLength, 0))
-    lineList.append(lineCorners(spokeBase, 0, 0, spokeLength))
-    lineList.append(lineCorners(-spokeBase, 0, 0, spokeLength))
-    lineList.append(lineCorners(0, spokeBase, -spokeLength, 0))
-    lineList.append(lineCorners(0, -spokeBase, -spokeLength, 0))
-    lineList.append(lineCorners(spokeBase, 0, 0, -spokeLength))
-    lineList.append(lineCorners(-spokeBase, 0, 0, -spokeLength))
+    polyList.append(Polygon.line(0, spokeBase, spokeLength, 0, pcol))
+    polyList.append(Polygon.line(0, -spokeBase, spokeLength, 0, pcol))
+    polyList.append(Polygon.line(spokeBase, 0, 0, spokeLength, pcol))
+    polyList.append(Polygon.line(-spokeBase, 0, 0, spokeLength, pcol))
+    polyList.append(Polygon.line(0, spokeBase, -spokeLength, 0, pcol))
+    polyList.append(Polygon.line(0, -spokeBase, -spokeLength, 0, pcol))
+    polyList.append(Polygon.line(spokeBase, 0, 0, -spokeLength, pcol))
+    polyList.append(Polygon.line(-spokeBase, 0, 0, -spokeLength, pcol))
 
-    #lineList.append(cornersToLines(circleCorners(0, 0, 400, numSegments=100000)))
+    #polyList.append(cornersToLines(circleCorners(0, 0, 400, numSegments=100000)))
 
-    allLines = list(itertools.chain.from_iterable(lineList))
-    colors = [(64, 224, 64, 255) for _ in allLines]
-
-    #print "Number of lines:", len(allLines)
-    image = LineImage(allLines, colors)
+    image = LineImage(polyList)
     return image
 
 def playerImageGlow():
-    lineList = []
+
+    polyList = []
     radius = 20
-    corners1 = circleCorners(0, 0, radius)
-    lineList.append(cornersToLines(corners1))
+    pcol = (64, 224, 64, 32)
+    polyList.append(Polygon.circle(0, 0, radius, pcol, numSegments=16, strokeWidth=20))
 
     spokeLength = radius + 18
     spokeBase = 8
-    lineList.append(lineCorners(0, spokeBase, spokeLength, 0))
-    lineList.append(lineCorners(0, -spokeBase, spokeLength, 0))
-    lineList.append(lineCorners(spokeBase, 0, 0, spokeLength))
-    lineList.append(lineCorners(-spokeBase, 0, 0, spokeLength))
-    lineList.append(lineCorners(0, spokeBase, -spokeLength, 0))
-    lineList.append(lineCorners(0, -spokeBase, -spokeLength, 0))
-    lineList.append(lineCorners(spokeBase, 0, 0, -spokeLength))
-    lineList.append(lineCorners(-spokeBase, 0, 0, -spokeLength))
+    polyList.append(Polygon.line(0, spokeBase, spokeLength, 0, pcol, strokeWidth=20))
+    polyList.append(Polygon.line(0, -spokeBase, spokeLength, 0, pcol, strokeWidth=20))
+    polyList.append(Polygon.line(spokeBase, 0, 0, spokeLength, pcol, strokeWidth=20))
+    polyList.append(Polygon.line(-spokeBase, 0, 0, spokeLength, pcol, strokeWidth=20))
+    polyList.append(Polygon.line(0, spokeBase, -spokeLength, 0, pcol, strokeWidth=20))
+    polyList.append(Polygon.line(0, -spokeBase, -spokeLength, 0, pcol, strokeWidth=20))
+    polyList.append(Polygon.line(spokeBase, 0, 0, -spokeLength, pcol, strokeWidth=20))
+    polyList.append(Polygon.line(-spokeBase, 0, 0, -spokeLength, pcol, strokeWidth=20))
 
-    allLines = list(itertools.chain.from_iterable(lineList))
-    colors = [(128, 224, 128, 32) for _ in allLines]
+    #polyList.append(cornersToLines(circleCorners(0, 0, 400, numSegments=100000)))
 
-    image = LineImage(allLines, colors, lineWidth=20)
+    image = LineImage(polyList)
     return image
 
 def beginningsP1Bullet():
-    lines = [
-        (10, 0), (-10, 0)
-        ]
-    colors = [(192, 0, 0, 255), (128, 0, 0, 192)]
-    return LineImage(lines, colors, lineWidth=4)
+    p = Polygon.line(10, 0, -10, 0, (192, 0, 0, 255), strokeWidth=4)
+    return LineImage([p])
 
 def powerup():
-    corners = rectCornersCenter(0, 0, 10, 10)
-    lineList = cornersToLines(corners)
-    
-    #allLines = list(itertools.chain.from_iterable(lineList))
-    colors = [(192, 0, 0, 255) for _ in lineList]
-    return LineImage(lineList, colors)
+    poly = Polygon.rectCenter(0, 0, 10, 10, (192, 0, 0, 255))
+    return LineImage([poly])
 
 def crawler():
-    lineList = []
-    lineList.append(cornersToLines(arcCorners(0, 0, 15, 180, numSegments=6)))
-    #lineList.append(cornersToLines(circleCorners(0, 0, 15, numSegments=6)))
-    lineList.append(cornersToLines(lineCorners(0, 0, 20, 20)))
-    lineList.append(cornersToLines(lineCorners(0, 0, -20, 20)))
-    lineList.append(cornersToLines(lineCorners(0, 0, 10, 25)))
-    lineList.append(cornersToLines(lineCorners(0, 0, -10, 25)))
-    lineList.append(cornersToLines(lineCorners(0, 0, 30, 10)))
-    lineList.append(cornersToLines(lineCorners(0, 0, -30, 10)))
+    polyList = []
+    color = (192, 192, 192, 255)
+    polyList.append(Polygon.arc(0, 0, 15, 180, color, numSegments=6))
+    #polyList.append(cornersToLines(circleCorners(0, 0, 15, numSegments=6, color)))
+    polyList.append(Polygon.line(0, 0, 20, 20, color))
+    polyList.append(Polygon.line(0, 0, -20, 20, color))
+    polyList.append(Polygon.line(0, 0, 10, 25, color))
+    polyList.append(Polygon.line(0, 0, -10, 25, color))
+    polyList.append(Polygon.line(0, 0, 30, 10, color))
+    polyList.append(Polygon.line(0, 0, -30, 10, color))
+
+    return LineImage(polyList)
 
     allLines = list(itertools.chain.from_iterable(lineList))
     colors = [(192, 192, 192, 255) for _ in allLines]
@@ -83,12 +75,10 @@ def crawler():
     return image
 
 def collectable():
-    lineList = []
-    lineList.append(cornersToLines(rectCornersCenter(0, 0, 20, 10)))
-    lineList.append(cornersToLines(rectCornersCenter(0, 0, 10, 20)))
-
-    allLines = list(itertools.chain.from_iterable(lineList))
-    colors = [(192, 0, 0, 255) for _ in allLines]
-    image = LineImage(allLines, colors)
+    color = (192, 0, 0, 255)
+    polyList = []
+    polyList.append(Polygon.rectCorner(0, 0, 20, 10, color))
+    polyList.append(Polygon.rectCorner(0, 0, 10, 20, color))
+    image = LineImage(polyList)
     return image
 

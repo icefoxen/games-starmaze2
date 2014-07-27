@@ -80,6 +80,12 @@ GL_TRIANGLE_STRIP is for losers.  And also causes isses
 if we ever try to group disconnected lines together in
 the same batch.
 
+Generates nice lines using the "fade-polygon" technique discussed
+here:
+
+http://www.codeproject.com/Articles/199525/Drawing-nearly-perfect-D-line-segments-in-OpenGL
+
+
 TODO: Endcaps (fairly easy)
 TODO MORE: Polylines (harder)
 TODO (POWER GOAL): Handle overlapping nicely
@@ -90,6 +96,7 @@ TODO (POWER GOAL): Handle overlapping nicely
         xoff = math.sin(angle) * s.width
         yoff = math.cos(angle) * s.width
         # Calculate points to the 'left' and 'right' of the endpoints
+        # XXX: Gods these names are awful
         x1 = s.v1.x
         x2 = s.v2.x
         y1 = s.v1.y
@@ -145,8 +152,142 @@ class Polygon(object):
 
         return lines
 
-class LineImage2(object):
-    """An image created from a bunch of Polygon objects."""
+    @staticmethod
+    def circle(cx, cy, r, color, numSegments=32, **kwargs):
+        """Returns a Poly outlining an approximation
+of a circle.
+            
+Uses the algorithm described at http://slabode.exofire.net/circle_draw.shtml
+
+BUGGO: Solid colors only
+BUGGO: Should really be implemented via `arc()`"""
+        theta = (2 * math.pi) / float(numSegments)
+        tangentialFactor = math.tan(theta)
+        radialFactor = math.cos(theta)
+        x = r
+        y = 0
+
+        verts = []
+        # There ISN'T an off-by-one error here because it automatically
+        # draws a closed loop between the last and first points.
+        for i in range(numSegments):
+            verts.append(Vertex(x + cx, y + cy, color))
+            tx = -y
+            ty = x
+            x += tx * tangentialFactor
+            y += ty * tangentialFactor
+            x *= radialFactor
+            y *= radialFactor
+        return Polygon(verts, **kwargs)
+
+    @staticmethod
+    def arc(cx, cy, r, angle, color, numSegments=32, **kwargs):
+        """Same as `circle` but only makes a partial arc instead
+of a full circle.
+
+TODO: Be able to specify the starting angle!
+
+BUGGO: Solid colors only"""
+        radians = math.radians(angle)
+        theta = radians / float(numSegments)
+        tangentialFactor = math.tan(theta)
+        radialFactor = math.cos(theta)
+        x = r
+        y = 0
+
+        verts = []
+        for i in range(numSegments+1):
+            verts.append(Vertex(x + cx, y + cy, color))
+            tx = -y
+            ty = x
+            x += tx * tangentialFactor
+            y += ty * tangentialFactor
+            x *= radialFactor
+            y *= radialFactor
+        return Polygon(verts, **kwargs)
+
+    @staticmethod
+    def rectCenter(cx, cy, w, h, color, **kwargs):
+        """Returns a `Polygon` outlining a rectangle, specified from
+the center.
+
+BUGGO: Solid colors only"""
+        ww = float(w) / 2
+        hh = float(h) / 2
+        verts = [
+            Vertex(cx - ww, cy - hh, color),
+            Vertex(cx + ww, cy - hh, color),
+            Vertex(cx + ww, cy + hh, color),
+            Vertex(cx - ww, cy + hh, color)
+            ]
+        return Polygon(verts, **kwargs)
+
+    @staticmethod
+    def rectCorner(x, y, w, h, color, **kwargs):
+        """Returns a list of points outlining a rectangle, given the lower-left point.
+BUGGO: solid colors only
+BUGGO: should be implemented in terms of rectCorner, or vice versa?"""
+        verts = [
+            Vertex(x, y, color),
+            Vertex(x+w, y, color),
+            Vertex(x+w, y+h, color),
+            Vertex(x, y+h, color)
+            ]
+        return Polygon(verts, **kwargs)
+
+    @staticmethod
+    def line(x1, y1, x2, y2, color, **kwargs):
+        """Returns a list of points making a single line.
+
+BUGGO: Solid colors only"""
+        verts = [
+            Vertex(x1, y1, color),
+            Vertex(x2, y2, color)
+            ]
+        return Polygon(verts, closed=False, **kwargs)
+
+def rectCornersCenter(cx, cy, w, h):
+    """Returns a list of points outlining a rectangle, given the center point"""
+    ww = float(w) / 2
+    hh = float(h) / 2
+    verts = [
+        (cx - ww, cy - hh),
+        (cx + ww, cy - hh),
+        (cx + ww, cy + hh),
+        (cx - ww, cy + hh)
+    ]
+    return verts
+
+def rectCornersCorner(x, y, w, h):
+    """Returns a list of points outlining a rectangle, given the lower-left point."""
+    verts = [
+        (x, y),
+        (x+w, y),
+        (x+w, y+h),
+        (x, y+h)
+        ]
+    return verts
+
+
+class LineImage(object):
+    """An image created from a bunch of Polygon objects.
+
+    TODO:
+One open question is how we handle memory, since these create
+a `pyglet.graphics.VertexList` to hold the drawing data.
+Right now we don't handle anything, on the assumption that
+a) we're going to load all of these and then cache them without
+creating new ones at random, and b) they'll all be freed more
+or less correctly by pyglet should they ever become redundant.
+These assumptions are probably pretty safe.
+
+Also we need to do proper polylines.  How to do that without assuming
+a line loop?  Well, more classes I guess.
+
+Also, doesn't really use groups right I think.
+
+Also, our framework code doesn't use batches at all argh
+"""
     def __init__(s, polys, batch=None, group=None):
         s.polys = polys
         s.batch = batch or pyglet.graphics.Batch()
@@ -193,6 +334,7 @@ them to the image's batch."""
         s._vertexLists.append(vertexList)
 
 
+
         
 def cornersToLines(corners):
     """Turns a list of (x,y) coordinates representing the corners of closed
@@ -209,91 +351,6 @@ polygon into a list of (x1, y1) (x2, y2) line endpoints."""
     flattenedEndpoints.append(corners[0])
 
     return flattenedEndpoints
-
-def circleCorners(cx, cy, r, numSegments=32):
-    """Returns a list of points outlining an approximation
-of a circle.  Can then be turned into actual lines with
-`cornersToLines`.
-
-Uses the algorithm described at http://slabode.exofire.net/circle_draw.shtml"""
-    theta = (2 * math.pi) / float(numSegments)
-    tangentialFactor = math.tan(theta)
-    radialFactor = math.cos(theta)
-    x = r
-    y = 0
-
-    verts = []
-    # There ISN'T an off-by-one error here because it automatically
-    # draws a closed loop between the last and first points.
-    for i in range(numSegments):
-        verts.append((x + cx, y + cy))
-        tx = -y
-        ty = x
-        x += tx * tangentialFactor
-        y += ty * tangentialFactor
-        x *= radialFactor
-        y *= radialFactor
-    return verts
-
-def arcCorners(cx, cy, r, angle, numSegments=32):
-    """Same as `circleCorners` but only makes a partial arc instead
-of a full circle.
-
-Semi-unfortunately still draws it as a closed loop, but works for now.
-
-TODO: Be able to specify the starting angle!"""
-    radians = math.radians(angle)
-    theta = radians / float(numSegments)
-    tangentialFactor = math.tan(theta)
-    radialFactor = math.cos(theta)
-    x = r
-    y = 0
-
-    verts = []
-    for i in range(numSegments+1):
-        verts.append((x + cx, y + cy))
-        tx = -y
-        ty = x
-        x += tx * tangentialFactor
-        y += ty * tangentialFactor
-        x *= radialFactor
-        y *= radialFactor
-    return verts
-
-
-def rectCornersCenter(cx, cy, w, h):
-    """Returns a list of points outlining a rectangle, given the center point"""
-    ww = float(w) / 2
-    hh = float(h) / 2
-    verts = [
-        (cx - ww, cy - hh),
-        (cx + ww, cy - hh),
-        (cx + ww, cy + hh),
-        (cx - ww, cy + hh)
-    ]
-    return verts
-
-def rectCornersCorner(x, y, w, h):
-    """Returns a list of points outlining a rectangle, given the lower-left point."""
-    verts = [
-        (x, y),
-        (x+w, y),
-        (x+w, y+h),
-        (x, y+h)
-        ]
-    return verts
-
-def lineCorners(x1, y1, x2, y2):
-    """Returns a list of points making a single line."""
-    return [(x1, y1), (x2, y2)]
-
-def colorLines(lines, color=(255,255,255,255)):
-    """Returns an array of colors suitable for coloring the
-given lines the given color."""
-    if len(color) != 4:
-        raise Exception("color is not a 4-tuple: {}".format(color))
-    else:
-        return [color] * len(lines)
 
 
 class Affine(object):
@@ -381,183 +438,6 @@ Basically, we lerp towards the target's position."""
         #print("Delta:  ", deltaX, deltaY)
         s.x = -s.currentX + s.halfScreenW
         s.y = -s.currentY + s.halfScreenH
-
-
-class LineImage(object):
-    """A collection of lines that can be drawn like an image.
-
-Takes a list of (x,y) coordinates representing vertices
-(line endpoints, two per line; it doesn't assume a closed
-loop of lines!)
-a list of (r,g,b,a) colors (one
-for each vertex), and optionally a `pyglet.graphics.Batch`
-to draw in.
-
-Generates nice lines using the "fade-polygon" technique discussed
-here:
-
-http://www.codeproject.com/Articles/199525/Drawing-nearly-perfect-D-line-segments-in-OpenGL
-
-TODO:
-One open question is how we handle memory, since these create
-a `pyglet.graphics.VertexList` to hold the drawing data.
-Right now we don't handle anything, on the assumption that
-a) we're going to load all of these and then cache them without
-creating new ones at random, and b) they'll all be freed more
-or less correctly by pyglet should they ever become redundant.
-These assumptions are probably pretty safe.
-
-Also we need to do proper polylines.  How to do that without assuming
-a line loop?  Well, more classes I guess.
-
-Also, doesn't really use groups right I think.
-
-Also, our framework code doesn't use batches at all argh
-"""
-    def __init__(s, verts, colors, lineWidth=2, batch=None, group=None, usage='static'):
-        s._verts = verts
-        s._colors = colors
-        s.batch = batch or pyglet.graphics.Batch()
-        s._usage = usage
-        s._lineWidth = lineWidth
-
-        s._group = group #or ShaderGroup()
-
-        s._addToBatch()
-
-    def _addToBatch(s):
-        """Adds the verts and colors to the assigned batch.
-Tesselates the lines to polygons, too."""
-        
-        # First we take the list of (x,y) line endpoints
-        # and turn it into a list of (x1, y1, x2, y2) lines
-        #print s._verts
-        lineses = [(x1, y1, x2, y2) 
-                   for ((x1, y1), (x2, y2))
-                   in zip(s._verts[::2], s._verts[1::2])]
-        # Then we use _line() to turn each line into a list of vertices
-        tesselatedLines = map(lambda l: s._line(*l, width=s._lineWidth), lineses)
-        # We also have to pair up the colors similarly
-        colorses = zip(s._colors[::2], s._colors[1::2])
-        # And get a list of colors for each vertex instead of each line
-        tesselatedColors = map(lambda col: s._color(*col), colorses)
-
-        flattenedLines = list(itertools.chain.from_iterable(tesselatedLines))
-        flattenedColors = list(itertools.chain.from_iterable(tesselatedColors))
-
-        # Then we make a vertex list for the lines
-        s._vertexLists = []
-        coordsPerVert = 2
-        numPoints = len(flattenedLines) / coordsPerVert
-
-        #print unpackedVerts
-        #print unpackedColors
-        #print numPoints
-
-        vertFormat = 'v2f/{}'.format(s._usage)
-        colorFormat = 'c4B/{}'.format(s._usage)
-        #print len(flattenedLines), len(flattenedColors)
-        vertexList = s.batch.add(
-            numPoints, 
-            pyglet.graphics.GL_TRIANGLES, 
-            s._group, 
-            (vertFormat, flattenedLines),
-            (colorFormat, flattenedColors)
-        )
-        #vertexList = s.batch.add_indexed(
-        #    count, mode, group, indices, data)
-        s._vertexLists.append(vertexList)
-
-
-    def _line(s, x1, y1, x2, y2, width=2):
-        """Returns a list of verts, creating a quad
-suitable for drawing with GL_TRIANGLES.
-
-GL_TRIANGLE_STRIP is for losers.  And also causes isses
-if we ever try to group disconnected lines together in
-the same batch.
-
-TODO: Endcaps (fairly easy)
-TODO MORE: Polylines (harder)
-TODO (POWER GOAL): Handle overlapping nicely
-"""
-        rise = y2 - y1
-        run = x2 - x1
-        angle = math.atan2(rise, run)
-        xoff = math.sin(angle) * width
-        yoff = math.cos(angle) * width
-        # Calculate points to the 'left' and 'right' of the endpoints
-        v1lx = x1 - xoff
-        v1ly = y1 + yoff
-        v1rx = x1 + xoff
-        v1ry = y1 - yoff
-
-        v2lx = x2 - xoff
-        v2ly = y2 + yoff
-        v2rx = x2 + xoff
-        v2ry = y2 - yoff
-        
-        # Construct triangles
-        verts = [
-            v1lx, v1ly,
-            v2lx, v2ly,
-            x1, y1,
-
-            x1, y1,
-            v2lx, v2ly,
-            x2, y2,
-
-            x2, y2,
-            x1, y1,
-            v2rx, v2ry,
-
-            v2rx, v2ry,
-            x1, y1,
-            v1rx, v1ry,
-        ]
-        return verts
-    
-    def _color(s, lineColor1, lineColor2=None):
-        """Makes a list of colors for the verts returned by lines().
-
-lineColor is the color of the line; if lineColor 2 is not None
-the line is a gradient between the two colors.
-
-TODO: We could easily add butt caps to the end of the lines,
-which might make them look rather nicer.
-"""
-        # Construct colors
-        if lineColor2 is None:
-            lineColor2 = lineColor1
-        r1, g1, b1, a1 = lineColor1
-        r2, g2, b2, a2 = lineColor2
-        edgeColor1 = (r1, g1, b1, 0)
-        edgeColor2 = (r2, g2, b2, 0)
-        colors = [
-            edgeColor1, edgeColor2, lineColor1,
-            lineColor1, edgeColor2, lineColor2,
-            lineColor2, lineColor1, edgeColor2,
-            edgeColor2, lineColor1, edgeColor1,
-        ]
-        # Flatten the list-of-tuples into a list
-        unpackedColors = list(itertools.chain.from_iterable(colors))
-        return unpackedColors
-        #else:
-        #    r1, g1, b1, a1 = lineColor
-        #    r2, g2, b2, a2 = lineColor2
-            
-            
-
-
-
-    def draw(s, x, y):
-        """This shouldn't really be here, we should usually do drawing from the batch.  But, I guess it's valid."""
-        glPushMatrix()
-        glLoadIdentity()
-        glTranslatef(x, y, 0)
-        s._vertexList.draw(GL_LINE_LOOP)
-        glPopMatrix()
-        
 
 def vertsToIndexedVerts(verts):
     """Turns a sequence of vertex pairs into a (smaller) sequence of verts and
