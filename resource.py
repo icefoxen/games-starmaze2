@@ -25,7 +25,7 @@ def get_sprite(name):
     return pyglet.sprite.Sprite(img)
 
 
-
+# TODO: collections.defaultdict might be useful here.
 
 LINEIMAGECACHE = {}
 def getLineImage(linefunc):

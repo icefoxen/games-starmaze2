@@ -303,6 +303,9 @@ TODO: Glow layer???
         s._image = lineimage
         s._x = x
         s._y = y
+        # BUGGO: Actually, we have no way of moving a lineimage
+        # into a new batch, so if we DO provide a batch for this sprite,
+        # it won't actually draw anything...
         s._batch = batch or lineimage.batch
         s._rotation = 0.0
         s._scale = 1.0

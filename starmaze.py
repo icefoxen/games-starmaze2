@@ -57,6 +57,16 @@ class World(object):
         s.currentRoom = makeSomeRoom()
         s.enterRoom(s.currentRoom)
 
+        verts = [
+            Vertex(100.0,100.0, COLOR_RED),
+            Vertex(100.0, 200.0, COLOR_GREEN),
+            Vertex(200.0, 200.0, COLOR_BLUE)
+            ]
+        poly = Polygon(verts, strokeWidth=10)
+        image = LineImage2([poly])
+        s.sprite = LineSprite(None, image)
+        
+
 
     def initNewSpace(s):
         s.space = pymunk.Space()
@@ -141,7 +151,7 @@ update frame."""
         with s.camera:
             for act in s.actors:
                 act.draw()
-
+        s.sprite.draw()
         s.fps_display.draw()
 
     def on_key_press(s, k, modifiers):
