@@ -101,13 +101,6 @@ class Door(object):
         s.passable = True
         s.destination = target
 
-        x, y = s.position
-        s.corners = rectCornersCenter(x, y, 30, 30)
-        lines = cornersToLines(s.corners)
-        colors = colorLines(lines, (255, 0, 255, 255))
-        image = LineImage(lines, colors)
-        s.sprite = LineSprite(image)
-        s.sprite.position = s.position
 
     def draw(s):
         s.sprite.draw()

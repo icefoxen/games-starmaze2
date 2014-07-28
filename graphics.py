@@ -63,10 +63,7 @@ way the normal points."""
         return [v.color for v in s]
 
 class Line(object):
-    """A line between two points, specified by two (x,y) tuples.
-Color is optional, defaults to white.  If color2 is None, color1
-is used as a solid color, otherwise it produces a gradient between
-color1 and color2."""
+    """A line between two points, specified by two (x,y) tuples."""
     def __init__(s, v1, v2, width=2):
         s.v1 = v1
         s.v2 = v2
@@ -84,7 +81,6 @@ Generates nice lines using the "fade-polygon" technique discussed
 here:
 
 http://www.codeproject.com/Articles/199525/Drawing-nearly-perfect-D-line-segments-in-OpenGL
-
 
 TODO: Endcaps (fairly easy)
 TODO MORE: Polylines (harder)
@@ -159,26 +155,8 @@ of a circle.
             
 Uses the algorithm described at http://slabode.exofire.net/circle_draw.shtml
 
-BUGGO: Solid colors only
-BUGGO: Should really be implemented via `arc()`"""
-        theta = (2 * math.pi) / float(numSegments)
-        tangentialFactor = math.tan(theta)
-        radialFactor = math.cos(theta)
-        x = r
-        y = 0
-
-        verts = []
-        # There ISN'T an off-by-one error here because it automatically
-        # draws a closed loop between the last and first points.
-        for i in range(numSegments):
-            verts.append(Vertex(x + cx, y + cy, color))
-            tx = -y
-            ty = x
-            x += tx * tangentialFactor
-            y += ty * tangentialFactor
-            x *= radialFactor
-            y *= radialFactor
-        return Polygon(verts, **kwargs)
+BUGGO: Solid colors only"""
+        return Polygon.arc(cx, cy, r, 360, color, numSegments=numSegments, **kwargs)
 
     @staticmethod
     def arc(cx, cy, r, angle, color, numSegments=32, **kwargs):
@@ -214,13 +192,7 @@ the center.
 BUGGO: Solid colors only"""
         ww = float(w) / 2
         hh = float(h) / 2
-        verts = [
-            Vertex(cx - ww, cy - hh, color),
-            Vertex(cx + ww, cy - hh, color),
-            Vertex(cx + ww, cy + hh, color),
-            Vertex(cx - ww, cy + hh, color)
-            ]
-        return Polygon(verts, **kwargs)
+        return Polygon.rectCorner(cx - ww, cy - hh, w, h, color, **kwargs)
 
     @staticmethod
     def rectCorner(x, y, w, h, color, **kwargs):
@@ -272,7 +244,7 @@ def rectCornersCorner(x, y, w, h):
 class LineImage(object):
     """An image created from a bunch of Polygon objects.
 
-    TODO:
+TODO:
 One open question is how we handle memory, since these create
 a `pyglet.graphics.VertexList` to hold the drawing data.
 Right now we don't handle anything, on the assumption that
@@ -286,7 +258,7 @@ a line loop?  Well, more classes I guess.
 
 Also, doesn't really use groups right I think.
 
-Also, our framework code doesn't use batches at all argh
+Also, our framework code doesn't use batches right at all argh
 """
     def __init__(s, polys, batch=None, group=None):
         s.polys = polys

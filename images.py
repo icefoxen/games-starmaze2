@@ -77,8 +77,8 @@ def crawler():
 def collectable():
     color = (192, 0, 0, 255)
     polyList = []
-    polyList.append(Polygon.rectCorner(0, 0, 20, 10, color))
-    polyList.append(Polygon.rectCorner(0, 0, 10, 20, color))
+    polyList.append(Polygon.rectCorner(-10, -5, 20, 10, color))
+    polyList.append(Polygon.rectCorner(-5, -10, 10, 20, color))
     image = LineImage(polyList)
     return image
 
