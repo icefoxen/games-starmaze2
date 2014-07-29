@@ -48,7 +48,12 @@ def playerImageGlow():
     return image
 
 def beginningsP1Bullet():
-    p = Polygon.line(10, 0, -10, 0, (192, 0, 0, 255), strokeWidth=4)
+    #p = Polygon.line(10, 0, -10, 0, (192, 0, 0, 255), strokeWidth=4)
+    vs = [
+        Vertex(10, 0, (255,0,0,255)),
+        Vertex(-10, 0, (192,0,0,128))
+        ]
+    p = Polygon(vs, closed=False, strokeWidth=4)
     return LineImage([p])
 
 def powerup():

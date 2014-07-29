@@ -321,6 +321,9 @@ TODO: Glow layer???
             s._batch.draw()
         glPopAttrib()
 
+    def drawShader(s, shader):
+        s._batch.draw()
+
     # def _get_group(s):
     #     return s._group
     # def _set_group(s, group):

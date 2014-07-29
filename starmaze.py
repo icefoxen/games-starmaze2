@@ -139,8 +139,12 @@ update frame."""
     def on_draw(s):
         s.window.clear()
         with s.camera:
-            for act in s.actors:
-                act.draw()
+            with DEFAULT_SHADER:
+                for act in s.actors:
+                    DEFAULT_SHADER.uniformi("facing", act.facing)
+                    DEFAULT_SHADER.uniformf("vertexDiff", 0, 0, 0, 0)
+                    DEFAULT_SHADER.uniformf("colorDiff", 0, 0, 0, 0)
+                    act.draw(DEFAULT_SHADER)
         s.fps_display.draw()
 
     def on_key_press(s, k, modifiers):

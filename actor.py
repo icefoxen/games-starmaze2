@@ -42,7 +42,7 @@ class Actor(object):
     # position = property(lambda s: s.body.position, _setPosition,
     #                     doc="The position of the Actor.")
 
-    def draw(s):
+    def draw(s, shader):
         if (s.sprite is not None) and (s.physicsObj is not None):
             s.sprite.position = s.physicsObj.position
             s.sprite.rotation = math.degrees(s.physicsObj.angle)
@@ -78,20 +78,30 @@ class Player(Actor):
 
         s.powers = PowerSet(s)
         s.facing = FACING_RIGHT
+        s.glow = 0.0
 
     def update(s, dt):
         s.controller.update(dt)
         s.powers.update(dt)
+        s.glow += 0.05
 
-    def draw(s):
+    def draw(s, shader):
         if (s.sprite is not None) and (s.physicsObj is not None):
-            s.glowSprite.position = s.physicsObj.position
-            s.glowSprite.rotation = math.degrees(s.physicsObj.angle)
-            s.glowSprite.draw()
+            #s.glowSprite.position = s.physicsObj.position
+            #s.glowSprite.rotation = math.degrees(s.physicsObj.angle)
+            #s.glowSprite.draw()
 
             s.sprite.position = s.physicsObj.position
             s.sprite.rotation = math.degrees(s.physicsObj.angle)
             s.sprite.draw()
+
+
+            glow = -0.3 * abs(math.sin(s.glow))
+            shader.uniformf("vertexDiff", 0, 0, 0.0, glow)
+            shader.uniformf("colorDiff", 0, 0, 0, glow)
+            s.sprite.draw()
+            #shader.uniformf("vertexDiff", 0, 0, 0.0, -0.5)
+            #shader.uniformf("colorDiff", 0, 0, 0, -0.5)
 
 
 class Collectable(Actor):
@@ -174,7 +184,8 @@ class BeginningP1Bullet(Actor):
         # Counteract gravity?
         s.physicsObj.apply_force((0, 400))
         s.life = 0.4 + (random.random() / 3.0)
-        
+
+        s.facing = direction
         s.damage = 1
 
     def update(s, dt):
@@ -345,7 +356,7 @@ class CrawlerEnemy(Actor):
         #s.controller.update(dt)
         #s.powers.update(dt)
 
-    def draw(s):
+    def draw(s, shader):
         if (s.sprite is not None) and (s.physicsObj is not None):
             s.sprite.position = s.physicsObj.position
             s.sprite.rotation = math.degrees(s.physicsObj.angle)
