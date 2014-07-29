@@ -44,6 +44,7 @@ class World(object):
             #s.keyboard,
             on_draw = lambda: s.on_draw(),
             on_key_press = lambda k, mods: s.on_key_press(k, mods),
+            on_key_release = lambda k, mods: s.on_key_release(k, mods)
         )
 
         s.initNewSpace()
@@ -148,7 +149,10 @@ update frame."""
         s.fps_display.draw()
 
     def on_key_press(s, k, modifiers):
-        s.player.controller.handleInputEvent(k, modifiers)
+        s.player.controller.handleKeyPress(k, modifiers)
+
+    def on_key_release(s, k, modifiers):
+        s.player.controller.handleKeyRelease(k, modifiers)
 
     @staticmethod
     def collidePlayerCollectable(space, arbiter, *args, **kwargs):

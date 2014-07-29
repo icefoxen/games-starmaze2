@@ -134,7 +134,7 @@ down."""
         if s.keyboard[key.UP]:
             s.owner.powers.jump()
 
-    def handleInputEvent(s, k, mod):
+    def handleKeyPress(s, k, mod):
         """Handles edge-triggered keyboard actions (key presses, not holds)"""
         # Switch powers
         if k == key.Q:
@@ -143,6 +143,30 @@ down."""
         elif k == key.E:
             s.owner.powers.nextPower()
             print "Current power: ", s.owner.powers.currentPower
+
+        # Powers
+        elif k == key.Z:
+            s.owner.powers.startDefend()
+        elif k == key.X:
+            s.owner.powers.startAttack2()
+        elif k == key.C:
+            s.owner.powers.startAttack1()
+        elif k == key.UP:
+            s.owner.powers.startJump()
+
+
+    def handleKeyRelease(s, k, mod):
+        # Powers
+        if k == key.Z:
+            s.owner.powers.stopDefend()
+        elif k == key.X:
+            s.owner.powers.stopAttack2()
+        elif k == key.C:
+            s.owner.powers.stopAttack1()
+        elif k == key.UP:
+            s.owner.powers.stopJump()
+
+
 
 
 class PhysicsObj(Component):

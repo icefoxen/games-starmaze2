@@ -109,17 +109,17 @@ TODO (POWER GOAL): Handle overlapping nicely
 
         color1center = s.v1.color
         color2center = s.v2.color
-        r1, g1, b1, a1 = color1center
-        r2, g2, b2, a2 = color2center
+        r1, g1, b1, a1 = s.v1.color
+        r2, g2, b2, a2 = s.v2.color
         color1edge = (r1, g1, b1, 0)
         color2edge = (r2, g2, b2, 0)
         
         # Construct triangles
         vert1l = Vertex(v1lx, v1ly, color1edge)
-        vert1c = Vertex(x1, y1, s.v1.color)
+        vert1c = Vertex(x1, y1, color1center)
         vert1r = Vertex(v1rx, v1ry, color1edge)
         vert2l = Vertex(v2lx, v2ly, color2edge)
-        vert2c = Vertex(x2, y2, s.v2.color)
+        vert2c = Vertex(x2, y2, color2center)
         vert2r = Vertex(v2rx, v2ry, color2edge)
         tris = [
             Triangle(vert1l, vert2l, vert1c),
