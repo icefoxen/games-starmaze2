@@ -248,9 +248,12 @@ class BeginningsPower(object):
         s.timer = 0.0
         s.refireTime1 = 0.05
         s.refireTime2 = 1.5
+        s.jumpTimerTime = 0.2
+        s.jumpTimer = 0.0
 
     def update(s, dt):
         s.timer -= dt
+        s.jumpTimer -= dt
 
     # BUGGO: It's concievable we'd have to fire multiple shots in the same frame...
     # If we lag real bad at least.
@@ -276,8 +279,12 @@ class BeginningsPower(object):
 
     def jump(s, owner):
         if owner.onGround:
-            owner.physicsObj.apply_impulse((0, 500))
+            # Start jump
+            owner.physicsObj.apply_impulse((0, 200))
             owner.onGround = False
+            s.jumpTimer = s.jumpTimerTime
+        elif s.jumpTimer > 0:
+            owner.physicsObj.apply_impulse((0, 20))
 
 class PowerSet(Component):
     def __init__(s, owner):

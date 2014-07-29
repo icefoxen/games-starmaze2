@@ -22,16 +22,15 @@ vprog = '''#version 120
 // Vertex shader
 
 
-uniform mat4 projection_matrix;
-uniform mat4 modelview_matrix;
- 
 uniform vec4 vertexDiff;
 uniform int facing;
- 
+
 void main(void) {
    //gl_Position = gl_ProjectionMatrix * gl_ModelViewMatrix * gl_Vertex;
    // Technically equivalent to above but fewer fp multiplications is better.
    gl_Position = gl_ModelViewProjectionMatrix * ((gl_Vertex * vec4(facing, 1, 1, 1)) + vertexDiff);
+
+   
    gl_FrontColor = gl_Color;
 }
 
@@ -43,10 +42,10 @@ fprog = '''#version 120
 uniform sampler2D tex;
 
 uniform vec4 colorDiff;
-
 void main() {
+   gl_FragColor = gl_Color;
    //gl_FragColor = colormod;
-   gl_FragColor = gl_Color + colorDiff;
+   //gl_FragColor = gl_Color + colorDiff;
    //gl_FragColor = vec4(1,0,1,1);
    //gl_FragColor = texture2D(tex, gl_TexCoord[0].st);
 }
