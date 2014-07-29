@@ -17,6 +17,7 @@ CGROUP_ENEMY = 3
 CGROUP_PLAYERBULLET = 4
 CGROUP_ENEMYBULLET = 5
 CGROUP_TERRAIN = 6
+CGROUP_DOOR = 7
 
 # Collision layers
 # Determine what collides with what at all; probably faster
@@ -32,21 +33,24 @@ LAYER_ENEMY        = 1 << 2
 LAYER_PLAYERBULLET = 1 << 3
 LAYER_ENEMYBULLET  = 1 << 4
 LAYER_BULLET       = LAYER_PLAYERBULLET & LAYER_ENEMYBULLET
+LAYER_DOOR         = 1 << 5
 
 # These get a little weird because we're specifying what layers
 # things occupy...
 # Terrain occupies all layers, it touches everything.
-LAYERSPEC_ALL         = 0xFFFFFFFF
+LAYERSPEC_ALL          = 0xFFFFFFFF
 # Players have their own layer
-LAYERSPEC_PLAYER      = LAYER_PLAYER
+LAYERSPEC_PLAYER       = LAYER_PLAYER
 # Enemies touch everything except enemy bullets
-LAYERSPEC_ENEMY       = LAYERSPEC_ALL & ~LAYER_ENEMYBULLET
+LAYERSPEC_ENEMY        = LAYERSPEC_ALL & ~LAYER_ENEMYBULLET
 # Collectables touch everything except enemies and bullets
-LAYERSPEC_COLLECTABLE = LAYERSPEC_ALL & ~LAYER_ENEMY & ~LAYER_BULLET
+LAYERSPEC_COLLECTABLE  = LAYERSPEC_ALL & ~LAYER_ENEMY & ~LAYER_BULLET
 # Player bullets only touch enemies and terrain
 LAYERSPEC_PLAYERBULLET = LAYER_ENEMY
 # Enemy bullets only touch players and terrain...
 LAYERSPEC_ENEMYBULLET  = LAYER_ENEMYBULLET
+# Doors only touch the player
+LAYERSPEC_DOOR         = LAYERSPEC_ALL
 
 class Component(object):
     """Actors are made out of components.
@@ -123,6 +127,8 @@ down."""
 
         if s.keyboard[key.SPACE]:
             print "Enter room"
+            if s.owner.door is not None:
+                s.owner.world.enterDoor(s.owner.door)
 
         # Powers
         if s.keyboard[key.Z]:
@@ -235,6 +241,9 @@ Call one of the setCollision*() methods too."""
     def setCollisionTerrain(s):
         s.setCollisionProperties(CGROUP_TERRAIN, LAYERSPEC_ALL)
 
+    def setCollisionDoor(s):
+        s.setCollisionProperties(CGROUP_DOOR, LAYERSPEC_DOOR)
+
     def setFriction(s, f):
         for shape in s.shapes:
             shape.friction = f
@@ -249,6 +258,17 @@ class PlayerPhysicsObj(PhysicsObj):
         s.shapes = [pymunk.Circle(s.body, radius=s.owner.radius)]
         s.setFriction(6.0)
         s.setCollisionPlayer()
+
+class DoorPhysicsObj(PhysicsObj):
+    def __init__(s, owner, position=(0, 0)):
+        PhysicsObj.__init__(s, owner)
+        s.body.position = position
+        poly = pymunk.Poly(s.body, rectCornersCenter(0, 0, 40, 40))
+        # Sensors call collision callbacks but don't actually do any physics.
+        # I think.
+        poly.sensor = True
+        s.shapes = [poly]
+        s.setCollisionDoor()
 
 class PlayerBulletPhysicsObj(PhysicsObj):
     """A generic physics object for small round things that hit stuff."""

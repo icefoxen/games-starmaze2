@@ -80,6 +80,8 @@ class Player(Actor):
         s.facing = FACING_RIGHT
         s.glow = 0.0
 
+        s.door = None
+
     def update(s, dt):
         s.controller.update(dt)
         s.powers.update(dt)

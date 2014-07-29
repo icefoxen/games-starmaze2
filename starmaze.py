@@ -72,6 +72,9 @@ class World(object):
                                       begin=World.collidePlayerBulletEnemy)
         s.space.add_collision_handler(CGROUP_ENEMYBULLET, CGROUP_TERRAIN,
                                       begin=World.collideBulletTerrain)
+        s.space.add_collision_handler(CGROUP_PLAYER, CGROUP_DOOR,
+                                      begin=World.collidePlayerDoor,
+                                      separate=World.collidePlayerDoorEnd)
 
     def birthActor(s, act):
         """You see, we can't have actors add or remove other actors inside
@@ -105,18 +108,31 @@ update frame."""
         # method that gets called here.  Probably the best way.
         act.world = None
 
+    def enterDoor(s, door):
+        s.leaveRoom()
+        s.enterRoom(door.destination)
+        print s.player.physicsObj.position
+        s.player.physicsObj.position = (door.destx, door.desty)
+        print s.player.physicsObj.position
+        
 
+    # BUGGO: This causes the camera to skew to the new location
+    # which is a bit startling.
     def enterRoom(s, room):
         """Actually creates all the game objects for the given room and adds them to the current state."""
         actors = room.getActors()
         for act in actors:
-            s._addActor(act)
+            s.birthActor(act)
 
+    # BUGGO: This doesn't work right!
+    # Mainly because the onDeath methods of said actors
+    # get triggered...  :-(
     def leaveRoom(s):
         """Removes all the game objects in the current state (sans player) and preps for a new room."""
         for act in list(s.actors):
-            s._removeActor(act)
-        s._addActor(s.player)
+            s.killActor(act)
+        s.player.alive = True
+        #s.birthActor(s.player)
 
     def update(s, dt):
         #print 'foo'
@@ -200,6 +216,20 @@ update frame."""
         enemy = enemyShape.body.component.owner
         enemy.takeDamage(bullet, bullet.damage)
         return False
+
+    @staticmethod
+    def collidePlayerDoor(space, arbiter, *args, **kwargs):
+        playerShape, doorShape = arbiter.shapes
+        player = playerShape.body.component.owner
+        door = doorShape.body.component.owner
+        player.door = door
+        return False
+
+    @staticmethod
+    def collidePlayerDoorEnd(space, arbiter, *args, **kwargs):
+        playerShape, _ = arbiter.shapes
+        player = playerShape.body.component.owner
+        player.door = None
 
 
 

@@ -19,8 +19,6 @@ def playerImage():
     polyList.append(Polygon.line(spokeBase, 0, 0, -spokeLength, pcol))
     polyList.append(Polygon.line(-spokeBase, 0, 0, -spokeLength, pcol))
 
-    #polyList.append(cornersToLines(circleCorners(0, 0, 400, numSegments=100000)))
-
     image = LineImage(polyList)
     return image
 
@@ -42,8 +40,6 @@ def playerImageGlow():
     polyList.append(Polygon.line(spokeBase, 0, 0, -spokeLength, pcol, strokeWidth=20))
     polyList.append(Polygon.line(-spokeBase, 0, 0, -spokeLength, pcol, strokeWidth=20))
 
-    #polyList.append(cornersToLines(circleCorners(0, 0, 400, numSegments=100000)))
-
     image = LineImage(polyList)
     return image
 
@@ -55,6 +51,10 @@ def beginningsP1Bullet():
         ]
     p = Polygon(vs, closed=False, strokeWidth=4)
     return LineImage([p])
+
+def door():
+    poly = Polygon.rectCenter(0, 0, 40, 40, (128, 128, 255, 255))
+    return LineImage([poly])
 
 def powerup():
     poly = Polygon.rectCenter(0, 0, 10, 10, (192, 0, 0, 255))
@@ -73,11 +73,6 @@ def crawler():
     polyList.append(Polygon.line(0, 0, -30, 10, color))
 
     return LineImage(polyList)
-
-    allLines = list(itertools.chain.from_iterable(lineList))
-    colors = [(192, 192, 192, 255) for _ in allLines]
-    image = LineImage(allLines, colors, lineWidth=2)
-    return image
 
 def collectable():
     color = (192, 0, 0, 255)

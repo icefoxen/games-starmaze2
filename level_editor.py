@@ -9,6 +9,7 @@ import pyglet.window.key as key
 from pyglet.gl import *
 
 from graphics import *
+from shader import *
 from terrain import *
 import starmaze
 
@@ -55,10 +56,13 @@ suitable for copy-pasting into a Python file."""
     def on_draw(s):
         s.window.clear()
         with s.camera:
-            if s.currentTarget is not None:
-                s.currentTarget.draw()
-            for act in s.actors:
-                act.draw()
+            with DEFAULT_SHADER:
+                if s.currentTarget is not None:
+                    DEFAULT_SHADER.uniformi("facing", 1)
+                    s.currentTarget.draw(DEFAULT_SHADER)
+                for act in s.actors:
+                    DEFAULT_SHADER.uniformi("facing", act.facing)
+                    act.draw(DEFAULT_SHADER)
 
         s.fps_display.draw()
         #print s.cameraTarget.position

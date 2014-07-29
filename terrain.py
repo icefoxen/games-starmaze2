@@ -94,27 +94,51 @@ x and y are the coordinates of the lower-left point."""
     t = Block(x, y, corners, color, batch)
     return t
 
-# BUGGO: Old, really should make this work.
-class Door(object):
-    def __init__(s, position, destination):
-        s.position = position
+class Door(Actor):
+    def __init__(s, x, y, destination, destx, desty):
+        Actor.__init__(s)
+        s.physicsObj = DoorPhysicsObj(s, position=(x, y))
+        img = resource.getLineImage(images.door)
+        s.sprite = LineSprite(s, img)
         s.passable = True
-        s.destination = target
+        s.destination = destination
+        s.destx = destx
+        s.desty = desty
+        s.rotation = 0.0
+        s.sprite.position = s.physicsObj.position
 
+    def update(s, dt):
+        s.rotation += dt * 100
 
-    def draw(s):
+    def draw(s, shader):
+        s.sprite.rotation = s.rotation
+        s.sprite.draw()
+        s.sprite.rotation = -s.rotation
         s.sprite.draw()
 
-    def intersecting(s, player):
-        """Returns true if the player is in the door, and can wander through it.
-Doors don't move, are rectangular, don't do physics-y things, and are only 
-tested for collision rarely, so we just use a simple bounding circle.
 
-XXX: That's a dumb idea, just use freakin pyglet already"""
-        pass
+class DoorDescription(object):
+    def __init__(s, x, y, dest, destx, desty):
+        s.x = x
+        s.y = y
+        s.destination = dest
+        s.destx = destx
+        s.desty = desty
 
-    def enter(s, player):
-        pass
+    def create(s):
+        """Returns the block described by this."""
+        return Door(s.x, s.y, s.destination, s.destx, s.desty)
+
+    @staticmethod
+    def fromObject(door):
+        """Returns a `DoorDescription` for the given `Door`."""
+        x, y = door.physicsObj.position
+        return DoorDescription(x, y, s.destination, s.destx, s.desty)
+
+    def __repr__(s):
+        return "Door({}, {}, {}, {}, {})".format(
+            s.x, s.y, s.destination, s.destx, s.desty
+            )
 
 class Room(object):
     """Basically a specification of a bunch of Actors to create,
@@ -127,11 +151,14 @@ along with code to create them.
     def getActors(s):
         return map(lambda desc: desc.create(), s.descr)
 
+class RoomDescription(object):
+    def __init__(s, descr):
+        s.descr = descr
+
 def makeSomeRoom():
     import zone_beginnings
-    s = zone_beginnings.STARTROOM
-    r = Room(descr=s)
-    return r
+    room = zone_beginnings.STARTROOM
+    return room
     
 # BUGGO: Again, incomplete
 class Zone(object):
