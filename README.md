@@ -1,29 +1,20 @@
 # README #
 
-This README would normally document whatever steps are necessary to get your application up and running.
+Starmaze.  It's a game.
 
-### What is this repository for? ###
+# Dependencies
 
-* Quick summary
-* Version
-* [Learn Markdown](https://bitbucket.org/tutorials/markdowndemo)
+* pyglet
+* pymunk
 
-### How do I get set up? ###
+# Tests
 
-* Summary of set up
-* Configuration
-* Dependencies
-* Database configuration
-* How to run tests
-* Deployment instructions
+Oh gods tests ahahahaha
 
-### Contribution guidelines ###
+# Reading the source
 
-* Writing tests
-* Code review
-* Other guidelines
+Flags in comments:
 
-### Who do I talk to? ###
-
-* Repo owner or admin
-* Other community or team contact
+* BUGGO means known not-good behavior
+* TODO means something incomplete but not immediately essential
+* XXX marks a questionable design decision
