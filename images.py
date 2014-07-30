@@ -115,19 +115,21 @@ def tree():
         
         l1 = Polygon([v1, midpoint], closed=False)
         if recursion == 0:
-            v1angled = Vertex(v1angled.x, v2angled.y, finishColor)
-            v2angled = Vertex(v2angled.x, v2angled.y, finishColor)
+            #v1angled = Vertex(v1angled.x, v2angled.y, finishColor)
+            #v2angled = Vertex(v2angled.x, v2angled.y, finishColor)
+            flower1 = Polygon.circle(v1angled.x, v1angled.y, 3, finishColor, numSegments=3)
+            flower2 = Polygon.circle(v2angled.x, v2angled.y, 3, finishColor, numSegments=3)
             l2 = Polygon([midpoint, v1angled], closed=False)
             l3 = Polygon([midpoint, v2angled], closed=False)
-            return [l1, l2, l3]
+            return [l1, l2, l3, flower1, flower2]
         else:
             l2s = divideLine(midpoint, v1angled, anglechange, recursion-1)
             l3s = divideLine(midpoint, v2angled, anglechange, recursion-1)
             return [l1] + l2s + l3s
     
     color1 = (0, 192, 0, 255)
-    color2 = (192, 192, 0, 255)
+    color2 = (128, 192, 0, 255)
     v1 = Vertex(0, 0, color1)
     v2 = Vertex(0, 100, color2)
-    polys = divideLine(v1, v2, 90, recursion=8)
+    polys = divideLine(v1, v2, 110, recursion=8)
     return LineImage(polys)

@@ -90,6 +90,7 @@ actor to be added next update frame."""
 update frame."""
         act.alive = False
 
+
     def _addActor(s, act):
         s.actors.add(act)
         s.space.add(act.physicsObj.shapes)
@@ -111,13 +112,9 @@ update frame."""
     def enterDoor(s, door):
         s.leaveRoom()
         s.enterRoom(door.destination)
-        print s.player.physicsObj.position
         s.player.physicsObj.position = (door.destx, door.desty)
-        print s.player.physicsObj.position
-        
+        s.camera.snapTo(door.destx, door.desty)
 
-    # BUGGO: This causes the camera to skew to the new location
-    # which is a bit startling.
     def enterRoom(s, room):
         """Actually creates all the game objects for the given room and adds them to the current state."""
         actors = room.getActors()

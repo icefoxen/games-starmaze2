@@ -386,6 +386,13 @@ can be off-center.  It defaults to 50% of the screen.
         s.hardBoundaryX = s.halfScreenW * hardBoundaryFactor
         s.hardBoundaryY = s.halfScreenH * hardBoundaryFactor
 
+    def snapTo(s, x, y):
+        """Snaps instantly to the given coordinates."""
+        s.aimedAtX = x
+        s.aimedAtY = y
+        s.currentX = x
+        s.currentY = y
+
     def update(s, dt):
         """Calculates the camera's position for a new frame.
 
