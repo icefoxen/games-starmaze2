@@ -35,4 +35,6 @@ BlockDescription(1388.94483975, -471.0, [(0, 0), (119, 0), (119, 542), (0, 542)]
 BeginningsPowerupDescription(300, -200),
 CrawlerEnemyDescription(400, -200),
 DoorDescription(1140, -400, OTHERROOM, 0, 0),
+TreeDescription(1080, -420),
+#TreeDescription(1200, -420),
 ])

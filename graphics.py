@@ -40,6 +40,13 @@ class Vertex(namedtuple("Vertex", ["x", "y", "color"])):
         """Returns the coordinates of the vertex."""
         return (s.x, s.y)
 
+    def distanceSquared(s, v2):
+        dx = v2.x - s.x
+        dy = v2.y - s.y
+        return dx**2 + dy**2
+    
+    def distance(s, v2):
+        return math.sqrt(s.distanceSquared(v2))
     
 
 class Triangle(namedtuple("Triangle", ["v1", "v2", "v3"])):
@@ -63,7 +70,10 @@ way the normal points."""
         return [v.color for v in s]
 
 class Line(object):
-    """A line between two points, specified by two (x,y) tuples."""
+    """A line between two points, specified by two (x,y) tuples.
+
+Don't use this for representing line shapes; this is more or
+less only used internally by `Polygon`s."""
     def __init__(s, v1, v2, width=2):
         s.v1 = v1
         s.v2 = v2
@@ -441,3 +451,23 @@ happened to them."""
     vertIndexList.sort()
     vertList = [val for _, val in vertIndexList]
     return vertList, indices
+
+def lerp(frm, to, amount):
+    """Takes two floats and a float between 0 and 1.
+Returns a float linerly interpolated between the two
+given ones by the given amount.
+"""
+    return frm + (to - frm) * amount
+
+def lerpSeq(frm, to, amount):
+    """Applies `lerp` to two sequences."""
+    # Man I love Python sometimes.
+    #print frm, to
+    return tuple([lerp(a, b, amount) for (a, b) in zip(frm, to)])
+
+
+def lerpVertex(v1, v2, amount):
+    lx = lerp(v1.x, v2.x, amount)
+    ly = lerp(v1.y, v2.y, amount)
+    lcolor = tuple([int(c) for c in lerpSeq(v1.color, v2.color, amount)])
+    return Vertex(lx, ly, lcolor)

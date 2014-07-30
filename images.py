@@ -1,3 +1,5 @@
+import math
+import random
 
 from graphics import *
 
@@ -82,3 +84,50 @@ def collectable():
     image = LineImage(polyList)
     return image
 
+def tree():
+    # Not really a perfect tree-building algorithm...
+    # Angle change should be a delta off of what the previous angle is
+    # We might want a way to gradiate colors more finely, choose where
+    # to break the line (instead of the midpoint), change the number
+    # of branches, and possibly other things
+    # But, not a bad start.
+    # Actually looking up some fractal tree-building algorithms might
+    # be useful, you know.
+    def divideLine(v1, v2, anglechange, recursion = 0):
+        lengthScale = 0.9
+        finishColor = (255, 0, 0, 255)
+        ranglechange = math.radians(anglechange)
+
+        midpoint = lerpVertex(v1, v2, 0.5)
+        
+        angleChange1 = random.random() * ranglechange
+        angleChange2 = random.random() * -ranglechange
+
+        piover2 = math.pi / 2
+        length = v1.distance(v2) * lengthScale
+        x1angled = midpoint.x + math.cos(angleChange1 + piover2) * length
+        y1angled = midpoint.y + math.sin(angleChange1 + piover2) * length
+        x2angled = midpoint.x + math.cos(angleChange2 + piover2) * length
+        y2angled = midpoint.y + math.sin(angleChange2 + piover2) * length
+
+        v1angled = Vertex(x1angled, y1angled, v2.color)
+        v2angled = Vertex(x2angled, y2angled, v2.color)
+        
+        l1 = Polygon([v1, midpoint], closed=False)
+        if recursion == 0:
+            v1angled = Vertex(v1angled.x, v2angled.y, finishColor)
+            v2angled = Vertex(v2angled.x, v2angled.y, finishColor)
+            l2 = Polygon([midpoint, v1angled], closed=False)
+            l3 = Polygon([midpoint, v2angled], closed=False)
+            return [l1, l2, l3]
+        else:
+            l2s = divideLine(midpoint, v1angled, anglechange, recursion-1)
+            l3s = divideLine(midpoint, v2angled, anglechange, recursion-1)
+            return [l1] + l2s + l3s
+    
+    color1 = (0, 192, 0, 255)
+    color2 = (192, 192, 0, 255)
+    v1 = Vertex(0, 0, color1)
+    v2 = Vertex(0, 100, color2)
+    polys = divideLine(v1, v2, 90, recursion=8)
+    return LineImage(polys)

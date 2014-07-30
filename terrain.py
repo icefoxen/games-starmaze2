@@ -136,10 +136,38 @@ class DoorDescription(object):
         return DoorDescription(x, y, s.destination, s.destx, s.desty)
 
     def __repr__(s):
-        return "Door({}, {}, {}, {}, {})".format(
+        return "DoorDescription({}, {}, {}, {}, {})".format(
             s.x, s.y, s.destination, s.destx, s.desty
             )
 
+class Tree(Actor):
+    def __init__(s, x, y):
+        Actor.__init__(s)
+        s.physicsObj = PhysicsObj(s)
+        s.physicsObj.position = (x,y)
+        img = resource.getLineImage(images.tree)
+        s.sprite = LineSprite(s, img)
+
+class TreeDescription(object):
+    def __init__(s, x, y):
+        s.x = x
+        s.y = y
+
+    def create(s):
+        """Returns the block described by this."""
+        return Tree(s.x, s.y)
+
+    @staticmethod
+    def fromObject(tree):
+        """Returns a `DoorDescription` for the given `Door`."""
+        x, y = door.position
+        return TreeDescription(x, y)
+
+    def __repr__(s):
+        return "Tree({}, {})".format(
+            s.x, s.y
+            )
+    
 class Room(object):
     """Basically a specification of a bunch of Actors to create,
 along with code to create them.
