@@ -187,16 +187,3 @@ def makeSomeRoom():
     import zone_beginnings
     room = zone_beginnings.STARTROOM
     return room
-    
-# BUGGO: Again, incomplete
-class Zone(object):
-    """A collection of interconnected `Room`s.  A Zone
-defines the boss, background, color palette, tile set,
-music, types of enemies...
-
-One question is, do rooms have a reference to a Zone that defines
-all these things, or does a Zone just generate a Room with thematic
-properties?"""
-    def __init__(s):
-        pass
-

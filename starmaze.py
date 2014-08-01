@@ -61,6 +61,9 @@ class World(object):
 
     def initNewSpace(s):
         s.space = pymunk.Space()
+        # XXX: This isn't QUITE the same as a max velocity, but prevents
+        # motion from getting _too_ out of control.
+        s.space.damping = 0.9
         s.space.gravity = (0.0, -400.0)
         s.space.add_collision_handler(CGROUP_PLAYER, CGROUP_COLLECTABLE,
                                       begin=World.collidePlayerCollectable)
