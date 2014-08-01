@@ -105,24 +105,38 @@ update frame."""
 
 
     def _addActor(s, act):
-        s.actors.add(act)
-        s.space.add(act.physicsObj.spaceObjs)
-        #if not act.physicsObj.is_static:
-        #    s.space.add(act.physicsObj.body)
-        #if act.physicsObj.constraint is not None:
-        #    s.space.add(act.physicsObj.constraint)
+        s.actors.add(act)        
         act.world = s
+
+        if not act.physicsObj.body.is_static:
+            s.space.add(act.physicsObj.body)
+        for b in act.physicsObj.auxBodys:
+            if not b.is_static:
+                s.space.add(b)
+        for constraint in act.physicsObj.constraints:
+            s.space.add(constraint)
+        for shape in act.physicsObj.shapes:
+            s.space.add(shape)
 
     def _removeActor(s, act):
         s.actors.remove(act)
-        s.space.remove(act.physicsObj.shapes)
-        if not act.physicsObj.is_static:
-            s.space.remove(act.physicsObj.body)
         # Break backlinks
         # TODO: This should break all backlinks in an actor's
         # components, too.  Or the actor should have a delete
         # method that gets called here.  Probably the best way.
         act.world = None
+
+        if not act.physicsObj.body.is_static:
+            s.space.remove(b)
+        for b in act.physicsObj.auxBodies:
+            if not b.is_static:
+                s.space.remove(b)
+        for constraint in act.physicsObj.constraints:
+            s.space.remove(constraint)
+        for shape in act.physicsObj.shapes:
+            s.space.remove(shape)
+
+
 
     def enterDoor(s, door):
         s.leaveRoom()
