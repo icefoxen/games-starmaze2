@@ -60,6 +60,7 @@ class World(object):
         s.createWorld()
         s.currentRoom = s.rooms['Arena']
         s.enterRoom(s.currentRoom)
+        s.time = 0.0
 
     def initNewSpace(s):
         s.space = pymunk.Space()
@@ -179,6 +180,17 @@ update frame."""
         for act in deadActors:
             act.onDeath(s)
             s._removeActor(act)
+
+        s.time += dt
+        #if s.time > 1.0:
+        #    s.time = 0.0
+        #    s.reportStats()
+
+    def reportStats(s):
+        import resource
+        usage = resource.getrusage(resource.RUSAGE_SELF)
+        rss = usage.ru_maxrss / 1024
+        print "Currently holding {} kb allocated".format(rss)
 
     def on_draw(s):
         s.window.clear()

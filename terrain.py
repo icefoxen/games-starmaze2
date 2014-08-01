@@ -155,7 +155,7 @@ class Door(Actor):
     def __init__(s, x, y, destination, destx, desty):
         Actor.__init__(s)
         s.physicsObj = DoorPhysicsObj(s, position=(x, y))
-        img = resource.getLineImage(images.door)
+        img = rcache.getLineImage(images.door)
         s.sprite = LineSprite(s, img)
         s.passable = True
         s.destination = destination
@@ -202,7 +202,7 @@ class Tree(Actor):
         Actor.__init__(s)
         s.physicsObj = PhysicsObj(s)
         s.physicsObj.position = (x,y)
-        img = resource.getLineImage(images.tree)
+        img = rcache.getLineImage(images.tree)
         s.sprite = LineSprite(s, img)
 
 class TreeDescription(object):

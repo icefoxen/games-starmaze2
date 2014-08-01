@@ -8,7 +8,7 @@ import pymunk
 import pymunk.pyglet_util
 
 from component import *
-import resource
+import rcache
 import images
 
 class Actor(object):
@@ -68,12 +68,12 @@ class Player(Actor):
         s.keyboard = keyboard
         s.controller = KeyboardController(s, keyboard)
         s.physicsObj = PlayerPhysicsObj(s)
-        img = resource.getLineImage(images.playerImage)
+        img = rcache.getLineImage(images.playerImage)
         s.sprite = LineSprite(s, img)
 
         # Experimental glow effect, just overlay the sprite
         # with a diffuse, alpha-blended sprite.  Works surprisingly well.
-        glowImage = resource.getLineImage(images.playerImageGlow)
+        glowImage = rcache.getLineImage(images.playerImageGlow)
         s.glowSprite = LineSprite(s, glowImage)
 
         s.powers = PowerSet(s)
@@ -114,7 +114,7 @@ whether restoring your health or unlocking a new Power or whatever."""
         Actor.__init__(s, batch)
         s.life = 15.0
         s.physicsObj = CollectablePhysicsObj(s)
-        s.sprite = LineSprite(s, resource.getLineImage(images.collectable))
+        s.sprite = LineSprite(s, rcache.getLineImage(images.collectable))
 
     def collect(s, player):
         print "Collected collectable!"
@@ -129,7 +129,7 @@ class BeginningsPowerup(Actor):
     def __init__(s):
         Actor.__init__(s)
         s.physicsObj = PowerupPhysicsObj(s)
-        img = resource.getLineImage(images.powerup)
+        img = rcache.getLineImage(images.powerup)
         s.sprite = LineSprite(s, img)
 
     def collect(s, player):
@@ -178,7 +178,7 @@ class BeginningP1Bullet(Actor):
         yOffset = (random.random() * yVariance) - (yVariance / 2)
         s.physicsObj = PlayerBulletPhysicsObj(s, position=(x, y+yOffset))
 
-        image = resource.getLineImage(images.beginningsP1Bullet)
+        image = rcache.getLineImage(images.beginningsP1Bullet)
         s.sprite = LineSprite(s, image)
         if impulse == None:
             xImpulse = 400 * direction
@@ -207,7 +207,7 @@ class BeginningP2Bullet(Actor):
         Actor.__init__(s)
         s.physicsObj = PlayerBulletPhysicsObj(s, position=(x, y))
         # TODO: Placeholder image
-        image = resource.getLineImage(images.powerup)
+        image = rcache.getLineImage(images.powerup)
         s.sprite = LineSprite(s, image)
         xImpulse = 300 * direction
         yImpulse = 200
@@ -494,7 +494,7 @@ class CrawlerEnemy(Actor):
         Actor.__init__(s, batch)
         #s.controller = KeyboardController(s, keyboard)
         s.physicsObj = CrawlerPhysicsObj(s)
-        img = resource.getLineImage(images.crawler)
+        img = rcache.getLineImage(images.crawler)
         s.sprite = LineSprite(s, img)
         #glowImage = resource.getLineImage(images.playerImageGlow)
         #s.glowSprite = LineSprite(s, glowImage)

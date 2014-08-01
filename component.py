@@ -4,7 +4,7 @@ import pymunk
 import pymunk.pyglet_util
 
 from graphics import *
-import resource
+import rcache
 
 # COLLISION GROUPS!  \O/
 # Collision groups in pymunk determine types
