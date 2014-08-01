@@ -510,13 +510,15 @@ class CrawlerEnemy(Actor):
         # object; sticking to walls will be easy just by applying
         # a force toward the wall with some friction, and maybe
         # countering gravity if necessary
-        movementForce = 100 * dt
-        if s.physicsObj.angle < -0.3:
-            s.physicsObj.apply_impulse((-movementForce*10, 0), r=(0, 50))
-        elif s.physicsObj.angle > 0.3:
-            s.physicsObj.apply_impulse((movementForce*10, 0), r=(0, 50))
-        else:
-            s.physicsObj.apply_impulse((movementForce * s.facing, 0))
+        #movementForce = 100 * dt
+        #if s.physicsObj.angle < -0.3:
+        #    s.physicsObj.apply_impulse((-movementForce*10, 0), r=(0, 50))
+        #elif s.physicsObj.angle > 0.3:
+        #    s.physicsObj.apply_impulse((movementForce*10, 0), r=(0, 50))
+        #else:
+        #    s.physicsObj.apply_impulse((movementForce * s.facing, 0))
+        #s.physicsObj.angle -= dt
+        pass
         #s.controller.update(dt)
         #s.powers.update(dt)
 

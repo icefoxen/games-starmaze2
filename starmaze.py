@@ -18,7 +18,7 @@ import zone_beginnings
 
 DISPLAY_FPS = True
 PHYSICS_FPS = 60.0
-
+GRAVITY_FORCE = -400
 
 class World(object):
     """Contains all the state for the game."""
@@ -66,7 +66,7 @@ class World(object):
         # XXX: This isn't QUITE the same as a max velocity, but prevents
         # motion from getting _too_ out of control.
         s.space.damping = 0.9
-        s.space.gravity = (0.0, -400.0)
+        s.space.gravity = (0.0, GRAVITY_FORCE)
         s.space.add_collision_handler(CGROUP_PLAYER, CGROUP_COLLECTABLE,
                                       begin=World.collidePlayerCollectable)
         s.space.add_collision_handler(CGROUP_PLAYER, CGROUP_TERRAIN,
@@ -87,7 +87,6 @@ class World(object):
         for zone in zones:
             for room in zone.generateZone():
                 s.rooms[room.name] = room
-        print s.rooms
                 
         
     def birthActor(s, act):
@@ -107,9 +106,11 @@ update frame."""
 
     def _addActor(s, act):
         s.actors.add(act)
-        s.space.add(act.physicsObj.shapes)
-        if not act.physicsObj.is_static:
-            s.space.add(act.physicsObj.body)
+        s.space.add(act.physicsObj.spaceObjs)
+        #if not act.physicsObj.is_static:
+        #    s.space.add(act.physicsObj.body)
+        #if act.physicsObj.constraint is not None:
+        #    s.space.add(act.physicsObj.constraint)
         act.world = s
 
     def _removeActor(s, act):

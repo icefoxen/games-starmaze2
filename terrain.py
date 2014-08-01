@@ -25,6 +25,52 @@ corners is a list of the corners of the polygon.  NOT line endpoins.
         s.physicsObj.position = (x,y)
         s.sprite = BlockSprite(s, corners, color, batch=batch)
 
+class FallingBlock(Actor):
+    """A block that falls when the player lands on it.
+"""
+    def __init__(s, x, y, corners, color, batch=None):
+        s.corners = corners
+        s.color = color
+        Actor.__init__(s, batch)
+        s.physicsObj = FallingBlockPhysicsObj(s)
+        s.physicsObj.position = (x,y)
+        s.sprite = BlockSprite(s, corners, color, batch=batch)
+
+class FallingBlock(Actor):
+    """A block that falls when the player lands on it.
+"""
+    def __init__(s, x, y, corners, color, batch=None):
+        s.corners = corners
+        s.color = color
+        Actor.__init__(s, batch)
+        s.physicsObj = FallingBlockPhysicsObj(s)
+        s.physicsObj.position = (x,y)
+        s.sprite = BlockSprite(s, corners, color, batch=batch)
+
+
+class FallingBlockDescription(object):
+    def __init__(s, x, y, corners, color):
+        s.x = x
+        s.y = y
+        s.corners = corners
+        s.color = color
+
+    def create(s):
+        """Returns the block described by this."""
+        return FallingBlock(s.x, s.y, s.corners, s.color)
+
+    @staticmethod
+    def fromObject(block):
+        """Returns a `BlockDescription` for the given `Block`."""
+        color = block.color
+        x, y = block.physicsObj.position
+        corners = block.corners
+        return FallingBlockDescription(x, y, corners, color)
+
+    def __repr__(s):
+        return "FallingBlockDescription({}, {}, {}, {})".format(
+            s.x, s.y, s.corners, s.color
+            )
 
 class BlockDescription(object):
     """An object that contains the description of a `Block` with none

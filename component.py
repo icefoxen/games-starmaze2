@@ -194,7 +194,19 @@ Call one of the setCollision*() methods too."""
         # for us!
         s.shapes = []
         s.facing = 0
+        s.constraint = None
+        # A list of all the things that need to be added
+        # to a Space to make this physics object work.
+        # Shapes, non-static bodies, constraints, etc.
+        s.spaceObjs = []
 
+    def addSpaceObj(s, thing):
+        try:
+            for x in thing:
+                s.spaceObjs.append(x)
+        except TypeError:
+            s.spaceObjs.append(thing)
+        
     def _set_position(s, pos):
         s.body.position = pos
 
@@ -258,6 +270,8 @@ class PlayerPhysicsObj(PhysicsObj):
         s.shapes = [pymunk.Circle(s.body, radius=s.owner.radius)]
         s.setFriction(6.0)
         s.setCollisionPlayer()
+        s.addSpaceObj(s.shapes)
+        s.addSpaceObj(s.body)
 
 class DoorPhysicsObj(PhysicsObj):
     def __init__(s, owner, position=(0, 0)):
@@ -269,7 +283,8 @@ class DoorPhysicsObj(PhysicsObj):
         poly.sensor = True
         s.shapes = [poly]
         s.setCollisionDoor()
-
+        s.addSpaceObj(s.shapes)
+        
 class PlayerBulletPhysicsObj(PhysicsObj):
     """A generic physics object for small round things that hit stuff."""
     def __init__(s, owner, position=(0, 0)):
@@ -278,6 +293,8 @@ class PlayerBulletPhysicsObj(PhysicsObj):
         s.shapes = [pymunk.Circle(s.body, radius=2)]
         s.setElasticity(0.8)
         s.setCollisionPlayerBullet()
+        s.addSpaceObj(s.shapes)
+        s.addSpaceObj(s.body)
 
 class BlockPhysicsObj(PhysicsObj):
     """Generic immobile rectangle physics object"""
@@ -288,6 +305,39 @@ class BlockPhysicsObj(PhysicsObj):
         s.setFriction(0.8)
         s.setElasticity(0.8)
         s.setCollisionTerrain()
+        s.addSpaceObj(s.shapes)
+
+class FallingBlockPhysicsObj(PhysicsObj):
+    """Like a BlockPhysicsObject but...
+
+BUGGO: A BlockPhyicsObj's body-center is actually not
+in the center of the shape, and that's terrible.
+
+This is because the shape is specified by the corners,
+and life just gets shitty and weird.  idfk"""
+    def __init__(s, owner):
+        PhysicsObj.__init__(s, owner, mass=20, moment=pymunk.inf)
+        s.constraintBody = pymunk.Body()
+        s.constraint = pymunk.constraint.GrooveJoint(s.constraintBody, s.body,
+                                                    (0, -50), (0, -150),
+                                                     (100, 0))
+        #s.constraintBody.position = (-200, 100)
+        s.shapes = [pymunk.Poly(s.body, owner.corners)]
+        s.setFriction(0.1)
+        s.setElasticity(0.8)
+        s.setCollisionTerrain()
+        s.body.apply_force((0, 400 * s.body.mass + 100))
+        s.addSpaceObj(s.shapes)
+        s.addSpaceObj(s.body)
+        s.addSpaceObj(s.constraint)
+
+        
+    def _set_position(s, pos):
+        s.body.position = pos
+        s.constraintBody.position = pos
+
+    # Gotta redefine this 'cause constraints...
+    position = property(lambda s: s.body.position, _set_position)
 
 class CollectablePhysicsObj(PhysicsObj):
     def __init__(s, owner):
@@ -303,6 +353,8 @@ class CollectablePhysicsObj(PhysicsObj):
         s.setElasticity(0.8)
         s.setFriction(2.0)
         s.setCollisionCollectable()
+        s.addSpaceObj(s.shapes)
+        s.addSpaceObj(s.body)
 
 class PowerupPhysicsObj(PhysicsObj):
     def __init__(s, owner):
@@ -311,15 +363,17 @@ class PowerupPhysicsObj(PhysicsObj):
 
         s.shapes = [pymunk.Poly(s.body, corners)]
         s.setCollisionCollectable()
+        s.addSpaceObj(s.shapes)
 
 class CrawlerPhysicsObj(PhysicsObj):
     def __init__(s, owner):
-        PhysicsObj.__init__(s, owner, 100, 200)
+        PhysicsObj.__init__(s, owner, mass=100, moment=pymunk.inf)
         corners = rectCornersCenter(0, 0, 25, 20)
 
         s.shapes = [pymunk.Poly(s.body, corners)]
         s.setCollisionEnemy()
-
+        s.addSpaceObj(s.shapes)
+        s.addSpaceObj(s.body)
 
 
 class LineSprite(Component):
