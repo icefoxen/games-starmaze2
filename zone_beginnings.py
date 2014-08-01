@@ -60,7 +60,7 @@ CrawlerEnemyDescription(400, -200),
 DoorDescription(1140, -400, "Cathedral", 0, 0),
 TreeDescription(1080, -420),
 #TreeDescription(1200, -420),
-FallingBlockDescription(200.0, -140.0, [(0, 0), (106, 0), (106, 37), (0, 37)], (255, 255, 255, 255)) ,
+FallingBlockDescription(200.0, 140.0, [(0, 0), (106, 0), (106, 37), (0, 37)], (255, 255, 255, 255)) ,
 ])
 
 

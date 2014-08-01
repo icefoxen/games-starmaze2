@@ -127,8 +127,8 @@ update frame."""
         act.world = None
 
         if not act.physicsObj.body.is_static:
-            s.space.remove(b)
-        for b in act.physicsObj.auxBodies:
+            s.space.remove(act.physicsObj.body)
+        for b in act.physicsObj.auxBodys:
             if not b.is_static:
                 s.space.remove(b)
         for constraint in act.physicsObj.constraints:

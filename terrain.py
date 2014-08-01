@@ -22,8 +22,19 @@ corners is a list of the corners of the polygon.  NOT line endpoins.
         s.color = color
         Actor.__init__(s, batch)
         s.physicsObj = BlockPhysicsObj(s)
+        #xf, yf = s.findShapeCenter(corners)
+        #s.physicsObj.position = (x+xf,y+yf)
+
         s.physicsObj.position = (x,y)
         s.sprite = BlockSprite(s, corners, color, batch=batch)
+
+    def findShapeCenter(s, corners):
+        maxx = 0
+        maxy = 0
+        for (x,y) in corners:
+            maxx = max(maxx, x)
+            maxy = max(maxy, y)
+        return (maxx/2, maxy/2)
 
 class FallingBlock(Actor):
     """A block that falls when the player lands on it.

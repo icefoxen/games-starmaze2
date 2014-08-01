@@ -297,6 +297,7 @@ class BlockPhysicsObj(PhysicsObj):
         # Static body 
         PhysicsObj.__init__(s, owner)
         s.addShapes(pymunk.Poly(s.body, owner.corners))
+        #print owner.corners
         s.setFriction(0.8)
         s.setElasticity(0.8)
         s.setCollisionTerrain()
