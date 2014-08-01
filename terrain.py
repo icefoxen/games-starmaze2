@@ -172,18 +172,10 @@ class Room(object):
     """Basically a specification of a bunch of Actors to create,
 along with code to create them.
     """
-    def __init__(s, descr=[]):
-        s.name = ""
+    def __init__(s, name, descr):
+        s.name = name
         s.descr = descr
 
     def getActors(s):
         return map(lambda desc: desc.create(), s.descr)
 
-class RoomDescription(object):
-    def __init__(s, descr):
-        s.descr = descr
-
-def makeSomeRoom():
-    import zone_beginnings
-    room = zone_beginnings.STARTROOM
-    return room

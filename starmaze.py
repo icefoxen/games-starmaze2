@@ -14,6 +14,8 @@ from actor import *
 from shader import *
 from terrain import *
 
+import zone_beginnings
+
 DISPLAY_FPS = True
 PHYSICS_FPS = 60.0
 
@@ -55,9 +57,9 @@ class World(object):
         s.newActors = set()
         s.birthActor(s.player)
 
-        s.currentRoom = makeSomeRoom()
+        s.createWorld()
+        s.currentRoom = s.rooms['Entryway']
         s.enterRoom(s.currentRoom)
-
 
     def initNewSpace(s):
         s.space = pymunk.Space()
@@ -79,6 +81,15 @@ class World(object):
                                       begin=World.collidePlayerDoor,
                                       separate=World.collidePlayerDoorEnd)
 
+    def createWorld(s):
+        s.rooms = {}
+        zones = [zone_beginnings]
+        for zone in zones:
+            for room in zone.generateZone():
+                s.rooms[room.name] = room
+        print s.rooms
+                
+        
     def birthActor(s, act):
         """You see, we can't have actors add or remove other actors inside
 their update() method, 'cause that'd modify the set of actors while we're
@@ -114,12 +125,13 @@ update frame."""
 
     def enterDoor(s, door):
         s.leaveRoom()
-        s.enterRoom(door.destination)
+        s.enterRoom(s.rooms[door.destination])
         s.player.physicsObj.position = (door.destx, door.desty)
         s.camera.snapTo(door.destx, door.desty)
 
     def enterRoom(s, room):
         """Actually creates all the game objects for the given room and adds them to the current state."""
+        print "Entering", room.name
         actors = room.getActors()
         for act in actors:
             s.birthActor(act)
