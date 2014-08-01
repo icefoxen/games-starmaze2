@@ -193,10 +193,17 @@ Call one of the setCollision*() methods too."""
         s.auxBodys = []
         # We have to hold on to a reference to the shapes
         # because it appears that the pymunk.Body doesn't do it
-        # for us!
+        # for us!  Per the pymunk dev, the body only holds weak
+        # references to the shapes, the shapes hold strong refs
+        # to the body.
         s.shapes = []
-        s.facing = 0
         s.constraints = []
+
+        s.facing = 0
+
+        # Set a reasonable default max velocity so things don't
+        # get too crazy
+        s.body.velocity_limit = 800
 
     def addAuxBodys(s, *bodys):
         s.auxBodys.extend(bodys)
@@ -270,6 +277,7 @@ class PlayerPhysicsObj(PhysicsObj):
         s.addShapes(pymunk.Circle(s.body, radius=s.owner.radius))
         s.setFriction(6.0)
         s.setCollisionPlayer()
+        s.body.velocity_limit = 400
 
 class DoorPhysicsObj(PhysicsObj):
     def __init__(s, owner, position=(0, 0)):

@@ -63,7 +63,7 @@ TreeDescription(1080, -420),
 FallingBlockDescription(200.0, 140.0, [(0, 0), (106, 0), (106, 37), (0, 37)], (255, 255, 255, 255)) ,
 ])
 
-arena = Room("Entryway", [
+arena = Room("Arena", [
 BlockDescription(-680.914246829, 626.999999989, [(0, 0), (102, 0), (102, 252), (0, 252)], (255, 255, 255, 255)) ,
 BlockDescription(347.749025925, 69.9999993128, [(0, 0), (210, 0), (210, 77), (0, 77)], (255, 255, 255, 255)) ,
 BlockDescription(-142.704277382, 77.9999999984, [(0, 0), (253, 0), (253, 67), (0, 67)], (255, 255, 255, 255)) ,
@@ -83,5 +83,4 @@ BeginningsPowerupDescription(000, -200),
 
 
 def generateZone():
-    return [arena]
-    #return [entryway, cathedral]
+    return [entryway, cathedral, arena]

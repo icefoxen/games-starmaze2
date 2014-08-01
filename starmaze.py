@@ -58,7 +58,7 @@ class World(object):
         s.birthActor(s.player)
 
         s.createWorld()
-        s.currentRoom = s.rooms['Entryway']
+        s.currentRoom = s.rooms['Arena']
         s.enterRoom(s.currentRoom)
 
     def initNewSpace(s):
