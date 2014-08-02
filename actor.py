@@ -403,16 +403,13 @@ class BeginningsPower(NullPower):
     """The Beginnings elemental power set."""
     def __init__(s, owner):
         NullPower.__init__(s, owner)
-        s.timer = 0.0
 
-        s.timer1 = 0.0
         s.usingAttack1 = False
-        s.refireTime1 = 0.05
+        s.attack1Refire = Timer(defaultTime = 0.05)
         
-        s.refireTime2 = 1.5
+        s.attack2Refire = Timer(defaultTime = 1.5)
         
-        s.jumpTimerTime = 0.20
-        s.jumpTimer = 0.0
+        s.jumpTimer = Timer(defaultTime = 0.20)
         s.jumping = False
 
         s.defending = False
@@ -425,37 +422,32 @@ class BeginningsPower(NullPower):
             s.shieldSprite.draw()
 
     def update(s, dt):
-        s.timer -= dt
-        s.timer1 -= dt
-        s.jumpTimer -= dt
-        if s.jumping and s.jumpTimer > 0:
+        s.attack1Refire.update(dt)
+        s.attack2Refire.update(dt)
+        s.jumpTimer.update(dt)
+        if s.jumping and not s.jumpTimer.expired():
             s.owner.physicsObj.apply_impulse((0, 2000 * dt))
 
-        if s.usingAttack1 and s.timer1 < 0:
-            dtCopy = dt
-            # Make the number of bullets fired
+        if s.usingAttack1 and s.attack1Refire.expired():
+            # BUGGI: Make the number of bullets fired
             # correct even at low framerates
-            while dtCopy > 0.0:
-                s.timer1 = s.refireTime1
-                s.fireBullet(BeginningP1Bullet)
-                dtCopy -= s.refireTime1
+            s.fireBullet(BeginningP1Bullet)
+            s.attack1Refire.reset()
 
     # BUGGO: It's concievable we'd have to fire multiple shots in the same frame...
     # If we lag real bad at least.
     # But since that'd currently involve going 20 FPS...
     def startAttack1(s):
+        print 'firing'
         s.usingAttack1 = True
 
     def stopAttack1(s):
         s.usingAttack1 = False
         
     def attack2(s):
-        if s.timer < 0.0:
-            s.timer = s.refireTime2
-            x, y = s.owner.physicsObj.position
-            direction = s.owner.facing
-            bullet = BeginningP2Bullet(x, y, direction)
-            s.owner.world.birthActor(bullet)
+        if s.attack2Refire.expired():
+            s.attack2Refire.reset()
+            s.fireBullet(BeginningP2Bullet)
 
     def startDefend(s):
         #print "Starting defend"
@@ -474,7 +466,7 @@ class BeginningsPower(NullPower):
         if s.owner.onGround:
             s.owner.physicsObj.apply_impulse((0, 100))
             s.owner.onGround = False
-            s.jumpTimer = s.jumpTimerTime
+            s.jumpTimer.reset()
             s.jumping = True
 
     def stopJump(s):
@@ -487,43 +479,47 @@ class AirPower(NullPower):
         NullPower.__init__(s, owner)
         s.timer = 0.0
 
-        s.timer1 = 0.0
-        s.usingAttack1 = False
-        s.refireTime1 = 0.05
+        s.attack1Timer = Timer(defaultTime = 0.1)
+        s.attack2Timer = Timer(defaultTime = 0.8)
+        s.attack2Charging = False
         
         s.jumping = False
 
         s.defending = False
         s.defenseAngularVel = 0.0
         s.defenseVelLimit = 0.0
-        s.defenseTimer = 0.0
-        s.defenseTime = 0.3
-        s.defenseCooldownTimer = 0.0
-        s.defenseCooldownTime = 1.25
+        s.defenseTimer = Timer(defaultTime = 0.3)
+        s.defenseCooldownTimer = Timer(defaultTime = 1.25)
         
     def startDefend(s):
-        if s.defenseCooldownTimer < 0.0:
+        if s.defenseCooldownTimer.expired():
             s.defending = True
-            s.defenseCooldownTimer = s.defenseCooldownTime
-            s.defenseTimer = s.defenseTime
+            s.defenseCooldownTimer.reset()
+            s.defenseTimer.reset()
             s.defenseAngularVel = s.owner.physicsObj.angular_velocity
             s.defenseVelLimit = s.owner.physicsObj.velocity_limit
             s.owner.physicsObj.velocity_limit = 1000.0
 
     def update(s, dt):
-        s.defenseCooldownTimer -= dt
+        s.attack1Timer.update(dt)
+        s.attack2Timer.update(dt)
+        s.defenseCooldownTimer.update(dt)
         if s.jumping:
             s.owner.physicsObj.apply_impulse((0, 300*dt))
         if s.defending:
             facing = s.owner.facing
             #s.owner.physicsObj.apply_impulse((-facing * 3000 * dt, 0))
             s.owner.physicsObj.velocity = (-facing * 1000, 0)
-            s.defenseTimer -= dt
-            if s.defenseTimer < 0:
+            s.defenseTimer.update(dt)
+            if s.defenseTimer.expired():
                 s.defending = False
                 s.owner.physicsObj.velocity = (0,0)
                 s.owner.physicsObj.angular_velocity = s.defenseAngularVel
                 s.owner.physicsObj.velocity_limit = s.defenseVelLimit
+
+        if s.attack2Charging and s.attack2Timer.expired():
+            s.fireBullet(BeginningP2Bullet)
+            s.attack2Charging = False
         
     def startJump(s):
         if s.owner.onGround:
@@ -534,6 +530,20 @@ class AirPower(NullPower):
 
     def stopJump(s):
         s.jumping = False
+
+    def startAttack1(s):
+        if s.attack1Timer.expired():
+            s.attack1Timer.reset()
+            s.fireBullet(BeginningP1Bullet)
+
+        print "Zam!"
+
+    def startAttack2(s):
+        s.attack2Timer.reset()
+        s.attack2Charging = True
+
+    def stopAttack2(s):
+        s.attack2Charging = False
 
 
 class Combo(object):

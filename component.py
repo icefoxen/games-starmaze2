@@ -511,7 +511,34 @@ a certain timeout."""
             s.owner.alive = False
 
 # TODO:
-# A Life component?  At least three types: immortal, timed life, normal life
-# Might be useful for things like damage reduction (shields), only
-# being vulnerable from certain angles...  maybe at least.
 # Hitboxes????
+
+
+class Timer(object):
+    """Not really a component, but handy.  A simple timer.
+
+XXX: 
+An intriguing idea is to add them to a global list somewhere
+and have one function call that updates all the timers in the
+list run by the game loop...
+But then we'd have to make sure to remove them when we're done...
+That becomes non-thread-safe, but is tempting.
+
+What is also tempting is the idea of doing the same thing to
+all Components, so that each Actor doesn't have to update
+a particular set of them itself...
+
+Something to think about, maybe.   ORDERING becomes an issue!"""
+    def __init__(s, time=0.0, defaultTime = 0.0):
+        s.time = float(time)
+        s.defaultTime = defaultTime
+
+    def reset(s):
+        """Resets the timer to the default time."""
+        s.time = s.defaultTime
+        
+    def update(s, dt):
+        s.time -= dt
+
+    def expired(s):
+        return s.time <= 0.0
