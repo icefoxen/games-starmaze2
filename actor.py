@@ -3,6 +3,7 @@ import math
 import random
 
 import pyglet
+from pyglet.sprite import *
 import pyglet.window.key as key
 import pymunk
 import pymunk.pyglet_util
@@ -63,11 +64,15 @@ class Player(Actor):
         s.physicsObj = PlayerPhysicsObj(s)
         img = rcache.getLineImage(images.playerImage)
         s.sprite = LineSprite(s, img)
+        #img = rcache.get_image('playertest')
+        #s.sprite = Sprite(img)
 
         # Experimental glow effect, just overlay the sprite
         # with a diffuse, alpha-blended sprite.  Works surprisingly well.
         glowImage = rcache.getLineImage(images.playerImageGlow)
         s.glowSprite = LineSprite(s, glowImage)
+        #glowImage = rcache.get_image('playertest')
+        #s.glowSprite = Sprite(img)
 
         s.powers = PowerSet(s)
         s.facing = FACING_RIGHT
@@ -96,11 +101,12 @@ class Player(Actor):
             glow = -0.3 * abs(math.sin(s.glow))
             shader.uniformf("vertexDiff", 0, 0, 0.0, glow)
             shader.uniformf("colorDiff", 0, 0, 0, glow)
+            
+            s.powers.draw(shader)
+            
             shader.uniformf("alpha", 0.2)
-            s.sprite.draw()
-            #shader.uniformf("vertexDiff", 0, 0, 0.0, -0.5)
-            #shader.uniformf("colorDiff", 0, 0, 0, -0.5)
-
+            s.glowSprite.position = s.physicsObj.position
+            s.glowSprite.draw()
 
 class Collectable(Actor):
     """Something you can collect which does things to you,
@@ -282,6 +288,9 @@ class NullPower(object):
         direction = s.owner.facing
         bullet = bulletClass(x, y, direction)
         s.owner.world.birthActor(bullet)
+
+    def draw(s, shader):
+        pass
     
 class BeginningsPower(NullPower):
     """The Beginnings elemental power set."""
@@ -298,6 +307,15 @@ class BeginningsPower(NullPower):
         s.jumpTimerTime = 0.20
         s.jumpTimer = 0.0
         s.jumping = False
+
+        s.defending = False
+        s.shieldImage = rcache.getLineImage(images.shieldImage)
+        s.shieldSprite = LineSprite(s, s.shieldImage)
+
+    def draw(s, shader):
+        if s.defending:
+            s.shieldSprite.position = s.owner.physicsObj.position
+            s.shieldSprite.draw()
 
     def update(s, dt):
         s.timer -= dt
@@ -334,10 +352,12 @@ class BeginningsPower(NullPower):
 
     def startDefend(s):
         #print "Starting defend"
+        s.defending = True
         s.owner.life.attenuation = 0.25
 
     def stopDefend(s):
         #print "Stopping defend"
+        s.defending = False
         s.owner.life.attenuation = 1.0
 
     def jump(s):
@@ -470,7 +490,9 @@ class PowerSet(Component):
 
     def stopJump(s):
         s.currentPower.stopJump()
-    
+
+    def draw(s, shader):
+        s.currentPower.draw(shader)
 
     def nextPower(s):
         s.powerIndex = (s.powerIndex + 1) % len(s.powers)

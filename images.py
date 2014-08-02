@@ -24,23 +24,28 @@ def playerImage():
     image = LineImage(polyList)
     return image
 
+def shieldImage():
+    polys = []
+    polys.append(Polygon.circle(0, 0, 25, (200, 200, 255, 172), strokeWidth=10))
+    return LineImage(polys)
+
 def playerImageGlow():
 
     polyList = []
     radius = 20
-    pcol = (64, 224, 64, 32)
-    polyList.append(Polygon.circle(0, 0, radius, pcol, numSegments=16, strokeWidth=20))
+    pcol = (64, 224, 64, 255)
+    polyList.append(Polygon.circle(0, 0, radius, pcol, numSegments=128, strokeWidth=30))
 
-    spokeLength = radius + 18
-    spokeBase = 8
-    polyList.append(Polygon.line(0, spokeBase, spokeLength, 0, pcol, strokeWidth=20))
-    polyList.append(Polygon.line(0, -spokeBase, spokeLength, 0, pcol, strokeWidth=20))
-    polyList.append(Polygon.line(spokeBase, 0, 0, spokeLength, pcol, strokeWidth=20))
-    polyList.append(Polygon.line(-spokeBase, 0, 0, spokeLength, pcol, strokeWidth=20))
-    polyList.append(Polygon.line(0, spokeBase, -spokeLength, 0, pcol, strokeWidth=20))
-    polyList.append(Polygon.line(0, -spokeBase, -spokeLength, 0, pcol, strokeWidth=20))
-    polyList.append(Polygon.line(spokeBase, 0, 0, -spokeLength, pcol, strokeWidth=20))
-    polyList.append(Polygon.line(-spokeBase, 0, 0, -spokeLength, pcol, strokeWidth=20))
+    #spokeLength = radius + 18
+    #spokeBase = 8
+    #polyList.append(Polygon.line(0, spokeBase, spokeLength, 0, pcol, strokeWidth=20))
+    #polyList.append(Polygon.line(0, -spokeBase, spokeLength, 0, pcol, strokeWidth=20))
+    #polyList.append(Polygon.line(spokeBase, 0, 0, spokeLength, pcol, strokeWidth=20))
+    #polyList.append(Polygon.line(-spokeBase, 0, 0, spokeLength, pcol, strokeWidth=20))
+    #polyList.append(Polygon.line(0, spokeBase, -spokeLength, 0, pcol, strokeWidth=20))
+    #polyList.append(Polygon.line(0, -spokeBase, -spokeLength, 0, pcol, strokeWidth=20))
+    #polyList.append(Polygon.line(spokeBase, 0, 0, -spokeLength, pcol, strokeWidth=20))
+    #polyList.append(Polygon.line(-spokeBase, 0, 0, -spokeLength, pcol, strokeWidth=20))
 
     image = LineImage(polyList)
     return image

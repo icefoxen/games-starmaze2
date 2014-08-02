@@ -32,6 +32,7 @@ void main(void) {
 
    
    gl_FrontColor = gl_Color;
+   gl_TexCoord[0] = gl_MultiTexCoord0;
 }
 
 '''
@@ -45,6 +46,7 @@ uniform vec4 colorDiff;
 uniform float alpha;
 void main() {
    vec4 color = vec4(gl_Color.r, gl_Color.g, gl_Color.b, gl_Color.a * alpha);
+   //color = texture2D(tex, gl_TexCoord[0].st);
    gl_FragColor = color;
    //gl_FragColor = colormod;
    //gl_FragColor = gl_Color + colorDiff;
