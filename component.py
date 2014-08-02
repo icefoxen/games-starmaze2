@@ -463,6 +463,38 @@ class BlockSprite(LineSprite):
         LineSprite.__init__(s, owner, image)
 
 
+class Life(Component):
+    """A component that keeps track of life and kills
+its owner when it runs out."""
+    def __init__(s, owner, hps, attenuation = 1.0, reduction = 0):
+        Component.__init__(s, owner)
+        s.life = hps
+        
+        # A multiplier to the damage taken
+        s.damageAttenuation = attenuation
+
+        # A subtractor to the damage taken
+        # Happens BEFORE attenuation
+        s.damageReduction = reduction
+
+    def takeDamage(s, damage):
+        reducedDamage = max(0, damage - s.damageReduction)
+        attenuatedDamage = reducedDamage * s.damageAttenuation
+        s.life -= attenuatedDamage
+        if s.life <= 0:
+            s.owner.alive = False
+
+class TimedLife(Component):
+    """A component that kills the owner after
+a certain timeout."""
+    def __init__(s, owner, time):
+        Component.__init__(s, owner)
+        s.time = float(time)
+
+    def update(s, dt):
+        s.time -= dt
+        if s.time <= 0:
+            s.owner.alive = False
 
 # TODO:
 # A Life component?  At least three types: immortal, timed life, normal life

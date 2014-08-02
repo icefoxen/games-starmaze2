@@ -35,20 +35,13 @@ class Actor(object):
         s.facing = FACING_RIGHT
         s.onGround = False
     
-
-    # def _setPosition(s, pt):
-    #     s.physicsObj.position = pt
-
-    # position = property(lambda s: s.body.position, _setPosition,
-    #                     doc="The position of the Actor.")
-
     def draw(s, shader):
         if (s.sprite is not None) and (s.physicsObj is not None):
             s.sprite.position = s.physicsObj.position
             s.sprite.rotation = math.degrees(s.physicsObj.angle)
             s.sprite.draw()
 
-    def onDeath(s, world):
+    def onDeath(s):
         pass
 
     def update(s, dt):
@@ -82,6 +75,8 @@ class Player(Actor):
 
         s.door = None
 
+        s.life = Life(s, 100)
+
     def update(s, dt):
         s.controller.update(dt)
         s.powers.update(dt)
@@ -112,17 +107,15 @@ whether restoring your health or unlocking a new Power or whatever."""
 
     def __init__(s, batch=None):
         Actor.__init__(s, batch)
-        s.life = 15.0
         s.physicsObj = CollectablePhysicsObj(s)
         s.sprite = LineSprite(s, rcache.getLineImage(images.collectable))
+        s.life = TimedLife(s, 15)
 
     def collect(s, player):
         print "Collected collectable!"
 
     def update(s, dt):
-        s.life -= dt
-        if s.life < 0:
-            s.alive = False
+        s.life.update(dt)
 
 class BeginningsPowerup(Actor):
     "Powerups don't time out and don't move."
@@ -172,7 +165,7 @@ class BeginningsPowerupDescription(object):
 # onDraw and onUpdate, really
 
 class BeginningP1Bullet(Actor):
-    def __init__(s, x, y, direction, impulse=None):
+    def __init__(s, x, y, direction, impulse=None, lifetime=None):
         Actor.__init__(s)
         yVariance = 5
         yOffset = (random.random() * yVariance) - (yVariance / 2)
@@ -188,17 +181,15 @@ class BeginningP1Bullet(Actor):
             s.physicsObj.apply_impulse(impulse)
         # Counteract gravity?
         s.physicsObj.apply_force((0, 400))
-        s.life = 0.4 + (random.random() / 3.0)
+        s.life = TimedLife(s, 0.4 + (random.random() / 3.0))
 
         s.facing = direction
         s.damage = 1
 
     def update(s, dt):
-        s.life -= dt
-        if s.life < 0.0:
-            s.alive = False
+        s.life.update(dt)
 
-    def onDeath(s, world):
+    def onDeath(s):
         #print 'bullet died'
         pass
 
@@ -221,7 +212,7 @@ class BeginningP2Bullet(Actor):
     def collideWithEnemy(s, enemy):
         enemy.takeDamage(s.damage)
 
-    def onDeath(s, world):
+    def onDeath(s):
         for angle in range(0, 360, 30):
             rangle = math.radians(angle)
             force = 1000
@@ -236,9 +227,9 @@ class BeginningP2Bullet(Actor):
             newy = y - (vy / 20.0)
             # TODO: Placeholder bullet
             b = BeginningP1Bullet(newx, newy, FACING_RIGHT, impulse=(xForce, yForce))
-            b.life = 0.15
+            b.life = TimedLife(b, 0.15)
             b.physicsObj.body.angle = rangle
-            world.birthActor(b)
+            s.world.birthActor(b)
 
 class NullPower(object):
     "A power set that does nothing."
@@ -340,15 +331,16 @@ class BeginningsPower(NullPower):
             bullet = BeginningP2Bullet(x, y, direction)
             s.owner.world.birthActor(bullet)
 
-    def defend(s):
-        print "Defend"
+    def startDefend(s):
+        #print "Starting defend"
+        s.owner.life.attenuation = 0.25
+
+    def stopDefend(s):
+        #print "Stopping defend"
+        s.owner.life.attenuation = 1.0
 
     def jump(s):
         pass
-        #print 'jumpin?'
-        #if s.jumpTimer > 0:
-        #    owner.physicsObj.apply_impulse((0, 40))
-
 
     def startJump(s):
         if s.owner.onGround:
@@ -501,7 +493,7 @@ class CrawlerEnemy(Actor):
 
         #s.powers = PowerSet(s)
         s.facing = FACING_RIGHT
-        s.life = 3
+        s.life = Life(s, 3, reduction=8)
 
     def update(s, dt):
         # If it flips off of upright, apply restoring force.
@@ -528,13 +520,13 @@ class CrawlerEnemy(Actor):
             s.sprite.rotation = math.degrees(s.physicsObj.angle)
             s.sprite.draw()
 
-    def onDeath(s, world):
+    def onDeath(s):
         c = Collectable()
         c.physicsObj.position = s.physicsObj.position
         yForce = 350
         xForce = (random.random() * 150) - 75
         c.physicsObj.apply_impulse((xForce, yForce))
-        world.birthActor(c)
+        s.world.birthActor(c)
 
 
 class CrawlerEnemyDescription(object):

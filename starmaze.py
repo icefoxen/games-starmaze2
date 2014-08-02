@@ -178,7 +178,7 @@ update frame."""
             act.update(dt)
         deadActors = [act for act in s.actors if not act.alive]
         for act in deadActors:
-            act.onDeath(s)
+            act.onDeath()
             s._removeActor(act)
 
         s.time += dt
