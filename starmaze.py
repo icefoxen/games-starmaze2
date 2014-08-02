@@ -11,7 +11,7 @@ import pymunk
 from pymunk import Vec2d
 
 from actor import *
-from shader import *
+import shader
 from terrain import *
 
 import zone_beginnings
@@ -32,8 +32,6 @@ class World(object):
         s.fps_display = pyglet.clock.ClockDisplay()
 
         s.physicsSteps = 10.0
-
-        #s.shader = Shader([vprog], [fprog])
 
         s.keyboard = key.KeyStateHandler()
 
@@ -61,6 +59,8 @@ class World(object):
         s.currentRoom = s.rooms['Arena']
         s.enterRoom(s.currentRoom)
         s.time = 0.0
+
+        s.shader = shader.Shader([shader.vprog], [shader.fprog])
 
     def initNewSpace(s):
         s.space = pymunk.Space()
@@ -182,25 +182,27 @@ update frame."""
             s._removeActor(act)
 
         s.time += dt
-        #if s.time > 1.0:
-        #    s.time = 0.0
-        #    s.reportStats()
 
     def reportStats(s):
+        # Not really a good way of getting memory used by program...
         import resource
         usage = resource.getrusage(resource.RUSAGE_SELF)
         rss = usage.ru_maxrss / 1024
         print "Currently holding {} kb allocated".format(rss)
 
+    def resetShaderDefaults(s, act):
+        s.shader.uniformi("facing", act.facing)
+        s.shader.uniformf("vertexDiff", 0, 0, 0, 0)
+        s.shader.uniformf("colorDiff", 0, 0, 0, 0)
+        s.shader.uniformf("alpha", 1.0)
+        
     def on_draw(s):
         s.window.clear()
         with s.camera:
-            with DEFAULT_SHADER:
+            with s.shader:
                 for act in s.actors:
-                    DEFAULT_SHADER.uniformi("facing", act.facing)
-                    DEFAULT_SHADER.uniformf("vertexDiff", 0, 0, 0, 0)
-                    DEFAULT_SHADER.uniformf("colorDiff", 0, 0, 0, 0)
-                    act.draw(DEFAULT_SHADER)
+                    s.resetShaderDefaults(act)
+                    act.draw(s.shader)
         s.fps_display.draw()
 
     def on_key_press(s, k, modifiers):

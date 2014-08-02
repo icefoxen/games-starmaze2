@@ -96,6 +96,7 @@ class Player(Actor):
             glow = -0.3 * abs(math.sin(s.glow))
             shader.uniformf("vertexDiff", 0, 0, 0.0, glow)
             shader.uniformf("colorDiff", 0, 0, 0, glow)
+            shader.uniformf("alpha", 0.2)
             s.sprite.draw()
             #shader.uniformf("vertexDiff", 0, 0, 0.0, -0.5)
             #shader.uniformf("colorDiff", 0, 0, 0, -0.5)

@@ -42,8 +42,10 @@ fprog = '''#version 120
 uniform sampler2D tex;
 
 uniform vec4 colorDiff;
+uniform float alpha;
 void main() {
-   gl_FragColor = gl_Color;
+   vec4 color = vec4(gl_Color.r, gl_Color.g, gl_Color.b, gl_Color.a * alpha);
+   gl_FragColor = color;
    //gl_FragColor = colormod;
    //gl_FragColor = gl_Color + colorDiff;
    //gl_FragColor = vec4(1,0,1,1);
@@ -193,4 +195,4 @@ it was at the top of the stack.)"""
         glUniformMatrix4fv(loc, 1, False, (c_float * 16)(*mat))
 
 
-DEFAULT_SHADER = Shader([vprog], [fprog])
+
