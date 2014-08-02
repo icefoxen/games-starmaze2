@@ -80,7 +80,7 @@ BlockDescription(-679.0, -168.00667689, [(0, 0), (89, 0), (89, 418), (0, 418)], 
 BlockDescription(-186.999968146, 289.0, [(0, 0), (359, 0), (359, 64), (0, 64)], (255, 255, 255, 255)) ,
 BeginningsPowerupDescription(000, -200),
 
-BeginningsPowerupDescription(400, -200),
+AirPowerupDescription(400, -200),
 ])
 
 

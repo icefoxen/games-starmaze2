@@ -71,7 +71,8 @@ class World(object):
         s.space.add_collision_handler(CGROUP_PLAYER, CGROUP_COLLECTABLE,
                                       begin=World.collidePlayerCollectable)
         s.space.add_collision_handler(CGROUP_PLAYER, CGROUP_TERRAIN,
-                                      begin=World.collidePlayerTerrain)
+                                      begin=World.collidePlayerTerrain,
+                                      separate=World.collidePlayerTerrainEnd)
         s.space.add_collision_handler(CGROUP_PLAYERBULLET, CGROUP_TERRAIN,
                                       begin=World.collideBulletTerrain)
         s.space.add_collision_handler(CGROUP_PLAYERBULLET, CGROUP_ENEMY,
@@ -241,6 +242,13 @@ update frame."""
             if normal.y < -0.001:
                 player.onGround = True
         return True
+
+    @staticmethod
+    def collidePlayerTerrainEnd(space, arbiter, *args, **kwargs):
+        playerShape, _ = arbiter.shapes
+        player = playerShape.body.component.owner
+        player.onGround = False
+    
 
     @staticmethod
     def collideBulletTerrain(space, arbiter, *args, **kwargs):

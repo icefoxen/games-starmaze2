@@ -220,12 +220,26 @@ Call one of the setCollision*() methods too."""
     def _set_angle(s, ang):
         s.body.angle = ang
 
+    def _set_velocity(s, vel):
+        s.body.velocity = vel
+
+    def _set_angular_velocity(s, vel):
+        s.body.angular_velocity = vel
+
+    def _set_velocity_limit(s, vel):
+        s.body.velocity_limit = vel
+
+
+
     # It seems easiest to wrap these properties to expose them
     # rather than inheriting from Body or anything silly like that.
     angle = property(lambda s: s.body.angle, _set_angle)
     position = property(lambda s: s.body.position, _set_position)
     is_static = property(lambda s: s.body.is_static)
-    velocity = property(lambda s: s.body.velocity)
+    velocity = property(lambda s: s.body.velocity, _set_velocity)
+    angular_velocity = property(lambda s: s.body.angular_velocity, _set_angular_velocity)
+    velocity_limit = property(lambda s: s.body.velocity_limit, _set_velocity_limit)
+    torque = property(lambda s: s.body.torque)
     def apply_impulse(s, impulse, r=(0,0)):
         s.body.apply_impulse(impulse, r=r)
     def apply_force(s, force, r=(0,0)):

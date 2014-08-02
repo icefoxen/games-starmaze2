@@ -491,24 +491,46 @@ class AirPower(NullPower):
         s.usingAttack1 = False
         s.refireTime1 = 0.05
         
-        s.jumpTimerTime = 0.40
-        s.jumpTimer = 0.0
         s.jumping = False
 
         s.defending = False
-        s.shieldImage = rcache.getLineImage(images.shieldImage)
-        s.shieldSprite = LineSprite(s, s.shieldImage)
+        s.defenseAngularVel = 0.0
+        s.defenseVelLimit = 0.0
+        s.defenseTimer = 0.0
+        s.defenseTime = 0.3
+        s.defenseCooldownTimer = 0.0
+        s.defenseCooldownTime = 1.25
+        
+    def startDefend(s):
+        if s.defenseCooldownTimer < 0.0:
+            s.defending = True
+            s.defenseCooldownTimer = s.defenseCooldownTime
+            s.defenseTimer = s.defenseTime
+            s.defenseAngularVel = s.owner.physicsObj.angular_velocity
+            s.defenseVelLimit = s.owner.physicsObj.velocity_limit
+            s.owner.physicsObj.velocity_limit = 1000.0
 
-    def jump(s):
-        s.owner.physicsObj.apply_impulse((0, 100))
-
+    def update(s, dt):
+        s.defenseCooldownTimer -= dt
+        if s.jumping:
+            s.owner.physicsObj.apply_impulse((0, 300*dt))
+        if s.defending:
+            facing = s.owner.facing
+            #s.owner.physicsObj.apply_impulse((-facing * 3000 * dt, 0))
+            s.owner.physicsObj.velocity = (-facing * 1000, 0)
+            s.defenseTimer -= dt
+            if s.defenseTimer < 0:
+                s.defending = False
+                s.owner.physicsObj.velocity = (0,0)
+                s.owner.physicsObj.angular_velocity = s.defenseAngularVel
+                s.owner.physicsObj.velocity_limit = s.defenseVelLimit
+        
     def startJump(s):
         if s.owner.onGround:
-            s.owner.physicsObj.apply_impulse((0, 500))
-            s.owner.onGround = False
-            s.jumpTimer = s.jumpTimerTime
-            s.jumping = True
-
+            s.owner.physicsObj.apply_impulse((0, 300))
+        # With the Air jump we can float down slowly even
+        # if we didn't start off jumping
+        s.jumping = True
 
     def stopJump(s):
         s.jumping = False
