@@ -79,6 +79,8 @@ BlockDescription(640.999999998, -190.9999413, [(0, 0), (94, 0), (94, 538), (0, 5
 BlockDescription(-679.0, -168.00667689, [(0, 0), (89, 0), (89, 418), (0, 418)], (255, 255, 255, 255)) ,
 BlockDescription(-186.999968146, 289.0, [(0, 0), (359, 0), (359, 64), (0, 64)], (255, 255, 255, 255)) ,
 BeginningsPowerupDescription(000, -200),
+
+BeginningsPowerupDescription(400, -200),
 ])
 
 
