@@ -310,9 +310,27 @@ class PlayerBulletPhysicsObj(PhysicsObj):
         PhysicsObj.__init__(s, owner, 1, 10)
         s.body.position = position
         s.addShapes(pymunk.Circle(s.body, radius=2))
-        s.setElasticity(0.8)
         s.setCollisionPlayerBullet()
 
+class AirP1PhysicsObjAir(PhysicsObj):
+    def __init__(s, owner, position=(0, 0)):
+        PhysicsObj.__init__(s, owner, 1, 10)
+        poly = pymunk.Poly(s.body, rectCornersCenter(0, 0, 10, 80))
+        poly.sensor = True
+        s.addShapes(poly)
+        s.position = position
+        s.setCollisionPlayerBullet()
+
+class AirP1PhysicsObjGround(PhysicsObj):
+    def __init__(s, owner, position=(0, 0)):
+        PhysicsObj.__init__(s, owner, 1, 10)
+        poly = pymunk.Poly(s.body, rectCornersCenter(0, 0, 10, 30))
+        poly.sensor = True
+        s.addShapes(poly)
+        s.position = position
+        s.setCollisionPlayerBullet()
+
+        
 class BlockPhysicsObj(PhysicsObj):
     """Generic immobile rectangle physics object"""
     def __init__(s, owner):

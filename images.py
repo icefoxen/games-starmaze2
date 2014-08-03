@@ -59,6 +59,27 @@ def beginningsP1Bullet():
     p = Polygon(vs, closed=False, strokeWidth=4)
     return LineImage([p])
 
+def airP1BulletAir():
+    color = (0, 0, 255, 255)
+    shadeColor = (128, 128, 255, 128)
+    radius = 80
+    polyList = [Polygon.arc(-radius/2, 0, radius, 90, color, startAngle=135, closed=False),
+                Polygon.arc(-radius/2, 0, radius, 90, shadeColor, startAngle=135, strokeWidth=15, closed=False),
+                ]
+    return LineImage(polyList)
+                
+
+def airP1BulletGround():
+    color = (0, 0, 255, 255)
+    shadeColor = (128, 128, 255, 128)
+    radius = 80
+    angle = 60
+    polyList = [Polygon.arc(-radius/2, 0, radius, angle, color, startAngle=120, closed=False),
+                Polygon.arc(-radius/2, 0, radius, angle, shadeColor, startAngle=120, strokeWidth=15, closed=False),
+                ]
+    return LineImage(polyList)
+
+
 def door():
     poly = Polygon.rectCenter(0, 0, 40, 40, (128, 128, 255, 255))
     return LineImage([poly])

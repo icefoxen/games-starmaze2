@@ -169,7 +169,7 @@ BUGGO: Solid colors only"""
         return Polygon.arc(cx, cy, r, 360, color, numSegments=numSegments, **kwargs)
 
     @staticmethod
-    def arc(cx, cy, r, angle, color, numSegments=32, **kwargs):
+    def arc(cx, cy, r, angle, color, startAngle=0.0, numSegments=32, **kwargs):
         """Same as `circle` but only makes a partial arc instead
 of a full circle.
 
@@ -177,11 +177,12 @@ TODO: Be able to specify the starting angle!
 
 BUGGO: Solid colors only"""
         radians = math.radians(angle)
+        rStartAngle = math.radians(startAngle)
         theta = radians / float(numSegments)
         tangentialFactor = math.tan(theta)
         radialFactor = math.cos(theta)
-        x = r
-        y = 0
+        x = math.sin(rStartAngle) * r
+        y = math.cos(rStartAngle) * r
 
         verts = []
         for i in range(numSegments+1):

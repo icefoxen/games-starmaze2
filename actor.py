@@ -345,6 +345,81 @@ class BeginningP2Bullet(Actor):
             b.physicsObj.body.angle = rangle
             s.world.birthActor(b)
 
+class AirP1BulletAir(Actor):
+    def __init__(s, x, y, direction):
+        Actor.__init__(s)
+        yVariance = 5
+        yOffset = (random.random() * yVariance) - (yVariance / 2)
+        s.physicsObj = AirP1PhysicsObjAir(s, position=(x, y+yOffset))
+
+        image = rcache.getLineImage(images.airP1BulletAir)
+        s.sprite = LineSprite(s, image)
+        xImpulse = 600 * direction
+        yImpulse = yOffset * 10
+        s.physicsObj.apply_impulse((xImpulse, yImpulse))
+        # Counteract gravity?
+        s.physicsObj.apply_force((0, 400))
+        s.maxTime = 0.45
+        s.life = TimedLife(s, s.maxTime)
+
+        s.facing = direction
+        s.damage = 1
+
+    def update(s, dt):
+        s.life.update(dt)
+
+    def onDeath(s):
+        #print 'bullet died'
+        pass
+
+    def draw(s, shader):
+        if (s.sprite is not None) and (s.physicsObj is not None):
+            s.sprite.position = s.physicsObj.position
+            s.sprite.rotation = math.degrees(s.physicsObj.angle)
+            lifePercentage = s.life.time / s.maxTime
+            shader.uniformf("alpha", lifePercentage)
+            s.sprite.draw()
+
+class AirP1BulletGround(Actor):
+    def __init__(s, x, y, direction):
+        Actor.__init__(s)
+        yVariance = 5
+        yOffset = (random.random() * yVariance) - (yVariance / 2)
+        s.physicsObj = AirP1PhysicsObjGround(s, position=(x, y+yOffset))
+
+        image = rcache.getLineImage(images.airP1BulletGround)
+        s.sprite = LineSprite(s, image)
+        xImpulse = 800 * direction
+        yImpulse = yOffset * 10
+        s.physicsObj.apply_impulse((xImpulse, yImpulse))
+        # Counteract gravity?
+        s.physicsObj.apply_force((0, 400))
+        s.maxTime = 0.12
+        s.life = TimedLife(s, s.maxTime)
+        s.facing = direction
+        s.damage = 1
+
+    def update(s, dt):
+        s.life.update(dt)
+
+    def onDeath(s):
+        #print 'bullet died'
+        pass
+
+
+    def draw(s, shader):
+        if (s.sprite is not None) and (s.physicsObj is not None):
+            s.sprite.position = s.physicsObj.position
+            s.sprite.rotation = math.degrees(s.physicsObj.angle)
+            lifePercentage = s.life.time / s.maxTime
+            shader.uniformf("alpha", lifePercentage)
+            s.sprite.draw()
+    
+class AirP2Bullet(Actor):
+    def __init__(s, x, y, direction):
+        Actor.__init__(s)
+
+            
 class NullPower(object):
     "A power set that does nothing."
     def __init__(s, owner):
@@ -534,9 +609,12 @@ class AirPower(NullPower):
     def startAttack1(s):
         if s.attack1Timer.expired():
             s.attack1Timer.reset()
-            s.fireBullet(BeginningP1Bullet)
-
-        print "Zam!"
+            if s.owner.onGround:
+                s.fireBullet(AirP1BulletGround)
+                print "Zang!"
+            else:
+                s.fireBullet(AirP1BulletAir)
+                print "Zam!"
 
     def startAttack2(s):
         s.attack2Timer.reset()
