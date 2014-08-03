@@ -363,7 +363,7 @@ class AirP1BulletAir(Actor):
         s.life = TimedLife(s, s.maxTime)
 
         s.facing = direction
-        s.damage = 1
+        s.damage = 3
 
     def update(s, dt):
         s.life.update(dt)
@@ -397,7 +397,7 @@ class AirP1BulletGround(Actor):
         s.maxTime = 0.12
         s.life = TimedLife(s, s.maxTime)
         s.facing = direction
-        s.damage = 1
+        s.damage = 2
 
     def update(s, dt):
         s.life.update(dt)
@@ -418,7 +418,23 @@ class AirP1BulletGround(Actor):
 class AirP2Bullet(Actor):
     def __init__(s, x, y, direction):
         Actor.__init__(s)
+        s.physicsObj = AirP1PhysicsObjGround(s, position=(x, y))
+        s.physicsObj.apply_force((0, 400))
+        # Different image each time, not cached!
+        image = images.airP2Bullet()
+        s.sprite = LineSprite(s, image)
+        s.maxTime = 0.50
+        s.life = TimedLife(s, s.maxTime)
+        s.facing = direction
+        s.animationTimer = Timer(0.05)
 
+    def update(s, dt):
+        s.life.update(dt)
+        s.animationTimer.update(dt)
+        if s.animationTimer.expired():
+            image = images.airP2Bullet()
+            s.sprite = LineSprite(s, image)
+        
             
 class NullPower(object):
     "A power set that does nothing."
@@ -593,7 +609,7 @@ class AirPower(NullPower):
                 s.owner.physicsObj.velocity_limit = s.defenseVelLimit
 
         if s.attack2Charging and s.attack2Timer.expired():
-            s.fireBullet(BeginningP2Bullet)
+            s.fireBullet(AirP2Bullet)
             s.attack2Charging = False
         
     def startJump(s):

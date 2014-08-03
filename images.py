@@ -79,6 +79,27 @@ def airP1BulletGround():
                 ]
     return LineImage(polyList)
 
+def airP2Bullet():
+    color1 = (224, 224, 255, 255)
+    color2 = (0, 0, 255, 128)
+    shadeColor1 = (224, 225, 255, 128)
+    shadeColor2 = (0, 0, 128, 32)
+    length = 400
+    yoff = 50
+    xoff = 50
+    xoff1 = random.random() * xoff - (xoff/2)
+    xoff2 = random.random() * xoff - (xoff/2)
+    yoff1 = random.random() * yoff - (yoff/2)
+    yoff2 = random.random() * yoff - (yoff/2)
+    v1 = Vertex(0, 0, color1)
+    v2 = Vertex(length + xoff1, yoff1, color2)
+    sv1 = Vertex(0, 0, shadeColor1)
+    sv2 = Vertex(length + xoff2, yoff2, shadeColor2)
+    polyList1 = jaggifyLine(v1, v2, 5, strokeWidth=2)
+    polyList2 = jaggifyLine(v1, v2, 5, strokeWidth=2)
+    polyList3 = jaggifyLine(sv1, sv2, 5, strokeWidth=5)
+    polyList4 = jaggifyLine(sv1, sv2, 5, strokeWidth=5)
+    return LineImage(polyList1 + polyList2 + polyList3 + polyList4)
 
 def door():
     poly = Polygon.rectCenter(0, 0, 40, 40, (128, 128, 255, 255))
@@ -109,6 +130,32 @@ def collectable():
     polyList.append(Polygon.rectCorner(-5, -10, 10, 20, color))
     image = LineImage(polyList)
     return image
+
+def jaggifyLine(v1, v2, numSegments, **kwargs):
+    """Returns a Polygon that's a randomly jaggy line connecting the two verts."""
+    def divideLine(v1, v2, recursion = 0):
+        jagAmount = 0.3 + random.random() * 0.4
+        jagWidth = 0.3 * random.random()
+        midpoint = lerpVertex(v1, v2, jagAmount)
+        midpointXOff = midpoint.x - v1.x
+        midpointYOff = midpoint.y - v1.y
+        midpointNormalX, midpointNormalY = (midpointYOff, midpointXOff)
+        midpointNormalX *= jagWidth
+        midpointNormalY *= jagWidth
+        offsetMidpointX = midpoint.x + (midpointNormalX * random.choice([-1, 1]))
+        offsetMidpointY = midpoint.y + (midpointNormalY * random.choice([-1, 1]))
+        # XXX Direction of the jag is constant here...
+
+        midpointVert = Vertex(offsetMidpointX, offsetMidpointY, midpoint.color)
+        if recursion == 0:
+            l1 = Polygon([v1, midpointVert], closed=False, **kwargs)
+            l2 = Polygon([midpointVert, v2], closed=False, **kwargs)
+            return [l1, l2]
+        else:
+            l1s = divideLine(v1, midpointVert, recursion=recursion-1)
+            l2s = divideLine(midpointVert, v2, recursion=recursion-1)
+            return l1s + l2s
+    return divideLine(v1, v2, numSegments)
 
 def tree():
     # Not really a perfect tree-building algorithm...

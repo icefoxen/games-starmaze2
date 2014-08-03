@@ -47,7 +47,6 @@ class Vertex(namedtuple("Vertex", ["x", "y", "color"])):
     
     def distance(s, v2):
         return math.sqrt(s.distanceSquared(v2))
-    
 
 class Triangle(namedtuple("Triangle", ["v1", "v2", "v3"])):
     """A triangle made of 3 vertices."""
