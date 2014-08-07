@@ -30,5 +30,6 @@ virtualenv env
 source env/bin/activate
 pip install pyglet
 pip install pymunk
+echo 'default-push = ssh://hg@bitbucket.org/icefox/starmaze' >> .hg/hgrc
 ```
 
