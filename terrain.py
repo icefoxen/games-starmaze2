@@ -233,6 +233,89 @@ along with code to create them.
         s.name = name
         s.descr = descr
 
+        # XXX: Not sure if rooms should handle more stuff themselves
+        # or whether the world should just do it.
+        # s.world = world
+
+        # s.newActors = set()
+        # s.actorsToRemove = set()
+        # s.activeActors = set()
+
+        # s.initNewSpace()
+
     def getActors(s):
         return map(lambda desc: desc.create(), s.descr)
 
+ 
+#     def initNewSpace(s):
+#         s.space = pymunk.Space()
+#         # XXX: This isn't QUITE the same as a max velocity, but prevents
+#         # motion from getting _too_ out of control.
+#         s.space.damping = 0.9
+#         s.space.gravity = (0.0, GRAVITY_FORCE)
+#         s.space.add_collision_handler(CGROUP_PLAYER, CGROUP_COLLECTABLE,
+#                                       begin=World.collidePlayerCollectable)
+#         s.space.add_collision_handler(CGROUP_PLAYER, CGROUP_TERRAIN,
+#                                       begin=World.collidePlayerTerrain,
+#                                       separate=World.collidePlayerTerrainEnd)
+#         s.space.add_collision_handler(CGROUP_PLAYERBULLET, CGROUP_TERRAIN,
+#                                       begin=World.collideBulletTerrain)
+#         s.space.add_collision_handler(CGROUP_PLAYERBULLET, CGROUP_ENEMY,
+#                                       begin=World.collidePlayerBulletEnemy)
+#         s.space.add_collision_handler(CGROUP_ENEMYBULLET, CGROUP_TERRAIN,
+#                                       begin=World.collideBulletTerrain)
+#         s.space.add_collision_handler(CGROUP_PLAYER, CGROUP_DOOR,
+#                                       begin=World.collidePlayerDoor,
+#                                       separate=World.collidePlayerDoorEnd)
+
+#     def birthActor(s, act):
+#         """You see, we can't have actors add or remove other actors inside
+# their update() method, 'cause that'd modify the set of actors while we're
+# iterating through it, which is a no-no.
+
+# So instead of calling _addActor directly, call this, which will cause the
+# actor to be added next update frame."""
+#         s.newActors.add(act)
+
+#     def killActor(s, act):
+#         """The complement to birthActor(), kills the given actor so it gets removed next
+# update frame."""
+#         act.alive = False
+#         s.actorsToRemove.add(act)
+
+#     def removeActors(s):
+#         for act in s.actorsToRemove:
+#             s.removeActorFromSpace(act)
+#         s.activeActors.
+
+#     def addActorToSpace(s, act):
+#         s.activeActors.add(act)        
+#         act.world = s.world
+
+#         if not act.physicsObj.body.is_static:
+#             s.space.add(act.physicsObj.body)
+#         for b in act.physicsObj.auxBodys:
+#             if not b.is_static:
+#                 s.space.add(b)
+#         for constraint in act.physicsObj.constraints:
+#             s.space.add(constraint)
+#         for shape in act.physicsObj.shapes:
+#             s.space.add(shape)
+
+#     def removeActorFromSpace(s, act):
+#         s.actors.remove(act)
+#         # Break backlinks
+#         # TODO: This should break all backlinks in an actor's
+#         # components, too.  Or the actor should have a delete
+#         # method that gets called here.  Probably the best way.
+#         act.world = None
+
+#         if not act.physicsObj.body.is_static:
+#             s.space.remove(act.physicsObj.body)
+#         for b in act.physicsObj.auxBodys:
+#             if not b.is_static:
+#                 s.space.remove(b)
+#         for constraint in act.physicsObj.constraints:
+#             s.space.remove(constraint)
+#         for shape in act.physicsObj.shapes:
+#             s.space.remove(shape)

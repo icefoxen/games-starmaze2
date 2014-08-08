@@ -76,7 +76,7 @@ suitable for copy-pasting into a Python file."""
             descrs = [BlockDescription.fromObject(block) for block in s.actors]
             newobjs = set([block.create() for block in descrs])
             for obj in newobjs:
-                s.world.birthActor(obj)
+                s.world.addActor(obj)
             
             s.worldUpdateFunc = lambda dt: s.world.update(dt)
             pyglet.clock.schedule_interval(s.worldUpdateFunc, 1.0/starmaze.PHYSICS_FPS)

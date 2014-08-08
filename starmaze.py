@@ -52,8 +52,8 @@ class World(object):
         s.player = Player(s.keyboard)
         s.camera = Camera(s.player.physicsObj, s.screenw, s.screenh)
         s.actors = set()
-        s.newActors = set()
-        #s.birthActor(s.player)
+        s.actorsToAdd = set()
+        s.actorsToRemove = set()
 
         s.createWorld()
         s.currentRoom = None
@@ -95,25 +95,35 @@ class World(object):
                 s.rooms[room.name] = room
                 
         
-    def birthActor(s, act):
+    def addActor(s, act):
         """You see, we can't have actors add or remove other actors inside
 their update() method, 'cause that'd modify the set of actors while we're
 iterating through it, which is a no-no.
 
 So instead of calling _addActor directly, call this, which will cause the
 actor to be added next update frame."""
-        s.newActors.add(act)
+        s.actorsToAdd.add(act)
 
-    def killActor(s, act):
-        """The complement to birthActor(), kills the given actor so it gets removed next
+    def removeActor(s, act):
+        """The complement to addActor(), sets its so te given actor gets removed next
 update frame."""
-        act.alive = False
-
+        s.actorsToRemove.add(act)
 
     def _addActor(s, act):
-        s.actors.add(act)        
+        s.actors.add(act)
         act.world = s
+        s.addActorToSpace(act)
 
+    def _removeActor(s, act):
+        s.actors.remove(act)
+        # Break backlinks
+        # TODO: This should break all backlinks in an actor's
+        # components, too.  Or the actor should have a delete
+        # method that gets called here.  Probably the best way.
+        act.world = None
+        s.removeActorFromSpace(act)
+
+    def addActorToSpace(s, act):
         if not act.physicsObj.body.is_static:
             s.space.add(act.physicsObj.body)
         for b in act.physicsObj.auxBodys:
@@ -124,14 +134,7 @@ update frame."""
         for shape in act.physicsObj.shapes:
             s.space.add(shape)
 
-    def _removeActor(s, act):
-        s.actors.remove(act)
-        # Break backlinks
-        # TODO: This should break all backlinks in an actor's
-        # components, too.  Or the actor should have a delete
-        # method that gets called here.  Probably the best way.
-        act.world = None
-
+    def removeActorFromSpace(s, act):                
         if not act.physicsObj.body.is_static:
             s.space.remove(act.physicsObj.body)
         for b in act.physicsObj.auxBodys:
@@ -155,12 +158,11 @@ update frame."""
         print "Entering", room.name
         actors = room.getActors()
         for act in actors:
-            s.birthActor(act)
-        #s.enterRoom(s.rooms[door.destination])
+            s.addActor(act)
         locx, locy = s.nextRoomLoc
-        s.birthActor(s.player)
+        s.addActor(s.player)
         s.player.physicsObj.position = s.nextRoomLoc
-        s.camera.snapTo(locx, locy)
+        s.camera.snapTo(s.nextRoomLoc)
         s.nextRoom = None
 
     def clearRoom(s):
@@ -170,23 +172,25 @@ update frame."""
 
 
     def update(s, dt):
-        #print 'foo'
-        #s.player.handleInput(s.keyboard)
         step = dt / s.physicsSteps
         for _ in range(int(s.physicsSteps)):
             s.space.step(step)
         s.camera.update(dt)
-        
-        for act in s.newActors:
-            s.actors.add(act)
-            s._addActor(act)
-        s.newActors.clear()
+
         for act in s.actors:
             act.update(dt)
-        deadActors = [act for act in s.actors if not act.alive]
+        
+        for act in s.actorsToAdd:
+            s._addActor(act)
+        s.actorsToAdd.clear()
+        
+        deadActors = {act for act in s.actors if not act.alive}
         for act in deadActors:
             act.onDeath()
+        s.actorsToRemove.update(deadActors)
+        for act in s.actorsToRemove:
             s._removeActor(act)
+        s.actorsToRemove.clear()
 
         # Shit gets a little whack if we try to remove
         # a bunch of actors and add a bunch of new ones

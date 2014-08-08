@@ -230,7 +230,7 @@ class CrawlerEnemy(Actor):
         yForce = 350
         xForce = (random.random() * 150) - 75
         c.physicsObj.apply_impulse((xForce, yForce))
-        s.world.birthActor(c)
+        s.world.addActor(c)
 
 
 class CrawlerEnemyDescription(object):
@@ -336,7 +336,7 @@ class BeginningP2Bullet(Actor):
             b = BeginningP1Bullet(newx, newy, FACING_RIGHT, impulse=(xForce, yForce))
             b.life = TimedLife(b, 0.15)
             b.physicsObj.body.angle = rangle
-            s.world.birthActor(b)
+            s.world.addActor(b)
 
 class AirP1BulletAir(Actor):
     def __init__(s, x, y, direction):
@@ -478,7 +478,7 @@ class NullPower(object):
         x, y = s.owner.physicsObj.position
         direction = s.owner.facing
         bullet = bulletClass(x, y, direction)
-        s.owner.world.birthActor(bullet)
+        s.owner.world.addActor(bullet)
 
     def draw(s, shader):
         pass
