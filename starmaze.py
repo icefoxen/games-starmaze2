@@ -53,11 +53,15 @@ class World(object):
         s.camera = Camera(s.player.physicsObj, s.screenw, s.screenh)
         s.actors = set()
         s.newActors = set()
-        s.birthActor(s.player)
+        #s.birthActor(s.player)
 
         s.createWorld()
-        s.currentRoom = s.rooms['Arena']
-        s.enterRoom(s.currentRoom)
+        s.currentRoom = None
+        s.nextRoom = s.rooms['Entryway']
+        s.nextRoomLoc = (0.0, 0.0)
+        # The player is automatically added to the room here.
+        s.enterNextRoom()
+
         s.time = 0.0
 
         s.shader = shader.Shader([shader.vprog], [shader.fprog])
@@ -139,29 +143,31 @@ update frame."""
             s.space.remove(shape)
 
 
-
     def enterDoor(s, door):
-        s.leaveRoom()
-        s.enterRoom(s.rooms[door.destination])
-        s.player.physicsObj.position = (door.destx, door.desty)
-        s.camera.snapTo(door.destx, door.desty)
+        s.nextRoom = s.rooms[door.destination]
+        s.nextRoomLoc = (door.destx, door.desty)
 
-    def enterRoom(s, room):
+    def enterNextRoom(s):
         """Actually creates all the game objects for the given room and adds them to the current state."""
+        s.clearRoom()
+        room = s.nextRoom
+        s.currentRoom = room
         print "Entering", room.name
         actors = room.getActors()
         for act in actors:
             s.birthActor(act)
+        #s.enterRoom(s.rooms[door.destination])
+        locx, locy = s.nextRoomLoc
+        s.birthActor(s.player)
+        s.player.physicsObj.position = s.nextRoomLoc
+        s.camera.snapTo(locx, locy)
+        s.nextRoom = None
 
-    # BUGGO: This doesn't work right!
-    # Mainly because the onDeath methods of said actors
-    # get triggered...  :-(
-    def leaveRoom(s):
-        """Removes all the game objects in the current state (sans player) and preps for a new room."""
+    def clearRoom(s):
+        """Removes all the game objects in the current state and preps for a new room."""
         for act in list(s.actors):
-            s.killActor(act)
-        s.player.alive = True
-        #s.birthActor(s.player)
+            s._removeActor(act)
+
 
     def update(s, dt):
         #print 'foo'
@@ -181,6 +187,15 @@ update frame."""
         for act in deadActors:
             act.onDeath()
             s._removeActor(act)
+
+        # Shit gets a little whack if we try to remove
+        # a bunch of actors and add a bunch of new ones
+        # _while updating the actors_.
+        # Doing it all at once at the end of the frame
+        # makes iterating through them all easier, and
+        # also means it's technically deterministic.
+        if s.nextRoom is not None:
+            s.enterNextRoom()
 
         s.time += dt
 
@@ -263,7 +278,7 @@ update frame."""
         bullet = bulletShape.body.component.owner
         bullet.alive = False
         enemy = enemyShape.body.component.owner
-        enemy.takeDamage(bullet, bullet.damage)
+        enemy.life.takeDamage(bullet, bullet.damage)
         return False
 
     @staticmethod

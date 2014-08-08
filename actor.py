@@ -24,7 +24,6 @@ class Actor(object):
         #image = LineImage(lines, colors)
         s.sprite = None #LineSprite(image)
 
-        s.life = 1.0
         s.alive = True
 
         s.moveForce = 400
@@ -47,12 +46,6 @@ class Actor(object):
 
     def update(s, dt):
         pass
-
-    def takeDamage(s, damager, damage):
-        s.life -= damage
-        print "Damaged, life is now", s.life
-        if s.life <= 0:
-            s.alive = False
 
 class Player(Actor):
     """The player object."""

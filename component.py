@@ -436,8 +436,6 @@ TODO: Glow layer???
         s._rotation = 0.0
         s._scale = 1.0
 
-    def delete(s):
-        pass
 
     def draw(s):
         glPushAttrib(GL_COLOR_BUFFER_BIT)
@@ -446,9 +444,6 @@ TODO: Glow layer???
         with Affine((s._x, s._y), s.rotation, (s._scale, s._scale)):
             s._batch.draw()
         glPopAttrib()
-
-    def drawShader(s, shader):
-        s._batch.draw()
 
     # def _get_group(s):
     #     return s._group
@@ -509,7 +504,7 @@ its owner when it runs out."""
         # Happens BEFORE attenuation
         s.damageReduction = reduction
 
-    def takeDamage(s, damage):
+    def takeDamage(s, damager, damage):
         reducedDamage = max(0, damage - s.damageReduction)
         attenuatedDamage = reducedDamage * s.damageAttenuation
         s.life -= attenuatedDamage
