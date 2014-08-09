@@ -46,8 +46,8 @@ uniform vec4 colorDiff;
 uniform float alpha;
 void main() {
    vec4 color = vec4(gl_Color.r, gl_Color.g, gl_Color.b, gl_Color.a * alpha);
-   //color = texture2D(tex, gl_TexCoord[0].st);
-   gl_FragColor = color;
+   vec4 texColor = texture2D(tex, gl_TexCoord[0].st);
+   gl_FragColor = color; // + texColor;
    //gl_FragColor = colormod;
    //gl_FragColor = gl_Color + colorDiff;
    //gl_FragColor = vec4(1,0,1,1);

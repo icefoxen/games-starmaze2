@@ -1,4 +1,6 @@
 import pyglet
+import pyglet.graphics
+import pyglet.sprite
 import pyglet.window.key as key
 import pymunk
 import pymunk.pyglet_util
@@ -477,10 +479,74 @@ TODO: Glow layer???
         s._scale = scale
     scale = property(lambda s: s._scale, _set_scale)
 
-    #width = property(lambda s: s._y, _set_y)
 
-    #height = property(lambda s: s._y, _set_y)
+class ImgSprite(Component):
+    """A sprite that displays a bitmap image.
+We use Pyglet's Sprite class internally, but have to wrap it
+to play nice with how we handle coordinates...
+
+ie, _not_ recreating the whole shape from scratch whenever
+it moves.
+
+BUGGO: Doesn't work correctly with shaders.  If we have textured
+quads, then we need texture colors, if we have untextured quads,
+then we need non-texture colors.  Either use different shaders for
+the two, or have all textured images have a non-texture color of 0 and
+all non-textured shapes bind to a single-pixel black texture, then the
+shader just adds the two together...
+
+XXX: The existence of this feels like a kludge, though I'm not sure why.
+Pyglet's whole drawing system makes me vaguely unhappy for some reason,
+I guess.
+Could trivially replicated, but I'm not sure that'd be less of a kludge.
+I dunno man."""
+    def __init__(s, owner, image, x=0, y=0, batch=None, group=None):
+        Component.__init__(s, owner)
+        s._image = image
+        s._x = x
+        s._y = y
+        s._batch = batch or pyglet.graphics.Batch()
+        s._sprite = pyglet.sprite.Sprite(image, batch=s._batch)
+        print "Batch", s._batch
+        s._rotation = 0.0
+        s._scale = 1.0
+
+
+    def draw(s):
+        glPushAttrib(GL_COLOR_BUFFER_BIT)
+        glEnable(GL_BLEND)
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+        with Affine((s._x, s._y), s.rotation, (s._scale, s._scale)):
+            s._batch.draw()
+        glPopAttrib()
+
+
+    #def _set_image(s, image):
+    #    s._image = image
+    #image = property(lambda s: s._image, _set_image)
     
+    def _set_x(s, x):
+        s._x = x
+    x = property(lambda s: s._x, _set_x)
+
+    def _set_y(s, y):
+        s._y = y
+    y = property(lambda s: s._y, _set_y)
+
+    def _set_position(s, pos):
+        (x, y) = pos
+        s._x = x
+        s._y = y
+    position = property(lambda s: (s._x, s._y), _set_position)
+
+    def _set_rotation(s, rotation):
+        s._rotation = rotation
+    rotation = property(lambda s: s._rotation, _set_rotation)
+
+    def _set_scale(s, scale):
+        s._scale = scale
+    scale = property(lambda s: s._scale, _set_scale)
+
 
 class BlockSprite(LineSprite):
     def __init__(s, owner, corners, color, batch=None):

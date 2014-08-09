@@ -3,7 +3,6 @@ import math
 import random
 
 import pyglet
-from pyglet.sprite import *
 import pyglet.window.key as key
 import pymunk
 import pymunk.pyglet_util
@@ -65,7 +64,7 @@ class Player(Actor):
         glowImage = rcache.getLineImage(images.playerImageGlow)
         s.glowSprite = LineSprite(s, glowImage)
         #glowImage = rcache.get_image('playertest')
-        #s.glowSprite = Sprite(img)
+        #s.glowSprite = ImgSprite(s, glowImage)
 
         s.powers = PowerSet(s)
         s.facing = FACING_RIGHT
