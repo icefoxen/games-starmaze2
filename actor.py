@@ -415,6 +415,35 @@ class AirP1BulletGround(Actor):
 # We precalculate these because it's actually pretty intensive
 LIGHTNINGIMAGES = [images.airP2Bullet() for _ in range(20)]
 class AirP2Bullet(Actor):
+    _freelist = []
+    # def __new__(cls, x, y, direction):
+    #     print "New bullet, length of freelist is", len(AirP2Bullet._freelist)
+    #     if len(AirP2Bullet._freelist) == 0:
+    #         print "Allocating new bullet"
+    #         return super(AirP2Bullet, cls).__new__(cls, x, y, direction)
+    #     else:
+    #         print "Geting bullet from free list"
+    #         b = AirP2Bullet._freelist.pop()
+    #         b.__init__(x, y, direction)
+    #         return b
+
+    # def __del__(s):
+    #     pass
+    #     #print "Adding bullet to free list"
+    #     #print "Length of free list is now", len(AirP2Bullet._freelist)
+    #     #AirP2Bullet._freelist.append(s)
+
+    # def onDeath(s):
+    #     print 'Finalized'
+    #     AirP2Bullet._freelist.append(s)
+    #     #s.physicsObj.owner = None
+    #     #s.sprite.owner = None
+    #     #s.life.owner = None
+    #     #for spr in s.sprites:
+    #     #    spr.owner = None
+    
+
+    
     def __init__(s, x, y, direction):
         Actor.__init__(s)
         s.physicsObj = AirP1PhysicsObjGround(s, position=(x, y))
@@ -433,6 +462,8 @@ class AirP2Bullet(Actor):
 
     def update(s, dt):
         #s.physicsObj.position = s.owner.physicsObj.position
+        # Only lasts one frame
+        #s.alive = False
         s.life.update(dt)
         s.animationTimer.update(dt)
         if s.animationTimer.expired():
@@ -623,7 +654,7 @@ class AirPower(NullPower):
 
         if s.attack2Charging and s.attack2Timer.expired():
             s.fireBullet(AirP2Bullet)
-            s.attack2Charging = False
+            #s.attack2Charging = False
         
     def startJump(s):
         if s.owner.onGround:
