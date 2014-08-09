@@ -510,6 +510,7 @@ its owner when it runs out."""
         s.life -= attenuatedDamage
         if s.life <= 0:
             s.owner.alive = False
+        print "Took {} out of {} damage, life is now {}".format(attenuatedDamage, damage, s.life)
 
 class TimedLife(Component):
     """A component that kills the owner after

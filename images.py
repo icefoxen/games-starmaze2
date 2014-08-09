@@ -112,7 +112,7 @@ def powerup():
 def crawler():
     polyList = []
     color = (192, 192, 192, 255)
-    polyList.append(Polygon.arc(0, 0, 15, 180, color, numSegments=6))
+    polyList.append(Polygon.arc(0, 0, 15, 180, color, startAngle=90.0, numSegments=6))
     #polyList.append(cornersToLines(circleCorners(0, 0, 15, numSegments=6, color)))
     polyList.append(Polygon.line(0, 0, 20, 20, color))
     polyList.append(Polygon.line(0, 0, -20, 20, color))

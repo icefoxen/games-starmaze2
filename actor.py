@@ -206,6 +206,7 @@ class CrawlerEnemy(Actor):
         # object; sticking to walls will be easy just by applying
         # a force toward the wall with some friction, and maybe
         # countering gravity if necessary
+        # Also consider how to stick to walls when going on slopes...
         #movementForce = 100 * dt
         #if s.physicsObj.angle < -0.3:
         #    s.physicsObj.apply_impulse((-movementForce*10, 0), r=(0, 50))
@@ -265,6 +266,7 @@ class CrawlerEnemyDescription(object):
 # Hit ground, leave ground
 # Hit terrain, leave contact with terrain
 # Hit with attack, touch enemy (useful for bullets)
+# Actually just general collision 
 # Take damage, as well.
 # onDeath is already the start of this.
 # Other stuff maybe.  Hmmmm.

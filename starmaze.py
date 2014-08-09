@@ -57,7 +57,7 @@ class World(object):
 
         s.createWorld()
         s.currentRoom = None
-        s.nextRoom = s.rooms['Entryway']
+        s.nextRoom = s.rooms['Arena']
         s.nextRoomLoc = (0.0, 0.0)
         # The player is automatically added to the room here.
         s.enterNextRoom()
