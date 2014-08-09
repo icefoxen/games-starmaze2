@@ -288,6 +288,7 @@ class BeginningP1Bullet(Actor):
         else:
             s.physicsObj.apply_impulse(impulse)
         # Counteract gravity?
+        # BUGGO: Gravity might vary...
         s.physicsObj.apply_force((0, 400))
         s.life = TimedLife(s, 0.4 + (random.random() / 3.0))
 
@@ -371,6 +372,7 @@ class AirP1BulletAir(Actor):
             s.sprite.position = s.physicsObj.position
             s.sprite.rotation = math.degrees(s.physicsObj.angle)
             lifePercentage = s.life.time / s.maxTime
+            s.sprite.scale = (1/lifePercentage)
             shader.uniformf("alpha", lifePercentage)
             s.sprite.draw()
 
@@ -408,7 +410,10 @@ class AirP1BulletGround(Actor):
             lifePercentage = s.life.time / s.maxTime
             shader.uniformf("alpha", lifePercentage)
             s.sprite.draw()
-    
+
+
+# We precalculate these because it's actually pretty intensive
+LIGHTNINGIMAGES = [images.airP2Bullet() for _ in range(20)]
 class AirP2Bullet(Actor):
     def __init__(s, x, y, direction):
         Actor.__init__(s)
@@ -417,19 +422,27 @@ class AirP2Bullet(Actor):
         # Different image each time, not cached!
         image = images.airP2Bullet()
         s.sprite = LineSprite(s, image)
-        s.maxTime = 0.50
+        s.maxTime = 0.6
         s.life = TimedLife(s, s.maxTime)
         s.facing = direction
-        s.animationTimer = Timer(0.05)
+        s.animationTimer = Timer(0.03)
+
+        s.images = LIGHTNINGIMAGES
+        s.sprites = [LineSprite(s, image) for image in LIGHTNINGIMAGES]
+        s.spriteCount = random.randint(0, len(LIGHTNINGIMAGES))
 
     def update(s, dt):
+        #s.physicsObj.position = s.owner.physicsObj.position
         s.life.update(dt)
         s.animationTimer.update(dt)
         if s.animationTimer.expired():
-            image = images.airP2Bullet()
-            s.sprite = LineSprite(s, image)
+            s.spriteCount = (s.spriteCount + 1) % len(s.sprites)
+            s.sprite = s.sprites[s.spriteCount]
+            #image = images.airP2Bullet()
+            #s.sprite = LineSprite(s, image)
         
-            
+
+
 class NullPower(object):
     "A power set that does nothing."
     def __init__(s, owner):
@@ -483,7 +496,12 @@ class NullPower(object):
 
     def draw(s, shader):
         pass
-    
+
+
+# BUGGO:
+# As the code stands, with Beginnings and Air powers both
+# attacks can be used pretty much at the same time.  Do
+# we want it to be this way?
 class BeginningsPower(NullPower):
     """The Beginnings elemental power set."""
     def __init__(s, owner):
@@ -566,6 +584,7 @@ class AirPower(NullPower):
 
         s.attack1Timer = Timer(defaultTime = 0.1)
         s.attack2Timer = Timer(defaultTime = 0.8)
+        s.attack2FireTimer = Timer(defaultTime = 0.3)
         s.attack2Charging = False
         
         s.jumping = False
