@@ -131,6 +131,7 @@ def collectable():
     image = LineImage(polyList)
     return image
 
+# OPT: This might be worth optimizing
 def jaggifyLine(v1, v2, numSegments, **kwargs):
     """Returns a Polygon that's a randomly jaggy line connecting the two verts."""
     def divideLine(v1, v2, recursion = 0):

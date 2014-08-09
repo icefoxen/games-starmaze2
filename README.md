@@ -18,6 +18,7 @@ Flags in comments:
 * BUGGO means known not-good behavior
 * TODO means something incomplete but not immediately essential
 * XXX marks a questionable design decision
+* OPT marks something that might need optimization
 
 # Setting up a new dev environment
 

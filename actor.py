@@ -412,10 +412,17 @@ class AirP1BulletGround(Actor):
             s.sprite.draw()
 
 
+# BUGGO This needs fixing
+# We don't want to create a new bullet each frame I guess
+# So we need to move this along so it follows its parent
+# But actually doing damage is also kinda fucked up, then.
+# Bligher.
+
+
 # We precalculate these because it's actually pretty intensive
 LIGHTNINGIMAGES = [images.airP2Bullet() for _ in range(20)]
 class AirP2Bullet(Actor):
-    _freelist = []
+    # _freelist = []
     # def __new__(cls, x, y, direction):
     #     print "New bullet, length of freelist is", len(AirP2Bullet._freelist)
     #     if len(AirP2Bullet._freelist) == 0:
