@@ -74,10 +74,13 @@ class Player(Actor):
 
         s.life = Life(s, 100)
 
+        s.particles = ParticleSystem(s)
+
     def update(s, dt):
         s.controller.update(dt)
         s.powers.update(dt)
         s.glow += 0.05
+        s.particles.update(dt)
 
     def draw(s, shader):
         if (s.sprite is not None) and (s.physicsObj is not None):

@@ -1,3 +1,8 @@
+from lepton import *
+from lepton.controller import Lifetime, Movement, Fader
+from lepton.emitter import StaticEmitter
+from lepton.renderer import BillboardRenderer
+from lepton.texturizer import SpriteTexturizer
 import pyglet
 import pyglet.graphics
 import pyglet.sprite
@@ -608,7 +613,13 @@ What is also tempting is the idea of doing the same thing to
 all Components, so that each Actor doesn't have to update
 a particular set of them itself...
 
-Something to think about, maybe.   ORDERING becomes an issue!"""
+Something to think about, maybe.   ORDERING becomes an issue!
+
+It already is an issue, given that each Actor updates its Components
+more or less ad-hoc'ly.  On the one hand that's good because an Actor
+presumably knows what order its shit should be updated in.  On the
+other hand it can make life difficult, and update order of actors can
+become significant if they do things that directly affect other Actors."""
     def __init__(s, time=0.0, defaultTime = 0.0):
         s.time = float(time)
         s.defaultTime = defaultTime
@@ -622,3 +633,35 @@ Something to think about, maybe.   ORDERING becomes an issue!"""
 
     def expired(s):
         return s.time <= 0.0
+
+class ParticleSystem(Component):
+    """A test component that emits particles."""
+    def __init__(s, owner):
+        Component.__init__(s, owner)
+        s.tex = rcache.get_image("playertest").get_texture()
+        s.sparkGroup = ParticleGroup(
+            controllers=[
+                Lifetime(3),
+                Movement(damping=0.93),
+                Fader(fade_out_start=0.75, fade_out_end=3.0)
+                ],
+            renderer=BillboardRenderer(SpriteTexturizer(s.tex.id))
+            )
+        s.sparkEmitter = StaticEmitter(
+            template=Particle(
+                position = (100, 0, -100),
+                color = (1,1,1),
+                size=(20,20,0)),
+            deviation=Particle(
+                position=(2,2,0),
+                velocity=(75,75,0),
+                size=(0.2,0.2,0),
+                age=15))
+
+    def update(s,dt):
+        x,y = s.owner.physicsObj.position
+        s.sparkEmitter.template.position.x = x
+        s.sparkEmitter.template.position.y = y
+        #s.sparkEmitter.position = 
+        s.sparkEmitter.emit(int(100*dt), s.sparkGroup)
+        
