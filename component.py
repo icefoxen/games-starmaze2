@@ -182,7 +182,7 @@ down."""
 
 
 
-class PhysicsObj(Component):
+class PymunkPhysicsObj(Component):
     """A component that handles an `Actor`'s position and movement
 and physics interactions, all through pymunk.
 
@@ -292,13 +292,116 @@ Call one of the setCollision*() methods too."""
         for shape in s.shapes:
             shape.elasticity = e
 
+from physics import *
+class PhysicsObj(Component):
+    def __init__(s, owner, mass=None, moment=None):
+        Component.__init__(s, owner)
+        s._position = Vec(0,0)
+        s._velocity = Vec(0,0)
+        s.mass = mass
+        s.facing = 0
+        # XXX: Unused
+        #s.moment = moment
+        s.velocity_limit = 1000
+        s._angle = 0
+
+    def addAuxBodys(s, *bodys):
+        pass
+
+    def addShapes(s, *shapes):
+        pass
+
+    def addConstraints(s, *constraints):
+        pass
+        
+    def update(s, dt):
+        before = s._position
+        s._position += s.velocity * dt
+        #if before != s._position:
+        #    print "DIFFERENCE", before, s._position
+
+                
+    def _set_position(s, pos):
+        s._position = Vec(*pos)
+
+    def _set_angle(s, ang):
+        s._angle = ang
+
+    def _set_velocity(s, vel):
+        s._velocity = Vec(*vel)
+
+    def _set_angular_velocity(s, vel):
+        pass
+
+    def _set_velocity_limit(s, vel):
+        pass
+
+
+
+    # It seems easiest to wrap these properties to expose them
+    # rather than inheriting from Body or anything silly like that.
+    angle = property(lambda s: s._angle, _set_angle)
+    position = property(lambda s: s._position, _set_position)
+    is_static = property(lambda s: False)
+    velocity = property(lambda s: s._velocity, _set_velocity)
+    angular_velocity = property(lambda s: s._angular_velocity, _set_angular_velocity)
+    velocity_limit = property(lambda s: s._velocity_limit, _set_velocity_limit)
+
+    def apply_impulse(s, impulse, r=(0,0)):
+        if s.mass is not None:
+            #print "Applying impulse:", impulse
+            impulse = Vec(*impulse)
+            deltav = impulse / s.mass
+            s.velocity = s.velocity + deltav
+
+    def apply_force(s, force, r=(0,0)):
+        s.apply_impulse(force, r=r)
+
+    def setCollisionProperties(s, group, layerspec):
+        "Set the actor's collision properties."
+        pass
+
+    def setCollisionPlayer(s):
+        "Sets the actor's collision properties to that suitable for a player."
+        pass
+
+    def setCollisionEnemy(s):
+        "Sets the actor's collision properties to that suitable for an enemy."
+        pass
+
+    def setCollisionCollectable(s):
+        "Sets the actor's collision properties to that suitable for a collectable."
+        pass
+
+    def setCollisionPlayerBullet(s):
+        "Sets the actor's collision properties to that suitable for a player bullet."
+        pass
+
+    def setCollisionEnemyBullet(s):
+        "Sets the actor's collision properties to that suitable for an enemy bullet."
+        pass
+
+    def setCollisionTerrain(s):
+        pass
+
+    def setCollisionDoor(s):
+        pass
+
+    def setFriction(s, f):
+        pass
+
+    def setElasticity(s, e):
+        pass
+
+
+            
 class PlayerPhysicsObj(PhysicsObj):
     def __init__(s, owner):
         PhysicsObj.__init__(s, owner, 1, 200)
-        s.addShapes(pymunk.Circle(s.body, radius=s.owner.radius))
+        #s.addShapes(pymunk.Circle(s.body, radius=s.owner.radius))
         s.setFriction(6.0)
         s.setCollisionPlayer()
-        s.body.velocity_limit = 400
+        s.velocity_limit = (400)
 
 class DoorPhysicsObj(PhysicsObj):
     def __init__(s, owner, position=(0, 0)):
@@ -308,7 +411,7 @@ class DoorPhysicsObj(PhysicsObj):
         # Sensors call collision callbacks but don't actually do any physics.
         # I think.
         poly.sensor = True
-        s.addShapes(poly)
+        #s.addShapes(poly)
         s.setCollisionDoor()
         
 class PlayerBulletPhysicsObj(PhysicsObj):
@@ -316,7 +419,7 @@ class PlayerBulletPhysicsObj(PhysicsObj):
     def __init__(s, owner, position=(0, 0)):
         PhysicsObj.__init__(s, owner, 1, 10)
         s.body.position = position
-        s.addShapes(pymunk.Circle(s.body, radius=2))
+        #s.addShapes(pymunk.Circle(s.body, radius=2))
         s.setCollisionPlayerBullet()
 
 class AirP1PhysicsObjAir(PhysicsObj):
@@ -324,7 +427,7 @@ class AirP1PhysicsObjAir(PhysicsObj):
         PhysicsObj.__init__(s, owner, 1, 10)
         poly = pymunk.Poly(s.body, rectCornersCenter(0, 0, 10, 80))
         poly.sensor = True
-        s.addShapes(poly)
+        #s.addShapes(poly)
         s.position = position
         s.setCollisionPlayerBullet()
 
@@ -333,7 +436,7 @@ class AirP1PhysicsObjGround(PhysicsObj):
         PhysicsObj.__init__(s, owner, 1, 10)
         poly = pymunk.Poly(s.body, rectCornersCenter(0, 0, 10, 30))
         poly.sensor = True
-        s.addShapes(poly)
+        #s.addShapes(poly)
         s.position = position
         s.setCollisionPlayerBullet()
 
@@ -343,7 +446,7 @@ class BlockPhysicsObj(PhysicsObj):
     def __init__(s, owner):
         # Static body 
         PhysicsObj.__init__(s, owner)
-        s.addShapes(pymunk.Poly(s.body, owner.corners))
+        #s.addShapes(pymunk.Poly(s.body, owner.corners))
         #print owner.corners
         s.setFriction(0.8)
         s.setElasticity(0.8)
@@ -365,7 +468,7 @@ and life just gets shitty and weird.  idfk"""
                                                      (100, 0)))
         #s.constraintBody.position = (-200, 100)
         s.addAuxBodys(constraintBody)
-        s.addShapes(pymunk.Poly(s.body, owner.corners))
+        #s.addShapes(pymunk.Poly(s.body, owner.corners))
         s.setFriction(0.1)
         s.setElasticity(0.8)
         s.setCollisionTerrain()
@@ -386,10 +489,10 @@ class CollectablePhysicsObj(PhysicsObj):
         corners.append(rectCornersCenter(0, 0, 20, 10))
         corners.append(rectCornersCenter(0, 0, 10, 20))
 
-        s.addShapes(*[
-            pymunk.Poly(s.body, c)
-            for c in corners
-            ])
+        #s.addShapes(*[
+        #    pymunk.Poly(s.body, c)
+        #    for c in corners
+        #    ])
         s.setElasticity(0.8)
         s.setFriction(2.0)
         s.setCollisionCollectable()
@@ -399,7 +502,7 @@ class PowerupPhysicsObj(PhysicsObj):
         PhysicsObj.__init__(s, owner) # Static physics object
         corners = rectCornersCenter(0, 0, 10, 10)
 
-        s.addShapes(pymunk.Poly(s.body, corners))
+        #s.addShapes(pymunk.Poly(s.body, corners))
         s.setCollisionCollectable()
 
 class CrawlerPhysicsObj(PhysicsObj):
@@ -407,7 +510,7 @@ class CrawlerPhysicsObj(PhysicsObj):
         PhysicsObj.__init__(s, owner, mass=100, moment=pymunk.inf)
         corners = rectCornersCenter(0, 0, 25, 20)
 
-        s.addShapes(pymunk.Poly(s.body, corners))
+        #s.addShapes(pymunk.Poly(s.body, corners))
         s.setCollisionEnemy()
 
 

@@ -12,6 +12,7 @@ import pymunk
 from pymunk import Vec2d
 
 from actor import *
+import physics
 import shader
 from terrain import *
 
@@ -19,7 +20,7 @@ import zone_beginnings
 
 DISPLAY_FPS = True
 PHYSICS_FPS = 60.0
-GRAVITY_FORCE = -400
+GRAVITY_FORCE = -400.0
 
 class World(object):
     """Contains all the state for the game."""
@@ -68,25 +69,25 @@ class World(object):
         s.shader = shader.Shader([shader.vprog], [shader.fprog])
 
     def initNewSpace(s):
-        s.space = pymunk.Space()
+        s.space = physics.Space()
         # XXX: This isn't QUITE the same as a max velocity, but prevents
         # motion from getting _too_ out of control.
         s.space.damping = 0.9
-        s.space.gravity = (0.0, GRAVITY_FORCE)
-        s.space.add_collision_handler(CGROUP_PLAYER, CGROUP_COLLECTABLE,
-                                      begin=World.collidePlayerCollectable)
-        s.space.add_collision_handler(CGROUP_PLAYER, CGROUP_TERRAIN,
-                                      begin=World.collidePlayerTerrain,
-                                      separate=World.collidePlayerTerrainEnd)
-        s.space.add_collision_handler(CGROUP_PLAYERBULLET, CGROUP_TERRAIN,
-                                      begin=World.collideBulletTerrain)
-        s.space.add_collision_handler(CGROUP_PLAYERBULLET, CGROUP_ENEMY,
-                                      begin=World.collidePlayerBulletEnemy)
-        s.space.add_collision_handler(CGROUP_ENEMYBULLET, CGROUP_TERRAIN,
-                                      begin=World.collideBulletTerrain)
-        s.space.add_collision_handler(CGROUP_PLAYER, CGROUP_DOOR,
-                                      begin=World.collidePlayerDoor,
-                                      separate=World.collidePlayerDoorEnd)
+        s.space.gravity = physics.Vec(0.0, GRAVITY_FORCE)
+        # s.space.add_collision_handler(CGROUP_PLAYER, CGROUP_COLLECTABLE,
+        #                               begin=World.collidePlayerCollectable)
+        # s.space.add_collision_handler(CGROUP_PLAYER, CGROUP_TERRAIN,
+        #                               begin=World.collidePlayerTerrain,
+        #                               separate=World.collidePlayerTerrainEnd)
+        # s.space.add_collision_handler(CGROUP_PLAYERBULLET, CGROUP_TERRAIN,
+        #                               begin=World.collideBulletTerrain)
+        # s.space.add_collision_handler(CGROUP_PLAYERBULLET, CGROUP_ENEMY,
+        #                               begin=World.collidePlayerBulletEnemy)
+        # s.space.add_collision_handler(CGROUP_ENEMYBULLET, CGROUP_TERRAIN,
+        #                               begin=World.collideBulletTerrain)
+        # s.space.add_collision_handler(CGROUP_PLAYER, CGROUP_DOOR,
+        #                               begin=World.collidePlayerDoor,
+        #                               separate=World.collidePlayerDoorEnd)
 
     def createWorld(s):
         s.rooms = {}
@@ -125,26 +126,26 @@ update frame."""
         s.removeActorFromSpace(act)
 
     def addActorToSpace(s, act):
-        if not act.physicsObj.body.is_static:
-            s.space.add(act.physicsObj.body)
-        for b in act.physicsObj.auxBodys:
-            if not b.is_static:
-                s.space.add(b)
-        for constraint in act.physicsObj.constraints:
-            s.space.add(constraint)
-        for shape in act.physicsObj.shapes:
-            s.space.add(shape)
+        if not act.physicsObj.is_static:
+            s.space.add(act.physicsObj)
+        #for b in act.physicsObj.auxBodys:
+        #    if not b.is_static:
+        #        s.space.add(b)
+        #for constraint in act.physicsObj.constraints:
+        #    s.space.add(constraint)
+        #for shape in act.physicsObj.shapes:
+        #    s.space.add(shape)
 
     def removeActorFromSpace(s, act):                
-        if not act.physicsObj.body.is_static:
-            s.space.remove(act.physicsObj.body)
-        for b in act.physicsObj.auxBodys:
-            if not b.is_static:
-                s.space.remove(b)
-        for constraint in act.physicsObj.constraints:
-            s.space.remove(constraint)
-        for shape in act.physicsObj.shapes:
-            s.space.remove(shape)
+        if not act.physicsObj.is_static:
+            s.space.remove(act.physicsObj)
+        # for b in act.physicsObj.auxBodys:
+        #     if not b.is_static:
+        #         s.space.remove(b)
+        # for constraint in act.physicsObj.constraints:
+        #     s.space.remove(constraint)
+        # for shape in act.physicsObj.shapes:
+        #     s.space.remove(shape)
 
 
     def enterDoor(s, door):
