@@ -12,6 +12,7 @@ import pymunk.pyglet_util
 
 from graphics import *
 import rcache
+import physics
 
 # COLLISION GROUPS!  \O/
 # Collision groups in pymunk determine types
@@ -305,6 +306,8 @@ class PhysicsObj(Component):
         s.velocity_limit = 1000
         s._angle = 0
 
+        s.bbox = physics.BBox(0, 0, 10, 10)
+
     def addAuxBodys(s, *bodys):
         pass
 
@@ -317,9 +320,13 @@ class PhysicsObj(Component):
     def update(s, dt):
         before = s._position
         s._position += s.velocity * dt
+        s.bbox = BBox(s._position.x, s._position.y, s.bbox.w, s.bbox.h)
+
         #if before != s._position:
         #    print "DIFFERENCE", before, s._position
 
+    def isColliding(s, other):
+        return s.bbox.overlapping(other.bbox)
                 
     def _set_position(s, pos):
         s._position = Vec(*pos)

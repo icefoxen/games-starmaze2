@@ -113,7 +113,6 @@ class BBox(namedtuple("BBox", ["x", "y", "w", "h"])):
                 s.y < other.y < (s.y + s.h) or
                 other.y < s.y < (other.y + other.h))
 
-    # XXX: Incomplete.  Also, wrong.
     def intersection(s, other):
         if not s.overlapping(other):
             return None
@@ -140,6 +139,17 @@ class Space(object):
                 o.apply_impulse(s.gravity * dt)
                 o.update(dt)
                 #print "AFTER", o.velocity
+        s.checkCollision()
+
+    def checkCollision(s):
+        for obj1 in s.physicsObjs:
+            for obj2 in s.physicsObjs:
+                #if obj1.position.within(obj2.position, 20):
+                if obj1.bbox.overlapping(obj2.bbox):
+                    #print '{} colliding with {}'.format(obj1, obj2)
+                    obj1.velocity = ZEROVEC
+                    obj2.velocity = ZEROVEC
+                    
         
     def add_collision_handler(group1, group2, begin=None, separate=None):
         pass
