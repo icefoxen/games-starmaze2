@@ -74,13 +74,10 @@ class Player(Actor):
 
         s.life = Life(s, 100)
 
-        s.particles = ParticleSystem(s)
-
     def update(s, dt):
         s.controller.update(dt)
         s.powers.update(dt)
         s.glow += 0.05
-        s.particles.update(dt)
 
     def draw(s, shader):
         if (s.sprite is not None) and (s.physicsObj is not None):
@@ -186,22 +183,22 @@ class AirPowerupDescription(object):
 
 
 class CrawlerEnemy(Actor):
-    """"""
+    """An enemy that crawls along the ground and hurts when you touch it.
+
+BUGGO: Doesn't currently hurt when you touch it; blocked on better collision
+handling I think."""
     def __init__(s, batch=None):
-        s.radius = 20
         Actor.__init__(s, batch)
-        #s.controller = KeyboardController(s, keyboard)
+        s.controller = RoamAIController(s)
         s.physicsObj = CrawlerPhysicsObj(s)
         img = rcache.getLineImage(images.crawler)
         s.sprite = LineSprite(s, img)
-        #glowImage = resource.getLineImage(images.playerImageGlow)
-        #s.glowSprite = LineSprite(s, glowImage)
 
-        #s.powers = PowerSet(s)
         s.facing = FACING_RIGHT
         s.life = Life(s, 3, reduction=8)
 
     def update(s, dt):
+        s.controller.update(dt)
         # If it flips off of upright, apply restoring force.
         # XXX: Can we make these beasties stick to walls?
         # In the end that will all be the job of a Controller
@@ -209,17 +206,6 @@ class CrawlerEnemy(Actor):
         # a force toward the wall with some friction, and maybe
         # countering gravity if necessary
         # Also consider how to stick to walls when going on slopes...
-        #movementForce = 100 * dt
-        #if s.physicsObj.angle < -0.3:
-        #    s.physicsObj.apply_impulse((-movementForce*10, 0), r=(0, 50))
-        #elif s.physicsObj.angle > 0.3:
-        #    s.physicsObj.apply_impulse((movementForce*10, 0), r=(0, 50))
-        #else:
-        #    s.physicsObj.apply_impulse((movementForce * s.facing, 0))
-        #s.physicsObj.angle -= dt
-        pass
-        #s.controller.update(dt)
-        #s.powers.update(dt)
 
     def draw(s, shader):
         if (s.sprite is not None) and (s.physicsObj is not None):
@@ -263,6 +249,7 @@ class CrawlerEnemyDescription(object):
 # Should bullets keep a reference to their firer?
 # Might be useful, I dunno.  No immediate need for
 # it though.
+# Bullets probably SHOULD have controllers...
 
 # TODO: WE MIGHT NEED SOME PROPER EVENTS TO OCCUR FOR ACTORS
 # Hit ground, leave ground
@@ -375,7 +362,7 @@ class AirP1BulletAir(Actor):
             s.sprite.position = s.physicsObj.position
             s.sprite.rotation = math.degrees(s.physicsObj.angle)
             lifePercentage = s.life.time / s.maxTime
-            s.sprite.scale = (1/lifePercentage)
+            #s.sprite.scale = (1/lifePercentage)
             shader.uniformf("alpha", lifePercentage)
             s.sprite.draw()
 
