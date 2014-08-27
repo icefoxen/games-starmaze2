@@ -181,6 +181,14 @@ down."""
             s.owner.powers.stopJump()
 
 
+class RoamAIController(Component):
+    """A controller that sorta wanders at random..."""
+    def __init__(s, owner):
+        Component.__init__(s, owner)
+
+    def update(s, dt):
+        moveForce = 400
+        s.owner.physicsObj.apply_impulse((moveForce * dt * s.owner.facing, 0))
 
 
 class PymunkPhysicsObj(Component):
@@ -250,6 +258,7 @@ Call one of the setCollision*() methods too."""
     torque = property(lambda s: s.body.torque)
     def apply_impulse(s, impulse, r=(0,0)):
         s.body.apply_impulse(impulse, r=r)
+        
     def apply_force(s, force, r=(0,0)):
         s.body.apply_force(force, r=r)
 

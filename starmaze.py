@@ -307,6 +307,7 @@ update frame."""
 
 
 
+
 def main():
     screenw = 1024
     screenh = 768
@@ -317,4 +318,6 @@ def main():
     pyglet.app.run()
 
 if __name__ == '__main__':
+    #import cProfile
+    #cProfile.run('main()')
     main()
