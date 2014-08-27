@@ -12,7 +12,7 @@ import pymunk.pyglet_util
 
 from graphics import *
 import rcache
-import physics
+#import physics
 
 # COLLISION GROUPS!  \O/
 # Collision groups in pymunk determine types
@@ -191,7 +191,7 @@ class RoamAIController(Component):
         s.owner.physicsObj.apply_impulse((moveForce * dt * s.owner.facing, 0))
 
 
-class PymunkPhysicsObj(Component):
+class PhysicsObj(Component):
     """A component that handles an `Actor`'s position and movement
 and physics interactions, all through pymunk.
 
@@ -302,8 +302,8 @@ Call one of the setCollision*() methods too."""
         for shape in s.shapes:
             shape.elasticity = e
 
-from physics import *
-class PhysicsObj(Component):
+#from physics import *
+class NativePhysicsObj(Component):
     def __init__(s, owner, mass=None, moment=None):
         Component.__init__(s, owner)
         s._position = Vec(0,0)
@@ -414,7 +414,7 @@ class PhysicsObj(Component):
 class PlayerPhysicsObj(PhysicsObj):
     def __init__(s, owner):
         PhysicsObj.__init__(s, owner, 1, 200)
-        #s.addShapes(pymunk.Circle(s.body, radius=s.owner.radius))
+        s.addShapes(pymunk.Circle(s.body, radius=s.owner.radius))
         s.setFriction(6.0)
         s.setCollisionPlayer()
         s.velocity_limit = (400)
@@ -427,7 +427,7 @@ class DoorPhysicsObj(PhysicsObj):
         # Sensors call collision callbacks but don't actually do any physics.
         # I think.
         poly.sensor = True
-        #s.addShapes(poly)
+        s.addShapes(poly)
         s.setCollisionDoor()
         
 class PlayerBulletPhysicsObj(PhysicsObj):
@@ -435,7 +435,7 @@ class PlayerBulletPhysicsObj(PhysicsObj):
     def __init__(s, owner, position=(0, 0)):
         PhysicsObj.__init__(s, owner, 1, 10)
         s.body.position = position
-        #s.addShapes(pymunk.Circle(s.body, radius=2))
+        s.addShapes(pymunk.Circle(s.body, radius=2))
         s.setCollisionPlayerBullet()
 
 class AirP1PhysicsObjAir(PhysicsObj):
@@ -443,7 +443,7 @@ class AirP1PhysicsObjAir(PhysicsObj):
         PhysicsObj.__init__(s, owner, 1, 10)
         poly = pymunk.Poly(s.body, rectCornersCenter(0, 0, 10, 80))
         poly.sensor = True
-        #s.addShapes(poly)
+        s.addShapes(poly)
         s.position = position
         s.setCollisionPlayerBullet()
 
@@ -452,7 +452,7 @@ class AirP1PhysicsObjGround(PhysicsObj):
         PhysicsObj.__init__(s, owner, 1, 10)
         poly = pymunk.Poly(s.body, rectCornersCenter(0, 0, 10, 30))
         poly.sensor = True
-        #s.addShapes(poly)
+        s.addShapes(poly)
         s.position = position
         s.setCollisionPlayerBullet()
 
@@ -462,7 +462,7 @@ class BlockPhysicsObj(PhysicsObj):
     def __init__(s, owner):
         # Static body 
         PhysicsObj.__init__(s, owner)
-        #s.addShapes(pymunk.Poly(s.body, owner.corners))
+        s.addShapes(pymunk.Poly(s.body, owner.corners))
         #print owner.corners
         s.setFriction(0.8)
         s.setElasticity(0.8)
@@ -482,9 +482,9 @@ and life just gets shitty and weird.  idfk"""
         s.addConstraints(pymunk.constraint.GrooveJoint(constraintBody, s.body,
                                                     (0, -50), (0, -150),
                                                      (100, 0)))
-        #s.constraintBody.position = (-200, 100)
+        s.constraintBody.position = (-200, 100)
         s.addAuxBodys(constraintBody)
-        #s.addShapes(pymunk.Poly(s.body, owner.corners))
+        s.addShapes(pymunk.Poly(s.body, owner.corners))
         s.setFriction(0.1)
         s.setElasticity(0.8)
         s.setCollisionTerrain()
@@ -505,10 +505,10 @@ class CollectablePhysicsObj(PhysicsObj):
         corners.append(rectCornersCenter(0, 0, 20, 10))
         corners.append(rectCornersCenter(0, 0, 10, 20))
 
-        #s.addShapes(*[
-        #    pymunk.Poly(s.body, c)
-        #    for c in corners
-        #    ])
+        s.addShapes(*[
+            pymunk.Poly(s.body, c)
+            for c in corners
+            ])
         s.setElasticity(0.8)
         s.setFriction(2.0)
         s.setCollisionCollectable()
@@ -518,7 +518,7 @@ class PowerupPhysicsObj(PhysicsObj):
         PhysicsObj.__init__(s, owner) # Static physics object
         corners = rectCornersCenter(0, 0, 10, 10)
 
-        #s.addShapes(pymunk.Poly(s.body, corners))
+        s.addShapes(pymunk.Poly(s.body, corners))
         s.setCollisionCollectable()
 
 class CrawlerPhysicsObj(PhysicsObj):
@@ -526,7 +526,7 @@ class CrawlerPhysicsObj(PhysicsObj):
         PhysicsObj.__init__(s, owner, mass=100, moment=pymunk.inf)
         corners = rectCornersCenter(0, 0, 25, 20)
 
-        #s.addShapes(pymunk.Poly(s.body, corners))
+        s.addShapes(pymunk.Poly(s.body, corners))
         s.setCollisionEnemy()
 
 
