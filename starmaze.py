@@ -4,7 +4,7 @@ import os
 import random
 import time
 
-import lepton
+#import lepton
 import pyglet
 import pyglet.window.key as key
 from pyglet.gl import *
@@ -204,7 +204,7 @@ update frame."""
             s.enterNextRoom()
 
         # Update the particle system.
-        lepton.default_system.update(dt)
+        #lepton.default_system.update(dt)
             
         s.time += dt
 
@@ -228,7 +228,7 @@ update frame."""
                 for act in s.actors:
                     s.resetShaderDefaults(act)
                     act.draw(s.shader)
-            lepton.default_system.draw()
+            #lepton.default_system.draw()
         s.fps_display.draw()
 
     def on_key_press(s, k, modifiers):

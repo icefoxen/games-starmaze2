@@ -1,8 +1,8 @@
-from lepton import *
-from lepton.controller import Lifetime, Movement, Fader
-from lepton.emitter import StaticEmitter
-from lepton.renderer import BillboardRenderer
-from lepton.texturizer import SpriteTexturizer
+#from lepton import *
+#from lepton.controller import Lifetime, Movement, Fader
+#from lepton.emitter import StaticEmitter
+#from lepton.renderer import BillboardRenderer
+#from lepton.texturizer import SpriteTexturizer
 import pyglet
 import pyglet.graphics
 import pyglet.sprite
