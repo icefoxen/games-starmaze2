@@ -16,6 +16,8 @@ from actor import *
 import shader
 from terrain import *
 
+from particle import *
+
 import zone_beginnings
 
 DISPLAY_FPS = True
@@ -67,6 +69,11 @@ class World(object):
         s.time = 0.0
 
         s.shader = shader.Shader([shader.vprog], [shader.fprog])
+
+        s.particleGroup = ParticleGroup()
+        s.particleController = ParticleController()
+        s.particleRenderer = ParticleRenderer()
+        s.particleEmitter = ParticleEmitter()
 
     def initNewSpace(s):
         s.space = pymunk.Space()
@@ -205,6 +212,8 @@ update frame."""
 
         # Update the particle system.
         #lepton.default_system.update(dt)
+        s.particleEmitter.update(s.particleGroup, dt)
+        s.particleController.update(s.particleGroup, dt)
             
         s.time += dt
 
@@ -230,6 +239,8 @@ update frame."""
                     act.draw(s.shader)
             #lepton.default_system.draw()
         s.fps_display.draw()
+
+        s.particleRenderer.draw(s.particleGroup)
 
     def on_key_press(s, k, modifiers):
         s.player.controller.handleKeyPress(k, modifiers)
@@ -306,6 +317,9 @@ update frame."""
         player.door = None
 
 
+    def report(s):
+        "Print out misc useful about the state of the world."
+        print "Particle count: {}".format(len(s.particleGroup.particles))
 
 
 def main():
@@ -315,6 +329,7 @@ def main():
     world = World(screenw, screenh)
 
     pyglet.clock.schedule_interval(lambda dt: world.update(dt), 1.0/PHYSICS_FPS)
+    pyglet.clock.schedule_interval(lambda dt: world.report(), 2.0)
     pyglet.app.run()
 
 if __name__ == '__main__':
