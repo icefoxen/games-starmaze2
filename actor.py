@@ -183,26 +183,6 @@ class BeginningsPowerup(Actor):
         print "Gained Beginnings power!"
         player.powers.addPower(BeginningsPower(player))
 
-class BeginningsPowerupDescription(object):
-    def __init__(s, x, y):
-        s.x = x
-        s.y = y
-
-    def create(s):
-        p = BeginningsPowerup(position=(s.x, s.y))
-        #p.physicsObj.position = (s.x, s.y)
-        return p
-
-    @staticmethod
-    def fromObject(powerup):
-        x, y = powerup.position
-        return BeginningsPowerupDescription(x, y)
-
-    def __repr__(s):
-        return "BeginningsPowerupDescription({}, {})".format(
-            s.x, s.y
-            )
-
 @described
 class AirPowerup(Actor):
     def __init__(s, position=(0,0)):
@@ -214,26 +194,6 @@ class AirPowerup(Actor):
     def collect(s, player):
         print "Gained Air power!"
         player.powers.addPower(AirPower(player))
-
-class AirPowerupDescription(object):
-    def __init__(s, x, y):
-        s.x = x
-        s.y = y
-
-    def create(s):
-        p = AirPowerup(position=(s.x, s.y))
-        #p.physicsObj.position = (s.x, s.y)
-        return p
-
-    @staticmethod
-    def fromObject(powerup):
-        x, y = powerup.position
-        return AirPowerupDescription(x, y)
-
-    def __repr__(s):
-        return "AirPowerupDescription({}, {})".format(
-            s.x, s.y
-            )
 
 
 @described
@@ -276,29 +236,6 @@ handling I think."""
         c.physicsObj.apply_impulse((xForce, yForce))
         s.world.addActor(c)
 
-
-class CrawlerEnemyDescription(object):
-    def __init__(s, x, y):
-        s.x = x
-        s.y = y
-
-    def create(s):
-        c = CrawlerEnemy(position=(s.x, s.y))
-        #c.physicsObj.position = (s.x, s.y)
-        return c
-
-    @staticmethod
-    def fromObject(crawler):
-        x, y = crawler.position
-        return CrawlerEnemyDescription(x, y)
-
-    def __repr__(s):
-        return "CrawlerEnemyDescription({}, {})".format(
-            s.x, s.y
-            )
-
-
-    
 
 # TODO: Bullet class?
 # Should bullets keep a reference to their firer?
@@ -472,35 +409,6 @@ class AirP1BulletGround(Actor):
 # We precalculate these because it's actually pretty intensive
 LIGHTNINGIMAGES = [images.airP2Bullet() for _ in range(20)]
 class AirP2Bullet(Actor):
-    # _freelist = []
-    # def __new__(cls, x, y, direction):
-    #     print "New bullet, length of freelist is", len(AirP2Bullet._freelist)
-    #     if len(AirP2Bullet._freelist) == 0:
-    #         print "Allocating new bullet"
-    #         return super(AirP2Bullet, cls).__new__(cls, x, y, direction)
-    #     else:
-    #         print "Geting bullet from free list"
-    #         b = AirP2Bullet._freelist.pop()
-    #         b.__init__(x, y, direction)
-    #         return b
-
-    # def __del__(s):
-    #     pass
-    #     #print "Adding bullet to free list"
-    #     #print "Length of free list is now", len(AirP2Bullet._freelist)
-    #     #AirP2Bullet._freelist.append(s)
-
-    # def onDeath(s):
-    #     print 'Finalized'
-    #     AirP2Bullet._freelist.append(s)
-    #     #s.physicsObj.owner = None
-    #     #s.sprite.owner = None
-    #     #s.life.owner = None
-    #     #for spr in s.sprites:
-    #     #    spr.owner = None
-    
-
-    
     def __init__(s, position, direction):
         Actor.__init__(s)
         x,y = position

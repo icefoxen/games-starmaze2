@@ -86,9 +86,4 @@ arena = Room("Arena", [
 
 
 def generateZone():
-    for room in [entryway, cathedral, arena]:
-        print "STARTING"
-        acts = room.getActors()
-        for act in acts:
-            print act.describeString()
     return [entryway, cathedral, arena]
