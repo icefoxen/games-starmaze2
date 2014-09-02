@@ -479,7 +479,7 @@ and life just gets shitty and weird.  idfk"""
         s.addConstraints(pymunk.constraint.GrooveJoint(constraintBody, s.body,
                                                     (0, -50), (0, -150),
                                                      (100, 0)))
-        s.constraintBody.position = (-200, 100)
+        constraintBody.position = (-200, 100)
         s.addAuxBodys(constraintBody)
         s.addShapes(pymunk.Poly(s.body, owner.corners))
         s.setFriction(0.1)

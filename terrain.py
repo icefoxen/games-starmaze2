@@ -10,6 +10,7 @@ from actor import *
 from component import *
 from util import *
 
+@described
 class Block(Actor):
     """A wall, platform, or other terrain feature in a room.
 Currently, just uses a `pymunk.Poly` for its shape.  More complex
@@ -60,6 +61,7 @@ of the runtime data."""
         return "BlockDescription({}, {}, {}, {})".format(
             s.x, s.y, s.corners, s.color
             )
+@described
 class FallingBlock(Actor):
     """A block that falls when the player lands on it.
 """
@@ -68,7 +70,6 @@ class FallingBlock(Actor):
         s.color = color
         Actor.__init__(s, batch)
         s.physicsObj = FallingBlockPhysicsObj(s, position=position)
-        s.physicsObj.position = (x,y)
         s.sprite = BlockSprite(s, corners, color, batch=batch)
 
 
@@ -118,6 +119,7 @@ x and y are the coordinates of the lower-left point."""
     t = Block((x, y), corners, color, batch)
     return t
 
+@described
 class Door(Actor):
     def __init__(s, position, destination, destx, desty):
         Actor.__init__(s)
@@ -164,11 +166,11 @@ class DoorDescription(object):
             s.x, s.y, s.destination, s.destx, s.desty
             )
 
+@described
 class Tree(Actor):
     def __init__(s, position):
         Actor.__init__(s)
-        s.physicsObj = PhysicsObj(s)
-        s.physicsObj.position = position
+        s.physicsObj = PhysicsObj(s, position=position)
         img = rcache.getLineImage(images.tree)
         s.sprite = LineSprite(s, img)
 
@@ -211,7 +213,7 @@ along with code to create them.
         # s.initNewSpace()
 
     def getActors(s):
-        return map(lambda desc: desc.create(), s.descr)
+        return map(lambda descfunc: descfunc(), s.descr)
 
  
 #     def initNewSpace(s):
