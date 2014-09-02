@@ -8,7 +8,7 @@ import pymunk.pyglet_util
 from graphics import *
 from actor import *
 from component import *
-
+from util import *
 
 class Block(Actor):
     """A wall, platform, or other terrain feature in a room.
@@ -17,15 +17,13 @@ things might come later.
 
 corners is a list of the corners of the polygon.  NOT line endpoins.
 """
-    def __init__(s, x, y, corners, color, batch=None):
+    def __init__(s, position, corners, color, batch=None):
         s.corners = corners
         s.color = color
         Actor.__init__(s, batch)
-        s.physicsObj = BlockPhysicsObj(s)
+        s.physicsObj = BlockPhysicsObj(s, position=position)
         #xf, yf = s.findShapeCenter(corners)
         #s.physicsObj.position = (x+xf,y+yf)
-
-        s.physicsObj.position = (x,y)
         s.sprite = BlockSprite(s, corners, color, batch=batch)
 
     def findShapeCenter(s, corners):
@@ -36,52 +34,6 @@ corners is a list of the corners of the polygon.  NOT line endpoins.
             maxy = max(maxy, y)
         return (maxx/2, maxy/2)
 
-class FallingBlock(Actor):
-    """A block that falls when the player lands on it.
-"""
-    def __init__(s, x, y, corners, color, batch=None):
-        s.corners = corners
-        s.color = color
-        Actor.__init__(s, batch)
-        s.physicsObj = FallingBlockPhysicsObj(s)
-        s.physicsObj.position = (x,y)
-        s.sprite = BlockSprite(s, corners, color, batch=batch)
-
-class FallingBlock(Actor):
-    """A block that falls when the player lands on it.
-"""
-    def __init__(s, x, y, corners, color, batch=None):
-        s.corners = corners
-        s.color = color
-        Actor.__init__(s, batch)
-        s.physicsObj = FallingBlockPhysicsObj(s)
-        s.physicsObj.position = (x,y)
-        s.sprite = BlockSprite(s, corners, color, batch=batch)
-
-
-class FallingBlockDescription(object):
-    def __init__(s, x, y, corners, color):
-        s.x = x
-        s.y = y
-        s.corners = corners
-        s.color = color
-
-    def create(s):
-        """Returns the block described by this."""
-        return FallingBlock(s.x, s.y, s.corners, s.color)
-
-    @staticmethod
-    def fromObject(block):
-        """Returns a `BlockDescription` for the given `Block`."""
-        color = block.color
-        x, y = block.physicsObj.position
-        corners = block.corners
-        return FallingBlockDescription(x, y, corners, color)
-
-    def __repr__(s):
-        return "FallingBlockDescription({}, {}, {}, {})".format(
-            s.x, s.y, s.corners, s.color
-            )
 
 class BlockDescription(object):
     """An object that contains the description of a `Block` with none
@@ -94,7 +46,7 @@ of the runtime data."""
 
     def create(s):
         """Returns the block described by this."""
-        return Block(s.x, s.y, s.corners, s.color)
+        return Block((s.x, s.y), s.corners, s.color)
 
     @staticmethod
     def fromObject(block):
@@ -108,26 +60,41 @@ of the runtime data."""
         return "BlockDescription({}, {}, {}, {})".format(
             s.x, s.y, s.corners, s.color
             )
+class FallingBlock(Actor):
+    """A block that falls when the player lands on it.
+"""
+    def __init__(s, position, corners, color, batch=None):
+        s.corners = corners
+        s.color = color
+        Actor.__init__(s, batch)
+        s.physicsObj = FallingBlockPhysicsObj(s, position=position)
+        s.physicsObj.position = (x,y)
+        s.sprite = BlockSprite(s, corners, color, batch=batch)
 
-# def createDescription(actor):
-#     """Creates a description object from *any* kind of `Actor`.
 
-#     BUGGO: Keeping this in sync is a pain; it's already fallen out.
-#     Also during the game we never actually use this... yet.  Room
-#     creation goes strictly from static to dynamic, we should never
-#     be _saving_ room state apart from Powerups which are collected
-#     once and never respawn, and so should probably be some sort of
-#     global state flag.
+class FallingBlockDescription(object):
+    def __init__(s, x, y, corners, color):
+        s.x = x
+        s.y = y
+        s.corners = corners
+        s.color = color
 
-#     So do we need this at all?  Well it might be quite useful for
-#     the level designer, perhaps...  Well maybe not."""
-#     if isinstance(actor, Block):
-#         return BlockDescription.fromObject(actor)
-#     elif isinstance(actor, BeginningsPowerupDescription):
-#         return BeginningsPowerupDescription.fromObject(actor)
-        
-#     else:
-#         raise Exception("Type is not describable: ", actor)
+    def create(s):
+        """Returns the block described by this."""
+        return FallingBlock((s.x, s.y), s.corners, s.color)
+
+    @staticmethod
+    def fromObject(block):
+        """Returns a `BlockDescription` for the given `Block`."""
+        color = block.color
+        x, y = block.physicsObj.position
+        corners = block.corners
+        return FallingBlockDescription(x, y, corners, color)
+
+    def __repr__(s):
+        return "FallingBlockDescription({}, {}, {}, {})".format(
+            s.x, s.y, s.corners, s.color
+            )
     
 def createBlockCenter(x, y, w, h, color=(255, 255, 255, 255), batch=None):
     """Creates a `Terrain` object representing a block of the given size.
@@ -137,7 +104,7 @@ x and y are the coordinates of the center."""
     wf = float(w)
     hf = float(h)
     corners = rectCornersCenter(0, 0, w, h)
-    t = Block(x, y, corners, color, batch)
+    t = Block((x, y), corners, color, batch)
     return t
 
 def createBlockCorner(x, y, w, h, color=(255, 255, 255, 255), batch=None):
@@ -148,13 +115,13 @@ x and y are the coordinates of the lower-left point."""
     wf = float(w)
     hf = float(h)
     corners = rectCornersCorner(0, 0, w, h)
-    t = Block(x, y, corners, color, batch)
+    t = Block((x, y), corners, color, batch)
     return t
 
 class Door(Actor):
-    def __init__(s, x, y, destination, destx, desty):
+    def __init__(s, position, destination, destx, desty):
         Actor.__init__(s)
-        s.physicsObj = DoorPhysicsObj(s, position=(x, y))
+        s.physicsObj = DoorPhysicsObj(s, position=position)
         img = rcache.getLineImage(images.door)
         s.sprite = LineSprite(s, img)
         s.passable = True
@@ -184,7 +151,7 @@ class DoorDescription(object):
 
     def create(s):
         """Returns the block described by this."""
-        return Door(s.x, s.y, s.destination, s.destx, s.desty)
+        return Door((s.x, s.y), s.destination, s.destx, s.desty)
 
     @staticmethod
     def fromObject(door):
@@ -198,10 +165,10 @@ class DoorDescription(object):
             )
 
 class Tree(Actor):
-    def __init__(s, x, y):
+    def __init__(s, position):
         Actor.__init__(s)
         s.physicsObj = PhysicsObj(s)
-        s.physicsObj.position = (x,y)
+        s.physicsObj.position = position
         img = rcache.getLineImage(images.tree)
         s.sprite = LineSprite(s, img)
 
@@ -212,7 +179,7 @@ class TreeDescription(object):
 
     def create(s):
         """Returns the block described by this."""
-        return Tree(s.x, s.y)
+        return Tree((s.x, s.y))
 
     @staticmethod
     def fromObject(tree):
@@ -319,3 +286,31 @@ along with code to create them.
 #             s.space.remove(constraint)
 #         for shape in act.physicsObj.shapes:
 #             s.space.remove(shape)
+
+
+
+enter = enum("LEFT", "RIGHT", "UP", "DOWN")
+
+class Chunk(object):
+    """A piece of terrain; rooms are created by selecting and tiling together
+Chunks into a grid.
+
+Chunks have information that tells where entrances are, so they can be matched
+up to fit.  For now this only tells direction...
+
+XXX: For the moment, Chunks are fixed-size, 500x500 units (pixels).  Sometime
+in the future it may be possible to make Chunks smaller or larger; to keep it
+from being an unsolvable (and irritating) knapsack problem, I suggest limiting
+it to power-of-two (250, 500, 1000, 2000 units, etc)."""
+
+    def __init__(s):
+        s.entrances = []
+        s.size = 500
+        s.descrs = []
+
+    
+    def hasEntrance(s, entrance):
+        return entrance in s.entrances
+
+    def getDescriptions(s):
+        pass

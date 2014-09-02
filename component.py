@@ -198,11 +198,12 @@ and physics interactions, all through pymunk.
 Pretty much all `Actor`s will have one of these.  Inherit from it
 and set the shapes and stuff in the initializer.
 Call one of the setCollision*() methods too."""
-    def __init__(s, owner, mass=None, moment=None):
+    def __init__(s, owner, mass=None, moment=None, position=(0,0)):
         Component.__init__(s, owner)
         s.owner = owner
         
-        s.body = pymunk.Body(mass, moment)
+        s.body = pymunk.Body(mass=mass, moment=moment)
+        s.body.position = position
         # Add a backlink to the Body so we can get this object
         # from collision handler callbacks
         s.body.component = s
@@ -412,17 +413,16 @@ class NativePhysicsObj(Component):
 
             
 class PlayerPhysicsObj(PhysicsObj):
-    def __init__(s, owner):
-        PhysicsObj.__init__(s, owner, 1, 200)
+    def __init__(s, owner, **kwargs):
+        PhysicsObj.__init__(s, owner, mass=1, moment=200, **kwargs)
         s.addShapes(pymunk.Circle(s.body, radius=s.owner.radius))
         s.setFriction(6.0)
         s.setCollisionPlayer()
         s.velocity_limit = (400)
 
 class DoorPhysicsObj(PhysicsObj):
-    def __init__(s, owner, position=(0, 0)):
-        PhysicsObj.__init__(s, owner)
-        s.body.position = position
+    def __init__(s, owner, **kwargs):
+        PhysicsObj.__init__(s, owner, **kwargs)
         poly = pymunk.Poly(s.body, rectCornersCenter(0, 0, 40, 40))
         # Sensors call collision callbacks but don't actually do any physics.
         # I think.
@@ -432,36 +432,33 @@ class DoorPhysicsObj(PhysicsObj):
         
 class PlayerBulletPhysicsObj(PhysicsObj):
     """A generic physics object for small round things that hit stuff."""
-    def __init__(s, owner, position=(0, 0)):
-        PhysicsObj.__init__(s, owner, 1, 10)
-        s.body.position = position
+    def __init__(s, owner, **kwargs):
+        PhysicsObj.__init__(s, owner, mass=1, moment=10, **kwargs)
         s.addShapes(pymunk.Circle(s.body, radius=2))
         s.setCollisionPlayerBullet()
 
 class AirP1PhysicsObjAir(PhysicsObj):
-    def __init__(s, owner, position=(0, 0)):
-        PhysicsObj.__init__(s, owner, 1, 10)
+    def __init__(s, owner, **kwargs):
+        PhysicsObj.__init__(s, owner, 1, 10, **kwargs)
         poly = pymunk.Poly(s.body, rectCornersCenter(0, 0, 10, 80))
         poly.sensor = True
         s.addShapes(poly)
-        s.position = position
         s.setCollisionPlayerBullet()
 
 class AirP1PhysicsObjGround(PhysicsObj):
-    def __init__(s, owner, position=(0, 0)):
-        PhysicsObj.__init__(s, owner, 1, 10)
+    def __init__(s, owner, **kwargs):
+        PhysicsObj.__init__(s, owner, 1, 10, **kwargs)
         poly = pymunk.Poly(s.body, rectCornersCenter(0, 0, 10, 30))
         poly.sensor = True
         s.addShapes(poly)
-        s.position = position
         s.setCollisionPlayerBullet()
 
         
 class BlockPhysicsObj(PhysicsObj):
     """Generic immobile rectangle physics object"""
-    def __init__(s, owner):
+    def __init__(s, owner, **kwargs):
         # Static body 
-        PhysicsObj.__init__(s, owner)
+        PhysicsObj.__init__(s, owner, **kwargs)
         s.addShapes(pymunk.Poly(s.body, owner.corners))
         #print owner.corners
         s.setFriction(0.8)
@@ -476,8 +473,8 @@ in the center of the shape, and that's terrible.
 
 This is because the shape is specified by the corners,
 and life just gets shitty and weird.  idfk"""
-    def __init__(s, owner):
-        PhysicsObj.__init__(s, owner, mass=20, moment=pymunk.inf)
+    def __init__(s, owner, **kwargs):
+        PhysicsObj.__init__(s, owner, mass=20, moment=pymunk.inf, **kwargs)
         constraintBody = pymunk.Body()
         s.addConstraints(pymunk.constraint.GrooveJoint(constraintBody, s.body,
                                                     (0, -50), (0, -150),
@@ -489,18 +486,20 @@ and life just gets shitty and weird.  idfk"""
         s.setElasticity(0.8)
         s.setCollisionTerrain()
         s.body.apply_force((0, 400 * s.body.mass + 100))
+
         
+    # Gotta redefine this 'cause constraints
+    # need to move along with the body
+    # Wow, properties saved me trouble for once.
     def _set_position(s, pos):
         s.body.position = pos
         for aux in s.auxBodys:
             aux.position = pos
-
-    # Gotta redefine this 'cause constraints...
     position = property(lambda s: s.body.position, _set_position)
 
 class CollectablePhysicsObj(PhysicsObj):
-    def __init__(s, owner):
-        PhysicsObj.__init__(s, owner, 1, 200)
+    def __init__(s, owner, **kwargs):
+        PhysicsObj.__init__(s, owner, 1, 200, **kwargs)
         corners = []
         corners.append(rectCornersCenter(0, 0, 20, 10))
         corners.append(rectCornersCenter(0, 0, 10, 20))
@@ -514,16 +513,17 @@ class CollectablePhysicsObj(PhysicsObj):
         s.setCollisionCollectable()
 
 class PowerupPhysicsObj(PhysicsObj):
-    def __init__(s, owner):
-        PhysicsObj.__init__(s, owner) # Static physics object
+    def __init__(s, owner, **kwargs):
+        PhysicsObj.__init__(s, owner, **kwargs) # Static physics object
         corners = rectCornersCenter(0, 0, 10, 10)
 
         s.addShapes(pymunk.Poly(s.body, corners))
         s.setCollisionCollectable()
 
 class CrawlerPhysicsObj(PhysicsObj):
-    def __init__(s, owner):
-        PhysicsObj.__init__(s, owner, mass=100, moment=pymunk.inf)
+    def __init__(s, owner, **kwargs):
+        # TODO: Test moment=none instead of inf
+        PhysicsObj.__init__(s, owner, mass=100, moment=pymunk.inf, **kwargs)
         corners = rectCornersCenter(0, 0, 25, 20)
 
         s.addShapes(pymunk.Poly(s.body, corners))

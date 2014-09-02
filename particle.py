@@ -47,6 +47,8 @@ class ParticleRenderer(object):
     def __init__(s):
         s.pimage = rcache.get_image("playertest")
         s.batch = pyglet.graphics.Batch()
+        # We generate more sprites as necessary and reuse them.
+        # That way (ideally) Pyglet draws 'em all with one draw call.
         s.psprites = []
 
     def draw(s, group):

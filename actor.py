@@ -11,6 +11,58 @@ from component import *
 import rcache
 import images
 
+def described(cls):
+    """MAGIC!
+A decorator that takes a class and makes some changes to make it effectively
+able to serialize and de-serialize instances of itself:
+
+* Alters its __init__ method to save copies of its args
+* Adds a method 'describe' to return a function that, when called, will re-instantiate
+  the object with its original args
+* Adds a method 'describeString' to return a string that is valid Python code to
+  return a description that creates the Actor.
+
+Thus to turn an Actor into a described form, one only to call the Actor's describe()
+method, which returns a function.  Call said function to produce an Actor.
+
+You can also call the Actor's describeString() method to get a string that can be,
+say, put into a level's definition file and create said Actor when called.
+
+XXX: This means that everything passed to an Actor has to be able to be reasonably
+printed out; for instance, if you give it a Batch, well you're out of luck if that
+gets printed out into a level spec file and then re-loaded.
+"""
+    clsinit = cls.__init__
+    def newinit(self, *args, **kwargs):
+        self.__args = (args, kwargs)
+        return clsinit(self, *args, **kwargs)
+
+    def describe(self):
+        def describeFunc():
+            args, kwargs = self.__args
+            return cls(*args, **kwargs)
+        return describeFunc
+
+    def describeString(self):
+        name = self.__class__.__name__
+        args, kwargs = self.__args
+        # Alas, str.format alone is not quite powerful enough to handle
+        # this nicely.
+        sargs = ", ".join(str(arg) for arg in args)
+        kargs = ", ".join("{}={}".format(ky, vl) for ky,vl in kwargs.iteritems())
+        # Dammit this is kinda narsty
+        if len(sargs) > 0 and len(kargs) > 0:
+            argsWithComma = sargs + ", " + kargs
+            return "(lambda: {}({}))".format(name, argsWithComma)
+        else:
+            return "(lambda: {}({}))".format(name, sargs + kargs)
+    
+    cls.__init__ = newinit
+    cls.describe = describe
+    cls.describeString = describeString
+
+    return cls
+
 class Actor(object):
     """The basic thing-that-moves-and-does-stuff in a `Room`."""
     def __init__(s, batch=None):
@@ -46,14 +98,15 @@ class Actor(object):
     def update(s, dt):
         pass
 
+# No description; the keyboard object can't be readily printed.
 class Player(Actor):
     """The player object."""
-    def __init__(s, keyboard, batch=None):
+    def __init__(s, keyboard, position=(0,0), batch=None):
         s.radius = 20
         Actor.__init__(s, batch)
         s.keyboard = keyboard
         s.controller = KeyboardController(s, keyboard)
-        s.physicsObj = PlayerPhysicsObj(s)
+        s.physicsObj = PlayerPhysicsObj(s, position=position)
         img = rcache.getLineImage(images.playerImage)
         s.sprite = LineSprite(s, img)
         #img = rcache.get_image('playertest')
@@ -100,13 +153,14 @@ class Player(Actor):
             s.glowSprite.position = s.physicsObj.position
             s.glowSprite.draw()
 
+@described
 class Collectable(Actor):
     """Something you can collect which does things to you,
 whether restoring your health or unlocking a new Power or whatever."""
 
-    def __init__(s, batch=None):
+    def __init__(s, position=(0,0), batch=None):
         Actor.__init__(s, batch)
-        s.physicsObj = CollectablePhysicsObj(s)
+        s.physicsObj = CollectablePhysicsObj(s, position=position)
         s.sprite = LineSprite(s, rcache.getLineImage(images.collectable))
         s.life = TimedLife(s, 15)
 
@@ -116,11 +170,12 @@ whether restoring your health or unlocking a new Power or whatever."""
     def update(s, dt):
         s.life.update(dt)
 
+@described
 class BeginningsPowerup(Actor):
     "Powerups don't time out and don't move."
-    def __init__(s):
+    def __init__(s, position=(0,0)):
         Actor.__init__(s)
-        s.physicsObj = PowerupPhysicsObj(s)
+        s.physicsObj = PowerupPhysicsObj(s, position=position)
         img = rcache.getLineImage(images.powerup)
         s.sprite = LineSprite(s, img)
 
@@ -134,8 +189,8 @@ class BeginningsPowerupDescription(object):
         s.y = y
 
     def create(s):
-        p = BeginningsPowerup()
-        p.physicsObj.position = (s.x, s.y)
+        p = BeginningsPowerup(position=(s.x, s.y))
+        #p.physicsObj.position = (s.x, s.y)
         return p
 
     @staticmethod
@@ -148,11 +203,11 @@ class BeginningsPowerupDescription(object):
             s.x, s.y
             )
 
-
+@described
 class AirPowerup(Actor):
-    def __init__(s):
+    def __init__(s, position=(0,0)):
         Actor.__init__(s)
-        s.physicsObj = PowerupPhysicsObj(s)
+        s.physicsObj = PowerupPhysicsObj(s, position=position)
         img = rcache.getLineImage(images.powerup)
         s.sprite = LineSprite(s, img)
 
@@ -166,8 +221,8 @@ class AirPowerupDescription(object):
         s.y = y
 
     def create(s):
-        p = AirPowerup()
-        p.physicsObj.position = (s.x, s.y)
+        p = AirPowerup(position=(s.x, s.y))
+        #p.physicsObj.position = (s.x, s.y)
         return p
 
     @staticmethod
@@ -181,16 +236,16 @@ class AirPowerupDescription(object):
             )
 
 
-
+@described
 class CrawlerEnemy(Actor):
     """An enemy that crawls along the ground and hurts when you touch it.
 
 BUGGO: Doesn't currently hurt when you touch it; blocked on better collision
 handling I think."""
-    def __init__(s, batch=None):
+    def __init__(s, position=(0,0), batch=None):
         Actor.__init__(s, batch)
         s.controller = RoamAIController(s)
-        s.physicsObj = CrawlerPhysicsObj(s)
+        s.physicsObj = CrawlerPhysicsObj(s, position=position)
         img = rcache.getLineImage(images.crawler)
         s.sprite = LineSprite(s, img)
 
@@ -228,8 +283,8 @@ class CrawlerEnemyDescription(object):
         s.y = y
 
     def create(s):
-        c = CrawlerEnemy()
-        c.physicsObj.position = (s.x, s.y)
+        c = CrawlerEnemy(position=(s.x, s.y))
+        #c.physicsObj.position = (s.x, s.y)
         return c
 
     @staticmethod
@@ -263,16 +318,18 @@ class CrawlerEnemyDescription(object):
 # onDraw and onUpdate, really
 
 class BeginningP1Bullet(Actor):
-    def __init__(s, x, y, direction, impulse=None, lifetime=None):
+    def __init__(s, position, facing, impulse=None, lifetime=None):
         Actor.__init__(s)
         yVariance = 5
         yOffset = (random.random() * yVariance) - (yVariance / 2)
+
+        x,y = position
         s.physicsObj = PlayerBulletPhysicsObj(s, position=(x, y+yOffset))
 
         image = rcache.getLineImage(images.beginningsP1Bullet)
         s.sprite = LineSprite(s, image)
         if impulse == None:
-            xImpulse = 400 * direction
+            xImpulse = 400 * facing
             yImpulse = yOffset * 10
             s.physicsObj.apply_impulse((xImpulse, yImpulse))
         else:
@@ -282,7 +339,7 @@ class BeginningP1Bullet(Actor):
         s.physicsObj.apply_force((0, 400))
         s.life = TimedLife(s, 0.4 + (random.random() / 3.0))
 
-        s.facing = direction
+        s.facing = facing
         s.damage = 1
 
     def update(s, dt):
@@ -293,8 +350,9 @@ class BeginningP1Bullet(Actor):
         pass
 
 class BeginningP2Bullet(Actor):
-    def __init__(s, x, y, direction):
+    def __init__(s, position, direction):
         Actor.__init__(s)
+        x,y = position
         s.physicsObj = PlayerBulletPhysicsObj(s, position=(x, y))
         # TODO: Placeholder image
         image = rcache.getLineImage(images.powerup)
@@ -325,16 +383,17 @@ class BeginningP2Bullet(Actor):
             newx = x - (vx / 20.0)
             newy = y - (vy / 20.0)
             # TODO: Placeholder bullet
-            b = BeginningP1Bullet(newx, newy, FACING_RIGHT, impulse=(xForce, yForce))
+            b = BeginningP1Bullet((newx, newy), FACING_RIGHT, impulse=(xForce, yForce))
             b.life = TimedLife(b, 0.15)
             b.physicsObj.body.angle = rangle
             s.world.addActor(b)
 
 class AirP1BulletAir(Actor):
-    def __init__(s, x, y, direction):
+    def __init__(s, position, direction):
         Actor.__init__(s)
         yVariance = 5
         yOffset = (random.random() * yVariance) - (yVariance / 2)
+        x,y = position
         s.physicsObj = AirP1PhysicsObjAir(s, position=(x, y+yOffset))
 
         image = rcache.getLineImage(images.airP1BulletAir)
@@ -367,10 +426,11 @@ class AirP1BulletAir(Actor):
             s.sprite.draw()
 
 class AirP1BulletGround(Actor):
-    def __init__(s, x, y, direction):
+    def __init__(s, position, direction):
         Actor.__init__(s)
         yVariance = 5
         yOffset = (random.random() * yVariance) - (yVariance / 2)
+        x,y = position
         s.physicsObj = AirP1PhysicsObjGround(s, position=(x, y+yOffset))
 
         image = rcache.getLineImage(images.airP1BulletGround)
@@ -441,8 +501,9 @@ class AirP2Bullet(Actor):
     
 
     
-    def __init__(s, x, y, direction):
+    def __init__(s, position, direction):
         Actor.__init__(s)
+        x,y = position
         s.physicsObj = AirP1PhysicsObjGround(s, position=(x, y))
         s.physicsObj.apply_force((0, 400))
         # Different image each time, not cached!
@@ -517,9 +578,9 @@ class NullPower(object):
         pass
 
     def fireBullet(s, bulletClass):
-        x, y = s.owner.physicsObj.position
+        pos = s.owner.physicsObj.position
         direction = s.owner.facing
-        bullet = bulletClass(x, y, direction)
+        bullet = bulletClass(pos, direction)
         s.owner.world.addActor(bullet)
 
     def draw(s, shader):
@@ -529,7 +590,7 @@ class NullPower(object):
 # BUGGO:
 # As the code stands, with Beginnings and Air powers both
 # attacks can be used pretty much at the same time.  Do
-# we want it to be this way?
+# we want it to be this way?  Probably not!
 class BeginningsPower(NullPower):
     """The Beginnings elemental power set."""
     def __init__(s, owner):
