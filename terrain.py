@@ -147,7 +147,11 @@ The thought makes my nipples tingle in fear.
 Also a lot of things, like platforms, become invalid if rotated
 though possibly still workable if mirrored left-right.  Hmm.
 
-KISS!"""
+KISS!
+
+Actually, what would be useful is a routine to automagically block off
+particular entrances so we don't have to go through another pass and add
+more things to do that later."""
 
     size = 500
 
@@ -252,17 +256,13 @@ capped off (TODO: eventually).
         else:
             raise Exception("Really not possible!")
 
-    numchunks = num
-    coordstack = []
-    x = 0
-    y = 0
     chunk = random.choice(chunklist)
-    addChunkAt(x, y, chunk)
-    while numchunks > 0:
+    addChunkAt(0, 0, chunk)
+    numchunks = num - 1
+    while True:
         for coord, chunk in resolvedChunks.copy().iteritems():
             x,y = coord
             #print "Numchunks:", numchunks
-            numchunks -= 1
             for entrance in chunk.entrances:
                 if not chunkExistsPastEntrance(x, y, entrance):
                     # Add a chunk there
@@ -270,6 +270,12 @@ capped off (TODO: eventually).
                     nx, ny = coordPastDirection(x, y, entrance)
                     #print "Adding chunk at", nx, ny
                     addChunkAt(nx, ny, newChunk)
+
+                    # If we have enough chunks, return.
+                    # (Keeping in mind that we started with one)
+                    numchunks -= 1
+                    if numchunks <= 0: return resolvedChunks
+
 
     return resolvedChunks
 
@@ -289,6 +295,7 @@ lrCorn = Chunk(u'╝', [], [entranceDirection.LEFT, entranceDirection.UP])
 chunks = [hall, cross, tUp, tDown, tLeft, tRight, shaft, ulCorn, llCorn, urCorn, lrCorn]
 layedout = layOutChunks(50, chunks)
 
+print "Number of chunks created:", len(layedout)
 chars = []
 for i in xrange(-5, 6):
     for j in xrange(-5, 6):
