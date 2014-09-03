@@ -38,9 +38,11 @@ gets printed out into a level spec file and then re-loaded.
         return clsinit(self, *args, **kwargs)
 
     def describe(self):
-        def describeFunc():
-            args, kwargs = self.__args
-            return cls(*args, **kwargs)
+        def describeFunc(**kwargs):
+            args, basekwargs = self.__args
+            for ky,vl in kwargs.iteritems():
+                basekwargs[ky] = vl
+            return cls(*args, **basekwargs)
         return describeFunc
 
     def describeString(self):
@@ -48,14 +50,16 @@ gets printed out into a level spec file and then re-loaded.
         args, kwargs = self.__args
         # Alas, str.format alone is not quite powerful enough to handle
         # this nicely.
-        sargs = ", ".join(str(arg) for arg in args)
-        kargs = ", ".join("{}={}".format(ky, vl) for ky,vl in kwargs.iteritems())
+        sargs = ", ".join(repr(arg) for arg in args)
+        kargs = ", ".join("{}={}".format(ky, repr(vl)) for ky,vl in kwargs.iteritems())
         # Dammit this is kinda narsty
         if len(sargs) > 0 and len(kargs) > 0:
             argsWithComma = sargs + ", " + kargs
-            return "(lambda: {}({}))".format(name, argsWithComma)
+            return "(lambda **kwargs: {}({}, **kwargs))".format(name, argsWithComma)
+        elif len(sargs) == 0 and len(kargs) == 0:
+            return "(lambda **kwargs: {}(**kwargs))".format(name)
         else:
-            return "(lambda: {}({}))".format(name, sargs + kargs)
+            return "(lambda **kwargs: {}({}, **kwargs))".format(name, sargs + kargs)
     
     cls.__init__ = newinit
     cls.describe = describe
