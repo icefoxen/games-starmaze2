@@ -184,7 +184,7 @@ BUGGO: Solid colors only"""
         y = math.cos(rStartAngle) * r
 
         verts = []
-        for i in range(numSegments+1):
+        for i in xrange(numSegments+1):
             verts.append(Vertex(x + cx, y + cy, color))
             tx = -y
             ty = x

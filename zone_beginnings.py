@@ -86,4 +86,8 @@ arena = Room("Arena", [
 
 
 def generateZone():
+    #for x in [entryway, cathedral, arena]:
+    #    print "START"
+    #    for descr in x.descr:
+    #        print descr().describeString()
     return [entryway, cathedral, arena]

@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import random
 
 import pyglet
@@ -126,7 +128,7 @@ along with code to create them.
 
  
 
-enteranceDirection = enum("LEFT", "RIGHT", "UP", "DOWN")
+entranceDirection = enum("LEFT", "RIGHT", "UP", "DOWN")
 
 class Chunk(object):
     """A piece of terrain; rooms are created by selecting and tiling together
@@ -138,16 +140,164 @@ up to fit.  For now this only tells direction...
 XXX: For the moment, Chunks are fixed-size, 500x500 units (pixels).  Sometime
 in the future it may be possible to make Chunks smaller or larger; to keep it
 from being an unsolvable (and irritating) knapsack problem, I suggest limiting
-it to power-of-two (250, 500, 1000, 2000 units, etc)."""
+it to power-of-two (250, 500, 1000, 2000 units, etc).
 
-    def __init__(s):
-        s.entrances = []
-        s.size = 500
-        s.descrs = []
+Oh gods.  Can we rotate or mirror chunks automatically?
+The thought makes my nipples tingle in fear.
+Also a lot of things, like platforms, become invalid if rotated
+though possibly still workable if mirrored left-right.  Hmm.
 
+KISS!"""
+
+    size = 500
+
+    def __init__(s, name="", descrs=[], entrances=[]):
+        s.name = name
+        s.entrances = entrances
+        s.descrs = descrs
     
     def hasEntrance(s, entrance):
         return entrance in s.entrances
 
-    def getDescriptions(s):
-        pass
+    def _relocateDescr(s, descr, offset):
+        ox, oy = offset
+        def relocatedDescr():
+            act = descr()
+            x,y = act.physicsObj.position
+            act.physicsObj.position = (x+ox, y+oy)
+            return act
+        return relocatedDescr
+
+    def getRelocatedDescrs(s, offset):
+        """Returns all the descriptors in the Chunk,
+relocated to start at the given offset coordinate."""
+        acts = [descr() for descr in s.descrs]
+        s._relocateActors(offset, acts)
+        return acts
+
+    def __str__(s):
+        return u"Chunk({})".format(s.name)
+
+
+def layOutChunks(num, chunklist):
+    """Returns a list of relocated descrs made out of num number of chunks
+selected from chunklist, laid out at random.
+Just feed the list into a Room object and bob's yer uncle
+
+...okay, some invariants.
+First, assume all chunks have at least 2 entrances.
+Unresolved entrances at the end of the process will be
+capped off (TODO: eventually).
+"""
+    resolvedChunks = {}
+
+    entranceDirectionAll = [entranceDirection.LEFT, entranceDirection.RIGHT,
+                            entranceDirection.UP, entranceDirection.DOWN]
+    directionChunks = {
+            direction : filter(lambda x: x.hasEntrance(direction), chunklist)
+            for direction in entranceDirectionAll
+            }
+    
+    def chunkExistsAt(x,y):
+        return resolvedChunks.get((x,y),False)
+
+    def chunkExistsPastEntrance(x, y, entrance):
+        if entrance == entranceDirection.UP:
+            return chunkExistsAt(x, y+1)
+        elif entrance == entranceDirection.DOWN:
+            return chunkExistsAt(x, y-1)
+        elif entrance == entranceDirection.LEFT:
+            return chunkExistsAt(x-1, y)
+        elif entrance == entranceDirection.RIGHT:
+            return chunkExistsAt(x+1, y)
+        else:
+            raise Exception("Not possible!")        
+
+    def chunkExistsAbove(x,y):
+        return chunkExistsAt(x,y+1)
+
+    def chunkExistsBelow(x,y):
+        return chunkExistsAt(x,y-1)
+    
+    def chunkExistsRight(x,y):
+        return chunkExistsAt(x+1,y)
+
+    def chunkExistsLeft(x,y):
+        return chunkExistsAt(x-1,y)
+
+    def addChunkAt(x,y, chunk):
+        resolvedChunks[(x,y)] = chunk
+
+    def inverseDirection(direction):
+        if direction == entranceDirection.UP:
+            return entranceDirection.DOWN
+        elif direction == entranceDirection.DOWN:
+            return entranceDirection.UP
+        elif direction == entranceDirection.LEFT:
+            return entranceDirection.RIGHT
+        elif direction == entranceDirection.RIGHT:
+            return entranceDirection.LEFT
+        else:
+            raise Exception("Really not possible!")
+
+    def coordPastDirection(x, y, direction):
+        if direction == entranceDirection.UP:
+            return (x, y+1)
+        elif direction == entranceDirection.DOWN:
+            return (x, y-1)
+        elif direction == entranceDirection.LEFT:
+            return (x-1, y)
+        elif direction == entranceDirection.RIGHT:
+            return (x+1, y)
+        else:
+            raise Exception("Really not possible!")
+
+    numchunks = num
+    coordstack = []
+    x = 0
+    y = 0
+    chunk = random.choice(chunklist)
+    addChunkAt(x, y, chunk)
+    while numchunks > 0:
+        for coord, chunk in resolvedChunks.copy().iteritems():
+            x,y = coord
+            #print "Numchunks:", numchunks
+            numchunks -= 1
+            for entrance in chunk.entrances:
+                if not chunkExistsPastEntrance(x, y, entrance):
+                    # Add a chunk there
+                    newChunk = random.choice(directionChunks[inverseDirection(entrance)])
+                    nx, ny = coordPastDirection(x, y, entrance)
+                    #print "Adding chunk at", nx, ny
+                    addChunkAt(nx, ny, newChunk)
+
+    return resolvedChunks
+
+
+hall   = Chunk(u'═', [], [entranceDirection.LEFT, entranceDirection.RIGHT])
+cross  = Chunk(u'╬', [], [entranceDirection.LEFT, entranceDirection.RIGHT, entranceDirection.UP, entranceDirection.DOWN])
+tUp    = Chunk(u'╩', [], [entranceDirection.LEFT, entranceDirection.RIGHT, entranceDirection.UP])
+tDown  = Chunk(u'╦', [], [entranceDirection.LEFT, entranceDirection.RIGHT, entranceDirection.DOWN])
+tLeft  = Chunk(u'╠', [], [entranceDirection.LEFT, entranceDirection.UP, entranceDirection.DOWN])
+tRight = Chunk(u'╣', [], [entranceDirection.RIGHT, entranceDirection.UP, entranceDirection.DOWN])
+shaft  = Chunk(u'║', [], [entranceDirection.UP, entranceDirection.DOWN])
+ulCorn = Chunk(u'╔', [], [entranceDirection.RIGHT, entranceDirection.DOWN])
+llCorn = Chunk(u'╚', [], [entranceDirection.RIGHT, entranceDirection.UP])
+urCorn = Chunk(u'╗', [], [entranceDirection.LEFT, entranceDirection.DOWN])
+lrCorn = Chunk(u'╝', [], [entranceDirection.LEFT, entranceDirection.UP])
+
+chunks = [hall, cross, tUp, tDown, tLeft, tRight, shaft, ulCorn, llCorn, urCorn, lrCorn]
+layedout = layOutChunks(50, chunks)
+
+chars = []
+for i in xrange(-5, 6):
+    for j in xrange(-5, 6):
+        chunk = layedout.get((i,j))
+        if chunk is not None:
+            chars.append(chunk.name)
+        else:
+            chars.append('.')
+    chars.append('\n')
+
+print ''.join(chars)
+    

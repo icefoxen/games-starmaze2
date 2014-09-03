@@ -38,11 +38,9 @@ gets printed out into a level spec file and then re-loaded.
         return clsinit(self, *args, **kwargs)
 
     def describe(self):
-        def describeFunc(**kwargs):
-            args, basekwargs = self.__args
-            for ky,vl in kwargs.iteritems():
-                basekwargs[ky] = vl
-            return cls(*args, **basekwargs)
+        def describeFunc():
+            args, kwargs = self.__args
+            return cls(*args, **kwargs)
         return describeFunc
 
     def describeString(self):
@@ -55,11 +53,9 @@ gets printed out into a level spec file and then re-loaded.
         # Dammit this is kinda narsty
         if len(sargs) > 0 and len(kargs) > 0:
             argsWithComma = sargs + ", " + kargs
-            return "(lambda **kwargs: {}({}, **kwargs))".format(name, argsWithComma)
-        elif len(sargs) == 0 and len(kargs) == 0:
-            return "(lambda **kwargs: {}(**kwargs))".format(name)
+            return "(lambda: {}({}))".format(name, argsWithComma)
         else:
-            return "(lambda **kwargs: {}({}, **kwargs))".format(name, sargs + kargs)
+            return "(lambda: {}({}))".format(name, sargs + kargs)
     
     cls.__init__ = newinit
     cls.describe = describe
@@ -311,7 +307,7 @@ class BeginningP2Bullet(Actor):
         enemy.takeDamage(s.damage)
 
     def onDeath(s):
-        for angle in range(0, 360, 30):
+        for angle in xrange(0, 360, 30):
             rangle = math.radians(angle)
             force = 1000
             xForce = math.cos(rangle) * force
@@ -411,7 +407,7 @@ class AirP1BulletGround(Actor):
 
 
 # We precalculate these because it's actually pretty intensive
-LIGHTNINGIMAGES = [images.airP2Bullet() for _ in range(20)]
+LIGHTNINGIMAGES = [images.airP2Bullet() for _ in xrange(20)]
 class AirP2Bullet(Actor):
     def __init__(s, position, direction):
         Actor.__init__(s)

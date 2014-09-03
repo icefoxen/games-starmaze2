@@ -163,7 +163,7 @@ it was at the top of the stack.)"""
     # this program must be currently bound
     def uniformf(self, name, *vals):
         # check there are 1-4 values
-        if len(vals) in range(1, 5):
+        if len(vals) in xrange(1, 5):
             # select the correct function
             func = { 1 : glUniform1f,
                 2 : glUniform2f,
@@ -178,7 +178,7 @@ it was at the top of the stack.)"""
     # this program must be currently bound
     def uniformi(self, name, *vals):
         # check there are 1-4 values
-        if len(vals) in range(1, 5):
+        if len(vals) in xrange(1, 5):
             # select the correct function
             { 1 : glUniform1i,
                 2 : glUniform2i,

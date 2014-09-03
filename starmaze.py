@@ -182,7 +182,7 @@ update frame."""
 
     def update(s, dt):
         step = dt / s.physicsSteps
-        for _ in range(int(s.physicsSteps)):
+        for _ in xrange(int(s.physicsSteps)):
             s.space.step(step)
         s.camera.update(dt)
 
