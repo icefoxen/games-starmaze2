@@ -128,7 +128,20 @@ along with code to create them.
 
  
 
-entranceDirection = enum("LEFT", "RIGHT", "UP", "DOWN")
+DIRECTION = enum("LEFT", "RIGHT", "UP", "DOWN")
+DIRECTIONS = [DIRECTION.LEFT, DIRECTION.RIGHT, DIRECTION.UP, DIRECTION.DOWN]
+
+def oppositeDirection(direction):
+    if direction == DIRECTION.UP:
+        return DIRECTION.DOWN
+    elif direction == DIRECTION.DOWN:
+        return DIRECTION.UP
+    elif direction == DIRECTION.LEFT:
+        return DIRECTION.RIGHT
+    elif direction == DIRECTION.RIGHT:
+        return DIRECTION.LEFT
+    else:
+        raise Exception("Invalid direction: {}".format(direction))
 
 class Chunk(object):
     """A piece of terrain; rooms are created by selecting and tiling together
@@ -193,29 +206,39 @@ First, assume all chunks have at least 2 entrances.
 Unresolved entrances at the end of the process will be
 capped off (TODO: eventually).
 """
+    # A tuple->chunk table that has the current
+    # state of the map.
     resolvedChunks = {}
 
-    entranceDirectionAll = [entranceDirection.LEFT, entranceDirection.RIGHT,
-                            entranceDirection.UP, entranceDirection.DOWN]
+    # A table where we can specify a direction and get a list of
+    # all the chunks that have that direction.
     directionChunks = {
             direction : filter(lambda x: x.hasEntrance(direction), chunklist)
-            for direction in entranceDirectionAll
+            for direction in DIRECTIONS
             }
+    # for d,chunks in directionChunks.iteritems():
+    #     print "DIRECTION: {}".format(d)
+    #     for c in chunks:
+    #         print c.name
     
     def chunkExistsAt(x,y):
         return resolvedChunks.get((x,y),False)
 
-    def chunkExistsPastEntrance(x, y, entrance):
-        if entrance == entranceDirection.UP:
-            return chunkExistsAt(x, y+1)
-        elif entrance == entranceDirection.DOWN:
-            return chunkExistsAt(x, y-1)
-        elif entrance == entranceDirection.LEFT:
-            return chunkExistsAt(x-1, y)
-        elif entrance == entranceDirection.RIGHT:
-            return chunkExistsAt(x+1, y)
+    def coordPastDirection(x, y, direction):
+        if direction == DIRECTION.UP:
+            return (x, y+1)
+        elif direction == DIRECTION.DOWN:
+            return (x, y-1)
+        elif direction == DIRECTION.LEFT:
+            return (x-1, y)
+        elif direction == DIRECTION.RIGHT:
+            return (x+1, y)
         else:
             raise Exception("Not possible!")        
+
+    def chunkExistsPastEntrance(x, y, entrance):
+        coord = coordPastDirection(x, y, entrance)
+        return chunkExistsAt(*coord)
 
     def chunkExistsAbove(x,y):
         return chunkExistsAt(x,y+1)
@@ -232,74 +255,88 @@ capped off (TODO: eventually).
     def addChunkAt(x,y, chunk):
         resolvedChunks[(x,y)] = chunk
 
-    def inverseDirection(direction):
-        if direction == entranceDirection.UP:
-            return entranceDirection.DOWN
-        elif direction == entranceDirection.DOWN:
-            return entranceDirection.UP
-        elif direction == entranceDirection.LEFT:
-            return entranceDirection.RIGHT
-        elif direction == entranceDirection.RIGHT:
-            return entranceDirection.LEFT
-        else:
-            raise Exception("Really not possible!")
-
-    def coordPastDirection(x, y, direction):
-        if direction == entranceDirection.UP:
-            return (x, y+1)
-        elif direction == entranceDirection.DOWN:
-            return (x, y-1)
-        elif direction == entranceDirection.LEFT:
-            return (x-1, y)
-        elif direction == entranceDirection.RIGHT:
-            return (x+1, y)
-        else:
-            raise Exception("Really not possible!")
-
     chunk = random.choice(chunklist)
     addChunkAt(0, 0, chunk)
     numchunks = num - 1
+
+    def generateChunkOffOfCoord(x, y, chunks):
+        chunk = chunks[(x,y)]
+        print u"Adding things off chunk {} at {},{}".format(chunk.name, x,y)
+        print "Chunk has entrances: {}".format(chunk.entrances)
+        # Aieee, this mutates chunk.entrances
+        random.shuffle(chunk.entrances)
+        for entrance in chunk.entrances:
+            print "Checking entrance {}".format(entrance)
+            if chunkExistsPastEntrance(x, y, entrance):
+                print "Chunk exists past that entrance, skipping."
+            else:
+                newChunk = random.choice(directionChunks[oppositeDirection(entrance)])
+                coord = coordPastDirection(x,y,entrance)
+                print u"Selected chunk {} to put at {}".format(newChunk.name, coord)
+                return (coord, newChunk)
+        # If we get here there are no entrances
+        print "No open entrances off that chunk."
+        return False
+
     while True:
-        for coord, chunk in resolvedChunks.copy().iteritems():
-            x,y = coord
-            #print "Numchunks:", numchunks
-            for entrance in chunk.entrances:
-                if not chunkExistsPastEntrance(x, y, entrance):
-                    # Add a chunk there
-                    newChunk = random.choice(directionChunks[inverseDirection(entrance)])
-                    nx, ny = coordPastDirection(x, y, entrance)
-                    #print "Adding chunk at", nx, ny
-                    addChunkAt(nx, ny, newChunk)
+        newChunks = {}    
+        for (x,y), chunk in resolvedChunks.iteritems():
+            print "Adding things off chunk at {},{}".format(x,y)
+            print "Chunk has entrances: {}".format(chunk.entrances)
+            newChunk = generateChunkOffOfCoord(x, y, resolvedChunks)
+            print u"New chunk: {}".format(newChunk)
+            if newChunk:
+                (x,y), newC = newChunk
+                newChunks[(x,y)] = newC
+        for coord, chunk in newChunks.iteritems():
+            resolvedChunks[coord] = chunk
+            if len(resolvedChunks) > num:
+                return resolvedChunks
+            
 
-                    # If we have enough chunks, return.
-                    # (Keeping in mind that we started with one)
-                    numchunks -= 1
-                    if numchunks <= 0: return resolvedChunks
+        
+        # for coord, chunk in resolvedChunks.copy().iteritems():
+        #     x,y = coord
+        #     #print "Numchunks:", numchunks
+        #     for entrance in chunk.entrances:
+        #         if not chunkExistsPastEntrance(x, y, entrance):
+        #             # Add a chunk there
+        #             newChunk = random.choice(directionChunks[oppositeDirection(entrance)])
+        #             nx, ny = coordPastDirection(x, y, entrance)
+        #             #print "Adding chunk at", nx, ny
+        #             addChunkAt(nx, ny, newChunk)
+
+        #             # If we have enough chunks, return.
+        #             # (Keeping in mind that we started with one)
+        #             numchunks -= 1
+        #             if numchunks <= 0: return resolvedChunks
+        #         else:
+        #             print "Chunk exists at {},{}
 
 
-    return resolvedChunks
+    #return resolvedChunks
 
 
-hall   = Chunk(u'═', [], [entranceDirection.LEFT, entranceDirection.RIGHT])
-cross  = Chunk(u'╬', [], [entranceDirection.LEFT, entranceDirection.RIGHT, entranceDirection.UP, entranceDirection.DOWN])
-tUp    = Chunk(u'╩', [], [entranceDirection.LEFT, entranceDirection.RIGHT, entranceDirection.UP])
-tDown  = Chunk(u'╦', [], [entranceDirection.LEFT, entranceDirection.RIGHT, entranceDirection.DOWN])
-tLeft  = Chunk(u'╠', [], [entranceDirection.LEFT, entranceDirection.UP, entranceDirection.DOWN])
-tRight = Chunk(u'╣', [], [entranceDirection.RIGHT, entranceDirection.UP, entranceDirection.DOWN])
-shaft  = Chunk(u'║', [], [entranceDirection.UP, entranceDirection.DOWN])
-ulCorn = Chunk(u'╔', [], [entranceDirection.RIGHT, entranceDirection.DOWN])
-llCorn = Chunk(u'╚', [], [entranceDirection.RIGHT, entranceDirection.UP])
-urCorn = Chunk(u'╗', [], [entranceDirection.LEFT, entranceDirection.DOWN])
-lrCorn = Chunk(u'╝', [], [entranceDirection.LEFT, entranceDirection.UP])
+hall   = Chunk(u'═', [], [DIRECTION.LEFT, DIRECTION.RIGHT])
+cross  = Chunk(u'╬', [], [DIRECTION.LEFT, DIRECTION.RIGHT, DIRECTION.UP, DIRECTION.DOWN])
+tUp    = Chunk(u'╩', [], [DIRECTION.LEFT, DIRECTION.RIGHT, DIRECTION.UP])
+tDown  = Chunk(u'╦', [], [DIRECTION.LEFT, DIRECTION.RIGHT, DIRECTION.DOWN])
+tLeft  = Chunk(u'╠', [], [DIRECTION.RIGHT, DIRECTION.UP, DIRECTION.DOWN])
+tRight = Chunk(u'╣', [], [DIRECTION.LEFT, DIRECTION.UP, DIRECTION.DOWN])
+shaft  = Chunk(u'║', [], [DIRECTION.UP, DIRECTION.DOWN])
+ulCorn = Chunk(u'╔', [], [DIRECTION.RIGHT, DIRECTION.DOWN])
+llCorn = Chunk(u'╚', [], [DIRECTION.RIGHT, DIRECTION.UP])
+urCorn = Chunk(u'╗', [], [DIRECTION.LEFT, DIRECTION.DOWN])
+lrCorn = Chunk(u'╝', [], [DIRECTION.LEFT, DIRECTION.UP])
 
 chunks = [hall, cross, tUp, tDown, tLeft, tRight, shaft, ulCorn, llCorn, urCorn, lrCorn]
-layedout = layOutChunks(50, chunks)
+layedout = layOutChunks(20, chunks)
 
 print "Number of chunks created:", len(layedout)
 chars = []
-for i in xrange(-5, 6):
+for i in xrange(5, -6, -1):
     for j in xrange(-5, 6):
-        chunk = layedout.get((i,j))
+        chunk = layedout.get((j,i))
         if chunk is not None:
             chars.append(chunk.name)
         else:
