@@ -297,9 +297,9 @@ layedout = layOutChunks(50, chunks)
 
 print "Number of chunks created:", len(layedout)
 chars = []
-for i in xrange(-5, 6):
+for i in xrange(5, -6, -1):
     for j in xrange(-5, 6):
-        chunk = layedout.get((i,j))
+        chunk = layedout.get((j,i))
         if chunk is not None:
             chars.append(chunk.name)
         else:
