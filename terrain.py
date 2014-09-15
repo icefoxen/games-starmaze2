@@ -330,7 +330,7 @@ urCorn = Chunk(u'╗', [], [DIRECTION.LEFT, DIRECTION.DOWN])
 lrCorn = Chunk(u'╝', [], [DIRECTION.LEFT, DIRECTION.UP])
 
 chunks = [hall, cross, tUp, tDown, tLeft, tRight, shaft, ulCorn, llCorn, urCorn, lrCorn]
-layedout = layOutChunks(20, chunks)
+layedout = layOutChunks(50, chunks)
 
 print "Number of chunks created:", len(layedout)
 chars = []
