@@ -216,11 +216,7 @@ capped off (TODO: eventually).
             direction : filter(lambda x: x.hasEntrance(direction), chunklist)
             for direction in DIRECTIONS
             }
-    # for d,chunks in directionChunks.iteritems():
-    #     print "DIRECTION: {}".format(d)
-    #     for c in chunks:
-    #         print c.name
-    
+
     def chunkExistsAt(x,y):
         return resolvedChunks.get((x,y),False)
 
@@ -240,51 +236,40 @@ capped off (TODO: eventually).
         coord = coordPastDirection(x, y, entrance)
         return chunkExistsAt(*coord)
 
-    def chunkExistsAbove(x,y):
-        return chunkExistsAt(x,y+1)
-
-    def chunkExistsBelow(x,y):
-        return chunkExistsAt(x,y-1)
-    
-    def chunkExistsRight(x,y):
-        return chunkExistsAt(x+1,y)
-
-    def chunkExistsLeft(x,y):
-        return chunkExistsAt(x-1,y)
-
-    def addChunkAt(x,y, chunk):
-        resolvedChunks[(x,y)] = chunk
-
+    # Get initial chunk
     chunk = random.choice(chunklist)
-    addChunkAt(0, 0, chunk)
-    numchunks = num - 1
+    resolvedChunks[(0,0)] = chunk
+    num -= 1
 
+    # This is maybe not the most efficient method since it tends to re-check
+    # things it's already done a lot.  But it works!
     def generateChunkOffOfCoord(x, y, chunks):
         chunk = chunks[(x,y)]
-        print u"Adding things off chunk {} at {},{}".format(chunk.name, x,y)
-        print "Chunk has entrances: {}".format(chunk.entrances)
+        #print u"Adding things off chunk {} at {},{}".format(chunk.name, x,y)
+        #print "Chunk has entrances: {}".format(chunk.entrances)
         # Aieee, this mutates chunk.entrances
         random.shuffle(chunk.entrances)
         for entrance in chunk.entrances:
-            print "Checking entrance {}".format(entrance)
+            #print "Checking entrance {}".format(entrance)
             if chunkExistsPastEntrance(x, y, entrance):
-                print "Chunk exists past that entrance, skipping."
+                pass
+                #print "Chunk exists past that entrance, skipping."
             else:
                 newChunk = random.choice(directionChunks[oppositeDirection(entrance)])
                 coord = coordPastDirection(x,y,entrance)
-                print u"Selected chunk {} to put at {}".format(newChunk.name, coord)
+                #print u"Selected chunk {} to put at {}".format(newChunk.name, coord)
                 return (coord, newChunk)
         # If we get here there are no entrances
-        print "No open entrances off that chunk."
+        #print "No open entrances off that chunk."
         return False
 
     while True:
         newChunks = {}    
         for (x,y), chunk in resolvedChunks.iteritems():
-            print "Adding things off chunk at {},{}".format(x,y)
-            print "Chunk has entrances: {}".format(chunk.entrances)
+            #print "Adding things off chunk at {},{}".format(x,y)
+            #print "Chunk has entrances: {}".format(chunk.entrances)
             newChunk = generateChunkOffOfCoord(x, y, resolvedChunks)
-            print u"New chunk: {}".format(newChunk)
+            #print u"New chunk: {}".format(newChunk)
             if newChunk:
                 (x,y), newC = newChunk
                 newChunks[(x,y)] = newC
@@ -292,56 +277,35 @@ capped off (TODO: eventually).
             resolvedChunks[coord] = chunk
             if len(resolvedChunks) > num:
                 return resolvedChunks
-            
 
-        
-        # for coord, chunk in resolvedChunks.copy().iteritems():
-        #     x,y = coord
-        #     #print "Numchunks:", numchunks
-        #     for entrance in chunk.entrances:
-        #         if not chunkExistsPastEntrance(x, y, entrance):
-        #             # Add a chunk there
-        #             newChunk = random.choice(directionChunks[oppositeDirection(entrance)])
-        #             nx, ny = coordPastDirection(x, y, entrance)
-        #             #print "Adding chunk at", nx, ny
-        #             addChunkAt(nx, ny, newChunk)
-
-        #             # If we have enough chunks, return.
-        #             # (Keeping in mind that we started with one)
-        #             numchunks -= 1
-        #             if numchunks <= 0: return resolvedChunks
-        #         else:
-        #             print "Chunk exists at {},{}
-
-
-    #return resolvedChunks
-
-
-hall   = Chunk(u'═', [], [DIRECTION.LEFT, DIRECTION.RIGHT])
-cross  = Chunk(u'╬', [], [DIRECTION.LEFT, DIRECTION.RIGHT, DIRECTION.UP, DIRECTION.DOWN])
-tUp    = Chunk(u'╩', [], [DIRECTION.LEFT, DIRECTION.RIGHT, DIRECTION.UP])
-tDown  = Chunk(u'╦', [], [DIRECTION.LEFT, DIRECTION.RIGHT, DIRECTION.DOWN])
-tLeft  = Chunk(u'╠', [], [DIRECTION.RIGHT, DIRECTION.UP, DIRECTION.DOWN])
-tRight = Chunk(u'╣', [], [DIRECTION.LEFT, DIRECTION.UP, DIRECTION.DOWN])
-shaft  = Chunk(u'║', [], [DIRECTION.UP, DIRECTION.DOWN])
-ulCorn = Chunk(u'╔', [], [DIRECTION.RIGHT, DIRECTION.DOWN])
-llCorn = Chunk(u'╚', [], [DIRECTION.RIGHT, DIRECTION.UP])
-urCorn = Chunk(u'╗', [], [DIRECTION.LEFT, DIRECTION.DOWN])
-lrCorn = Chunk(u'╝', [], [DIRECTION.LEFT, DIRECTION.UP])
-
-chunks = [hall, cross, tUp, tDown, tLeft, tRight, shaft, ulCorn, llCorn, urCorn, lrCorn]
-layedout = layOutChunks(50, chunks)
-
-print "Number of chunks created:", len(layedout)
-chars = []
-for i in xrange(5, -6, -1):
-    for j in xrange(-5, 6):
-        chunk = layedout.get((j,i))
-        if chunk is not None:
-            chars.append(chunk.name)
-        else:
-            chars.append('.')
-    chars.append('\n')
-
-print ''.join(chars)
+def testTerrainGen():
+    hall   = Chunk(u'═', [], [DIRECTION.LEFT, DIRECTION.RIGHT])
+    cross  = Chunk(u'╬', [], [DIRECTION.LEFT, DIRECTION.RIGHT, DIRECTION.UP, DIRECTION.DOWN])
+    tUp    = Chunk(u'╩', [], [DIRECTION.LEFT, DIRECTION.RIGHT, DIRECTION.UP])
+    tDown  = Chunk(u'╦', [], [DIRECTION.LEFT, DIRECTION.RIGHT, DIRECTION.DOWN])
+    tLeft  = Chunk(u'╠', [], [DIRECTION.RIGHT, DIRECTION.UP, DIRECTION.DOWN])
+    tRight = Chunk(u'╣', [], [DIRECTION.LEFT, DIRECTION.UP, DIRECTION.DOWN])
+    shaft  = Chunk(u'║', [], [DIRECTION.UP, DIRECTION.DOWN])
+    ulCorn = Chunk(u'╔', [], [DIRECTION.RIGHT, DIRECTION.DOWN])
+    llCorn = Chunk(u'╚', [], [DIRECTION.RIGHT, DIRECTION.UP])
+    urCorn = Chunk(u'╗', [], [DIRECTION.LEFT, DIRECTION.DOWN])
+    lrCorn = Chunk(u'╝', [], [DIRECTION.LEFT, DIRECTION.UP])
     
+    chunks = [hall, cross, tUp, tDown, tLeft, tRight, shaft, ulCorn, llCorn, urCorn, lrCorn]
+    layedout = layOutChunks(50, chunks)
+    
+    print "Number of chunks created:", len(layedout)
+    chars = []
+    for i in xrange(5, -6, -1):
+        for j in xrange(-5, 6):
+            chunk = layedout.get((j,i))
+            if chunk is not None:
+                chars.append(chunk.name)
+            else:
+                chars.append('.')
+        chars.append('\n')
+                
+    print ''.join(chars)
+    
+if __name__ == '__main__':
+    testTerrainGen()
