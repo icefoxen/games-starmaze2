@@ -58,6 +58,28 @@ void main() {
 # XXX: Not thread-safe!
 _root_shader = None
 
+class DummyShader:
+    def __init__(self, vert=[], frag=[], geom=[]):
+        pass
+
+    def __enter__(self):
+        pass
+
+    def __exit(self, type, val, backtrace):
+        pass
+
+    def createShader(self, strings, type):
+        pass
+
+    def bind(self):
+        pass
+
+    def unbind(self):
+        pass
+
+    def uniformf(self, name, *vals):
+        pass
+
 class Shader:
     # vert, frag and geom take arrays of source strings
     # the arrays will be concattenated into one string by OpenGL

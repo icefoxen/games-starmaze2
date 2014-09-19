@@ -532,6 +532,7 @@ class CrawlerPhysicsObj(PhysicsObj):
         s.setCollisionEnemy()
 
 
+import renderer
 class LineSprite(Component):
     """A class that draws positioned, scaled, rotated
 and maybe someday animated `LineImage`s.
@@ -566,6 +567,7 @@ TODO: Glow layer???
 
 
     def draw(s):
+        return
         glPushAttrib(GL_COLOR_BUFFER_BIT)
         glEnable(GL_BLEND)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
@@ -639,6 +641,7 @@ I dunno man."""
 
 
     def draw(s):
+        return
         glPushAttrib(GL_COLOR_BUFFER_BIT)
         glEnable(GL_BLEND)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)

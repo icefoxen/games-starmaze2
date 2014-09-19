@@ -5,3 +5,5 @@ def enum(*sequential, **named):
     #typ.__iter__ = enums.iteritems
     return typ
 
+
+

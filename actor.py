@@ -101,7 +101,7 @@ class Actor(object):
 # No description; the keyboard object can't be readily printed.
 class Player(Actor):
     """The player object."""
-    def __init__(s, keyboard, position=(0,0), batch=None):
+    def __init__(s, world, keyboard, position=(0,0), batch=None):
         s.radius = 20
         Actor.__init__(s, batch)
         s.keyboard = keyboard

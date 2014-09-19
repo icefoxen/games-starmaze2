@@ -18,6 +18,8 @@ from terrain import *
 
 from particle import *
 
+import renderer
+
 import zone_beginnings
 
 DISPLAY_FPS = True
@@ -52,8 +54,9 @@ class World(object):
         )
 
         s.initNewSpace()
-
-        s.player = Player(s.keyboard)
+        s.renderManager = renderer.RenderManager()
+        
+        s.player = Player(s, s.keyboard)
         s.camera = Camera(s.player.physicsObj, s.screenw, s.screenh)
         s.actors = set()
         s.actorsToAdd = set()
@@ -122,6 +125,7 @@ update frame."""
         s.actors.add(act)
         act.world = s
         s.addActorToSpace(act)
+        s.renderManager.add(renderer.LINESPRITERENDERER, act)
 
     def _removeActor(s, act):
         s.actors.remove(act)
@@ -131,6 +135,7 @@ update frame."""
         # method that gets called here.  Probably the best way.
         act.world = None
         s.removeActorFromSpace(act)
+        s.renderManager.remove(renderer.LINESPRITERENDERER, act)
 
     def addActorToSpace(s, act):
         if not act.physicsObj.is_static:
@@ -233,10 +238,11 @@ update frame."""
     def on_draw(s):
         s.window.clear()
         with s.camera:
-            with s.shader:
-                for act in s.actors:
-                    s.resetShaderDefaults(act)
-                    act.draw(s.shader)
+            s.renderManager.render()
+            #with s.shader:
+            #    for act in s.actors:
+            #        s.resetShaderDefaults(act)
+            #        act.draw(s.shader)
             #lepton.default_system.draw()
         s.fps_display.draw()
 
