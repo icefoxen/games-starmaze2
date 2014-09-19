@@ -257,6 +257,7 @@ update frame."""
         collectable = collectableShape.body.component.owner
         collectable.collect(player)
         collectable.alive = False
+        print 'rawr'
         return False
 
     @staticmethod

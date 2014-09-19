@@ -508,6 +508,8 @@ class CollectablePhysicsObj(PhysicsObj):
             pymunk.Poly(s.body, c)
             for c in corners
             ])
+        for shape in s.shapes:
+            shape.sensor = True
         s.setElasticity(0.8)
         s.setFriction(2.0)
         s.setCollisionCollectable()

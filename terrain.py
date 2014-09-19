@@ -197,7 +197,7 @@ relocated to start at the given offset coordinate."""
 
 
 def layOutChunks(num, chunklist):
-    """Returns a list of relocated descrs made out of num number of chunks
+    """Returns a list of num chunks
 selected from chunklist, laid out at random.
 Just feed the list into a Room object and bob's yer uncle
 
