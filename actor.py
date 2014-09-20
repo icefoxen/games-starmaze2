@@ -10,6 +10,7 @@ import pymunk.pyglet_util
 from component import *
 import rcache
 import images
+from renderer import *
 
 def described(cls):
     """MAGIC!
@@ -74,6 +75,7 @@ class Actor(object):
         #colors = [(255, 255, 255, 255) for _ in lines]
         #image = LineImage(lines, colors)
         s.sprite = None #LineSprite(image)
+        s.renderer = None
 
         s.alive = True
 
@@ -108,6 +110,9 @@ class Player(Actor):
         s.controller = KeyboardController(s, keyboard)
         s.physicsObj = PlayerPhysicsObj(s, position=position)
         img = rcache.getLineImage(images.playerImage)
+
+        s.renderer = rcache.getRenderer(LineSpriteRenderer)
+        
         s.sprite = LineSprite(s, img)
         #img = rcache.get_image('playertest')
         #s.sprite = Sprite(img)
@@ -163,6 +168,7 @@ whether restoring your health or unlocking a new Power or whatever."""
         s.physicsObj = CollectablePhysicsObj(s, position=position)
         s.sprite = LineSprite(s, rcache.getLineImage(images.collectable))
         s.life = TimedLife(s, 15)
+        s.renderer = rcache.getRenderer(LineSpriteRenderer)
 
     def collect(s, player):
         print "Collected collectable!"
@@ -178,7 +184,8 @@ class BeginningsPowerup(Actor):
         s.physicsObj = PowerupPhysicsObj(s, position=position)
         img = rcache.getLineImage(images.powerup)
         s.sprite = LineSprite(s, img)
-
+        s.renderer = rcache.getRenderer(LineSpriteRenderer)
+        
     def collect(s, player):
         print "Gained Beginnings power!"
         player.powers.addPower(BeginningsPower(player))
@@ -190,7 +197,8 @@ class AirPowerup(Actor):
         s.physicsObj = PowerupPhysicsObj(s, position=position)
         img = rcache.getLineImage(images.powerup)
         s.sprite = LineSprite(s, img)
-
+        s.renderer = rcache.getRenderer(LineSpriteRenderer)
+        
     def collect(s, player):
         print "Gained Air power!"
         player.powers.addPower(AirPower(player))
@@ -208,7 +216,8 @@ handling I think."""
         s.physicsObj = CrawlerPhysicsObj(s, position=position)
         img = rcache.getLineImage(images.crawler)
         s.sprite = LineSprite(s, img)
-
+        s.renderer = rcache.getRenderer(LineSpriteRenderer)
+        
         s.facing = FACING_RIGHT
         s.life = Life(s, 3, reduction=8)
 
@@ -262,7 +271,8 @@ class BeginningP1Bullet(Actor):
 
         x,y = position
         s.physicsObj = PlayerBulletPhysicsObj(s, position=(x, y+yOffset))
-
+        
+        s.renderer = rcache.getRenderer(LineSpriteRenderer)
         image = rcache.getLineImage(images.beginningsP1Bullet)
         s.sprite = LineSprite(s, image)
         if impulse == None:
@@ -292,6 +302,7 @@ class BeginningP2Bullet(Actor):
         x,y = position
         s.physicsObj = PlayerBulletPhysicsObj(s, position=(x, y))
         # TODO: Placeholder image
+        s.renderer = rcache.getRenderer(LineSpriteRenderer)
         image = rcache.getLineImage(images.powerup)
         s.sprite = LineSprite(s, image)
         xImpulse = 300 * direction
@@ -333,6 +344,7 @@ class AirP1BulletAir(Actor):
         x,y = position
         s.physicsObj = AirP1PhysicsObjAir(s, position=(x, y+yOffset))
 
+        s.renderer = rcache.getRenderer(LineSpriteRenderer)
         image = rcache.getLineImage(images.airP1BulletAir)
         s.sprite = LineSprite(s, image)
         xImpulse = 600 * direction
@@ -370,6 +382,7 @@ class AirP1BulletGround(Actor):
         x,y = position
         s.physicsObj = AirP1PhysicsObjGround(s, position=(x, y+yOffset))
 
+        s.renderer = rcache.getRenderer(LineSpriteRenderer)
         image = rcache.getLineImage(images.airP1BulletGround)
         s.sprite = LineSprite(s, image)
         xImpulse = 800 * direction
@@ -421,7 +434,8 @@ class AirP2Bullet(Actor):
         s.life = TimedLife(s, s.maxTime)
         s.facing = direction
         s.animationTimer = Timer(0.03)
-
+        
+        s.renderer = rcache.getRenderer(LineSpriteRenderer)
         s.images = LIGHTNINGIMAGES
         s.sprites = [LineSprite(s, image) for image in LIGHTNINGIMAGES]
         s.spriteCount = random.randint(0, len(LIGHTNINGIMAGES))

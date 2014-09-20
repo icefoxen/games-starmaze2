@@ -56,9 +56,9 @@ class LineSpriteRenderer(Renderer):
 
     def renderActor(s, actor):
         sp = actor.sprite
+        actor.draw(s.shader)
         with graphics.Affine((sp._x, sp._y), sp.rotation, (sp._scale, sp._scale)):
             # For now, this updates the sprite's position and shader props and such
-            actor.draw(s.shader)
             sp._batch.draw()
 
     def renderFinish(s):

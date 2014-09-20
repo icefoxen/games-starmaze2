@@ -129,8 +129,8 @@ update frame."""
         s.actors.add(act)
         act.world = s
         s.addActorToSpace(act)
-        r = rcache.getRenderer(renderer.LineSpriteRenderer)
-        s.renderManager.add(r, act)
+        if act.renderer is not None:
+            s.renderManager.add(act.renderer, act)
 
     def _removeActor(s, act):
         s.actors.remove(act)
@@ -140,8 +140,8 @@ update frame."""
         # method that gets called here.  Probably the best way.
         act.world = None
         s.removeActorFromSpace(act)
-        r = rcache.getRenderer(renderer.LineSpriteRenderer)
-        s.renderManager.remove(r, act)
+        if act.renderer is not None:
+            s.renderManager.remove(act.renderer, act)
 
     def addActorToSpace(s, act):
         if not act.physicsObj.is_static:
@@ -267,7 +267,9 @@ update frame."""
         physicsObj2 = shape2.body.component
         r1 = physicsObj1.startCollisionWith(physicsObj2, arbiter)
         r2 = physicsObj2.startCollisionWith(physicsObj1, arbiter)
-        # XXX: Is this right?
+        # XXX: I THINK this is right, a physics-collision only happens
+        # if both objects agree that it should.
+        # The default is 'yes', so either object can change that.
         return r1 and r2
 
     @staticmethod

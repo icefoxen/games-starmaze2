@@ -27,6 +27,7 @@ corners is a list of the corners of the polygon.  NOT line endpoins.
         s.physicsObj = BlockPhysicsObj(s, position=position)
         #xf, yf = s.findShapeCenter(corners)
         #s.physicsObj.position = (x+xf,y+yf)
+        s.renderer = rcache.getRenderer(LineSpriteRenderer)
         s.sprite = BlockSprite(s, corners, color, batch=batch)
 
     def findShapeCenter(s, corners):
@@ -48,7 +49,7 @@ class FallingBlock(Actor):
         Actor.__init__(s, batch)
         s.physicsObj = FallingBlockPhysicsObj(s, position=position)
         s.sprite = BlockSprite(s, corners, color, batch=batch)
-
+        s.renderer = rcache.getRenderer(LineSpriteRenderer)
 
 def createBlockCenter(x, y, w, h, color=(255, 255, 255, 255), batch=None):
     """Creates a `Terrain` object representing a block of the given size.
@@ -78,6 +79,7 @@ class Door(Actor):
         Actor.__init__(s)
         s.physicsObj = DoorPhysicsObj(s, position=position)
         img = rcache.getLineImage(images.door)
+        s.renderer = rcache.getRenderer(LineSpriteRenderer)
         s.sprite = LineSprite(s, img)
         s.passable = True
         s.destination = destination
@@ -103,7 +105,7 @@ class Tree(Actor):
         s.physicsObj = PhysicsObj(s, position=position)
         img = rcache.getLineImage(images.tree)
         s.sprite = LineSprite(s, img)
-
+        s.renderer = rcache.getRenderer(LineSpriteRenderer)
     
 class Room(object):
     """Basically a specification of a bunch of Actors to create,
