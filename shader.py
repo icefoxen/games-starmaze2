@@ -48,6 +48,7 @@ void main() {
    vec4 color = vec4(gl_Color.r, gl_Color.g, gl_Color.b, gl_Color.a * alpha);
    vec4 texColor = texture2D(tex, gl_TexCoord[0].st);
    gl_FragColor = color; // + texColor;
+   //gl_FragColor = vec4(1, 0, 1, 1);
    //gl_FragColor = colormod;
    //gl_FragColor = gl_Color + colorDiff;
    //gl_FragColor = vec4(1,0,1,1);
@@ -83,7 +84,7 @@ class DummyShader:
     def uniformi(self, name, *vals):
         pass
 
-class Shader:
+class Shader(object):
     # vert, frag and geom take arrays of source strings
     # the arrays will be concattenated into one string by OpenGL
     def __init__(self, vert = [], frag = [], geom = []):

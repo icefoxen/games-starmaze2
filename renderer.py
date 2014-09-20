@@ -69,18 +69,13 @@ class LineSpriteRenderer(Renderer):
 class PlayerRenderer(Renderer):
     def __init__(s):
         Renderer.__init__(s)
-        s.shader = shader.DummyShader()
+        s.shader = shader.Shader([shader.vprog], [shader.fprog])
 
         s.img = rcache.getLineImage(images.playerImage)
         
-        #s.sprite = LineSprite(s, img)
-
         # Experimental glow effect, just overlay the sprite
         # with a diffuse, alpha-blended sprite.  Works surprisingly well.
         s.glowImage = rcache.getLineImage(images.playerImageGlow)
-        #s.glowSprite = LineSprite(s, glowImage)
-
-        s.glow = 0.0
 
 
     def renderStart(s):
@@ -98,12 +93,16 @@ class PlayerRenderer(Renderer):
         pos = actor.physicsObj.position
         rot = math.degrees(actor.physicsObj.angle)
         with graphics.Affine(pos, rot):
+            s.shader.uniformi("facing", actor.facing)
+            s.shader.uniformf("alpha", 1.0)
+            s.shader.uniformf("vertexDiff", 0, 0, 0, 0)
+            s.shader.uniformf("colorDiff", 0, 0, 0, 0)
             s.img.batch.draw()
             
             glow = -0.3 * abs(math.sin(actor.glow))
             s.shader.uniformf("vertexDiff", 0, 0, 0.0, glow)
             s.shader.uniformf("colorDiff", 0, 0, 0, glow)
-            
+
             # XXX
             actor.powers.draw(s.shader)
             
