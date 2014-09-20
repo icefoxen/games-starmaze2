@@ -111,18 +111,7 @@ class Player(Actor):
         s.physicsObj = PlayerPhysicsObj(s, position=position)
         img = rcache.getLineImage(images.playerImage)
 
-        s.renderer = rcache.getRenderer(LineSpriteRenderer)
-        
-        s.sprite = LineSprite(s, img)
-        #img = rcache.get_image('playertest')
-        #s.sprite = Sprite(img)
-
-        # Experimental glow effect, just overlay the sprite
-        # with a diffuse, alpha-blended sprite.  Works surprisingly well.
-        glowImage = rcache.getLineImage(images.playerImageGlow)
-        s.glowSprite = LineSprite(s, glowImage)
-        #glowImage = rcache.get_image('playertest')
-        #s.glowSprite = ImgSprite(s, glowImage)
+        s.renderer = rcache.getRenderer(PlayerRenderer)
 
         s.powers = PowerSet(s)
         s.facing = FACING_RIGHT
@@ -136,27 +125,6 @@ class Player(Actor):
         s.controller.update(dt)
         s.powers.update(dt)
         s.glow += 0.05
-
-    def draw(s, shader):
-        if (s.sprite is not None) and (s.physicsObj is not None):
-            #s.glowSprite.position = s.physicsObj.position
-            #s.glowSprite.rotation = math.degrees(s.physicsObj.angle)
-            #s.glowSprite.draw()
-
-            s.sprite.position = s.physicsObj.position
-            s.sprite.rotation = math.degrees(s.physicsObj.angle)
-            s.sprite.draw()
-
-
-            glow = -0.3 * abs(math.sin(s.glow))
-            shader.uniformf("vertexDiff", 0, 0, 0.0, glow)
-            shader.uniformf("colorDiff", 0, 0, 0, glow)
-            
-            s.powers.draw(shader)
-            
-            shader.uniformf("alpha", 0.2)
-            s.glowSprite.position = s.physicsObj.position
-            s.glowSprite.draw()
 
 @described
 class Collectable(Actor):

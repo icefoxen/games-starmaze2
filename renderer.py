@@ -1,8 +1,11 @@
 import collections
+import math
 
 import pyglet
 from pyglet.gl import *
 
+import rcache
+import images
 import shader
 import graphics
 
@@ -25,14 +28,20 @@ class Renderer(object):
     """A class that draws a particular type of thing."""
     def __init__(s):
         s.layer = 0
+        s.shader = shader.DummyShader()
 		
     def __lt__(s, other):
         return s.layer < other.layer
 
     def renderStart(s):
-        pass
+        glPushAttrib(GL_COLOR_BUFFER_BIT)
+        glEnable(GL_BLEND)
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+        s.shader.bind()
+        
     def renderFinish(s):
-        pass
+        s.shader.unbind()
+        glPopAttrib()
 
     def renderActor(s, actor):
         pass
@@ -48,12 +57,6 @@ class LineSpriteRenderer(Renderer):
         Renderer.__init__(s)
         s.shader = shader.DummyShader()
 
-    def renderStart(s):
-        glPushAttrib(GL_COLOR_BUFFER_BIT)
-        glEnable(GL_BLEND)
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-        s.shader.bind()
-
     def renderActor(s, actor):
         sp = actor.sprite
         actor.draw(s.shader)
@@ -61,10 +64,54 @@ class LineSpriteRenderer(Renderer):
             # For now, this updates the sprite's position and shader props and such
             sp._batch.draw()
 
+
+
+class PlayerRenderer(Renderer):
+    def __init__(s):
+        Renderer.__init__(s)
+        s.shader = shader.DummyShader()
+
+        s.img = rcache.getLineImage(images.playerImage)
+        
+        #s.sprite = LineSprite(s, img)
+
+        # Experimental glow effect, just overlay the sprite
+        # with a diffuse, alpha-blended sprite.  Works surprisingly well.
+        s.glowImage = rcache.getLineImage(images.playerImageGlow)
+        #s.glowSprite = LineSprite(s, glowImage)
+
+        s.glow = 0.0
+
+
+    def renderStart(s):
+        glPushAttrib(GL_COLOR_BUFFER_BIT)
+        glEnable(GL_BLEND)
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+        s.shader.bind()
+
+
     def renderFinish(s):
         s.shader.unbind()
         glPopAttrib()
 
+    def renderActor(s, actor):
+        pos = actor.physicsObj.position
+        rot = math.degrees(actor.physicsObj.angle)
+        with graphics.Affine(pos, rot):
+            s.img.batch.draw()
+            
+            glow = -0.3 * abs(math.sin(actor.glow))
+            s.shader.uniformf("vertexDiff", 0, 0, 0.0, glow)
+            s.shader.uniformf("colorDiff", 0, 0, 0, glow)
+            
+            # XXX
+            actor.powers.draw(s.shader)
+            
+            s.shader.uniformf("alpha", 0.2)
+            #s.glowImage.position = s.physicsObj.position
+            s.glowImage.batch.draw()
+        
+        
 class RenderManager(object):
     """A class that manages rendering of a set of Renderers."""
     def __init__(s):
