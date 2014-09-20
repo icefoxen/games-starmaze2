@@ -65,8 +65,6 @@ class LineSpriteRenderer(Renderer):
         s.shader.unbind()
         glPopAttrib()
 
-LINESPRITERENDERER = LineSpriteRenderer()
-		
 class RenderManager(object):
     """A class that manages rendering of a set of Renderers."""
     def __init__(s):

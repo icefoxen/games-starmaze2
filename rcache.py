@@ -25,8 +25,9 @@ def get_sprite(name):
     return pyglet.sprite.Sprite(img)
 
 
-# TODO: collections.defaultdict might be useful here.
-
+# collections.defaultdict might be useful here.
+# Actually, it doesn't have quite the right semantics, since the default
+# function can't know what the key being initialized is.  :-(
 LINEIMAGECACHE = {}
 def getLineImage(linefunc):
     try:
@@ -35,3 +36,12 @@ def getLineImage(linefunc):
         img = linefunc()
         LINEIMAGECACHE[linefunc] = img
         return img
+
+RENDERERCACHE = {}
+def getRenderer(renderer):
+    try:
+        return RENDERERCACHE[renderer]
+    except KeyError:
+        r = renderer()
+        RENDERERCACHE[renderer] = r
+        return r

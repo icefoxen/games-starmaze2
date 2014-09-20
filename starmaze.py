@@ -129,7 +129,8 @@ update frame."""
         s.actors.add(act)
         act.world = s
         s.addActorToSpace(act)
-        s.renderManager.add(renderer.LINESPRITERENDERER, act)
+        r = rcache.getRenderer(renderer.LineSpriteRenderer)
+        s.renderManager.add(r, act)
 
     def _removeActor(s, act):
         s.actors.remove(act)
@@ -139,7 +140,8 @@ update frame."""
         # method that gets called here.  Probably the best way.
         act.world = None
         s.removeActorFromSpace(act)
-        s.renderManager.remove(renderer.LINESPRITERENDERER, act)
+        r = rcache.getRenderer(renderer.LineSpriteRenderer)
+        s.renderManager.remove(r, act)
 
     def addActorToSpace(s, act):
         if not act.physicsObj.is_static:
