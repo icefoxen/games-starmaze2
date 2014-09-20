@@ -85,19 +85,23 @@ class World(object):
         s.space.damping = 0.9
         s.space.gravity = (0.0, GRAVITY_FORCE)
         s.space.add_collision_handler(CGROUP_PLAYER, CGROUP_COLLECTABLE,
-                                      begin=World.collidePlayerCollectable)
+                                      begin=World.handleCollision,
+                                      separate=World.handleCollisionEnd)
         s.space.add_collision_handler(CGROUP_PLAYER, CGROUP_TERRAIN,
-                                      begin=World.collidePlayerTerrain,
-                                      separate=World.collidePlayerTerrainEnd)
+                                      begin=World.handleCollision,
+                                      separate=World.handleCollisionEnd)
         s.space.add_collision_handler(CGROUP_PLAYERBULLET, CGROUP_TERRAIN,
-                                      begin=World.collideBulletTerrain)
+                                      begin=World.handleCollision,
+                                      separate=World.handleCollisionEnd)
         s.space.add_collision_handler(CGROUP_PLAYERBULLET, CGROUP_ENEMY,
-                                      begin=World.collidePlayerBulletEnemy)
+                                      begin=World.handleCollision,
+                                      separate=World.handleCollisionEnd)
         s.space.add_collision_handler(CGROUP_ENEMYBULLET, CGROUP_TERRAIN,
-                                      begin=World.collideBulletTerrain)
+                                      begin=World.handleCollision,
+                                      separate=World.handleCollisionEnd)
         s.space.add_collision_handler(CGROUP_PLAYER, CGROUP_DOOR,
-                                      begin=World.collidePlayerDoor,
-                                      separate=World.collidePlayerDoorEnd)
+                                      begin=World.handleCollision,
+                                      separate=World.handleCollisionEnd)
 
     def createWorld(s):
         s.rooms = {}
@@ -255,6 +259,25 @@ update frame."""
         s.player.controller.handleKeyRelease(k, modifiers)
 
     @staticmethod
+    def handleCollision(space, arbiter, *args, **kwargs):
+        shape1, shape2 = arbiter.shapes
+        physicsObj1 = shape1.body.component
+        physicsObj2 = shape2.body.component
+        r1 = physicsObj1.startCollisionWith(physicsObj2)
+        r2 = physicsObj2.startCollisionWith(physicsObj1)
+        # XXX: Is this right?
+        return r1 or r2
+
+    @staticmethod
+    def handleCollisionEnd(space, arbiter, *args, **kwargs):
+        shape1, shape2 = arbiter.shapes
+        physObj1 = shape1.body.component
+        physObj2 = shape2.body.component
+        physObj1.endCollisionWith(physObj2)
+        physObj2.endCollisionWith(physObj1)
+
+    
+    @staticmethod
     def collidePlayerCollectable(space, arbiter, *args, **kwargs):
         "The handler for a player collecting a Collectable."
         #print space, arbiter, args, kwargs
@@ -282,6 +305,8 @@ update frame."""
             # callback for when two things _stop_ colliding with each other,
             # I think there is.  Setting onGround to false in such a callback
             # would be a good thing
+
+            # BUGGO: Why not <0?
             if normal.y < -0.001:
                 player.onGround = True
         return True

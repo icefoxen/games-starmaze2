@@ -303,6 +303,61 @@ Call one of the setCollision*() methods too."""
         for shape in s.shapes:
             shape.elasticity = e
 
+
+    # Double-dispatch FTW
+    # Note these are collision _handlers_, not detection.
+    def startCollisionWith(s, other):
+        return other.startCollisionWithNone(s)
+
+    # Colliding with an object of no specific type.
+    # This is basically here as a catch-all, just in case.
+    def startCollisionWithNone(s, other):
+        return True
+
+    def startCollisionWithTerrain(s, other):
+        return True
+
+    def startCollisionWithPlayer(s, other):
+        return True
+
+    def startCollisionWithCollectable(s, other):
+        return True
+
+    def startCollisionWithPlayerBullet(s, other):
+        return True
+
+    def startCollisionWithEnemyBullet(s, other):
+        return True
+
+    def startCollisionWithDoor(s, other):
+        return True
+
+    def endCollisionWith(s, other):
+        return other.endCollisionWithNone(s)
+
+    def endCollisionWithNone(s, other):
+        return False
+
+    def endCollisionWithTerrain(s, other):
+        return True
+
+    def endCollisionWithPlayer(s, other):
+        return True
+
+    def endCollisionWithCollectable(s, other):
+        return True
+
+    def endCollisionWithPlayerBullet(s, other):
+        return True
+
+    def endCollisionWithEnemyBullet(s, other):
+        return True
+
+    def endCollisionWithDoor(s, other):
+        return True
+
+
+
 #from physics import *
 class NativePhysicsObj(Component):
     def __init__(s, owner, mass=None, moment=None):

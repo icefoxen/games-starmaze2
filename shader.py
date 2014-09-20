@@ -65,7 +65,7 @@ class DummyShader:
     def __enter__(self):
         pass
 
-    def __exit(self, type, val, backtrace):
+    def __exit__(self, type, val, backtrace):
         pass
 
     def createShader(self, strings, type):
@@ -78,6 +78,9 @@ class DummyShader:
         pass
 
     def uniformf(self, name, *vals):
+        pass
+
+    def uniformi(self, name, *vals):
         pass
 
 class Shader:
