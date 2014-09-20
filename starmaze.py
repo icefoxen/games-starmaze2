@@ -55,6 +55,7 @@ class World(object):
 
         s.initNewSpace()
         s.renderManager = renderer.RenderManager()
+        renderer.preloadRenderers()
         
         s.player = Player(s, s.keyboard)
         s.camera = Camera(s.player.physicsObj, s.screenw, s.screenh)

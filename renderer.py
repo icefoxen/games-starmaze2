@@ -28,7 +28,7 @@ class Renderer(object):
     """A class that draws a particular type of thing."""
     def __init__(s):
         s.layer = 0
-        s.shader = shader.DummyShader()
+        s.shader = shader.Shader([shader.vprog], [shader.fprog])
 		
     def __lt__(s, other):
         return s.layer < other.layer
@@ -43,9 +43,17 @@ class Renderer(object):
         s.shader.unbind()
         glPopAttrib()
 
+    # XXX: For now this assumes we're using the sorta default-ish shader...
     def renderActor(s, actor):
-        pass
-		
+        pos = actor.physicsObj.position
+        rot = math.degrees(actor.physicsObj.angle)
+        with graphics.Affine(pos, rot):
+            s.shader.uniformi("facing", actor.facing)
+            s.shader.uniformf("alpha", 1.0)
+            s.shader.uniformf("vertexDiff", 0, 0, 0, 0)
+            s.shader.uniformf("colorDiff", 0, 0, 0, 0)
+            s.img.batch.draw()
+        
     def renderAll(s, actors):
         s.renderStart()
         for act in actors:
@@ -69,7 +77,6 @@ class LineSpriteRenderer(Renderer):
 class PlayerRenderer(Renderer):
     def __init__(s):
         Renderer.__init__(s)
-        s.shader = shader.Shader([shader.vprog], [shader.fprog])
 
         s.img = rcache.getLineImage(images.playerImage)
         
@@ -77,17 +84,6 @@ class PlayerRenderer(Renderer):
         # with a diffuse, alpha-blended sprite.  Works surprisingly well.
         s.glowImage = rcache.getLineImage(images.playerImageGlow)
 
-
-    def renderStart(s):
-        glPushAttrib(GL_COLOR_BUFFER_BIT)
-        glEnable(GL_BLEND)
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-        s.shader.bind()
-
-
-    def renderFinish(s):
-        s.shader.unbind()
-        glPopAttrib()
 
     def renderActor(s, actor):
         pos = actor.physicsObj.position
@@ -109,7 +105,83 @@ class PlayerRenderer(Renderer):
             s.shader.uniformf("alpha", 0.2)
             #s.glowImage.position = s.physicsObj.position
             s.glowImage.batch.draw()
+
+class CollectableRenderer(Renderer):
+    def __init__(s):
+        Renderer.__init__(s)
+        s.img = rcache.getLineImage(images.collectable)
+
+class PowerupRenderer(Renderer):
+    def __init__(s):
+        Renderer.__init__(s)
+        s.img = rcache.getLineImage(images.powerup)
+
+class CrawlerRenderer(Renderer):
+    def __init__(s):
+        Renderer.__init__(s)
+        s.img = rcache.getLineImage(images.crawler)
+
+class BeginningsP1BulletRenderer(Renderer):
+    def __init__(s):
+        Renderer.__init__(s)
+        s.img = rcache.getLineImage(images.beginningsP1Bullet)
+
+class AirP1BulletAirRenderer(Renderer):
+    def __init__(s):
+        Renderer.__init__(s)
+        s.img = rcache.getLineImage(images.airP1BulletAir)
+
+    def renderActor(s, actor):
+        pos = actor.physicsObj.position
+        rot = math.degrees(actor.physicsObj.angle)
+        with graphics.Affine(pos, rot):
+            s.shader.uniformi("facing", actor.facing)
+
+            lifePercentage = actor.life.time / actor.maxTime
+                        
+            s.shader.uniformf("alpha", lifePercentage)
+            s.shader.uniformf("vertexDiff", 0, 0, 0, 0)
+            s.shader.uniformf("colorDiff", 0, 0, 0, 0)
+            s.img.batch.draw()
+
+
+class AirP1BulletGroundRenderer(Renderer):
+    def __init__(s):
+        Renderer.__init__(s)
+        s.img = rcache.getLineImage(images.airP1BulletGround)
+
+    def renderActor(s, actor):
+        pos = actor.physicsObj.position
+        rot = math.degrees(actor.physicsObj.angle)
+        with graphics.Affine(pos, rot):
+            s.shader.uniformi("facing", actor.facing)
+
+            lifePercentage = actor.life.time / actor.maxTime
+                        
+            s.shader.uniformf("alpha", lifePercentage)
+            s.shader.uniformf("vertexDiff", 0, 0, 0, 0)
+            s.shader.uniformf("colorDiff", 0, 0, 0, 0)
+            s.img.batch.draw()
+
         
+class AirP2BulletRenderer(Renderer):
+    def __init__(s):
+        Renderer.__init__(s)
+        s.numImages = 20
+        s.images = [images.airP2Bullet() for _ in xrange(s.numImages)]
+
+
+    def renderActor(s, actor):
+        pos = actor.physicsObj.position
+        rot = math.degrees(actor.physicsObj.angle)
+        with graphics.Affine(pos, rot):
+            s.shader.uniformi("facing", actor.facing)
+            s.shader.uniformf("alpha", 1.0)
+            s.shader.uniformf("vertexDiff", 0, 0, 0, 0)
+            s.shader.uniformf("colorDiff", 0, 0, 0, 0)
+
+            imagenum = actor.animationCount % s.numImages
+            s.images[imagenum].batch.draw()
         
 class RenderManager(object):
     """A class that manages rendering of a set of Renderers."""
@@ -122,7 +194,7 @@ class RenderManager(object):
         # So if we look up a renderer that doesn't exist, it automatically
         # gets added to the dict with an empty set as the value.
         #s.renderers.__missing__ = set
-		
+
     def add(s, renderer, actor):
         s.renderers[renderer].add(actor)
 		
@@ -134,3 +206,21 @@ class RenderManager(object):
         #s.renderers.sort()
         for r, actors in s.renderers.iteritems():
             r.renderAll(actors)
+
+
+def preloadRenderers():
+    """Instantiates all renderers into the rcache to prevent the first lookup from lagging.
+For instance AirP2BulletRenderer does a lot of setup work."""
+    # Note that __subclasses__() only gets direct sublcasses, see:
+    # http://stackoverflow.com/questions/5881873/python-find-all-classes-which-inherit-from-this-one
+
+    subclasses = set()
+    work = [Renderer]
+    while work:
+        parent = work.pop()
+        for child in parent.__subclasses__():
+            subclasses.add(child)
+            work.append(child)
+
+    for rendererClass in subclasses:
+        rcache.getRenderer(rendererClass)

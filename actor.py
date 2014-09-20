@@ -134,9 +134,8 @@ whether restoring your health or unlocking a new Power or whatever."""
     def __init__(s, position=(0,0), batch=None):
         Actor.__init__(s, batch)
         s.physicsObj = CollectablePhysicsObj(s, position=position)
-        s.sprite = LineSprite(s, rcache.getLineImage(images.collectable))
         s.life = TimedLife(s, 15)
-        s.renderer = rcache.getRenderer(LineSpriteRenderer)
+        s.renderer = rcache.getRenderer(CollectableRenderer)
 
     def collect(s, player):
         print "Collected collectable!"
@@ -150,9 +149,7 @@ class BeginningsPowerup(Actor):
     def __init__(s, position=(0,0)):
         Actor.__init__(s)
         s.physicsObj = PowerupPhysicsObj(s, position=position)
-        img = rcache.getLineImage(images.powerup)
-        s.sprite = LineSprite(s, img)
-        s.renderer = rcache.getRenderer(LineSpriteRenderer)
+        s.renderer = rcache.getRenderer(PowerupRenderer)
         
     def collect(s, player):
         print "Gained Beginnings power!"
@@ -163,9 +160,7 @@ class AirPowerup(Actor):
     def __init__(s, position=(0,0)):
         Actor.__init__(s)
         s.physicsObj = PowerupPhysicsObj(s, position=position)
-        img = rcache.getLineImage(images.powerup)
-        s.sprite = LineSprite(s, img)
-        s.renderer = rcache.getRenderer(LineSpriteRenderer)
+        s.renderer = rcache.getRenderer(PowerupRenderer)
         
     def collect(s, player):
         print "Gained Air power!"
@@ -182,9 +177,7 @@ handling I think."""
         Actor.__init__(s, batch)
         s.controller = RoamAIController(s)
         s.physicsObj = CrawlerPhysicsObj(s, position=position)
-        img = rcache.getLineImage(images.crawler)
-        s.sprite = LineSprite(s, img)
-        s.renderer = rcache.getRenderer(LineSpriteRenderer)
+        s.renderer = rcache.getRenderer(CrawlerRenderer)
         
         s.facing = FACING_RIGHT
         s.life = Life(s, 3, reduction=8)
@@ -240,9 +233,7 @@ class BeginningP1Bullet(Actor):
         x,y = position
         s.physicsObj = PlayerBulletPhysicsObj(s, position=(x, y+yOffset))
         
-        s.renderer = rcache.getRenderer(LineSpriteRenderer)
-        image = rcache.getLineImage(images.beginningsP1Bullet)
-        s.sprite = LineSprite(s, image)
+        s.renderer = rcache.getRenderer(BeginningsP1BulletRenderer)
         if impulse == None:
             xImpulse = 400 * facing
             yImpulse = yOffset * 10
@@ -270,9 +261,7 @@ class BeginningP2Bullet(Actor):
         x,y = position
         s.physicsObj = PlayerBulletPhysicsObj(s, position=(x, y))
         # TODO: Placeholder image
-        s.renderer = rcache.getRenderer(LineSpriteRenderer)
-        image = rcache.getLineImage(images.powerup)
-        s.sprite = LineSprite(s, image)
+        s.renderer = rcache.getRenderer(PowerupRenderer)
         xImpulse = 300 * direction
         yImpulse = 200
         s.physicsObj.apply_impulse((xImpulse, yImpulse))
@@ -312,9 +301,8 @@ class AirP1BulletAir(Actor):
         x,y = position
         s.physicsObj = AirP1PhysicsObjAir(s, position=(x, y+yOffset))
 
-        s.renderer = rcache.getRenderer(LineSpriteRenderer)
-        image = rcache.getLineImage(images.airP1BulletAir)
-        s.sprite = LineSprite(s, image)
+        s.renderer = rcache.getRenderer(AirP1BulletAirRenderer)
+
         xImpulse = 600 * direction
         yImpulse = yOffset * 10
         s.physicsObj.apply_impulse((xImpulse, yImpulse))
@@ -350,9 +338,8 @@ class AirP1BulletGround(Actor):
         x,y = position
         s.physicsObj = AirP1PhysicsObjGround(s, position=(x, y+yOffset))
 
-        s.renderer = rcache.getRenderer(LineSpriteRenderer)
-        image = rcache.getLineImage(images.airP1BulletGround)
-        s.sprite = LineSprite(s, image)
+        s.renderer = rcache.getRenderer(AirP1BulletGroundRenderer)
+
         xImpulse = 800 * direction
         yImpulse = yOffset * 10
         s.physicsObj.apply_impulse((xImpulse, yImpulse))
@@ -397,16 +384,13 @@ class AirP2Bullet(Actor):
         s.physicsObj.apply_force((0, 400))
         # Different image each time, not cached!
         image = images.airP2Bullet()
-        s.sprite = LineSprite(s, image)
         s.maxTime = 0.6
         s.life = TimedLife(s, s.maxTime)
         s.facing = direction
         s.animationTimer = Timer(0.03)
         
-        s.renderer = rcache.getRenderer(LineSpriteRenderer)
-        s.images = LIGHTNINGIMAGES
-        s.sprites = [LineSprite(s, image) for image in LIGHTNINGIMAGES]
-        s.spriteCount = random.randint(0, len(LIGHTNINGIMAGES))
+        s.renderer = rcache.getRenderer(AirP2BulletRenderer)
+        s.animationCount = random.randint(0, 100)
 
     def update(s, dt):
         #s.physicsObj.position = s.owner.physicsObj.position
@@ -415,10 +399,7 @@ class AirP2Bullet(Actor):
         s.life.update(dt)
         s.animationTimer.update(dt)
         if s.animationTimer.expired():
-            s.spriteCount = (s.spriteCount + 1) % len(s.sprites)
-            s.sprite = s.sprites[s.spriteCount]
-            #image = images.airP2Bullet()
-            #s.sprite = LineSprite(s, image)
+            s.animationCount += 1
         
 
 
@@ -602,7 +583,7 @@ class AirPower(NullPower):
 
         if s.attack2Charging and s.attack2Timer.expired():
             s.fireBullet(AirP2Bullet)
-            #s.attack2Charging = False
+            s.attack2Charging = False
         
     def startJump(s):
         if s.owner.onGround:
