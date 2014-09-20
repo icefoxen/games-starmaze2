@@ -265,91 +265,18 @@ update frame."""
         shape1, shape2 = arbiter.shapes
         physicsObj1 = shape1.body.component
         physicsObj2 = shape2.body.component
-        r1 = physicsObj1.startCollisionWith(physicsObj2)
-        r2 = physicsObj2.startCollisionWith(physicsObj1)
+        r1 = physicsObj1.startCollisionWith(physicsObj2, arbiter)
+        r2 = physicsObj2.startCollisionWith(physicsObj1, arbiter)
         # XXX: Is this right?
-        return r1 or r2
+        return r1 and r2
 
     @staticmethod
     def handleCollisionEnd(space, arbiter, *args, **kwargs):
         shape1, shape2 = arbiter.shapes
         physObj1 = shape1.body.component
         physObj2 = shape2.body.component
-        physObj1.endCollisionWith(physObj2)
-        physObj2.endCollisionWith(physObj1)
-
-    
-    @staticmethod
-    def collidePlayerCollectable(space, arbiter, *args, **kwargs):
-        "The handler for a player collecting a Collectable."
-        #print space, arbiter, args, kwargs
-        playerShape, collectableShape = arbiter.shapes
-        player = playerShape.body.component.owner
-        collectable = collectableShape.body.component.owner
-        collectable.collect(player)
-        collectable.alive = False
-        print 'rawr'
-        return False
-
-    @staticmethod
-    def collidePlayerTerrain(space, arbiter, *args, **kwargs):
-        playerShape, _ = arbiter.shapes
-        player = playerShape.body.component.owner
-        for c in arbiter.contacts:
-            normal = c.normal
-            # This is not exactly 0 because floating point error
-            # means a lot of the time a horizontal collision has
-            # a vertical component of like -1.0e-15
-            # But in general, if we hit something moving downward,
-            # the y component of the normal is < 0
-            #
-            # TODO: Oooh, we should probably see if there's a
-            # callback for when two things _stop_ colliding with each other,
-            # I think there is.  Setting onGround to false in such a callback
-            # would be a good thing
-
-            # BUGGO: Why not <0?
-            if normal.y < -0.001:
-                player.onGround = True
-        return True
-
-    @staticmethod
-    def collidePlayerTerrainEnd(space, arbiter, *args, **kwargs):
-        playerShape, _ = arbiter.shapes
-        player = playerShape.body.component.owner
-        player.onGround = False
-    
-
-    @staticmethod
-    def collideBulletTerrain(space, arbiter, *args, **kwargs):
-        bulletShape, collectableShape = arbiter.shapes
-        bullet = bulletShape.body.component.owner
-        bullet.alive = False
-        return False
-
-    @staticmethod
-    def collidePlayerBulletEnemy(space, arbiter, *args, **kwargs):
-        bulletShape, enemyShape = arbiter.shapes
-        bullet = bulletShape.body.component.owner
-        bullet.alive = False
-        enemy = enemyShape.body.component.owner
-        enemy.life.takeDamage(bullet, bullet.damage)
-        return False
-
-    @staticmethod
-    def collidePlayerDoor(space, arbiter, *args, **kwargs):
-        playerShape, doorShape = arbiter.shapes
-        player = playerShape.body.component.owner
-        door = doorShape.body.component.owner
-        player.door = door
-        return False
-
-    @staticmethod
-    def collidePlayerDoorEnd(space, arbiter, *args, **kwargs):
-        playerShape, _ = arbiter.shapes
-        player = playerShape.body.component.owner
-        player.door = None
-
+        physObj1.endCollisionWith(physObj2, arbiter)
+        physObj2.endCollisionWith(physObj1, arbiter)
 
     def report(s):
         "Print out misc useful about the state of the world."

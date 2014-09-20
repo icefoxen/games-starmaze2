@@ -306,54 +306,60 @@ Call one of the setCollision*() methods too."""
 
     # Double-dispatch FTW
     # Note these are collision _handlers_, not detection.
-    def startCollisionWith(s, other):
-        return other.startCollisionWithNone(s)
+    def startCollisionWith(s, other, arbiter):
+        return other.startCollisionWithNone(s, arbiter)
 
     # Colliding with an object of no specific type.
     # This is basically here as a catch-all, just in case.
-    def startCollisionWithNone(s, other):
+    def startCollisionWithNone(s, other, arbiter):
         return True
 
-    def startCollisionWithTerrain(s, other):
+    def startCollisionWithTerrain(s, other, arbiter):
         return True
 
-    def startCollisionWithPlayer(s, other):
+    def startCollisionWithPlayer(s, other, arbiter):
         return True
 
-    def startCollisionWithCollectable(s, other):
+    def startCollisionWithCollectable(s, other, arbiter):
         return True
 
-    def startCollisionWithPlayerBullet(s, other):
+    def startCollisionWithPlayerBullet(s, other, arbiter):
         return True
 
-    def startCollisionWithEnemyBullet(s, other):
+    def startCollisionWithEnemyBullet(s, other, arbiter):
         return True
 
-    def startCollisionWithDoor(s, other):
+    def startCollisionWithEnemy(s, other, arbiter):
         return True
 
-    def endCollisionWith(s, other):
-        return other.endCollisionWithNone(s)
+    def startCollisionWithDoor(s, other, arbiter):
+        return True
 
-    def endCollisionWithNone(s, other):
+    def endCollisionWith(s, other, arbiter):
+        return other.endCollisionWithNone(s, arbiter)
+
+    def endCollisionWithNone(s, other, arbiter):
         return False
 
-    def endCollisionWithTerrain(s, other):
+    def endCollisionWithTerrain(s, other, arbiter):
         return True
 
-    def endCollisionWithPlayer(s, other):
+    def endCollisionWithPlayer(s, other, arbiter):
         return True
 
-    def endCollisionWithCollectable(s, other):
+    def endCollisionWithCollectable(s, other, arbiter):
         return True
 
-    def endCollisionWithPlayerBullet(s, other):
+    def endCollisionWithPlayerBullet(s, other, arbiter):
         return True
 
-    def endCollisionWithEnemyBullet(s, other):
+    def endCollisionWithEnemyBullet(s, other, arbiter):
         return True
 
-    def endCollisionWithDoor(s, other):
+    def endCollisionWithEnemy(s, other, arbiter):
+        return True
+
+    def endCollisionWithDoor(s, other, arbiter):
         return True
 
 
@@ -475,6 +481,53 @@ class PlayerPhysicsObj(PhysicsObj):
         s.setCollisionPlayer()
         s.velocity_limit = (400)
 
+    def startCollisionWith(s, other, arbiter):
+        return other.startCollisionWithPlayer(s, arbiter)
+
+    def endCollisionWith(s, other, arbiter):
+        return other.endCollisionWithPlayer(s, arbiter)
+
+    def startCollisionWithCollectable(s, other, arbiter):
+        "The handler for a player collecting a Collectable."
+        #print space, arbiter, args, kwargs
+        collectable =  other.owner
+        player = s.owner
+        collectable.collect(player)
+        collectable.alive = False
+        return False
+
+    def startCollisionWithTerrain(s, other, arbiter):
+        for c in arbiter.contacts:
+            normal = c.normal
+            # This is not exactly 0 because floating point error
+            # means a lot of the time a horizontal collision has
+            # a vertical component of like -1.0e-15
+            # But in general, if we hit something moving downward,
+            # the y component of the normal is < 0
+            #
+            # TODO: Oooh, we should probably see if there's a
+            # callback for when two things _stop_ colliding with each other,
+            # I think there is.  Setting onGround to false in such a callback
+            # would be a good thing
+
+            if normal.y < -0.001:
+                s.owner.onGround = True
+        return True
+
+    def endCollisionWithTerrain(s, other, arbiter):
+        s.owner.onGround = False
+
+    def startCollisionWithDoor(s, other, arbiter):
+        door = other.owner
+        player.door = door
+        return False
+
+    def endCollisionWithDoor(s, other, arbiter):
+        player = s.owner
+        player.door = None
+
+
+        
 class DoorPhysicsObj(PhysicsObj):
     def __init__(s, owner, **kwargs):
         PhysicsObj.__init__(s, owner, **kwargs)
@@ -484,6 +537,14 @@ class DoorPhysicsObj(PhysicsObj):
         poly.sensor = True
         s.addShapes(poly)
         s.setCollisionDoor()
+
+    
+    def startCollisionWith(s, other, arbiter):
+        return other.startCollisionWithDoor(s, arbiter)
+
+    def endCollisionWith(s, other, arbiter):
+        return other.endCollisionWithDoor(s, arbiter)
+
         
 class PlayerBulletPhysicsObj(PhysicsObj):
     """A generic physics object for small round things that hit stuff."""
@@ -491,6 +552,23 @@ class PlayerBulletPhysicsObj(PhysicsObj):
         PhysicsObj.__init__(s, owner, mass=1, moment=10, **kwargs)
         s.addShapes(pymunk.Circle(s.body, radius=2))
         s.setCollisionPlayerBullet()
+
+    def startCollisionWith(s, other, arbiter):
+        return other.startCollisionWithPlayerBullet(s, arbiter)
+
+    def endCollisionWith(s, other, arbiter):
+        return other.endCollisionWithPlayerBullet(s, arbiter)
+
+    def startCollisionWithTerrain(s, other, arbiter):
+        s.owner.alive = False
+        return False
+
+    def startCollisionWithEnemy(s, other, arbiter):
+        bullet = s.owner
+        enemy = other.owner
+        bullet.alive = False
+        enemy.life.takeDamage(bullet, bullet.damage)
+        return False
 
 class AirP1PhysicsObjAir(PhysicsObj):
     def __init__(s, owner, **kwargs):
@@ -519,7 +597,14 @@ class BlockPhysicsObj(PhysicsObj):
         s.setFriction(0.8)
         s.setElasticity(0.8)
         s.setCollisionTerrain()
+        
+    def startCollisionWith(s, other, arbiter):
+        return other.startCollisionWithTerrain(s, arbiter)
 
+    def endCollisionWith(s, other, arbiter):
+        return other.endCollisionWithTerrain(s, arbiter)
+
+        
 class FallingBlockPhysicsObj(PhysicsObj):
     """Like a BlockPhysicsObject but...
 
@@ -552,6 +637,14 @@ and life just gets shitty and weird.  idfk"""
             aux.position = pos
     position = property(lambda s: s.body.position, _set_position)
 
+    def startCollisionWith(s, other, arbiter):
+        return other.startCollisionWithTerrain(s, arbiter)
+
+    def endCollisionWith(s, other, arbiter):
+        return other.endCollisionWithTerrain(s, arbiter)
+
+
+# BUGGO: Why do these fall through floors?
 class CollectablePhysicsObj(PhysicsObj):
     def __init__(s, owner, **kwargs):
         PhysicsObj.__init__(s, owner, 1, 200, **kwargs)
@@ -569,6 +662,13 @@ class CollectablePhysicsObj(PhysicsObj):
         s.setFriction(2.0)
         s.setCollisionCollectable()
 
+    def startCollisionWith(s, other, arbiter):
+        return other.startCollisionWithCollectable(s, arbiter)
+
+    def endCollisionWith(s, other, arbiter):
+        return other.endCollisionWithCollectable(s, arbiter)
+
+        
 class PowerupPhysicsObj(PhysicsObj):
     def __init__(s, owner, **kwargs):
         PhysicsObj.__init__(s, owner, **kwargs) # Static physics object
@@ -577,6 +677,13 @@ class PowerupPhysicsObj(PhysicsObj):
         s.addShapes(pymunk.Poly(s.body, corners))
         s.setCollisionCollectable()
 
+    def startCollisionWith(s, other, arbiter):
+        return other.startCollisionWithCollectable(s, arbiter)
+
+    def endCollisionWith(s, other, arbiter):
+        return other.endCollisionWithCollectable(s, arbiter)
+
+        
 class CrawlerPhysicsObj(PhysicsObj):
     def __init__(s, owner, **kwargs):
         # TODO: Test moment=none instead of inf
@@ -585,6 +692,12 @@ class CrawlerPhysicsObj(PhysicsObj):
 
         s.addShapes(pymunk.Poly(s.body, corners))
         s.setCollisionEnemy()
+
+    def startCollisionWith(s, other, arbiter):
+        return other.startCollisionWithEnemy(s, arbiter)
+
+    def endCollisionWith(s, other, arbiter):
+        return other.endCollisionWithEnemy(s, arbiter)
 
 
 import renderer
