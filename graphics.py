@@ -5,32 +5,6 @@ import math
 import pyglet
 from pyglet.gl import *
 
-COLOR_WHITE = (255, 255, 255, 255)
-COLOR_RED   = (255, 0, 0, 255)
-COLOR_BLUE  = (0, 0, 255, 255)
-COLOR_GREEN = (0, 255, 0, 255)
-
-class ShaderGroup(pyglet.graphics.Group):
-    def __init__(s, vshader, fshader, parent=None):
-        pyglet.graphics.Group.__init__(s, parent)
-        print 'made shader group'
-        s.vshader = vshader
-        s.fshader = fshader
-
-        s.fullShader = vshader + fshader
-
-    def set_state(s):
-        print 'set state'
-
-    def unset_state(s):
-        print 'unset state'
-
-    def __hash__(s):
-        return hash(s.fullShader)
-
-    def __eq__(s, other):
-        return s.fullShader == other.fullShader
-
 class Vertex(namedtuple("Vertex", ["x", "y", "color"])):
     """A 2D vertex, which might also contain color and other properties.
     Vertices are made into triangles, which are then made into other shapes."""
@@ -314,7 +288,6 @@ them to the image's batch."""
             (colorFormat, colors)
             )
         s._vertexLists.append(vertexList)
-
 
 
         

@@ -223,7 +223,6 @@ update frame."""
             s.enterNextRoom()
 
         # Update the particle system.
-        #lepton.default_system.update(dt)
         #s.particleEmitter.update(s.particleGroup, dt)
         #s.particleController.update(s.particleGroup, dt)
             

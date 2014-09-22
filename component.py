@@ -518,8 +518,9 @@ class PlayerPhysicsObj(PhysicsObj):
         s.owner.onGround = False
 
     def startCollisionWithDoor(s, other, arbiter):
+        print 'starting collision with door'
         door = other.owner
-        player.door = door
+        s.owner.door = door
         return False
 
     def endCollisionWithDoor(s, other, arbiter):

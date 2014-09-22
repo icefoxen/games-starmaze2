@@ -25,10 +25,11 @@ corners is a list of the corners of the polygon.  NOT line endpoins.
         s.color = color
         Actor.__init__(s, batch)
         s.physicsObj = BlockPhysicsObj(s, position=position)
-        #xf, yf = s.findShapeCenter(corners)
-        #s.physicsObj.position = (x+xf,y+yf)
-        s.renderer = rcache.getRenderer(LineSpriteRenderer)
-        s.sprite = BlockSprite(s, corners, color, batch=batch)
+
+        verts = [Vertex(x, y, color) for (x,y) in corners]
+        poly = Polygon(verts)
+        s.img = LineImage([poly])
+        s.renderer = rcache.getRenderer(BlockRenderer)
 
     def findShapeCenter(s, corners):
         maxx = 0
@@ -48,8 +49,12 @@ class FallingBlock(Actor):
         s.color = color
         Actor.__init__(s, batch)
         s.physicsObj = FallingBlockPhysicsObj(s, position=position)
-        s.sprite = BlockSprite(s, corners, color, batch=batch)
-        s.renderer = rcache.getRenderer(LineSpriteRenderer)
+
+        
+        verts = [Vertex(x, y, color) for (x,y) in corners]
+        poly = Polygon(verts)
+        s.img = LineImage([poly])
+        s.renderer = rcache.getRenderer(BlockRenderer)
 
 def createBlockCenter(x, y, w, h, color=(255, 255, 255, 255), batch=None):
     """Creates a `Terrain` object representing a block of the given size.
@@ -78,24 +83,15 @@ class Door(Actor):
     def __init__(s, position, destination, destx, desty):
         Actor.__init__(s)
         s.physicsObj = DoorPhysicsObj(s, position=position)
-        img = rcache.getLineImage(images.door)
-        s.renderer = rcache.getRenderer(LineSpriteRenderer)
-        s.sprite = LineSprite(s, img)
         s.passable = True
         s.destination = destination
         s.destx = destx
         s.desty = desty
         s.rotation = 0.0
-        s.sprite.position = s.physicsObj.position
+        s.renderer = rcache.getRenderer(DoorRenderer)
 
     def update(s, dt):
         s.rotation += dt * 100
-
-    def draw(s, shader):
-        s.sprite.rotation = s.rotation
-        s.sprite.draw()
-        s.sprite.rotation = -s.rotation
-        s.sprite.draw()
 
 
 @described
@@ -103,9 +99,8 @@ class Tree(Actor):
     def __init__(s, position):
         Actor.__init__(s)
         s.physicsObj = PhysicsObj(s, position=position)
-        img = rcache.getLineImage(images.tree)
-        s.sprite = LineSprite(s, img)
-        s.renderer = rcache.getRenderer(LineSpriteRenderer)
+        s.img = rcache.getLineImage(images.tree)
+        s.renderer = rcache.getRenderer(TreeRenderer)
     
 class Room(object):
     """Basically a specification of a bunch of Actors to create,

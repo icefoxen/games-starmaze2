@@ -70,11 +70,6 @@ class Actor(object):
         s.batch = batch or pyglet.graphics.Batch()
         s.physicsObj = None #PhysicsObj(s)
 
-
-        #lines = cornersToLines(s.corners)
-        #colors = [(255, 255, 255, 255) for _ in lines]
-        #image = LineImage(lines, colors)
-        s.sprite = None #LineSprite(image)
         s.renderer = None
 
         s.alive = True
@@ -87,12 +82,6 @@ class Actor(object):
         s.world = None
         s.facing = FACING_RIGHT
         s.onGround = False
-    
-    def draw(s, shader):
-        if (s.sprite is not None) and (s.physicsObj is not None):
-            s.sprite.position = s.physicsObj.position
-            s.sprite.rotation = math.degrees(s.physicsObj.angle)
-            s.sprite.draw()
 
     def onDeath(s):
         pass
@@ -191,12 +180,6 @@ handling I think."""
         # a force toward the wall with some friction, and maybe
         # countering gravity if necessary
         # Also consider how to stick to walls when going on slopes...
-
-    def draw(s, shader):
-        if (s.sprite is not None) and (s.physicsObj is not None):
-            s.sprite.position = s.physicsObj.position
-            s.sprite.rotation = math.degrees(s.physicsObj.angle)
-            s.sprite.draw()
 
     def onDeath(s):
         c = Collectable()
@@ -321,15 +304,6 @@ class AirP1BulletAir(Actor):
         #print 'bullet died'
         pass
 
-    def draw(s, shader):
-        if (s.sprite is not None) and (s.physicsObj is not None):
-            s.sprite.position = s.physicsObj.position
-            s.sprite.rotation = math.degrees(s.physicsObj.angle)
-            lifePercentage = s.life.time / s.maxTime
-            #s.sprite.scale = (1/lifePercentage)
-            shader.uniformf("alpha", lifePercentage)
-            s.sprite.draw()
-
 class AirP1BulletGround(Actor):
     def __init__(s, position, direction):
         Actor.__init__(s)
@@ -356,16 +330,6 @@ class AirP1BulletGround(Actor):
     def onDeath(s):
         #print 'bullet died'
         pass
-
-
-    def draw(s, shader):
-        if (s.sprite is not None) and (s.physicsObj is not None):
-            s.sprite.position = s.physicsObj.position
-            s.sprite.rotation = math.degrees(s.physicsObj.angle)
-            lifePercentage = s.life.time / s.maxTime
-            shader.uniformf("alpha", lifePercentage)
-            s.sprite.draw()
-
 
 # BUGGO This needs fixing
 # We don't want to create a new bullet each frame I guess
@@ -479,6 +443,7 @@ class BeginningsPower(NullPower):
         s.shieldImage = rcache.getLineImage(images.shieldImage)
         s.shieldSprite = LineSprite(s, s.shieldImage)
 
+    # BUGGO: Make this work right
     def draw(s, shader):
         if s.defending:
             s.shieldSprite.position = s.owner.physicsObj.position
@@ -492,7 +457,7 @@ class BeginningsPower(NullPower):
             s.owner.physicsObj.apply_impulse((0, 2000 * dt))
 
         if s.usingAttack1 and s.attack1Refire.expired():
-            # BUGGI: Make the number of bullets fired
+            # BUGGO: Make the number of bullets fired
             # correct even at low framerates
             s.fireBullet(BeginningP1Bullet)
             s.attack1Refire.reset()
