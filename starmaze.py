@@ -85,22 +85,7 @@ class World(object):
         # motion from getting _too_ out of control.
         s.space.damping = 0.9
         s.space.gravity = (0.0, GRAVITY_FORCE)
-        s.space.add_collision_handler(CGROUP_PLAYER, CGROUP_COLLECTABLE,
-                                      begin=World.handleCollision,
-                                      separate=World.handleCollisionEnd)
-        s.space.add_collision_handler(CGROUP_PLAYER, CGROUP_TERRAIN,
-                                      begin=World.handleCollision,
-                                      separate=World.handleCollisionEnd)
-        s.space.add_collision_handler(CGROUP_PLAYERBULLET, CGROUP_TERRAIN,
-                                      begin=World.handleCollision,
-                                      separate=World.handleCollisionEnd)
-        s.space.add_collision_handler(CGROUP_PLAYERBULLET, CGROUP_ENEMY,
-                                      begin=World.handleCollision,
-                                      separate=World.handleCollisionEnd)
-        s.space.add_collision_handler(CGROUP_ENEMYBULLET, CGROUP_TERRAIN,
-                                      begin=World.handleCollision,
-                                      separate=World.handleCollisionEnd)
-        s.space.add_collision_handler(CGROUP_PLAYER, CGROUP_DOOR,
+        s.space.add_collision_handler(CGROUP_NONE, CGROUP_NONE,
                                       begin=World.handleCollision,
                                       separate=World.handleCollisionEnd)
 
@@ -267,6 +252,7 @@ update frame."""
         physicsObj2 = shape2.body.component
         r1 = physicsObj1.startCollisionWith(physicsObj2, arbiter)
         r2 = physicsObj2.startCollisionWith(physicsObj1, arbiter)
+        #print "{} collided with {}, results: {} {}".format(physicsObj1, physicsObj2, r1, r2)
         # XXX: I THINK this is right, a physics-collision only happens
         # if both objects agree that it should.
         # The default is 'yes', so either object can change that.

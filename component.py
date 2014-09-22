@@ -14,18 +14,10 @@ from graphics import *
 import rcache
 #import physics
 
-# COLLISION GROUPS!  \O/
-# Collision groups in pymunk determine types
-# of objects; you can assign different callbacks to be called
-# when objects in different groups collide.
+
+
+
 CGROUP_NONE = 0
-CGROUP_PLAYER = 1
-CGROUP_COLLECTABLE = 2
-CGROUP_ENEMY = 3
-CGROUP_PLAYERBULLET = 4
-CGROUP_ENEMYBULLET = 5
-CGROUP_TERRAIN = 6
-CGROUP_DOOR = 7
 
 # Collision layers
 # Determine what collides with what at all; probably faster
@@ -52,7 +44,7 @@ LAYERSPEC_PLAYER       = LAYER_PLAYER
 # Enemies touch everything except enemy bullets
 LAYERSPEC_ENEMY        = LAYERSPEC_ALL & ~LAYER_ENEMYBULLET
 # Collectables touch everything except enemies and bullets
-LAYERSPEC_COLLECTABLE  = LAYERSPEC_ALL & ~LAYER_ENEMY & ~LAYER_BULLET
+LAYERSPEC_COLLECTABLE  = LAYERSPEC_ALL # & ~LAYER_ENEMY & ~LAYER_BULLET
 # Player bullets only touch enemies and terrain
 LAYERSPEC_PLAYERBULLET = LAYER_ENEMY
 # Enemy bullets only touch players and terrain...
@@ -271,29 +263,29 @@ Call one of the setCollision*() methods too."""
 
     def setCollisionPlayer(s):
         "Sets the actor's collision properties to that suitable for a player."
-        s.setCollisionProperties(CGROUP_PLAYER, LAYERSPEC_PLAYER)
+        s.setCollisionProperties(CGROUP_NONE, LAYERSPEC_PLAYER)
 
     def setCollisionEnemy(s):
         "Sets the actor's collision properties to that suitable for an enemy."
-        s.setCollisionProperties(CGROUP_ENEMY, LAYERSPEC_ENEMY)
+        s.setCollisionProperties(CGROUP_NONE, LAYERSPEC_ENEMY)
 
     def setCollisionCollectable(s):
         "Sets the actor's collision properties to that suitable for a collectable."
-        s.setCollisionProperties(CGROUP_COLLECTABLE, LAYERSPEC_COLLECTABLE)
+        s.setCollisionProperties(CGROUP_NONE, LAYERSPEC_COLLECTABLE)
 
     def setCollisionPlayerBullet(s):
         "Sets the actor's collision properties to that suitable for a player bullet."
-        s.setCollisionProperties(CGROUP_PLAYERBULLET, LAYERSPEC_PLAYERBULLET)
+        s.setCollisionProperties(CGROUP_NONE, LAYERSPEC_PLAYERBULLET)
 
     def setCollisionEnemyBullet(s):
         "Sets the actor's collision properties to that suitable for an enemy bullet."
-        s.setCollisionProperties(CGROUP_ENEMYBULLET, LAYERSPEC_ENEMYBULLET)
+        s.setCollisionProperties(CGROUP_NONE, LAYERSPEC_ENEMYBULLET)
 
     def setCollisionTerrain(s):
-        s.setCollisionProperties(CGROUP_TERRAIN, LAYERSPEC_ALL)
+        s.setCollisionProperties(CGROUP_NONE, LAYERSPEC_ALL)
 
     def setCollisionDoor(s):
-        s.setCollisionProperties(CGROUP_DOOR, LAYERSPEC_DOOR)
+        s.setCollisionProperties(CGROUP_NONE, LAYERSPEC_DOOR)
 
     def setFriction(s, f):
         for shape in s.shapes:
@@ -494,7 +486,7 @@ class PlayerPhysicsObj(PhysicsObj):
         player = s.owner
         collectable.collect(player)
         collectable.alive = False
-        return False
+        return True
 
     def startCollisionWithTerrain(s, other, arbiter):
         for c in arbiter.contacts:
@@ -527,18 +519,14 @@ class PlayerPhysicsObj(PhysicsObj):
         player = s.owner
         player.door = None
 
-
-        
 class DoorPhysicsObj(PhysicsObj):
     def __init__(s, owner, **kwargs):
         PhysicsObj.__init__(s, owner, **kwargs)
         poly = pymunk.Poly(s.body, rectCornersCenter(0, 0, 40, 40))
         # Sensors call collision callbacks but don't actually do any physics.
-        # I think.
         poly.sensor = True
         s.addShapes(poly)
         s.setCollisionDoor()
-
     
     def startCollisionWith(s, other, arbiter):
         return other.startCollisionWithDoor(s, arbiter)
@@ -657,8 +645,6 @@ class CollectablePhysicsObj(PhysicsObj):
             pymunk.Poly(s.body, c)
             for c in corners
             ])
-        for shape in s.shapes:
-            shape.sensor = True
         s.setElasticity(0.8)
         s.setFriction(2.0)
         s.setCollisionCollectable()
@@ -675,7 +661,9 @@ class PowerupPhysicsObj(PhysicsObj):
         PhysicsObj.__init__(s, owner, **kwargs) # Static physics object
         corners = rectCornersCenter(0, 0, 10, 10)
 
-        s.addShapes(pymunk.Poly(s.body, corners))
+        shape = pymunk.Poly(s.body, corners)
+        sape.Sensor = True
+        s.addShapes(shape)
         s.setCollisionCollectable()
 
     def startCollisionWith(s, other, arbiter):
