@@ -67,9 +67,7 @@ gets printed out into a level spec file and then re-loaded.
 class Actor(object):
     """The basic thing-that-moves-and-does-stuff in a `Room`."""
     def __init__(s, batch=None):
-        s.batch = batch or pyglet.graphics.Batch()
-        s.physicsObj = None #PhysicsObj(s)
-
+        s.physicsObj = None
         s.renderer = None
 
         s.alive = True
@@ -78,7 +76,6 @@ class Actor(object):
         s.brakeForce = 400
         s.motionX = 0
         s.braking = False
-        # XXX Circular reference, might be better as a weak reference
         s.world = None
         s.facing = FACING_RIGHT
         s.onGround = False
@@ -441,13 +438,10 @@ class BeginningsPower(NullPower):
 
         s.defending = False
         s.shieldImage = rcache.getLineImage(images.shieldImage)
-        s.shieldSprite = LineSprite(s, s.shieldImage)
 
-    # BUGGO: Make this work right
     def draw(s, shader):
         if s.defending:
-            s.shieldSprite.position = s.owner.physicsObj.position
-            s.shieldSprite.draw()
+            s.shieldImage.batch.draw()
 
     def update(s, dt):
         s.attack1Refire.update(dt)
