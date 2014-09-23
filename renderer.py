@@ -233,6 +233,50 @@ class TreeRenderer(Renderer):
             s.shader.uniformf("colorDiff", 0, 0, 0, 0)
             img.batch.draw()
 
+
+class BBRenderer(Renderer):
+    """Draws the bounding box of the given object.  Crude, but useful for debugging.
+
+TODO: Make it draw together with the object's usual renderer, rather than replacing it?
+Somehow.  Maybe it wraps another renderer or something.  Or it can just be a special mode
+used by the main rendering loop."""
+    def __init__(s):
+        Renderer.__init__(s)
+
+    def renderActor(s, actor):
+        bbs = [shape.bb for shape in actor.physicsObj.shapes]
+        polys = []
+        for bb in bbs:
+            x0 = bb.left
+            x1 = bb.right
+            y0 = bb.bottom
+            y1 = bb.top
+            x0 = min(x0, x1)
+            x1 = max(x0, x1)
+            y0 = min(y0, y1)
+            y1 = max(y0, y1)
+            p = graphics.Polygon.rectCorner(x0, y0, (x1 - x0), (y1 - y0), (255, 0, 255, 255))
+            polys.append(p)
+        img = graphics.LineImage(polys)
+
+        # No affine here, the image is created with the object's
+        # gameworld coordinates.
+        s.shader.uniformi("facing", 1)
+        s.shader.uniformf("alpha", 1.0)
+        s.shader.uniformf("vertexDiff", 0, 0, 0, 0)
+        s.shader.uniformf("colorDiff", 0, 0, 0, 0)
+        img.batch.draw()
+        #pos = actor.physicsObj.position
+        #rot = math.degrees(actor.physicsObj.angle)
+        #img = actor.img
+        #with graphics.Affine(pos, rot):
+        #    s.shader.uniformi("facing", actor.facing)
+        #    s.shader.uniformf("alpha", 1.0)
+        #    s.shader.uniformf("vertexDiff", 0, 0, 0, 0)
+        #    s.shader.uniformf("colorDiff", 0, 0, 0, 0)
+        #    img.batch.draw()
+        
+
             
 class RenderManager(object):
     """A class that manages rendering of a set of Renderers."""

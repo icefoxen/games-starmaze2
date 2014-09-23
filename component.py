@@ -486,7 +486,7 @@ class PlayerPhysicsObj(PhysicsObj):
         player = s.owner
         collectable.collect(player)
         collectable.alive = False
-        return True
+        return False
 
     def startCollisionWithTerrain(s, other, arbiter):
         for c in arbiter.contacts:
@@ -662,7 +662,7 @@ class PowerupPhysicsObj(PhysicsObj):
         corners = rectCornersCenter(0, 0, 10, 10)
 
         shape = pymunk.Poly(s.body, corners)
-        sape.Sensor = True
+        shape.Sensor = True
         s.addShapes(shape)
         s.setCollisionCollectable()
 
@@ -832,14 +832,6 @@ I dunno man."""
     def _set_scale(s, scale):
         s._scale = scale
     scale = property(lambda s: s._scale, _set_scale)
-
-
-class BlockSprite(LineSprite):
-    def __init__(s, owner, corners, color, batch=None):
-        verts = [Vertex(x, y, color) for (x,y) in corners]
-        poly = Polygon(verts)
-        image = LineImage([poly], batch=batch)
-        LineSprite.__init__(s, owner, image)
 
 
 class Life(Component):

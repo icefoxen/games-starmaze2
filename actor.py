@@ -214,6 +214,7 @@ class BeginningP1Bullet(Actor):
         s.physicsObj = PlayerBulletPhysicsObj(s, position=(x, y+yOffset))
         
         s.renderer = rcache.getRenderer(BeginningsP1BulletRenderer)
+
         if impulse == None:
             xImpulse = 400 * facing
             yImpulse = yOffset * 10
@@ -310,7 +311,7 @@ class AirP1BulletGround(Actor):
         s.physicsObj = AirP1PhysicsObjGround(s, position=(x, y+yOffset))
 
         s.renderer = rcache.getRenderer(AirP1BulletGroundRenderer)
-
+        
         xImpulse = 800 * direction
         yImpulse = yOffset * 10
         s.physicsObj.apply_impulse((xImpulse, yImpulse))
@@ -351,6 +352,7 @@ class AirP2Bullet(Actor):
         s.animationTimer = Timer(0.03)
         
         s.renderer = rcache.getRenderer(AirP2BulletRenderer)
+
         s.animationCount = random.randint(0, 100)
 
     def update(s, dt):
@@ -361,7 +363,6 @@ class AirP2Bullet(Actor):
         s.animationTimer.update(dt)
         if s.animationTimer.expired():
             s.animationCount += 1
-        
 
 
 class NullPower(object):

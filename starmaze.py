@@ -268,7 +268,8 @@ update frame."""
 
     def report(s):
         "Print out misc useful about the state of the world."
-        print "Particle count: {}".format(len(s.particleGroup.particles))
+        #print "Particle count: {}".format(len(s.particleGroup.particles))
+        pass
 
 
 def main():
