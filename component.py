@@ -537,10 +537,8 @@ class DoorPhysicsObj(PhysicsObj):
         
 class PlayerBulletPhysicsObj(PhysicsObj):
     """A generic physics object for small round things that hit stuff."""
-    def __init__(s, owner, **kwargs):
-        PhysicsObj.__init__(s, owner, mass=1, moment=10, **kwargs)
-        s.addShapes(pymunk.Circle(s.body, radius=2))
-        s.setCollisionPlayerBullet()
+    def __init__(s, owner, mass=1, moment=10, **kwargs):
+        PhysicsObj.__init__(s, owner, mass=mass, moment=moment, **kwargs)
 
     def startCollisionWith(s, other, arbiter):
         return other.startCollisionWithPlayerBullet(s, arbiter)
@@ -559,20 +557,25 @@ class PlayerBulletPhysicsObj(PhysicsObj):
         enemy.life.takeDamage(bullet, bullet.damage)
         return False
 
-class AirP1PhysicsObjAir(PhysicsObj):
+class BeginningsBulletPhysicsObj(PlayerBulletPhysicsObj):
     def __init__(s, owner, **kwargs):
-        PhysicsObj.__init__(s, owner, 1, 10, **kwargs)
-        poly = pymunk.Poly(s.body, rectCornersCenter(0, 0, 10, 80))
-        poly.sensor = True
-        s.addShapes(poly)
+        PlayerBulletPhysicsObj.__init__(s, owner, **kwargs)
+        s.addShapes(pymunk.Circle(s.body, radius=2))
         s.setCollisionPlayerBullet()
 
-class AirP1PhysicsObjGround(PhysicsObj):
+    
+class AirP1PhysicsObjAir(PlayerBulletPhysicsObj):
     def __init__(s, owner, **kwargs):
-        PhysicsObj.__init__(s, owner, 1, 10, **kwargs)
-        poly = pymunk.Poly(s.body, rectCornersCenter(0, 0, 10, 30))
-        poly.sensor = True
-        s.addShapes(poly)
+        PlayerBulletPhysicsObj.__init__(s, owner, **kwargs)
+        shape = pymunk.Poly(s.body, rectCornersCenter(0, 0, 10, 80))
+        s.addShapes(shape)
+        s.setCollisionPlayerBullet()
+
+class AirP1PhysicsObjGround(PlayerBulletPhysicsObj):
+    def __init__(s, owner, **kwargs):
+        PlayerBulletPhysicsObj.__init__(s, owner, **kwargs)
+        shape = pymunk.Poly(s.body, rectCornersCenter(0, 0, 10, 30))
+        s.addShapes(shape)
         s.setCollisionPlayerBullet()
 
         

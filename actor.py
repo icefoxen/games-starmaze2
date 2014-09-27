@@ -211,7 +211,7 @@ class BeginningP1Bullet(Actor):
         yOffset = (random.random() * yVariance) - (yVariance / 2)
 
         x,y = position
-        s.physicsObj = PlayerBulletPhysicsObj(s, position=(x, y+yOffset))
+        s.physicsObj = BeginningsBulletPhysicsObj(s, position=(x, y+yOffset))
         
         s.renderer = rcache.getRenderer(BeginningsP1BulletRenderer)
 
@@ -240,7 +240,7 @@ class BeginningP2Bullet(Actor):
     def __init__(s, position, direction):
         Actor.__init__(s)
         x,y = position
-        s.physicsObj = PlayerBulletPhysicsObj(s, position=(x, y))
+        s.physicsObj = BeginningsBulletPhysicsObj(s, position=(x, y))
         # TODO: Placeholder image
         s.renderer = rcache.getRenderer(PowerupRenderer)
         xImpulse = 300 * direction
@@ -351,7 +351,8 @@ class AirP2Bullet(Actor):
         s.facing = direction
         s.animationTimer = Timer(0.03)
         
-        s.renderer = rcache.getRenderer(AirP2BulletRenderer)
+        s.renderer = rcache.getRenderer(BBRenderer)
+        #s.renderer = rcache.getRenderer(AirP2BulletRenderer)
 
         s.animationCount = random.randint(0, 100)
 
