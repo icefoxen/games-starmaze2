@@ -342,20 +342,22 @@ class AirP2Bullet(Actor):
     def __init__(s, firer, position, direction):
         Actor.__init__(s)
         s.firer = firer
+        # This has to be set before the physicsobj is created
+        s.facing = direction
         x,y = position
 
-        # XXX: Not necessarily right, our position gets updated on update()
         s.physicsObj = AirP2PhysicsObj(s, position=(x, y))
+        
         # Counteract gravity
-        s.physicsObj.apply_force((0, 400))
+        # Not needed since we customize the physicsobj's position_func attribute
+        #s.physicsObj.apply_force((0, 400))
         
         s.maxTime = 0.6
         s.life = TimedLife(s, s.maxTime)
-        s.facing = direction
         s.animationTimer = Timer(0.03)
         
-        s.renderer = rcache.getRenderer(BBRenderer)
-        #s.renderer = rcache.getRenderer(AirP2BulletRenderer)
+        #s.renderer = rcache.getRenderer(BBRenderer)
+        s.renderer = rcache.getRenderer(AirP2BulletRenderer)
 
         # We start at a random place in the animation.
         # XXX: This should probably be a matter for the renderer, not the actor
@@ -364,19 +366,8 @@ class AirP2Bullet(Actor):
         s.damagePerSecond = 100
         s.enemiesTouching = set()
 
-    def update(s, dt):
-        x,y = s.firer.physicsObj.position
-        # BUGGO: HACK
-        length = 400
-        if s.facing == FACING_LEFT:
-            x -= length
-            print "rawr", x
-        else:
-            print "boo", x
 
-        s.physicsObj.position = (x, y-10)
-        print s.physicsObj.position
-        
+    def update(s, dt):
         s.life.update(dt)
         s.animationTimer.update(dt)
         if s.animationTimer.expired():

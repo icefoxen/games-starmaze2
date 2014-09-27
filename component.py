@@ -584,9 +584,11 @@ class AirP1PhysicsObjGround(PlayerBulletPhysicsObj):
 # segments in games like this, see Viy's beam from La Mulana
 class AirP2PhysicsObj(PhysicsObj):
     def __init__(s, owner, **kwargs):
-        PhysicsObj.__init__(s, owner, **kwargs)
-        shape = pymunk.Poly(s.body, rectCornersCorner(0, 0, 400, 20))
-        shape.sensor = True
+        PhysicsObj.__init__(s, owner, mass=1, moment=100, **kwargs)
+        s.body.position_func = AirP2PhysicsObj.position_func
+        s.width = 400
+        s.height = 20
+        shape = pymunk.Poly(s.body, rectCornersCorner(0, -(s.height / 2), s.width * owner.facing, s.height))
         s.addShapes(shape)
         s.setCollisionPlayerBullet()
 
@@ -599,18 +601,21 @@ class AirP2PhysicsObj(PhysicsObj):
     def startCollisionWithTerrain(s, other, arbiter):
         return False
 
-    # XXX, BUGGO
-    # This has some issues 'cause it doesn't really do damage-over-time...
-    # But it DOES plonk a big splash of damage instantly down on anything
-    # touching the beam, only once, which is nice.
-    # EXCEPT if something passes back and forth through the beam it will
-    # take more damage than something sitting in it the whole time.
     def startCollisionWithEnemy(s, other, arbiter):
         s.owner.enemiesTouching.add(other.owner)
         return False
 
     def endCollisionWithEnemy(s, other, arbiter):
         s.owner.enemiesTouching.remove(other.owner)
+
+    @staticmethod
+    def position_func(body, dt):
+        # As we yo-yo up and down the object tree to get the location of
+        # the actor who actually fired the bullet...
+        # Then we just make the bullet follow them along.
+        x, y = body.component.owner.firer.physicsObj.position
+        body.position = (x, y)
+    
 
         
 class BlockPhysicsObj(PhysicsObj):
