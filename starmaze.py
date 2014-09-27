@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import collections
 import os
 import random
 import time
@@ -50,7 +51,8 @@ class World(object):
             #s.keyboard,
             on_draw = lambda: s.on_draw(),
             on_key_press = lambda k, mods: s.on_key_press(k, mods),
-            on_key_release = lambda k, mods: s.on_key_release(k, mods)
+            on_key_release = lambda k, mods: s.on_key_release(k, mods),
+            on_close = lambda: s.on_close()
         )
 
         s.initNewSpace()
@@ -78,6 +80,8 @@ class World(object):
         s.particleController = ParticleController()
         s.particleRenderer = ParticleRenderer()
         s.particleEmitter = ParticleEmitter()
+
+        s.frameTimes = collections.defaultdict(lambda: 0)
 
     def initNewSpace(s):
         s.space = pymunk.Space()
@@ -213,6 +217,9 @@ update frame."""
             
         s.time += dt
 
+        roundedTime = round(dt, 3)
+        s.frameTimes[roundedTime] += 1
+
     def reportStats(s):
         # Not really a good way of getting memory used by program...
         import resource
@@ -271,6 +278,13 @@ update frame."""
         #print "Particle count: {}".format(len(s.particleGroup.particles))
         pass
 
+    def on_close(s):
+        items = s.frameTimes.items()
+        items.sort()
+        print "Frame latencies:"
+        print "Seconds\tNumber"
+        for time, num in items:
+            print "{}\t{}".format(time, num)
 
 def main():
     screenw = 1024
