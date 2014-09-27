@@ -188,9 +188,7 @@ handling I think."""
 
 
 # TODO: Bullet class?
-# Should bullets keep a reference to their firer?
-# Might be useful, I dunno.  No immediate need for
-# it though.
+# It's a bit hard to make one that's generic.
 # Bullets probably SHOULD have controllers...
 
 # TODO: WE MIGHT NEED SOME PROPER EVENTS TO OCCUR FOR ACTORS
@@ -205,8 +203,9 @@ handling I think."""
 # onDraw and onUpdate, really
 
 class BeginningP1Bullet(Actor):
-    def __init__(s, position, facing, impulse=None, lifetime=None):
+    def __init__(s, firer, position, facing, impulse=None, lifetime=None):
         Actor.__init__(s)
+        s.firer = firer
         yVariance = 5
         yOffset = (random.random() * yVariance) - (yVariance / 2)
 
@@ -237,8 +236,9 @@ class BeginningP1Bullet(Actor):
         pass
 
 class BeginningP2Bullet(Actor):
-    def __init__(s, position, direction):
+    def __init__(s, firer, position, direction):
         Actor.__init__(s)
+        s.firer = firer
         x,y = position
         s.physicsObj = BeginningsBulletPhysicsObj(s, position=(x, y))
         # TODO: Placeholder image
@@ -269,14 +269,15 @@ class BeginningP2Bullet(Actor):
             newx = x - (vx / 20.0)
             newy = y - (vy / 20.0)
             # TODO: Placeholder bullet
-            b = BeginningP1Bullet((newx, newy), FACING_RIGHT, impulse=(xForce, yForce))
+            b = BeginningP1Bullet(s.firer, (newx, newy), FACING_RIGHT, impulse=(xForce, yForce))
             b.life = TimedLife(b, 0.15)
             b.physicsObj.body.angle = rangle
             s.world.addActor(b)
 
 class AirP1BulletAir(Actor):
-    def __init__(s, position, direction):
+    def __init__(s, firer, position, direction):
         Actor.__init__(s)
+        s.firer = firer
         yVariance = 5
         yOffset = (random.random() * yVariance) - (yVariance / 2)
         x,y = position
@@ -303,8 +304,9 @@ class AirP1BulletAir(Actor):
         pass
 
 class AirP1BulletGround(Actor):
-    def __init__(s, position, direction):
+    def __init__(s, firer, position, direction):
         Actor.__init__(s)
+        s.firer = firer
         yVariance = 5
         yOffset = (random.random() * yVariance) - (yVariance / 2)
         x,y = position
@@ -336,16 +338,17 @@ class AirP1BulletGround(Actor):
 # Bligher.
 
 
-# We precalculate these because it's actually pretty intensive
-LIGHTNINGIMAGES = [images.airP2Bullet() for _ in xrange(20)]
 class AirP2Bullet(Actor):
-    def __init__(s, position, direction):
+    def __init__(s, firer, position, direction):
         Actor.__init__(s)
+        s.firer = firer
         x,y = position
-        s.physicsObj = AirP1PhysicsObjGround(s, position=(x, y))
+
+        # XXX: Not necessarily right, our position gets updated on update()
+        s.physicsObj = AirP2PhysicsObj(s, position=(x, y))
+        # Counteract gravity
         s.physicsObj.apply_force((0, 400))
-        # Different image each time, not cached!
-        image = images.airP2Bullet()
+        
         s.maxTime = 0.6
         s.life = TimedLife(s, s.maxTime)
         s.facing = direction
@@ -354,16 +357,33 @@ class AirP2Bullet(Actor):
         s.renderer = rcache.getRenderer(BBRenderer)
         #s.renderer = rcache.getRenderer(AirP2BulletRenderer)
 
+        # We start at a random place in the animation.
+        # XXX: This should probably be a matter for the renderer, not the actor
         s.animationCount = random.randint(0, 100)
 
+        s.damagePerSecond = 100
+        s.enemiesTouching = set()
+
     def update(s, dt):
-        #s.physicsObj.position = s.owner.physicsObj.position
-        # Only lasts one frame
-        #s.alive = False
+        x,y = s.firer.physicsObj.position
+        # BUGGO: HACK
+        length = 400
+        if s.facing == FACING_LEFT:
+            x -= length
+            print "rawr", x
+        else:
+            print "boo", x
+
+        s.physicsObj.position = (x, y-10)
+        print s.physicsObj.position
+        
         s.life.update(dt)
         s.animationTimer.update(dt)
         if s.animationTimer.expired():
             s.animationCount += 1
+
+        for e in s.enemiesTouching:
+            e.life.takeDamage(s, s.damagePerSecond * dt)
 
 
 class NullPower(object):
@@ -414,7 +434,7 @@ class NullPower(object):
     def fireBullet(s, bulletClass):
         pos = s.owner.physicsObj.position
         direction = s.owner.facing
-        bullet = bulletClass(pos, direction)
+        bullet = bulletClass(s.owner, pos, direction)
         s.owner.world.addActor(bullet)
 
     def draw(s, shader):

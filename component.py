@@ -578,6 +578,40 @@ class AirP1PhysicsObjGround(PlayerBulletPhysicsObj):
         s.addShapes(shape)
         s.setCollisionPlayerBullet()
 
+# XXX: 
+# Maybe inherits from a BeamPhysicsObject or such...
+# Though most beams are really made up of lots of bullet
+# segments in games like this, see Viy's beam from La Mulana
+class AirP2PhysicsObj(PhysicsObj):
+    def __init__(s, owner, **kwargs):
+        PhysicsObj.__init__(s, owner, **kwargs)
+        shape = pymunk.Poly(s.body, rectCornersCorner(0, 0, 400, 20))
+        shape.sensor = True
+        s.addShapes(shape)
+        s.setCollisionPlayerBullet()
+
+    def startCollisionWith(s, other, arbiter):
+        return other.startCollisionWithPlayerBullet(s, arbiter)
+
+    def endCollisionWith(s, other, arbiter):
+        return other.endCollisionWithPlayerBullet(s, arbiter)
+
+    def startCollisionWithTerrain(s, other, arbiter):
+        return False
+
+    # XXX, BUGGO
+    # This has some issues 'cause it doesn't really do damage-over-time...
+    # But it DOES plonk a big splash of damage instantly down on anything
+    # touching the beam, only once, which is nice.
+    # EXCEPT if something passes back and forth through the beam it will
+    # take more damage than something sitting in it the whole time.
+    def startCollisionWithEnemy(s, other, arbiter):
+        s.owner.enemiesTouching.add(other.owner)
+        return False
+
+    def endCollisionWithEnemy(s, other, arbiter):
+        s.owner.enemiesTouching.remove(other.owner)
+
         
 class BlockPhysicsObj(PhysicsObj):
     """Generic immobile rectangle physics object"""
