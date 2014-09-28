@@ -170,13 +170,6 @@ handling I think."""
 
     def update(s, dt):
         s.controller.update(dt)
-        # If it flips off of upright, apply restoring force.
-        # XXX: Can we make these beasties stick to walls?
-        # In the end that will all be the job of a Controller
-        # object; sticking to walls will be easy just by applying
-        # a force toward the wall with some friction, and maybe
-        # countering gravity if necessary
-        # Also consider how to stick to walls when going on slopes...
 
     def onDeath(s):
         c = Collectable()

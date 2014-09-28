@@ -177,6 +177,7 @@ class RoamAIController(Component):
     """A controller that sorta wanders at random..."""
     def __init__(s, owner):
         Component.__init__(s, owner)
+        s.moveForce = 400
 
     def update(s, dt):
         moveForce = 400
@@ -717,7 +718,6 @@ class PowerupPhysicsObj(PhysicsObj):
         
 class CrawlerPhysicsObj(PhysicsObj):
     def __init__(s, owner, **kwargs):
-        # TODO: Test moment=none instead of inf
         PhysicsObj.__init__(s, owner, mass=100, moment=pymunk.inf, **kwargs)
         corners = rectCornersCenter(0, 0, 25, 20)
 
@@ -730,7 +730,14 @@ class CrawlerPhysicsObj(PhysicsObj):
     def endCollisionWith(s, other, arbiter):
         return other.endCollisionWithEnemy(s, arbiter)
 
-
+    def startCollisionWithTerrain(s, other, arbiter):
+        for c in arbiter.contacts:
+            normal = c.normal
+            if abs(normal.y) < 0.0001:
+                s.owner.facing *= -1
+                break
+        return True
+    
 import renderer
 class LineSprite(Component):
     """A class that draws positioned, scaled, rotated
