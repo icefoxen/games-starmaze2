@@ -20,10 +20,10 @@ things might come later.
 
 corners is a list of the corners of the polygon.  NOT line endpoins.
 """
-    def __init__(s, position, corners, color, batch=None):
+    def __init__(s, position, corners, color):
         s.corners = corners
         s.color = color
-        Actor.__init__(s, batch)
+        Actor.__init__(s)
         s.physicsObj = BlockPhysicsObj(s, position=position)
 
         verts = [Vertex(x, y, color) for (x,y) in corners]
@@ -44,10 +44,10 @@ corners is a list of the corners of the polygon.  NOT line endpoins.
 class FallingBlock(Actor):
     """A block that falls when the player lands on it.
 """
-    def __init__(s, position, corners, color, batch=None):
+    def __init__(s, position, corners, color):
         s.corners = corners
         s.color = color
-        Actor.__init__(s, batch)
+        Actor.__init__(s)
         s.physicsObj = FallingBlockPhysicsObj(s, position=position)
 
         
@@ -56,7 +56,7 @@ class FallingBlock(Actor):
         s.img = LineImage([poly])
         s.renderer = rcache.getRenderer(BlockRenderer)
 
-def createBlockCenter(x, y, w, h, color=(255, 255, 255, 255), batch=None):
+def createBlockCenter(x, y, w, h, color=(255, 255, 255, 255)):
     """Creates a `Terrain` object representing a block of the given size.
 x and y are the coordinates of the center."""
     xf = float(x)
@@ -64,10 +64,10 @@ x and y are the coordinates of the center."""
     wf = float(w)
     hf = float(h)
     corners = rectCornersCenter(0, 0, w, h)
-    t = Block((x, y), corners, color, batch)
+    t = Block((x, y), corners, color)
     return t
 
-def createBlockCorner(x, y, w, h, color=(255, 255, 255, 255), batch=None):
+def createBlockCorner(x, y, w, h, color=(255, 255, 255, 255)):
     """Creates a `Terrain` object representing a block of the given size.
 x and y are the coordinates of the lower-left point."""
     xf = float(x)
@@ -75,7 +75,7 @@ x and y are the coordinates of the lower-left point."""
     wf = float(w)
     hf = float(h)
     corners = rectCornersCorner(0, 0, w, h)
-    t = Block((x, y), corners, color, batch)
+    t = Block((x, y), corners, color)
     return t
 
 @described

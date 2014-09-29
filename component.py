@@ -61,6 +61,9 @@ component system."""
     def __init__(s, owner):
         s.owner = owner
 
+######################################################################
+## Controllers
+######################################################################
 # TODO:
 # Be able to gauge jumping by how long you hold the button down
 # Have a maximum speed (should that be on the PhysicsObj instead?)
@@ -183,6 +186,9 @@ class RoamAIController(Component):
         moveForce = 400
         s.owner.physicsObj.apply_impulse((moveForce * dt * s.owner.facing, 0))
 
+######################################################################
+## Physics objects
+######################################################################
 
 class PhysicsObj(Component):
     """A component that handles an `Actor`'s position and movement
@@ -804,151 +810,9 @@ class AnnihilatorPhysicsObj(EnemyPhysicsObj):
         s.setCollisionEnemy()
 
 
-    
-import renderer
-class LineSprite(Component):
-    """A class that draws positioned, scaled, rotated
-and maybe someday animated `LineImage`s.
-
-Just inherit from it or make a function to pass it a
-LineImage.
-
-TODO: The question is, how do we animate these things...
-
-Apart from animations, this is mostly API-compatible with
-`pyglet.sprite.Sprite`.  Huzzah~
-
-Except I took out all the group stuff so I can not worry
-about it until I need to.  Though it looks like it might
-be ideal for shaders and ordering maybe...  So I might need
-to make that work.
-
-TODO: Glow layer???
-"""
-
-    def __init__(s, owner, lineimage, x=0, y=0, batch=None, group=None):
-        Component.__init__(s, owner)
-        s._image = lineimage
-        s._x = x
-        s._y = y
-        # BUGGO: Actually, we have no way of moving a lineimage
-        # into a new batch, so if we DO provide a batch for this sprite,
-        # it won't actually draw anything...
-        s._batch = batch or lineimage.batch
-        s._rotation = 0.0
-        s._scale = 1.0
-
-
-    def draw(s):
-        return
-        glPushAttrib(GL_COLOR_BUFFER_BIT)
-        glEnable(GL_BLEND)
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-        with Affine((s._x, s._y), s.rotation, (s._scale, s._scale)):
-            s._batch.draw()
-        glPopAttrib()
-
-    # def _get_group(s):
-    #     return s._group
-    # def _set_group(s, group):
-    #     s._group = group
-    # group = property(_get_group, _set_group)
-
-    def _set_image(s, image):
-        s._image = image
-    image = property(lambda s: s._image, _set_image)
-    
-    def _set_x(s, x):
-        s._x = x
-    x = property(lambda s: s._x, _set_x)
-
-    def _set_y(s, y):
-        s._y = y
-    y = property(lambda s: s._y, _set_y)
-
-    def _set_position(s, pos):
-        (x, y) = pos
-        s._x = x
-        s._y = y
-    position = property(lambda s: (s._x, s._y), _set_position)
-
-    def _set_rotation(s, rotation):
-        s._rotation = rotation
-    rotation = property(lambda s: s._rotation, _set_rotation)
-
-    def _set_scale(s, scale):
-        s._scale = scale
-    scale = property(lambda s: s._scale, _set_scale)
-
-
-class ImgSprite(Component):
-    """A sprite that displays a bitmap image.
-We use Pyglet's Sprite class internally, but have to wrap it
-to play nice with how we handle coordinates...
-
-ie, _not_ recreating the whole shape from scratch whenever
-it moves.
-
-BUGGO: Doesn't work correctly with shaders.  If we have textured
-quads, then we need texture colors, if we have untextured quads,
-then we need non-texture colors.  Either use different shaders for
-the two, or have all textured images have a non-texture color of 0 and
-all non-textured shapes bind to a single-pixel black texture, then the
-shader just adds the two together...
-
-XXX: The existence of this feels like a kludge, though I'm not sure why.
-Pyglet's whole drawing system makes me vaguely unhappy for some reason,
-I guess.
-Could trivially replicated, but I'm not sure that'd be less of a kludge.
-I dunno man."""
-    def __init__(s, owner, image, x=0, y=0, batch=None, group=None):
-        Component.__init__(s, owner)
-        s._image = image
-        s._x = x
-        s._y = y
-        s._batch = batch or pyglet.graphics.Batch()
-        s._sprite = pyglet.sprite.Sprite(image, batch=s._batch)
-        print "Batch", s._batch
-        s._rotation = 0.0
-        s._scale = 1.0
-
-
-    def draw(s):
-        return
-        glPushAttrib(GL_COLOR_BUFFER_BIT)
-        glEnable(GL_BLEND)
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-        with Affine((s._x, s._y), s.rotation, (s._scale, s._scale)):
-            s._batch.draw()
-        glPopAttrib()
-
-
-    #def _set_image(s, image):
-    #    s._image = image
-    #image = property(lambda s: s._image, _set_image)
-    
-    def _set_x(s, x):
-        s._x = x
-    x = property(lambda s: s._x, _set_x)
-
-    def _set_y(s, y):
-        s._y = y
-    y = property(lambda s: s._y, _set_y)
-
-    def _set_position(s, pos):
-        (x, y) = pos
-        s._x = x
-        s._y = y
-    position = property(lambda s: (s._x, s._y), _set_position)
-
-    def _set_rotation(s, rotation):
-        s._rotation = rotation
-    rotation = property(lambda s: s._rotation, _set_rotation)
-
-    def _set_scale(s, scale):
-        s._scale = scale
-    scale = property(lambda s: s._scale, _set_scale)
-
+######################################################################
+##  Misc components
+######################################################################
 
 class Life(Component):
     """A component that keeps track of life and kills

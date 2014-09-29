@@ -244,11 +244,10 @@ Also, doesn't really use groups right I think.
 
 Also, our framework code doesn't use batches right at all argh
 """
-    def __init__(s, polys, batch=None, group=None):
+    def __init__(s, polys):
         s.polys = polys
-        s.batch = batch or pyglet.graphics.Batch()
-        s.group = group
-        
+        s.batch = pyglet.graphics.Batch()
+
         s._vertexLists = []
         s._addToBatch()
 
@@ -283,7 +282,7 @@ them to the image's batch."""
         vertexList = s.batch.add(
             numPoints,
             pyglet.graphics.GL_TRIANGLES,
-            s.group,
+            None,
             (vertFormat, coords),
             (colorFormat, colors)
             )

@@ -66,7 +66,7 @@ gets printed out into a level spec file and then re-loaded.
 
 class Actor(object):
     """The basic thing-that-moves-and-does-stuff in a `Room`."""
-    def __init__(s, batch=None):
+    def __init__(s):
         s.physicsObj = None
         s.renderer = None
 
@@ -89,9 +89,9 @@ class Actor(object):
 # No description; the keyboard object can't be readily printed.
 class Player(Actor):
     """The player object."""
-    def __init__(s, world, keyboard, position=(0,0), batch=None):
+    def __init__(s, world, keyboard, position=(0,0)):
         s.radius = 20
-        Actor.__init__(s, batch)
+        Actor.__init__(s)
         s.keyboard = keyboard
         s.controller = KeyboardController(s, keyboard)
         s.physicsObj = PlayerPhysicsObj(s, position=position)
@@ -117,8 +117,8 @@ class Collectable(Actor):
     """Something you can collect which does things to you,
 whether restoring your health or unlocking a new Power or whatever."""
 
-    def __init__(s, position=(0,0), batch=None):
-        Actor.__init__(s, batch)
+    def __init__(s, position=(0,0)):
+        Actor.__init__(s)
         s.physicsObj = CollectablePhysicsObj(s, position=position)
         s.life = TimedLife(s, 15)
         s.renderer = rcache.getRenderer(CollectableRenderer)
@@ -185,10 +185,10 @@ class TrooperEnemy(Actor):
         Actor.__init__(s)
         s.controller = RoamAIController(s)
         s.physicsObj = TrooperPhysicsObj(s, position=position)
-        s.renderer = rcache.getRenderer(CrawlerRenderer)
+        s.renderer = rcache.getRenderer(TrooperRenderer)
         
         s.facing = FACING_RIGHT
-        s.life = Life(s, 3, reduction=8)
+        s.life = Life(s, 10)
 
     def update(s, dt):
         s.controller.update(dt)
@@ -199,10 +199,10 @@ class ArcherEnemy(Actor):
         Actor.__init__(s)
         s.controller = RoamAIController(s)
         s.physicsObj = ArcherPhysicsObj(s, position=position)
-        s.renderer = rcache.getRenderer(CrawlerRenderer)
+        s.renderer = rcache.getRenderer(ArcherRenderer)
         
         s.facing = FACING_RIGHT
-        s.life = Life(s, 3, reduction=8)
+        s.life = Life(s, 10)
 
     def update(s, dt):
         s.controller.update(dt)
@@ -213,10 +213,10 @@ class FloaterEnemy(Actor):
         Actor.__init__(s)
         s.controller = RoamAIController(s)
         s.physicsObj = FloaterPhysicsObj(s, position=position)
-        s.renderer = rcache.getRenderer(CrawlerRenderer)
+        s.renderer = rcache.getRenderer(FloaterRenderer)
         
         s.facing = FACING_RIGHT
-        s.life = Life(s, 3, reduction=8)
+        s.life = Life(s, 10)
 
     def update(s, dt):
         s.controller.update(dt)
@@ -227,10 +227,10 @@ class EliteEnemy(Actor):
         Actor.__init__(s)
         s.controller = RoamAIController(s)
         s.physicsObj = ElitePhysicsObj(s, position=position)
-        s.renderer = rcache.getRenderer(CrawlerRenderer)
+        s.renderer = rcache.getRenderer(EliteRenderer)
         
         s.facing = FACING_RIGHT
-        s.life = Life(s, 3, reduction=8)
+        s.life = Life(s, 10)
 
     def update(s, dt):
         s.controller.update(dt)
@@ -241,10 +241,10 @@ class HeavyEnemy(Actor):
         Actor.__init__(s)
         s.controller = RoamAIController(s)
         s.physicsObj = HeavyPhysicsObj(s, position=position)
-        s.renderer = rcache.getRenderer(CrawlerRenderer)
+        s.renderer = rcache.getRenderer(HeavyRenderer)
         
         s.facing = FACING_RIGHT
-        s.life = Life(s, 3, reduction=8)
+        s.life = Life(s, 10)
 
     def update(s, dt):
         s.controller.update(dt)
@@ -255,10 +255,10 @@ class DragonEnemy(Actor):
         Actor.__init__(s)
         s.controller = RoamAIController(s)
         s.physicsObj = DragonPhysicsObj(s, position=position)
-        s.renderer = rcache.getRenderer(CrawlerRenderer)
+        s.renderer = rcache.getRenderer(DragonRenderer)
         
         s.facing = FACING_RIGHT
-        s.life = Life(s, 3, reduction=8)
+        s.life = Life(s, 10)
 
     def update(s, dt):
         s.controller.update(dt)
@@ -269,10 +269,10 @@ class AnnihilatorEnemy(Actor):
         Actor.__init__(s)
         s.controller = RoamAIController(s)
         s.physicsObj = AnnihilatorPhysicsObj(s, position=position)
-        s.renderer = rcache.getRenderer(CrawlerRenderer)
+        s.renderer = rcache.getRenderer(AnnihilatorRenderer)
         
         s.facing = FACING_RIGHT
-        s.life = Life(s, 3, reduction=8)
+        s.life = Life(s, 10)
 
     def update(s, dt):
         s.controller.update(dt)
@@ -664,10 +664,8 @@ class AirPower(NullPower):
             s.attack1Timer.reset()
             if s.owner.onGround:
                 s.fireBullet(AirP1BulletGround)
-                print "Zang!"
             else:
                 s.fireBullet(AirP1BulletAir)
-                print "Zam!"
 
     def startAttack2(s):
         s.attack2Timer.reset()

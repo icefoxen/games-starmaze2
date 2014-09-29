@@ -108,6 +108,8 @@ class PlayerRenderer(Renderer):
             #s.glowImage.position = s.physicsObj.position
             s.glowImage.batch.draw()
 
+# Having a renderer that does nothing but draw a particular image seems a bit lame
+# But it's certainly the most flexible method, so we're sticking with it.
 class CollectableRenderer(Renderer):
     def __init__(s):
         Renderer.__init__(s)
@@ -119,6 +121,41 @@ class PowerupRenderer(Renderer):
         s.img = rcache.getLineImage(images.powerup)
 
 class CrawlerRenderer(Renderer):
+    def __init__(s):
+        Renderer.__init__(s)
+        s.img = rcache.getLineImage(images.crawler)
+        
+class TrooperRenderer(Renderer):
+    def __init__(s):
+        Renderer.__init__(s)
+        s.img = rcache.getLineImage(images.crawler)
+        
+class ArcherRenderer(Renderer):
+    def __init__(s):
+        Renderer.__init__(s)
+        s.img = rcache.getLineImage(images.crawler)
+        
+class FloaterRenderer(Renderer):
+    def __init__(s):
+        Renderer.__init__(s)
+        s.img = rcache.getLineImage(images.crawler)
+        
+class EliteRenderer(Renderer):
+    def __init__(s):
+        Renderer.__init__(s)
+        s.img = rcache.getLineImage(images.crawler)
+        
+class HeavyRenderer(Renderer):
+    def __init__(s):
+        Renderer.__init__(s)
+        s.img = rcache.getLineImage(images.crawler)
+        
+class DragonRenderer(Renderer):
+    def __init__(s):
+        Renderer.__init__(s)
+        s.img = rcache.getLineImage(images.crawler)
+
+class AnnihilatorRenderer(Renderer):
     def __init__(s):
         Renderer.__init__(s)
         s.img = rcache.getLineImage(images.crawler)
@@ -282,13 +319,9 @@ class RenderManager(object):
     """A class that manages rendering of a set of Renderers."""
     def __init__(s):
         # A map of Renderers -> RenderComponents, or something
+        # We use defaultdict to create a new empty set of RenderComponents
+        # if you look up a non-existent Renderers
         s.renderers = collections.defaultdict(set)
-        # __missing__ is a function that gets called without arguments
-        # to provide a default value for a missing key; this default value
-        # is then inserted as the value for said key.
-        # So if we look up a renderer that doesn't exist, it automatically
-        # gets added to the dict with an empty set as the value.
-        #s.renderers.__missing__ = set
 
     def add(s, renderer, actor):
         s.renderers[renderer].add(actor)
@@ -305,7 +338,7 @@ class RenderManager(object):
 
 def preloadRenderers():
     """Instantiates all renderers into the rcache to prevent the first lookup from lagging.
-For instance AirP2BulletRenderer does a lot of setup work."""
+For instance AirP2BulletRenderer does relatively expensive setup work."""
     # Note that __subclasses__() only gets direct sublcasses, see:
     # http://stackoverflow.com/questions/5881873/python-find-all-classes-which-inherit-from-this-one
 
