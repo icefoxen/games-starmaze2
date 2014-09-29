@@ -159,8 +159,8 @@ class CrawlerEnemy(Actor):
 
 BUGGO: Doesn't currently hurt when you touch it; blocked on better collision
 handling I think."""
-    def __init__(s, position=(0,0), batch=None):
-        Actor.__init__(s, batch)
+    def __init__(s, position=(0,0)):
+        Actor.__init__(s)
         s.controller = RoamAIController(s)
         s.physicsObj = CrawlerPhysicsObj(s, position=position)
         s.renderer = rcache.getRenderer(CrawlerRenderer)
@@ -178,6 +178,105 @@ handling I think."""
         xForce = (random.random() * 150) - 75
         c.physicsObj.apply_impulse((xForce, yForce))
         s.world.addActor(c)
+
+@described
+class TrooperEnemy(Actor):
+    def __init__(s, position=(0,0)):
+        Actor.__init__(s)
+        s.controller = RoamAIController(s)
+        s.physicsObj = TrooperPhysicsObj(s, position=position)
+        s.renderer = rcache.getRenderer(CrawlerRenderer)
+        
+        s.facing = FACING_RIGHT
+        s.life = Life(s, 3, reduction=8)
+
+    def update(s, dt):
+        s.controller.update(dt)
+
+@described
+class ArcherEnemy(Actor):
+    def __init__(s, position=(0,0)):
+        Actor.__init__(s)
+        s.controller = RoamAIController(s)
+        s.physicsObj = ArcherPhysicsObj(s, position=position)
+        s.renderer = rcache.getRenderer(CrawlerRenderer)
+        
+        s.facing = FACING_RIGHT
+        s.life = Life(s, 3, reduction=8)
+
+    def update(s, dt):
+        s.controller.update(dt)
+
+@described
+class FloaterEnemy(Actor):
+    def __init__(s, position=(0,0)):
+        Actor.__init__(s)
+        s.controller = RoamAIController(s)
+        s.physicsObj = FloaterPhysicsObj(s, position=position)
+        s.renderer = rcache.getRenderer(CrawlerRenderer)
+        
+        s.facing = FACING_RIGHT
+        s.life = Life(s, 3, reduction=8)
+
+    def update(s, dt):
+        s.controller.update(dt)
+
+@described
+class EliteEnemy(Actor):
+    def __init__(s, position=(0,0)):
+        Actor.__init__(s)
+        s.controller = RoamAIController(s)
+        s.physicsObj = ElitePhysicsObj(s, position=position)
+        s.renderer = rcache.getRenderer(CrawlerRenderer)
+        
+        s.facing = FACING_RIGHT
+        s.life = Life(s, 3, reduction=8)
+
+    def update(s, dt):
+        s.controller.update(dt)
+
+@described
+class HeavyEnemy(Actor):
+    def __init__(s, position=(0,0)):
+        Actor.__init__(s)
+        s.controller = RoamAIController(s)
+        s.physicsObj = HeavyPhysicsObj(s, position=position)
+        s.renderer = rcache.getRenderer(CrawlerRenderer)
+        
+        s.facing = FACING_RIGHT
+        s.life = Life(s, 3, reduction=8)
+
+    def update(s, dt):
+        s.controller.update(dt)
+
+@described
+class DragonEnemy(Actor):
+    def __init__(s, position=(0,0)):
+        Actor.__init__(s)
+        s.controller = RoamAIController(s)
+        s.physicsObj = DragonPhysicsObj(s, position=position)
+        s.renderer = rcache.getRenderer(CrawlerRenderer)
+        
+        s.facing = FACING_RIGHT
+        s.life = Life(s, 3, reduction=8)
+
+    def update(s, dt):
+        s.controller.update(dt)
+
+@described
+class AnnihilatorEnemy(Actor):
+    def __init__(s, position=(0,0)):
+        Actor.__init__(s)
+        s.controller = RoamAIController(s)
+        s.physicsObj = AnnihilatorPhysicsObj(s, position=position)
+        s.renderer = rcache.getRenderer(CrawlerRenderer)
+        
+        s.facing = FACING_RIGHT
+        s.life = Life(s, 3, reduction=8)
+
+    def update(s, dt):
+        s.controller.update(dt)
+
 
 
 # TODO: Bullet class?

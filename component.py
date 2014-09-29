@@ -715,21 +715,27 @@ class PowerupPhysicsObj(PhysicsObj):
     def endCollisionWith(s, other, arbiter):
         return other.endCollisionWithCollectable(s, arbiter)
 
+class EnemyPhysicsObj(PhysicsObj):
+    def __init__(s, owner, mass=100, moment=None, **kwargs):
+        PhysicsObj.__init__(s, owner, mass=mass, moment=moment, **kwargs)
         
-class CrawlerPhysicsObj(PhysicsObj):
-    def __init__(s, owner, **kwargs):
-        PhysicsObj.__init__(s, owner, mass=100, moment=pymunk.inf, **kwargs)
-        corners = rectCornersCenter(0, 0, 25, 20)
-
-        s.addShapes(pymunk.Poly(s.body, corners))
-        s.setCollisionEnemy()
-
     def startCollisionWith(s, other, arbiter):
         return other.startCollisionWithEnemy(s, arbiter)
 
     def endCollisionWith(s, other, arbiter):
         return other.endCollisionWithEnemy(s, arbiter)
 
+class CrawlerPhysicsObj(EnemyPhysicsObj):
+    def __init__(s, owner, **kwargs):
+        EnemyPhysicsObj.__init__(s, owner, mass=100, moment=pymunk.inf, **kwargs)
+        corners = rectCornersCenter(0, 0, 25, 20)
+
+        s.addShapes(pymunk.Poly(s.body, corners))
+        s.setCollisionEnemy()
+
+    # XXX: This feels awkward because reacting to collisions should
+    # be the pervue of the Controller, not the physics obj.  Maybe
+    # just send it a 'hit wall' message...
     def startCollisionWithTerrain(s, other, arbiter):
         for c in arbiter.contacts:
             normal = c.normal
@@ -737,6 +743,67 @@ class CrawlerPhysicsObj(PhysicsObj):
                 s.owner.facing *= -1
                 break
         return True
+
+class TrooperPhysicsObj(EnemyPhysicsObj):
+    def __init__(s, owner, **kwargs):
+        EnemyEnemyPhysicsObj.__init__(s, owner, mass=100, moment=pymunk.inf, **kwargs)
+        corners = rectCornersCenter(0, 0, 25, 20)
+
+        s.addShapes(pymunk.Poly(s.body, corners))
+        s.setCollisionEnemy()
+
+class ArcherPhysicsObj(EnemyPhysicsObj):
+    def __init__(s, owner, **kwargs):
+        EnemyEnemyPhysicsObj.__init__(s, owner, mass=100, moment=pymunk.inf, **kwargs)
+        corners = rectCornersCenter(0, 0, 25, 20)
+
+        s.addShapes(pymunk.Poly(s.body, corners))
+        s.setCollisionEnemy()
+    
+class FloaterPhysicsObj(EnemyPhysicsObj):
+    def __init__(s, owner, **kwargs):
+        EnemyPhysicsObj.__init__(s, owner, mass=100, moment=pymunk.inf, **kwargs)
+        corners = rectCornersCenter(0, 0, 25, 20)
+
+        s.addShapes(pymunk.Poly(s.body, corners))
+        s.setCollisionEnemy()
+
+    
+class ElitePhysicsObj(EnemyPhysicsObj):
+    def __init__(s, owner, **kwargs):
+        EnemyPhysicsObj.__init__(s, owner, mass=100, moment=pymunk.inf, **kwargs)
+        corners = rectCornersCenter(0, 0, 25, 20)
+
+        s.addShapes(pymunk.Poly(s.body, corners))
+        s.setCollisionEnemy()
+    
+class HeavyPhysicsObj(EnemyPhysicsObj):
+    def __init__(s, owner, **kwargs):
+        EnemyPhysicsObj.__init__(s, owner, mass=100, moment=pymunk.inf, **kwargs)
+        corners = rectCornersCenter(0, 0, 25, 20)
+
+        s.addShapes(pymunk.Poly(s.body, corners))
+        s.setCollisionEnemy()
+
+    
+class DragonPhysicsObj(EnemyPhysicsObj):
+    def __init__(s, owner, **kwargs):
+        EnemyPhysicsObj.__init__(s, owner, mass=100, moment=pymunk.inf, **kwargs)
+        corners = rectCornersCenter(0, 0, 25, 20)
+
+        s.addShapes(pymunk.Poly(s.body, corners))
+        s.setCollisionEnemy()
+
+
+class AnnihilatorPhysicsObj(EnemyPhysicsObj):
+    def __init__(s, owner, **kwargs):
+        EnemyPhysicsObj.__init__(s, owner, mass=100, moment=pymunk.inf, **kwargs)
+        corners = rectCornersCenter(0, 0, 25, 20)
+
+        s.addShapes(pymunk.Poly(s.body, corners))
+        s.setCollisionEnemy()
+
+
     
 import renderer
 class LineSprite(Component):
