@@ -12,6 +12,7 @@ import pymunk.pyglet_util
 
 from graphics import *
 import rcache
+import actor
 #import physics
 
 
@@ -42,11 +43,11 @@ LAYERSPEC_ALL          = 0xFFFFFFFF
 # Players have their own layer
 LAYERSPEC_PLAYER       = LAYER_PLAYER
 # Enemies touch everything except enemy bullets
-LAYERSPEC_ENEMY        = LAYERSPEC_ALL & ~LAYER_ENEMYBULLET
+LAYERSPEC_ENEMY        = LAYERSPEC_ALL & ~LAYER_ENEMYBULLET & ~LAYER_ENEMY
 # Collectables touch everything except enemies and bullets
 LAYERSPEC_COLLECTABLE  = LAYERSPEC_ALL # & ~LAYER_ENEMY & ~LAYER_BULLET
 # Player bullets only touch enemies and terrain
-LAYERSPEC_PLAYERBULLET = LAYER_ENEMY
+LAYERSPEC_PLAYERBULLET = LAYER_PLAYERBULLET
 # Enemy bullets only touch players and terrain...
 LAYERSPEC_ENEMYBULLET  = LAYER_ENEMYBULLET
 # Doors only touch the player
@@ -186,6 +187,9 @@ class RoamAIController(Component):
     def update(s, dt):
         s.owner.physicsObj.apply_impulse((s.moveForce * dt * s.owner.facing, 0))
 
+
+STATE_WANDERING = 0
+STATE_ATTACKING = 1
 class TrooperAIController(Component):
     """Occasionally tests to see if the player is in front of it.
 If it is, DESTROY"""
@@ -195,6 +199,8 @@ If it is, DESTROY"""
         s.sightRange = 500
         s.sightHeight = 100
         s.sightCheck = Timer(defaultTime=1.0)
+        s.lastSawPlayer = Timer(defaultTime=10.0)
+        s.state = STATE_WANDERING
 
     def checkSight(s):
         """Check if we can see the player.
@@ -216,7 +222,28 @@ see the player."""
 
         bb = pymunk.BB(left, bottom, right, top)
         shapes = space.bb_query(bb, LAYERSPEC_PLAYER)
-        print "Saw shapes: {}".format(shapes)
+        for shape in shapes:
+            act = shape.body.component.owner
+            if isinstance(act, actor.Player):
+                # We've seen the player in the bounding box, now we do a segment
+                # query to make sure there's nothing between us and it.
+                # BUGGO: The layer collision stuff doesn't work right,
+                # it just collides with itself
+                # This is sticky because we have the 'enemy' layer collide with the
+                # 'player' layer, so it's in the player layer...
+                # start = selfPosition
+                # end = act.physicsObj.position
+                # segmentQueryInfo = space.segment_query_first(start, end, LAYERSPEC_PLAYER)
+                # print "Segment test hit object:", segmentQueryInfo.shape.body.component.owner
+                # if segmentQueryInfo.shape.body.component.owner == act:
+                #     return True
+                #     print 'trooper can REALLY see player'
+                # print 'trooper can't actually see player'
+                # return False
+
+                return True
+            
+        return False
             
 
     def update(s, dt):
@@ -224,7 +251,9 @@ see the player."""
         s.sightCheck.update(dt)
         if s.sightCheck.expired():
             s.sightCheck.reset()
-            s.checkSight()
+            canSeePlayer = s.checkSight()
+            if canSeePlayer:
+                pass
             
 
         
@@ -772,6 +801,13 @@ class EnemyPhysicsObj(PhysicsObj):
 
     def endCollisionWith(s, other, arbiter):
         return other.endCollisionWithEnemy(s, arbiter)
+
+    def startCollisionWithEnemyBullet(s, other, arbiter):
+        return False
+
+    def startCollisionWithEnemy(s, other, arbiter):
+        return False
+
 
 class CrawlerPhysicsObj(EnemyPhysicsObj):
     def __init__(s, owner, **kwargs):

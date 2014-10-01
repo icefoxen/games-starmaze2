@@ -187,7 +187,7 @@ class TrooperEnemy(Actor):
         s.physicsObj = TrooperPhysicsObj(s, position=position)
         s.renderer = rcache.getRenderer(TrooperRenderer)
         
-        s.facing = FACING_RIGHT
+        s.facing = FACING_LEFT
         s.life = Life(s, 100)
 
     def update(s, dt):
