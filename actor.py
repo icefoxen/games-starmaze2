@@ -183,7 +183,7 @@ handling I think."""
 class TrooperEnemy(Actor):
     def __init__(s, position=(0,0)):
         Actor.__init__(s)
-        s.controller = RoamAIController(s)
+        s.controller = TrooperAIController(s)
         s.physicsObj = TrooperPhysicsObj(s, position=position)
         s.renderer = rcache.getRenderer(TrooperRenderer)
         

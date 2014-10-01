@@ -184,9 +184,50 @@ class RoamAIController(Component):
         s.moveForce = 400
 
     def update(s, dt):
-        moveForce = 400
-        s.owner.physicsObj.apply_impulse((moveForce * dt * s.owner.facing, 0))
+        s.owner.physicsObj.apply_impulse((s.moveForce * dt * s.owner.facing, 0))
 
+class TrooperAIController(Component):
+    """Occasionally tests to see if the player is in front of it.
+If it is, DESTROY"""
+    def __init__(s, owner):
+        Component.__init__(s, owner)
+        s.moveForce = 400
+        s.sightRange = 500
+        s.sightHeight = 100
+        s.sightCheck = Timer(defaultTime=1.0)
+
+    def checkSight(s):
+        """Check if we can see the player.
+First we do a BB query in front of us.  If that
+succeeds, we do a segment query that intersects
+terrain and players, and if that succeeds, we can
+see the player."""
+        print "Checking sight..."
+        space = s.owner.world.space
+        selfPosition = s.owner.physicsObj.position
+        selfFacing = s.owner.facing
+        bottom = selfPosition.y - s.sightHeight/2
+        top = selfPosition.y + s.sightHeight/2
+        left = selfPosition.x
+        right = selfPosition.x + s.sightRange
+        if selfFacing == FACING_LEFT:
+            right = left
+            left = selfPosition.x - s.sightRange
+
+        bb = pymunk.BB(left, bottom, right, top)
+        shapes = space.bb_query(bb, LAYERSPEC_PLAYER)
+        print "Saw shapes: {}".format(shapes)
+            
+
+    def update(s, dt):
+        s.owner.physicsObj.apply_impulse((s.moveForce * dt * s.owner.facing, 0))
+        s.sightCheck.update(dt)
+        if s.sightCheck.expired():
+            s.sightCheck.reset()
+            s.checkSight()
+            
+
+        
 ######################################################################
 ## Physics objects
 ######################################################################
