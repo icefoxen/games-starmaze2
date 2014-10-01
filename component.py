@@ -64,6 +64,7 @@ component system."""
 ######################################################################
 ## Controllers
 ######################################################################
+
 # TODO:
 # Be able to gauge jumping by how long you hold the button down
 # Have a maximum speed (should that be on the PhysicsObj instead?)
@@ -752,15 +753,25 @@ class CrawlerPhysicsObj(EnemyPhysicsObj):
 
 class TrooperPhysicsObj(EnemyPhysicsObj):
     def __init__(s, owner, **kwargs):
-        EnemyEnemyPhysicsObj.__init__(s, owner, mass=100, moment=pymunk.inf, **kwargs)
-        corners = rectCornersCenter(0, 0, 25, 20)
+        EnemyPhysicsObj.__init__(s, owner, mass=100, moment=pymunk.inf, **kwargs)
+        corners = rectCornersCenter(0, 0, 30, 50)
 
         s.addShapes(pymunk.Poly(s.body, corners))
         s.setCollisionEnemy()
 
+    # XXX: See CrawlerPhysicsObj note
+    def startCollisionWithTerrain(s, other, arbiter):
+        for c in arbiter.contacts:
+            normal = c.normal
+            if abs(normal.y) < 0.0001:
+                s.owner.facing *= -1
+                break
+        return True
+
+
 class ArcherPhysicsObj(EnemyPhysicsObj):
     def __init__(s, owner, **kwargs):
-        EnemyEnemyPhysicsObj.__init__(s, owner, mass=100, moment=pymunk.inf, **kwargs)
+        EnemyPhysicsObj.__init__(s, owner, mass=100, moment=pymunk.inf, **kwargs)
         corners = rectCornersCenter(0, 0, 25, 20)
 
         s.addShapes(pymunk.Poly(s.body, corners))

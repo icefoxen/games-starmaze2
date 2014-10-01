@@ -188,7 +188,7 @@ class TrooperEnemy(Actor):
         s.renderer = rcache.getRenderer(TrooperRenderer)
         
         s.facing = FACING_RIGHT
-        s.life = Life(s, 10)
+        s.life = Life(s, 100)
 
     def update(s, dt):
         s.controller.update(dt)

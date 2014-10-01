@@ -123,6 +123,16 @@ def crawler():
 
     return LineImage(polyList)
 
+def trooper():
+    polys = []
+    color = (224, 192, 192, 255)
+    polys.append(Polygon.rectCenter(0, 0, 30, 50, color))
+    polys.append(Polygon.line(-15, 30, -15, 45, color))
+    polys.append(Polygon.line(-15, 45, 20, 25, color))
+    polys.append(Polygon.line(20, 25, -15, 30, color))
+
+    return LineImage(polys)
+
 def collectable():
     color = (192, 0, 0, 255)
     polyList = []
