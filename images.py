@@ -133,6 +133,15 @@ def trooper():
 
     return LineImage(polys)
 
+def archer():
+    polys = []
+    color = (192, 224, 192, 255)
+    polys.append(Polygon.rectCenter(0, 0, 50, 25, color))
+    polys.append(Polygon.line(0, 0, 35, 35, color))
+    polys.append(Polygon.line(0, 0, -35, 35, color))
+
+    return LineImage(polys)
+
 def collectable():
     color = (192, 0, 0, 255)
     polyList = []

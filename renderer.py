@@ -133,7 +133,7 @@ class TrooperRenderer(Renderer):
 class ArcherRenderer(Renderer):
     def __init__(s):
         Renderer.__init__(s)
-        s.img = rcache.getLineImage(images.crawler)
+        s.img = rcache.getLineImage(images.archer)
         
 class FloaterRenderer(Renderer):
     def __init__(s):

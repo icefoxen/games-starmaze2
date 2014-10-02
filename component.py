@@ -255,8 +255,24 @@ see the player."""
             if canSeePlayer:
                 pass
             
+class ArcherAIController(Component):
+    """Archers are immobile, they sit in one place and lob projectiles."""
+    def __init__(s, owner):
+        Component.__init__(s, owner)
+        s.fireTimer = Timer(defaultTime=2.5)
 
-        
+    def update(s, dt):
+        s.fireTimer.update(dt)
+        if s.fireTimer.expired():
+            s.fireTimer.reset()
+            x,y = s.owner.physicsObj.position
+            pos = (x, y+20)
+            bullet1 = actor.BeginningP2Bullet(s.owner, pos, FACING_LEFT)
+            bullet2 = actor.BeginningP2Bullet(s.owner, pos, FACING_RIGHT)
+            s.owner.world.addActor(bullet1)
+            s.owner.world.addActor(bullet2)
+
+
 ######################################################################
 ## Physics objects
 ######################################################################
@@ -849,7 +865,7 @@ class TrooperPhysicsObj(EnemyPhysicsObj):
 class ArcherPhysicsObj(EnemyPhysicsObj):
     def __init__(s, owner, **kwargs):
         EnemyPhysicsObj.__init__(s, owner, mass=100, moment=pymunk.inf, **kwargs)
-        corners = rectCornersCenter(0, 0, 25, 20)
+        corners = rectCornersCenter(0, 0, 50, 25)
 
         s.addShapes(pymunk.Poly(s.body, corners))
         s.setCollisionEnemy()

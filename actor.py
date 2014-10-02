@@ -197,7 +197,7 @@ class TrooperEnemy(Actor):
 class ArcherEnemy(Actor):
     def __init__(s, position=(0,0)):
         Actor.__init__(s)
-        s.controller = RoamAIController(s)
+        s.controller = ArcherAIController(s)
         s.physicsObj = ArcherPhysicsObj(s, position=position)
         s.renderer = rcache.getRenderer(ArcherRenderer)
         
