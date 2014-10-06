@@ -202,6 +202,10 @@ update frame."""
             s._removeActor(act)
         s.actorsToRemove.clear()
 
+        # Check if player is dead, 
+        if not s.player.alive:
+            s.window.close()
+
         # Shit gets a little whack if we try to remove
         # a bunch of actors and add a bunch of new ones
         # _while updating the actors_.
@@ -237,11 +241,6 @@ update frame."""
         s.window.clear()
         with s.camera:
             s.renderManager.render()
-            #with s.shader:
-            #    for act in s.actors:
-            #        s.resetShaderDefaults(act)
-            #        act.draw(s.shader)
-            #lepton.default_system.draw()
         s.fps_display.draw()
 
         s.particleRenderer.draw(s.particleGroup)

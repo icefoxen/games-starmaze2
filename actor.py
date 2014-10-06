@@ -122,6 +122,9 @@ class Player(Actor):
         s.powers.update(dt)
         s.glow += 0.05
 
+    def onDeath(s):
+        print "oh noez, player died!"
+
 @described
 class Collectable(Actor):
     """Something you can collect which does things to you,
@@ -302,7 +305,7 @@ class TrooperBullet(Actor):
         yImpulse = 0
         s.physicsObj.apply_impulse((xImpulse, yImpulse))
 
-        s.damage = 1
+        s.damage = 6
 
     def update(s, dt):
         s.life.update(dt)
