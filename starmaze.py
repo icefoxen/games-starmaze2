@@ -58,11 +58,12 @@ class World(object):
         s.initNewSpace()
         s.renderManager = renderer.RenderManager()
         renderer.preloadRenderers()
+        s.background = Background()
         
-        s.player = Player(s, s.keyboard)
+        s.player = Player(s.keyboard)
         s.camera = Camera(s.player.physicsObj, s.screenw, s.screenh)
         s.actors = set()
-        s.actorsToAdd = set()
+        s.actorsToAdd = set([s.background])
         s.actorsToRemove = set()
 
         s.createWorld()
@@ -73,8 +74,6 @@ class World(object):
         s.enterNextRoom()
 
         s.time = 0.0
-
-        s.shader = shader.Shader([shader.vprog], [shader.fprog])
 
         s.particleGroup = ParticleGroup()
         s.particleController = ParticleController()
@@ -186,6 +185,7 @@ update frame."""
         for _ in xrange(int(s.physicsSteps)):
             s.space.step(step)
         s.camera.update(dt)
+        s.background.update(dt)
 
         for act in s.actors:
             act.update(dt)
@@ -231,11 +231,6 @@ update frame."""
         rss = usage.ru_maxrss / 1024
         print "Currently holding {} kb allocated".format(rss)
 
-    def resetShaderDefaults(s, act):
-        s.shader.uniformi("facing", act.facing)
-        s.shader.uniformf("vertexDiff", 0, 0, 0, 0)
-        s.shader.uniformf("colorDiff", 0, 0, 0, 0)
-        s.shader.uniformf("alpha", 1.0)
         
     def on_draw(s):
         s.window.clear()

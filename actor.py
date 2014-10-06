@@ -95,13 +95,25 @@ class Actor(object):
         bullet = bulletClass(s, bulletpos, s.facing)
         s.world.addActor(bullet)
 
+class Background(Actor):
+    def __init__(s, position=(0,0)):
+        Actor.__init__(s)
+        s.img = images.backgroundSpiral()
+        s.physicsObj = PhysicsObj(s, position=position)
+        s.renderer = rcache.getRenderer(BackgroundRenderer)
+
+    def update(s, dt):
+        s.physicsObj.angle -= (dt / 300)
+
+
+
 # No description; the keyboard object can't be readily printed.
 class Player(Actor):
     """The player object."""
-    def __init__(s, world, keyboard, position=(0,0)):
+    def __init__(s, keyboard, position=(0,0)):
+        print s, keyboard
         s.radius = 20
         Actor.__init__(s)
-        s.keyboard = keyboard
         s.controller = KeyboardController(s, keyboard)
         s.physicsObj = PlayerPhysicsObj(s, position=position)
         img = rcache.getLineImage(images.playerImage)

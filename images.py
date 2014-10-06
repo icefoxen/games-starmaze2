@@ -226,3 +226,34 @@ def tree():
     v2 = Vertex(0, 100, color2)
     polys = divideLine(v1, v2, 110, recursion=8)
     return LineImage(polys)
+
+def backgroundSpiral():
+    polys = []
+    numPoints = 250
+    colorBase = 192
+    colorRange = 64
+    length = 2
+    width = 2
+
+    spiralA = 10
+    spiralB = 100
+    numTurnings = 1
+    deviationAvg = 0
+    deviationStdDev = 25
+    
+    radius = 100
+    
+    def genPoint():
+        theta = random.random() * (math.pi * (numTurnings * 2.0))
+        radius = spiralA + spiralB*theta
+        x = math.cos(theta) * radius + random.gauss(deviationAvg, deviationStdDev)
+        y = math.sin(theta) * radius + random.gauss(deviationAvg, deviationStdDev)
+        r = int(colorBase + (random.random() * colorRange))
+        g = int(colorBase + (random.random() * colorRange))
+        b = int(colorBase + (random.random() * colorRange))
+        a = int(colorBase + (random.random() * colorRange))
+        poly = Polygon.line(x, y, x+length, y+length, (r, g, b, a), strokeWidth=width)
+        return poly
+    
+    polys = [genPoint() for _ in xrange(numPoints)]
+    return LineImage(polys)

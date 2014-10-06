@@ -165,6 +165,25 @@ class BeginningsP1BulletRenderer(Renderer):
         Renderer.__init__(s)
         s.img = rcache.getLineImage(images.beginningsP1Bullet)
 
+class BackgroundRenderer(Renderer):
+    def __init__(s):
+        Renderer.__init__(s)
+
+    def renderActor(s, actor):
+        pos = actor.physicsObj.position
+        rot = math.degrees(actor.physicsObj.angle)
+        img = actor.img
+
+        s.shader.uniformi("facing", actor.facing)
+        s.shader.uniformf("alpha", 1.0)
+        s.shader.uniformf("vertexDiff", 0, 0, 0, 0)
+        s.shader.uniformf("colorDiff", 0, 0, 0, 0)
+        for thing in [0, 90, 180, 270]:
+            with graphics.Affine(pos, rot + thing):
+                img.batch.draw()
+
+
+        
 class AirP1BulletAirRenderer(Renderer):
     def __init__(s):
         Renderer.__init__(s)
@@ -313,7 +332,6 @@ used by the main rendering loop."""
         #    s.shader.uniformf("colorDiff", 0, 0, 0, 0)
         #    img.batch.draw()
         
-
             
 class RenderManager(object):
     """A class that manages rendering of a set of Renderers."""
