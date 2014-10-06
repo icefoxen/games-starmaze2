@@ -349,6 +349,10 @@ Call one of the setCollision*() methods too."""
     def apply_force(s, force, r=(0,0)):
         s.body.apply_force(force, r=r)
 
+    def negateGravity(s):
+        force = 400 * s.body.mass
+        s.apply_force((0, force))
+
     def setCollisionProperties(s, group, layerspec):
         "Set the actor's collision properties."
         for shape in s.shapes:

@@ -86,6 +86,12 @@ class Actor(object):
     def update(s, dt):
         pass
 
+    def fireBullet(s, bulletClass):
+        pos = s.physicsObj.position
+        direction = s.facing
+        bullet = bulletClass(s, pos, direction)
+        s.world.addActor(bullet)
+
 # No description; the keyboard object can't be readily printed.
 class Player(Actor):
     """The player object."""
@@ -277,7 +283,24 @@ class AnnihilatorEnemy(Actor):
     def update(s, dt):
         s.controller.update(dt)
 
+class TrooperBullet(Actor):
+    def __init__(s, firer, position, facing):
+        Actor.__init__(s)
+        s.firer = firer
+        s.facing = facing
 
+        s.physicsObj = BeginningsBulletPhysicsObj(s, position=position)
+        s.physicsObj.negateGravity()
+        s.renderer = rcache.getRenderer(BeginningsP1BulletRenderer)
+        s.life = TimedLfe(s, 1.0)
+
+        xImpulse = 300 * facing
+        yImpulse = 0
+        s.physicsObj.apply_impulse((xImpulse, yImpulse))
+
+    def update(s, dt):
+        s.life.update(dt)
+                
 
 # TODO: Bullet class?
 # It's a bit hard to make one that's generic.
@@ -314,7 +337,7 @@ class BeginningP1Bullet(Actor):
             s.physicsObj.apply_impulse(impulse)
         # Counteract gravity?
         # BUGGO: Gravity might vary...
-        s.physicsObj.apply_force((0, 400))
+        s.physicsObj.negateGravity()
         s.life = TimedLife(s, 0.4 + (random.random() / 3.0))
 
         s.facing = facing
@@ -380,8 +403,7 @@ class AirP1BulletAir(Actor):
         xImpulse = 600 * direction
         yImpulse = yOffset * 10
         s.physicsObj.apply_impulse((xImpulse, yImpulse))
-        # Counteract gravity?
-        s.physicsObj.apply_force((0, 400))
+        s.physicsObj.negateGravity()
         s.maxTime = 0.45
         s.life = TimedLife(s, s.maxTime)
 
@@ -409,8 +431,7 @@ class AirP1BulletGround(Actor):
         xImpulse = 800 * direction
         yImpulse = yOffset * 10
         s.physicsObj.apply_impulse((xImpulse, yImpulse))
-        # Counteract gravity?
-        s.physicsObj.apply_force((0, 400))
+        s.physicsObj.negateGravity()
         s.maxTime = 0.12
         s.life = TimedLife(s, s.maxTime)
         s.facing = direction
@@ -439,10 +460,6 @@ class AirP2Bullet(Actor):
         x,y = position
 
         s.physicsObj = AirP2PhysicsObj(s, position=(x, y))
-        
-        # Counteract gravity
-        # Not needed since we customize the physicsobj's position_func attribute
-        #s.physicsObj.apply_force((0, 400))
         
         s.maxTime = 0.6
         s.life = TimedLife(s, s.maxTime)
@@ -514,12 +531,6 @@ class NullPower(object):
     def stopJump(s):
         pass
 
-    def fireBullet(s, bulletClass):
-        pos = s.owner.physicsObj.position
-        direction = s.owner.facing
-        bullet = bulletClass(s.owner, pos, direction)
-        s.owner.world.addActor(bullet)
-
     def draw(s, shader):
         pass
 
@@ -558,7 +569,7 @@ class BeginningsPower(NullPower):
         if s.usingAttack1 and s.attack1Refire.expired():
             # BUGGO: Make the number of bullets fired
             # correct even at low framerates
-            s.fireBullet(BeginningP1Bullet)
+            s.owner.fireBullet(BeginningP1Bullet)
             s.attack1Refire.reset()
 
     # BUGGO: It's concievable we'd have to fire multiple shots in the same frame...
@@ -574,7 +585,7 @@ class BeginningsPower(NullPower):
     def attack2(s):
         if s.attack2Refire.expired():
             s.attack2Refire.reset()
-            s.fireBullet(BeginningP2Bullet)
+            s.owner.fireBullet(BeginningP2Bullet)
 
     def startDefend(s):
         #print "Starting defend"
@@ -646,7 +657,7 @@ class AirPower(NullPower):
                 s.owner.physicsObj.velocity_limit = s.defenseVelLimit
 
         if s.attack2Charging and s.attack2Timer.expired():
-            s.fireBullet(AirP2Bullet)
+            s.owner.fireBullet(AirP2Bullet)
             s.attack2Charging = False
         
     def startJump(s):
@@ -663,9 +674,9 @@ class AirPower(NullPower):
         if s.attack1Timer.expired():
             s.attack1Timer.reset()
             if s.owner.onGround:
-                s.fireBullet(AirP1BulletGround)
+                s.owner.fireBullet(AirP1BulletGround)
             else:
-                s.fireBullet(AirP1BulletAir)
+                s.owner.fireBullet(AirP1BulletAir)
 
     def startAttack2(s):
         s.attack2Timer.reset()

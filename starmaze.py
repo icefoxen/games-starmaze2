@@ -283,8 +283,11 @@ update frame."""
         items.sort()
         print "Frame latencies:"
         print "Seconds\tNumber"
+        totalFrames = 0
         for time, num in items:
             print "{}\t{}".format(time, num)
+            totalFrames += num
+        print "Total frames: {}".format(totalFrames)
 
 def main():
     screenw = 1024
