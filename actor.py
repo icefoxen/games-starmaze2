@@ -312,7 +312,7 @@ class TrooperBullet(Actor):
 
         s.physicsObj = EnemyBulletPhysicsObj(s, position=position)
         s.physicsObj.negateGravity()
-        s.renderer = rcache.getRenderer(BeginningsP1BulletRenderer)
+        s.renderer = rcache.getRenderer(TrooperBulletRenderer)
         s.life = TimedLife(s, 1.0)
 
         xImpulse = 300 * facing
@@ -320,9 +320,11 @@ class TrooperBullet(Actor):
         s.physicsObj.apply_impulse((xImpulse, yImpulse))
 
         s.damage = 6
+        s.rotateSpeed = 10
 
     def update(s, dt):
         s.life.update(dt)
+        s.physicsObj.angle += dt * s.rotateSpeed
                 
 
 # TODO: Bullet class?

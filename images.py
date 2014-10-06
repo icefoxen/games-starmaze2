@@ -133,6 +133,14 @@ def trooper():
 
     return LineImage(polys)
 
+# BUGGO: I really want a solid rect here...
+def trooperBullet():
+    polys = []
+    color = (255, 224, 0, 255)
+    polys.append(Polygon.rectCenter(0, 0, 7, 7, color))
+
+    return LineImage(polys)
+
 def archer():
     polys = []
     color = (192, 224, 192, 255)
@@ -251,7 +259,7 @@ def backgroundSpiral():
         r = int(colorBase + (random.random() * colorRange))
         g = int(colorBase + (random.random() * colorRange))
         b = int(colorBase + (random.random() * colorRange))
-        a = int(colorBase + (random.random() * colorRange))
+        a = int(64 + (random.random() * colorRange))
         poly = Polygon.line(x, y, x+length, y+length, (r, g, b, a), strokeWidth=width)
         return poly
     

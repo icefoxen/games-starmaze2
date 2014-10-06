@@ -129,6 +129,11 @@ class TrooperRenderer(Renderer):
     def __init__(s):
         Renderer.__init__(s)
         s.img = rcache.getLineImage(images.trooper)
+
+class TrooperBulletRenderer(Renderer):
+    def __init__(s):
+        Renderer.__init__(s)
+        s.img = rcache.getLineImage(images.trooperBullet)
         
 class ArcherRenderer(Renderer):
     def __init__(s):
