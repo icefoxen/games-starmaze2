@@ -49,7 +49,7 @@ LAYERSPEC_COLLECTABLE  = LAYERSPEC_ALL # & ~LAYER_ENEMY & ~LAYER_BULLET
 # Player bullets only touch enemies and terrain
 LAYERSPEC_PLAYERBULLET = LAYER_PLAYERBULLET
 # Enemy bullets only touch players and terrain...
-LAYERSPEC_ENEMYBULLET  = LAYER_ENEMYBULLET
+LAYERSPEC_ENEMYBULLET  = LAYER_PLAYER
 # Doors only touch the player
 LAYERSPEC_DOOR         = LAYERSPEC_ALL
 
@@ -225,6 +225,7 @@ see the player."""
         for shape in shapes:
             act = shape.body.component.owner
             if isinstance(act, actor.Player):
+                s.owner.fireBullet(actor.TrooperBullet)
                 # We've seen the player in the bounding box, now we do a segment
                 # query to make sure there's nothing between us and it.
                 # BUGGO: The layer collision stuff doesn't work right,
@@ -617,6 +618,10 @@ class PlayerPhysicsObj(PhysicsObj):
         player = s.owner
         player.door = None
 
+    def startCollisionWithEnemyBullet(s, other, arbiter):
+        print 'ow!'
+        return False
+
 class DoorPhysicsObj(PhysicsObj):
     def __init__(s, owner, **kwargs):
         PhysicsObj.__init__(s, owner, **kwargs)
@@ -714,6 +719,32 @@ class AirP2PhysicsObj(PhysicsObj):
         x, y = body.component.owner.firer.physicsObj.position
         body.position = (x, y)
     
+class EnemyBulletPhysicsObj(PhysicsObj):
+    """A generic physics object for small round things that hit the player."""
+    def __init__(s, owner, mass=1, moment=10, **kwargs):
+        PhysicsObj.__init__(s, owner, mass=mass, moment=moment, **kwargs)
+        # TODO: Get rid of these when you subclass this
+        s.addShapes(pymunk.Circle(s.body, radius=2))
+        s.setCollisionEnemyBullet()
+
+    def startCollisionWith(s, other, arbiter):
+        return other.startCollisionWithEnemyBullet(s, arbiter)
+
+    def endCollisionWith(s, other, arbiter):
+        return other.endCollisionWithEnemyBullet(s, arbiter)
+
+    def startCollisionWithTerrain(s, other, arbiter):
+        s.owner.alive = False
+        return False
+
+    def startCollisionWithPlayer(s, other, arbiter):
+        print 'rawr'
+        bullet = s.owner
+        player = other.owner
+        bullet.alive = False
+        player.life.takeDamage(bullet, bullet.damage)
+        print "Player life is: {}".format(player.life.life)
+        return False
 
         
 class BlockPhysicsObj(PhysicsObj):
@@ -822,6 +853,9 @@ class EnemyPhysicsObj(PhysicsObj):
     def endCollisionWith(s, other, arbiter):
         return other.endCollisionWithEnemy(s, arbiter)
 
+    def startCollisionWithPlayer(s, other, arbiter):
+        return False
+
     def startCollisionWithEnemyBullet(s, other, arbiter):
         return False
 
@@ -851,10 +885,13 @@ class CrawlerPhysicsObj(EnemyPhysicsObj):
 class TrooperPhysicsObj(EnemyPhysicsObj):
     def __init__(s, owner, **kwargs):
         EnemyPhysicsObj.__init__(s, owner, mass=100, moment=pymunk.inf, **kwargs)
-        corners = rectCornersCenter(0, 0, 30, 50)
+        corners = rectCornersCenter(0, 0, 30, 60)
 
         s.addShapes(pymunk.Poly(s.body, corners))
         s.setCollisionEnemy()
+
+    def startCollisionWithPlayer(s, other, arbiter):
+        return False
 
     # XXX: See CrawlerPhysicsObj note
     def startCollisionWithTerrain(s, other, arbiter):

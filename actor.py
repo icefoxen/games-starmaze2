@@ -79,6 +79,7 @@ class Actor(object):
         s.world = None
         s.facing = FACING_RIGHT
         s.onGround = False
+        s.bulletOffset = (0,0)
 
     def onDeath(s):
         pass
@@ -87,9 +88,11 @@ class Actor(object):
         pass
 
     def fireBullet(s, bulletClass):
-        pos = s.physicsObj.position
-        direction = s.facing
-        bullet = bulletClass(s, pos, direction)
+        posx, posy = s.physicsObj.position
+        offsetx, offsety = s.bulletOffset
+        bulletpos = (posx + (offsetx * s.facing), posy + offsety)
+        
+        bullet = bulletClass(s, bulletpos, s.facing)
         s.world.addActor(bullet)
 
 # No description; the keyboard object can't be readily printed.
@@ -104,6 +107,7 @@ class Player(Actor):
         img = rcache.getLineImage(images.playerImage)
 
         s.renderer = rcache.getRenderer(PlayerRenderer)
+        s.bulletOffset = (20,0)
 
         s.powers = PowerSet(s)
         s.facing = FACING_RIGHT
@@ -289,14 +293,16 @@ class TrooperBullet(Actor):
         s.firer = firer
         s.facing = facing
 
-        s.physicsObj = BeginningsBulletPhysicsObj(s, position=position)
+        s.physicsObj = EnemyBulletPhysicsObj(s, position=position)
         s.physicsObj.negateGravity()
         s.renderer = rcache.getRenderer(BeginningsP1BulletRenderer)
-        s.life = TimedLfe(s, 1.0)
+        s.life = TimedLife(s, 1.0)
 
         xImpulse = 300 * facing
         yImpulse = 0
         s.physicsObj.apply_impulse((xImpulse, yImpulse))
+
+        s.damage = 1
 
     def update(s, dt):
         s.life.update(dt)
