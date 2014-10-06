@@ -58,12 +58,15 @@ class World(object):
         s.initNewSpace()
         s.renderManager = renderer.RenderManager()
         renderer.preloadRenderers()
-        s.background = Background()
+        bg1 = Background(rotateDir=-1, position=(100, 0))
+        bg2 = Background(rotateDir=1, position=(-100, 0))
+        bg3 = Background(rotateDir=-1, position=(0, 100))
+        bg4 = Background(rotateDir=1, position=(0, -100))
         
         s.player = Player(s.keyboard)
         s.camera = Camera(s.player.physicsObj, s.screenw, s.screenh)
         s.actors = set()
-        s.actorsToAdd = set([s.background])
+        s.actorsToAdd = set([bg1, bg2, bg3, bg4])
         s.actorsToRemove = set()
 
         s.createWorld()
@@ -185,7 +188,6 @@ update frame."""
         for _ in xrange(int(s.physicsSteps)):
             s.space.step(step)
         s.camera.update(dt)
-        s.background.update(dt)
 
         for act in s.actors:
             act.update(dt)

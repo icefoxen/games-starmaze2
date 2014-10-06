@@ -96,14 +96,16 @@ class Actor(object):
         s.world.addActor(bullet)
 
 class Background(Actor):
-    def __init__(s, position=(0,0)):
+    def __init__(s, rotateDir=-1, position=(0,0)):
         Actor.__init__(s)
         s.img = images.backgroundSpiral()
         s.physicsObj = PhysicsObj(s, position=position)
         s.renderer = rcache.getRenderer(BackgroundRenderer)
+        s.rotateDir = rotateDir
 
     def update(s, dt):
-        s.physicsObj.angle -= (dt / 300)
+        rotateSpeed = 100
+        s.physicsObj.angle += (dt / rotateSpeed) * s.rotateDir
 
 
 
