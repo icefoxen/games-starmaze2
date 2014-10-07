@@ -227,7 +227,6 @@ XXX: This method might best be refactored out into a superclass."""
         for shape in shapes:
             act = shape.body.component.owner
             if isinstance(act, actor.Player):
-                s.owner.fireBullet(actor.TrooperBullet)
                 # We've seen the player in the bounding box, now we do a segment
                 # query to make sure there's nothing between us and it.
                 # BUGGO: The layer collision stuff doesn't work right,
@@ -253,9 +252,8 @@ XXX: This method might best be refactored out into a superclass."""
         s.sightCheck.update(dt)
         if s.sightCheck.expired():
             s.sightCheck.reset()
-            canSeePlayer = s.checkSight()
-            if canSeePlayer:
-                pass
+            if s.checkSight():
+                s.owner.fireBullet(actor.TrooperBullet)
             
 class ArcherAIController(Component):
     """Archers are immobile, they sit in one place and lob projectiles."""
@@ -270,7 +268,63 @@ class ArcherAIController(Component):
             s.owner.fireBullet(actor.TrooperBullet, facing=FACING_LEFT)
             s.owner.fireBullet(actor.TrooperBullet, facing=FACING_RIGHT)
 
+class FloaterAIController(Component):
+    """Floaters wander back and forth and fire at the player if they are close.
+Their vision, and firing, is omnidirectional, and they can see through walls."""
+    def __init__(s, owner, moveDirection=(1,0)):
+        Component.__init__(s, owner)
+        s.moveForce = 400
+        s.moveDirection = moveDirection
+        s.fireTimer = Timer(defaultTime=1.0)
+        s.sightRadius = 100
 
+    def update(s, dt):
+        dirX, dirY = s.moveDirection
+        xForce = s.moveForce * dirX * s.owner.facing
+        yForce = s.moveForce * dirY * s.owner.facing
+        s.owner.physicsObj.apply_impulse((xForce * dt, yForce * dt))
+        s.fireTimer.update(dt)
+        
+        if s.fireTimer.expired() and s.checkVision():
+            s.fireTimer.reset()
+            print 'shooting'
+            s.fire()
+
+    def checkVision(s):
+        space = s.owner.world.space
+        selfPosition = s.owner.physicsObj.position
+        selfFacing = s.owner.facing
+        bottom = selfPosition.y - s.sightRadius
+        top = selfPosition.y + s.sightRadius
+        left = selfPosition.x - s.sightRadius
+        right = selfPosition.x + s.sightRadius
+
+        bb = pymunk.BB(left, bottom, right, top)
+        shapes = space.bb_query(bb, LAYERSPEC_PLAYER)
+        for shape in shapes:
+            act = shape.body.component.owner
+            if isinstance(act, actor.Player):
+                return True
+            
+        return False
+        return True
+
+    def fire(s):
+        numBullets = 8
+        angleIncrement = (math.pi * 2) / numBullets
+        r = 20
+        bulletForce = 300
+        for i in xrange(numBullets):
+            theta = angleIncrement * i
+            xs = math.cos(theta)
+            ys = math.sin(theta)
+            xForce = xs * bulletForce
+            yForce = ys * bulletForce
+            xPos = xs * r
+            yPos = ys * r
+            s.owner.fireBulletAt(actor.FloaterBullet, (xPos, yPos), (xForce, yForce), facing=FACING_RIGHT)
+
+        
 ######################################################################
 ## Physics objects
 ######################################################################

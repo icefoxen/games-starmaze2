@@ -97,6 +97,23 @@ class Actor(object):
         bullet = bulletClass(s, bulletpos, facing)
         s.world.addActor(bullet)
 
+    def fireBulletAt(s, bulletClass, position, initialImpulse, facing=None, gravity=False):
+        """Fires a bullet in a specific direction.  Position is an offset from the actor
+doing the firing."""
+        if facing is None:
+            facing = s.facing
+        posx, posy = s.physicsObj.position
+        offsetx, offsety = position
+        bulletpos = (posx + (offsetx * facing), posy + offsety)
+        
+        bullet = bulletClass(s, bulletpos, facing)
+        bullet.physicsObj.body.reset_forces()
+        if not gravity:
+            bullet.physicsObj.negateGravity()
+        bullet.physicsObj.apply_impulse(initialImpulse)
+            
+        s.world.addActor(bullet)
+
 class Background(Actor):
     def __init__(s, rotateDir=-1, position=(0,0)):
         Actor.__init__(s)
@@ -231,7 +248,7 @@ class ArcherEnemy(Actor):
         s.renderer = rcache.getRenderer(ArcherRenderer)
         
         s.facing = FACING_RIGHT
-        s.life = Life(s, 10)
+        s.life = Life(s, 20)
         s.bulletOffset = (25, 0)
 
     def update(s, dt):
@@ -241,12 +258,12 @@ class ArcherEnemy(Actor):
 class FloaterEnemy(Actor):
     def __init__(s, position=(0,0)):
         Actor.__init__(s)
-        s.controller = RoamAIController(s)
+        s.controller = FloaterAIController(s)
         s.physicsObj = FloaterPhysicsObj(s, position=position)
         s.renderer = rcache.getRenderer(FloaterRenderer)
         
         s.facing = FACING_RIGHT
-        s.life = Life(s, 10)
+        s.life = Life(s, 30)
 
     def update(s, dt):
         s.controller.update(dt)
@@ -330,6 +347,23 @@ class TrooperBullet(Actor):
         s.physicsObj.angle += dt * s.rotateSpeed
                 
 
+class FloaterBullet(Actor):
+    def __init__(s, firer, position, facing):
+        Actor.__init__(s)
+        s.firer = firer
+        s.facing = facing
+
+        s.physicsObj = EnemyBulletPhysicsObj(s, position=position)
+        s.physicsObj.negateGravity()
+        s.renderer = rcache.getRenderer(TrooperBulletRenderer)
+        s.life = TimedLife(s, 0.3)
+
+        s.damage = 3
+
+    def update(s, dt):
+        s.life.update(dt)
+
+        
 # TODO: Bullet class?
 # It's a bit hard to make one that's generic.
 # Bullets probably SHOULD have controllers...
