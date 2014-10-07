@@ -973,11 +973,7 @@ class FloaterPhysicsObj(EnemyPhysicsObj):
     
     # XXX: See CrawlerPhysicsObj note
     def startCollisionWithTerrain(s, other, arbiter):
-        for c in arbiter.contacts:
-            normal = c.normal
-            if abs(normal.y) < 0.0001:
-                s.owner.facing *= -1
-                break
+        s.owner.facing *= -1
         return True
 
     
