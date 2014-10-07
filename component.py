@@ -266,12 +266,8 @@ class ArcherAIController(Component):
         s.fireTimer.update(dt)
         if s.fireTimer.expired():
             s.fireTimer.reset()
-            x,y = s.owner.physicsObj.position
-            pos = (x, y+20)
-            bullet1 = actor.BeginningP2Bullet(s.owner, pos, FACING_LEFT)
-            bullet2 = actor.BeginningP2Bullet(s.owner, pos, FACING_RIGHT)
-            s.owner.world.addActor(bullet1)
-            s.owner.world.addActor(bullet2)
+            s.owner.fireBullet(actor.TrooperBullet, facing=FACING_LEFT)
+            s.owner.fireBullet(actor.TrooperBullet, facing=FACING_RIGHT)
 
 
 ######################################################################

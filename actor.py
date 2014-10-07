@@ -87,12 +87,14 @@ class Actor(object):
     def update(s, dt):
         pass
 
-    def fireBullet(s, bulletClass):
+    def fireBullet(s, bulletClass, facing=None):
+        if facing is None:
+            facing = s.facing
         posx, posy = s.physicsObj.position
         offsetx, offsety = s.bulletOffset
-        bulletpos = (posx + (offsetx * s.facing), posy + offsety)
+        bulletpos = (posx + (offsetx * facing), posy + offsety)
         
-        bullet = bulletClass(s, bulletpos, s.facing)
+        bullet = bulletClass(s, bulletpos, facing)
         s.world.addActor(bullet)
 
 class Background(Actor):
@@ -230,6 +232,7 @@ class ArcherEnemy(Actor):
         
         s.facing = FACING_RIGHT
         s.life = Life(s, 10)
+        s.bulletOffset = (25, 0)
 
     def update(s, dt):
         s.controller.update(dt)
