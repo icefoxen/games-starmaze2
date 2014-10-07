@@ -10,6 +10,9 @@ import shader
 import graphics
 
 # So the world is going to have a number of renderers
+LAYER_BG = 0
+LAYER_FG  = 1
+LAYERS = [LAYER_BG, LAYER_FG]
 
 # XXX: Components should have update and onDeath methods that always get called, I guess...
 # Miiiiight slow shit down some, but oh well.
@@ -27,7 +30,7 @@ import graphics
 class Renderer(object):
     """A class that draws a particular type of thing."""
     def __init__(s):
-        s.layer = 0
+        s.layer = LAYER_FG
         s.shader = shader.Shader([shader.vprog], [shader.fprog])
 		
     def __lt__(s, other):
@@ -173,6 +176,7 @@ class BeginningsP1BulletRenderer(Renderer):
 class BackgroundRenderer(Renderer):
     def __init__(s):
         Renderer.__init__(s)
+        s.layer = LAYER_BG
 
     def renderActor(s, actor):
         pos = actor.physicsObj.position
@@ -337,26 +341,28 @@ used by the main rendering loop."""
         #    s.shader.uniformf("colorDiff", 0, 0, 0, 0)
         #    img.batch.draw()
         
-            
+
 class RenderManager(object):
     """A class that manages rendering of a set of Renderers."""
     def __init__(s):
-        # A map of Renderers -> RenderComponents, or something
+        # A list of layers
+        # Each layer contains a dict: Renderers -> RenderComponents
         # We use defaultdict to create a new empty set of RenderComponents
         # if you look up a non-existent Renderers
-        s.renderers = collections.defaultdict(set)
+        s.renderers = [collections.defaultdict(set) for _ in LAYERS]
 
     def add(s, renderer, actor):
-        s.renderers[renderer].add(actor)
+        layer = s.renderers[renderer.layer]
+        layer[renderer].add(actor)
 		
     def remove(s, renderer, actor):
-        s.renderers[renderer].remove(actor)
+        layer = s.renderers[renderer.layer]
+        layer[renderer].remove(actor)
 		
     def render(s):
-        # Oops, well, we'll deal with layers some other way then.
-        #s.renderers.sort()
-        for r, actors in s.renderers.iteritems():
-            r.renderAll(actors)
+        for layer in s.renderers:
+            for r, actors in layer.iteritems():
+                r.renderAll(actors)
 
 
 def preloadRenderers():

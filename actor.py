@@ -213,7 +213,7 @@ class TrooperEnemy(Actor):
         s.controller = TrooperAIController(s)
         s.physicsObj = TrooperPhysicsObj(s, position=position)
         s.renderer = rcache.getRenderer(TrooperRenderer)
-        
+        s.bulletOffset = (30,0)
         s.facing = FACING_LEFT
         s.life = Life(s, 100)
 
