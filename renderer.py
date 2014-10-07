@@ -146,7 +146,7 @@ class ArcherRenderer(Renderer):
 class FloaterRenderer(Renderer):
     def __init__(s):
         Renderer.__init__(s)
-        s.img = rcache.getLineImage(images.crawler)
+        s.img = rcache.getLineImage(images.floater)
         
 class EliteRenderer(Renderer):
     def __init__(s):

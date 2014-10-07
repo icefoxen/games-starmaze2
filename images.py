@@ -151,6 +151,17 @@ def archer():
 
     return LineImage(polys)
 
+def floater():
+    polys = []
+    color = (192, 192, 224, 255)
+    polys.append(Polygon.rectCenter(0, 0, 30, 30, color))
+    polys.append(Polygon.circle(0, 0, 30, color, numSegments=4))
+    polys.append(Polygon.line(-30, -30,  30,  30, color))
+    polys.append(Polygon.line(-30,  30,  30, -30, color))
+
+    return LineImage(polys)
+
+
 def collectable():
     color = (192, 0, 0, 255)
     polyList = []

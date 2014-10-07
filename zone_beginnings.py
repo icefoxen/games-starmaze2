@@ -84,6 +84,7 @@ arena = Room("Arena", [
 (lambda: CrawlerEnemy(position=(-400, -200))),
 (lambda: TrooperEnemy(position=(400, -300))),
 (lambda: ArcherEnemy(position=(-200, 0))),
+(lambda: FloaterEnemy(position=(200, 0))),
 ])
 
 

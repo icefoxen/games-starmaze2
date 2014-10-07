@@ -207,7 +207,9 @@ If it is, DESTROY"""
 First we do a BB query in front of us.  If that
 succeeds, we do a segment query that intersects
 terrain and players, and if that succeeds, we can
-see the player."""
+see the player.
+
+XXX: This method might best be refactored out into a superclass."""
         print "Checking sight..."
         space = s.owner.world.space
         selfPosition = s.owner.physicsObj.position
@@ -246,7 +248,6 @@ see the player."""
             
         return False
             
-
     def update(s, dt):
         s.owner.physicsObj.apply_impulse((s.moveForce * dt * s.owner.facing, 0))
         s.sightCheck.update(dt)
@@ -910,10 +911,20 @@ class ArcherPhysicsObj(EnemyPhysicsObj):
 class FloaterPhysicsObj(EnemyPhysicsObj):
     def __init__(s, owner, **kwargs):
         EnemyPhysicsObj.__init__(s, owner, mass=100, moment=pymunk.inf, **kwargs)
-        corners = rectCornersCenter(0, 0, 25, 20)
+        corners = rectCornersCenter(0, 0, 35, 35)
+        s.negateGravity()
 
         s.addShapes(pymunk.Poly(s.body, corners))
         s.setCollisionEnemy()
+    
+    # XXX: See CrawlerPhysicsObj note
+    def startCollisionWithTerrain(s, other, arbiter):
+        for c in arbiter.contacts:
+            normal = c.normal
+            if abs(normal.y) < 0.0001:
+                s.owner.facing *= -1
+                break
+        return True
 
     
 class ElitePhysicsObj(EnemyPhysicsObj):
