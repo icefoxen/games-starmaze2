@@ -652,12 +652,12 @@ class BeginningsPower(NullPower):
     def startDefend(s):
         #print "Starting defend"
         s.defending = True
-        s.owner.life.attenuation = 0.25
+        s.owner.life.damageAttenuation = 0.25
 
     def stopDefend(s):
         #print "Stopping defend"
         s.defending = False
-        s.owner.life.attenuation = 1.0
+        s.owner.life.damageAttenuation = 1.0
 
     def jump(s):
         pass

@@ -287,7 +287,6 @@ Their vision, and firing, is omnidirectional, and they can see through walls."""
         
         if s.fireTimer.expired() and s.checkVision():
             s.fireTimer.reset()
-            print 'shooting'
             s.fire()
 
     def checkVision(s):
@@ -789,12 +788,10 @@ class EnemyBulletPhysicsObj(PhysicsObj):
         return False
 
     def startCollisionWithPlayer(s, other, arbiter):
-        print 'rawr'
         bullet = s.owner
         player = other.owner
         bullet.alive = False
         player.life.takeDamage(bullet, bullet.damage)
-        print "Player life is: {}".format(player.life.life)
         return False
 
         
@@ -1033,6 +1030,7 @@ its owner when it runs out."""
     def takeDamage(s, damager, damage):
         reducedDamage = max(0, damage - s.damageReduction)
         attenuatedDamage = reducedDamage * s.damageAttenuation
+        #print "Damage: {}, reducedDamage: {}, attenuatedDamage: {}".format(damage, reducedDamage, attenuatedDamage)
         s.life -= attenuatedDamage
         if s.life <= 0:
             s.owner.alive = False
