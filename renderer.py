@@ -67,13 +67,21 @@ class Renderer(object):
         s.renderFinish()
 
 class GUIRenderer(Renderer):
-    def renderAll(s, actors):
-        s.renderStart()
-        s.renderGUI()
-        s.renderFinish()
+    def __init__(s):
+        Renderer.__init__(s)
+        s.layer = LAYER_GUI
+        s.lifeBarImage = rcache.getLineImage(images.lifeBar)
 
-    def renderGUI(s):
-        pass
+    def renderActor(s, actor):
+        player = actor.player
+        fraction = player.life.life / player.life.maxLife
+        with graphics.Affine((-300, -100), 0.0, (fraction, 1.0)):
+            s.shader.uniformi("facing", 1)
+            s.shader.uniformf("alpha", 1.0)
+            s.shader.uniformf("vertexDiff", 0, 0, 0, 0)
+            s.shader.uniformf("colorDiff", 0, 0, 0, 0)
+
+            s.lifeBarImage.batch.draw()
 
         
 class LineSpriteRenderer(Renderer):
@@ -94,11 +102,11 @@ class PlayerRenderer(Renderer):
     def __init__(s):
         Renderer.__init__(s)
 
-        s.img = rcache.getLineImage(images.playerImage)
+        s.img = rcache.getLineImage(images.player)
         
         # Experimental glow effect, just overlay the sprite
         # with a diffuse, alpha-blended sprite.  Works surprisingly well.
-        s.glowImage = rcache.getLineImage(images.playerImageGlow)
+        s.glowImage = rcache.getLineImage(images.playerGlow)
 
 
     def renderActor(s, actor):

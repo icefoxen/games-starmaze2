@@ -116,10 +116,10 @@ doing the firing."""
 # XXX: This is a little weird, but hey, it ties fairly nicely into the
 # update and rendering systems.
 class GUI(Actor):
-    def __init__(s):
+    def __init__(s, player):
         Actor.__init__(s)
         s.renderer = rcache.getRenderer(GUIRenderer)
-
+        s.player = player
         # Awwwwwkward...
         s.physicsObj = PhysicsObj(s)
 
@@ -149,7 +149,6 @@ class Player(Actor):
         Actor.__init__(s)
         s.controller = KeyboardController(s, keyboard)
         s.physicsObj = PlayerPhysicsObj(s, position=position)
-        img = rcache.getLineImage(images.playerImage)
 
         s.renderer = rcache.getRenderer(PlayerRenderer)
         s.bulletOffset = (20,0)

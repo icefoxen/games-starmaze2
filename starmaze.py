@@ -64,7 +64,7 @@ class World(object):
         bg4 = Background(rotateDir=1, position=(0, -100))
         
         s.player = Player(s.keyboard)
-        s.gui = GUI()
+        s.gui = GUI(s.player)
         s.camera = Camera(s.player.physicsObj, s.screenw, s.screenh)
         s.actors = set()
         s.actorsToAdd = set([bg1, bg2, bg3, bg4])

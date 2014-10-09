@@ -3,7 +3,7 @@ import random
 
 from graphics import *
 
-def playerImage():
+def player():
     """Returns a new LineImage with an image of the player."""
     polyList = []
     radius = 20
@@ -29,7 +29,7 @@ def shieldImage():
     polys.append(Polygon.circle(0, 0, 25, (200, 200, 255, 172), strokeWidth=10))
     return LineImage(polys)
 
-def playerImageGlow():
+def playerGlow():
 
     polyList = []
     radius = 20
@@ -276,4 +276,10 @@ def backgroundSpiral():
         return poly
     
     polys = [genPoint() for _ in xrange(numPoints)]
+    return LineImage(polys)
+
+def lifeBar():
+    polys = []
+    color = (255, 0, 0, 255)
+    polys.append(Polygon.rectCenter(0, 0, 30, 10, color))
     return LineImage(polys)

@@ -1016,9 +1016,12 @@ class AnnihilatorPhysicsObj(EnemyPhysicsObj):
 class Life(Component):
     """A component that keeps track of life and kills
 its owner when it runs out."""
-    def __init__(s, owner, hps, attenuation = 1.0, reduction = 0):
+    def __init__(s, owner, hps, maxLife=None, attenuation = 1.0, reduction = 0):
         Component.__init__(s, owner)
         s.life = hps
+        s.maxLife = maxLife
+        if s.maxLife is None:
+            s.maxLife = hps
         
         # A multiplier to the damage taken
         s.damageAttenuation = attenuation
