@@ -101,7 +101,7 @@ def airP2Bullet():
     polyList4 = jaggifyLine(sv1, sv2, 5, strokeWidth=5)
     return LineImage(polyList1 + polyList2 + polyList3 + polyList4)
 
-def door():
+def gate():
     poly = Polygon.rectCenter(0, 0, 40, 40, (128, 128, 255, 255))
     return LineImage([poly])
 

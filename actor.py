@@ -72,8 +72,6 @@ class Actor(object):
 
         s.alive = True
 
-        s.moveForce = 400
-        s.brakeForce = 400
         s.motionX = 0
         s.braking = False
         s.world = None
@@ -113,6 +111,20 @@ doing the firing."""
         bullet.physicsObj.apply_impulse(initialImpulse)
             
         s.world.addActor(bullet)
+
+
+# XXX: This is a little weird, but hey, it ties fairly nicely into the
+# update and rendering systems.
+class GUI(Actor):
+    def __init__(s):
+        Actor.__init__(s)
+        s.renderer = rcache.getRenderer(GUIRenderer)
+
+        # Awwwwwkward...
+        s.physicsObj = PhysicsObj(s)
+
+    def update(s, dt):
+        pass
 
 class Background(Actor):
     def __init__(s, rotateDir=-1, position=(0,0)):
@@ -617,6 +629,7 @@ class BeginningsPower(NullPower):
         s.defending = False
         s.shieldImage = rcache.getLineImage(images.shieldImage)
 
+    # XXX: This is a little awkward.
     def draw(s, shader):
         if s.defending:
             s.shieldImage.batch.draw()

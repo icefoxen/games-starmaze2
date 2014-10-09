@@ -12,7 +12,8 @@ import graphics
 # So the world is going to have a number of renderers
 LAYER_BG = 0
 LAYER_FG  = 1
-LAYERS = [LAYER_BG, LAYER_FG]
+LAYER_GUI = 2
+LAYERS = [LAYER_BG, LAYER_FG, LAYER_GUI]
 
 # XXX: Components should have update and onDeath methods that always get called, I guess...
 # Miiiiight slow shit down some, but oh well.
@@ -65,6 +66,16 @@ class Renderer(object):
             s.renderActor(act)
         s.renderFinish()
 
+class GUIRenderer(Renderer):
+    def renderAll(s, actors):
+        s.renderStart()
+        s.renderGUI()
+        s.renderFinish()
+
+    def renderGUI(s):
+        pass
+
+        
 class LineSpriteRenderer(Renderer):
     def __init__(s):
         Renderer.__init__(s)
@@ -177,19 +188,30 @@ class BackgroundRenderer(Renderer):
     def __init__(s):
         Renderer.__init__(s)
         s.layer = LAYER_BG
+        s.parallaxFactor = 1.3
 
     def renderActor(s, actor):
-        pos = actor.physicsObj.position
         rot = math.degrees(actor.physicsObj.angle)
         img = actor.img
+
+        x = actor.world.camera.currentX
+        y = actor.world.camera.currentY
+        pos1 = (x / s.parallaxFactor, y / s.parallaxFactor)
 
         s.shader.uniformi("facing", actor.facing)
         s.shader.uniformf("alpha", 1.0)
         s.shader.uniformf("vertexDiff", 0, 0, 0, 0)
         s.shader.uniformf("colorDiff", 0, 0, 0, 0)
         for thing in [0, 90, 180, 270]:
-            with graphics.Affine(pos, rot + thing):
+            with graphics.Affine(pos1, rot + thing):
                 img.batch.draw()
+
+        # Okay this particular background effects makes your eyeballs
+        # strip gears...
+        #pos2 = (x / (s.parallaxFactor*1.1), y / (s.parallaxFactor*1.1))
+        #for thing in [0, 90, 180, 270]:
+        #    with graphics.Affine(pos2, rot + thing):
+        #        img.batch.draw()
 
 
         
@@ -266,10 +288,10 @@ class BlockRenderer(Renderer):
             s.shader.uniformf("colorDiff", 0, 0, 0, 0)
             img.batch.draw()
 
-class DoorRenderer(Renderer):
+class GateRenderer(Renderer):
     def __init__(s):
         Renderer.__init__(s)
-        s.img = rcache.getLineImage(images.door)
+        s.img = rcache.getLineImage(images.gate)
 
     def renderActor(s, actor):
         pos = actor.physicsObj.position

@@ -79,7 +79,7 @@ x and y are the coordinates of the lower-left point."""
     return t
 
 @described
-class Door(Actor):
+class Gate(Actor):
     def __init__(s, position, destination, destx, desty):
         Actor.__init__(s)
         s.physicsObj = DoorPhysicsObj(s, position=position)
@@ -88,7 +88,7 @@ class Door(Actor):
         s.destx = destx
         s.desty = desty
         s.rotation = 0.0
-        s.renderer = rcache.getRenderer(DoorRenderer)
+        s.renderer = rcache.getRenderer(GateRenderer)
 
     def update(s, dt):
         s.rotation += dt * 100
