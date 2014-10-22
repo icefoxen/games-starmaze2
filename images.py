@@ -271,7 +271,7 @@ def backgroundSpiral():
         r = int(colorBase + (random.random() * colorRange))
         g = int(colorBase + (random.random() * colorRange))
         b = int(colorBase + (random.random() * colorRange))
-        a = int(64 + (random.random() * colorRange))
+        a = int((random.random() * colorRange))
         poly = Polygon.line(x, y, x+length, y+length, (r, g, b, a), strokeWidth=width)
         return poly
     
@@ -281,5 +281,11 @@ def backgroundSpiral():
 def lifeBar():
     polys = []
     color = (255, 0, 0, 255)
-    polys.append(Polygon.rectCenter(0, 0, 30, 10, color))
+    polys.append(Polygon.rectCorner(0, 0, -250, 10, color))
+    return LineImage(polys)
+
+def energyBar():
+    polys = []
+    color = (0, 0, 255, 255)
+    polys.append(Polygon.rectCorner(0, 0, 250, 10, color))
     return LineImage(polys)

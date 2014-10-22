@@ -71,17 +71,28 @@ class GUIRenderer(Renderer):
         Renderer.__init__(s)
         s.layer = LAYER_GUI
         s.lifeBarImage = rcache.getLineImage(images.lifeBar)
+        s.energyBarImage = rcache.getLineImage(images.energyBar)
 
     def renderActor(s, actor):
         player = actor.player
-        fraction = player.life.life / player.life.maxLife
-        with graphics.Affine((-300, -100), 0.0, (fraction, 1.0)):
-            s.shader.uniformi("facing", 1)
-            s.shader.uniformf("alpha", 1.0)
-            s.shader.uniformf("vertexDiff", 0, 0, 0, 0)
-            s.shader.uniformf("colorDiff", 0, 0, 0, 0)
+        lifeFraction = player.life.life / player.life.maxLife
+        # TODO: Energy doesn't exist yet.
+        energyFraction = player.life.life / player.life.maxLife
+        
+        s.shader.uniformi("facing", 1)
+        s.shader.uniformf("alpha", 1.0)
+        s.shader.uniformf("vertexDiff", 0, 0, 0, 0)
+        s.shader.uniformf("colorDiff", 0, 0, 0, 0)
 
+
+        x = actor.world.camera.currentX
+        y = actor.world.camera.currentY
+        
+        with graphics.Affine((x + -100, y - 378), 0.0, (lifeFraction, 1.0)):
             s.lifeBarImage.batch.draw()
+
+        with graphics.Affine((x + 100, y - 378), 0.0, (energyFraction, 1.0)):
+            s.energyBarImage.batch.draw()
 
         
 class LineSpriteRenderer(Renderer):
