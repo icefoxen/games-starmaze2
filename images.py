@@ -289,3 +289,17 @@ def energyBar():
     color = (0, 0, 255, 255)
     polys.append(Polygon.rectCorner(0, 0, 250, 10, color))
     return LineImage(polys)
+
+def chunkGuide():
+    """Crudely draws some guide lines for level chunk sizes.  Used in the level editor."""
+    polys = []
+    color = (32, 32, 32, 128)
+    polys.append(Polygon.rectCenter((1024/2), (768/2), 512, 512, color))
+    # BUGGO: Oh gods horribly resolution-dependent
+    startX = (1024 / 2) - 256
+    startY = (768 / 2) - 256
+    for x in xrange(startX, startX + 512 + 1, 16):
+        for y in xrange(startY, startY + 512 + 1, 16):
+            polys.append(Polygon.line(x, startY, x, y, color, strokeWidth=1))
+            polys.append(Polygon.line(startX, y, x, y, color, strokeWidth=1))
+    return LineImage(polys)

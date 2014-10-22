@@ -147,10 +147,10 @@ Chunks into a grid.
 Chunks have information that tells where entrances are, so they can be matched
 up to fit.  For now this only tells direction...
 
-XXX: For the moment, Chunks are fixed-size, 500x500 units (pixels).  Sometime
+XXX: For the moment, Chunks are fixed-size, 512x512 units (pixels).  Sometime
 in the future it may be possible to make Chunks smaller or larger; to keep it
 from being an unsolvable (and irritating) knapsack problem, I suggest limiting
-it to power-of-two (250, 500, 1000, 2000 units, etc).
+it to power-of-two (256, 512, 1024, 2048 units, etc).
 
 Oh gods.  Can we rotate or mirror chunks automatically?
 The thought makes my nipples tingle in fear.
@@ -163,7 +163,7 @@ Actually, what would be useful is a routine to automagically block off
 particular entrances so we don't have to go through another pass and add
 more things to do that later."""
 
-    size = 500
+    size = 512
 
     def __init__(s, name="", descrs=[], entrances=[]):
         s.name = name

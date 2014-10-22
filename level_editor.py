@@ -10,6 +10,7 @@ from pyglet.gl import *
 
 from graphics import *
 import renderer
+import images
 from terrain import *
 import starmaze
 
@@ -50,13 +51,15 @@ suitable for copy-pasting into a Python file."""
         s.world = None
         s.worldUpdateFunc = None
 
+        s.chunkGuide = images.chunkGuide()
+
     def update(s, dt):
         s.handleInputState()
         s.camera.update(dt)
-
         
     def on_draw(s):
         s.window.clear()
+        s.chunkGuide.batch.draw()
         with s.camera:
             s.renderManager.render()
         s.fps_display.draw()
@@ -119,12 +122,20 @@ into a python file"""
             width = maxX - bottomLeftX
             height = maxY - bottomLeftY
 
+            snapToSize = 16
+            bottomLeftX = bottomLeftX - (bottomLeftX % snapToSize)
+            bottomLeftY = bottomLeftY - (bottomLeftY % snapToSize)
+            width = width - (width % snapToSize)
+            height = height - (height % snapToSize)
+
             cameraAdjustedX = bottomLeftX - s.camera.x
             cameraAdjustedY = bottomLeftY - s.camera.y
+            
 
+            
             s.renderManager.removeActorIfPossible(s.currentTarget)
             s.currentTarget = createBlockCorner(cameraAdjustedX, cameraAdjustedY,
-                                                width, height)
+                                                width , height)
             s.renderManager.addActorIfPossible(s.currentTarget)
 
 
