@@ -395,10 +395,20 @@ class RenderManager(object):
     def add(s, renderer, actor):
         layer = s.renderers[renderer.layer]
         layer[renderer].add(actor)
-		
+
+    def addActorIfPossible(s, actor):
+        if actor.renderer is not None:
+            s.add(actor.renderer, actor)
+    
     def remove(s, renderer, actor):
         layer = s.renderers[renderer.layer]
         layer[renderer].remove(actor)
+
+    def removeActorIfPossible(s, actor):
+        if actor.renderer is not None:
+            layer = s.renderers[actor.renderer.layer]
+            if actor in layer[actor.renderer]:
+                s.remove(actor.renderer, actor)
 		
     def render(s):
         for layer in s.renderers:

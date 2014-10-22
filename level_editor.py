@@ -9,7 +9,7 @@ import pyglet.window.key as key
 from pyglet.gl import *
 
 from graphics import *
-from shader import *
+import renderer
 from terrain import *
 import starmaze
 
@@ -25,7 +25,8 @@ suitable for copy-pasting into a Python file."""
         s.screenh = screenh
 
         s.fps_display = pyglet.clock.ClockDisplay()
-
+        s.renderManager = renderer.RenderManager()
+        renderer.preloadRenderers()
         s.keyboard = key.KeyStateHandler()
         s.window.push_handlers(s.keyboard)
         
@@ -53,19 +54,12 @@ suitable for copy-pasting into a Python file."""
         s.handleInputState()
         s.camera.update(dt)
 
+        
     def on_draw(s):
         s.window.clear()
         with s.camera:
-            with DEFAULT_SHADER:
-                if s.currentTarget is not None:
-                    DEFAULT_SHADER.uniformi("facing", 1)
-                    s.currentTarget.draw(DEFAULT_SHADER)
-                for act in s.actors:
-                    DEFAULT_SHADER.uniformi("facing", act.facing)
-                    act.draw(DEFAULT_SHADER)
-
+            s.renderManager.render()
         s.fps_display.draw()
-        #print s.cameraTarget.position
 
     def startGameInstance(s):
         """Starts a new World with the objects specified in the level editor."""
@@ -73,8 +67,8 @@ suitable for copy-pasting into a Python file."""
             print 'Starting new game instance'
             s.world = starmaze.World(s.screenw, s.screenh)
 
-            descrs = [BlockDescription.fromObject(block) for block in s.actors]
-            newobjs = set([block.create() for block in descrs])
+            descrs = [block.describe() for block in s.actors]
+            newobjs = set([blockDescr() for blockDescr in descrs])
             for obj in newobjs:
                 s.world.addActor(obj)
             
@@ -90,7 +84,7 @@ suitable for copy-pasting into a Python file."""
     def outputGameInstance(s):
         """Prints out all the objects in the level, in a state suitable for copy-pasting
 into a python file"""
-        descrs = [BlockDescription.fromObject(block) for block in s.actors]
+        descrs = [block.describeString() for block in s.actors]
         print "["
         for d in descrs:
             print d, ","
@@ -102,12 +96,13 @@ into a python file"""
             pyglet.clock.unschedule(s.worldUpdateFunc)
             s.worldUpdateFunc = None
             s.world = None
-
+            
     def on_mouse_press(s, x, y, button, modifiers):
         #print "Mouse press:", x, y, button, modifiers
         s.currentTarget = createBlockCorner(x-s.camera.x, y-s.camera.y, 1, 1)
         s.startDrag = (x, y)
 
+            
     def on_mouse_drag(s, x, y, dx, dy, button, modifiers):
         #print "Mouse drag:", x, y, dx, dy, button, modifiers
         #print "Start drag", s.startDrag
@@ -126,9 +121,12 @@ into a python file"""
 
             cameraAdjustedX = bottomLeftX - s.camera.x
             cameraAdjustedY = bottomLeftY - s.camera.y
-            
+
+            s.renderManager.removeActorIfPossible(s.currentTarget)
             s.currentTarget = createBlockCorner(cameraAdjustedX, cameraAdjustedY,
                                                 width, height)
+            s.renderManager.addActorIfPossible(s.currentTarget)
+
 
     def on_mouse_release(s, x, y, button, modifiers):
         #print "Mouse release:", x, y, button, modifiers
