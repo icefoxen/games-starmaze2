@@ -110,17 +110,15 @@ into a python file"""
             # If so, select it
             for act in s.actors:
                 bb = act.physicsObj.getBB()
-                print bb
                 # Adjust for camera position
                 cx = x - s.camera.x
                 cy = y - s.camera.y
-                print cx, cy
                 if bb.contains_vect((cx,cy)):
                     s.currentTarget = act
-                    print 'Clicked on', act
+                    print 'Selected', act
                     return
             s.currentTarget = None
-            print 'clicked on nothing'
+            print 'Selected nothing.'
             
     def on_mouse_drag(s, x, y, dx, dy, button, modifiers):
         #print "Mouse drag:", x, y, dx, dy, button, modifiers
@@ -163,7 +161,7 @@ into a python file"""
             if button == 1:
                 #print "Obj created:", s.currentTarget.corners
                 s.actors.add(s.currentTarget)
-                s.currentTarget = None
+                #s.currentTarget = None
             
     def on_mouse_scroll(s, x, y, scroll_x, scroll_y):
         #print "Mouse scroll:", x, y, scroll_x, scroll_y
@@ -179,6 +177,7 @@ into a python file"""
             if k == key.BACKSPACE or k == key.DELETE:
                 s.actors.remove(s.currentTarget)
                 s.renderManager.removeActorIfPossible(s.currentTarget)
+                s.currentTarget = None
             elif k == key.LEFT:
                 s.currentTarget.physicsObj.position = (x - 16, y)
             elif k == key.RIGHT:
@@ -206,8 +205,8 @@ into a python file"""
 
 
 def main():
-    screenw = 1024
-    screenh = 1024
+    screenw = 1050
+    screenh = 1050
 
     editor = LevelEditor(screenw, screenh)
 

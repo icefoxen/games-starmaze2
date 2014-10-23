@@ -165,7 +165,7 @@ more things to do that later."""
 
     size = 1024
 
-    def __init__(s, name="", descrs=[], entrances=[]):
+    def __init__(s, name="", entrances=[], descrs=[]):
         s.name = name
         s.entrances = entrances
         s.descrs = descrs
@@ -276,17 +276,17 @@ capped off (TODO: eventually).
                 return resolvedChunks
 
 def testTerrainGen():
-    hall   = Chunk(u'═', [], [DIRECTION.LEFT, DIRECTION.RIGHT])
-    cross  = Chunk(u'╬', [], [DIRECTION.LEFT, DIRECTION.RIGHT, DIRECTION.UP, DIRECTION.DOWN])
-    tUp    = Chunk(u'╩', [], [DIRECTION.LEFT, DIRECTION.RIGHT, DIRECTION.UP])
-    tDown  = Chunk(u'╦', [], [DIRECTION.LEFT, DIRECTION.RIGHT, DIRECTION.DOWN])
-    tLeft  = Chunk(u'╠', [], [DIRECTION.RIGHT, DIRECTION.UP, DIRECTION.DOWN])
-    tRight = Chunk(u'╣', [], [DIRECTION.LEFT, DIRECTION.UP, DIRECTION.DOWN])
-    shaft  = Chunk(u'║', [], [DIRECTION.UP, DIRECTION.DOWN])
-    ulCorn = Chunk(u'╔', [], [DIRECTION.RIGHT, DIRECTION.DOWN])
-    llCorn = Chunk(u'╚', [], [DIRECTION.RIGHT, DIRECTION.UP])
-    urCorn = Chunk(u'╗', [], [DIRECTION.LEFT, DIRECTION.DOWN])
-    lrCorn = Chunk(u'╝', [], [DIRECTION.LEFT, DIRECTION.UP])
+    hall   = Chunk(u'═', [DIRECTION.LEFT, DIRECTION.RIGHT])
+    cross  = Chunk(u'╬', [DIRECTION.LEFT, DIRECTION.RIGHT, DIRECTION.UP, DIRECTION.DOWN])
+    tUp    = Chunk(u'╩', [DIRECTION.LEFT, DIRECTION.RIGHT, DIRECTION.UP])
+    tDown  = Chunk(u'╦', [DIRECTION.LEFT, DIRECTION.RIGHT, DIRECTION.DOWN])
+    tLeft  = Chunk(u'╠', [DIRECTION.RIGHT, DIRECTION.UP, DIRECTION.DOWN])
+    tRight = Chunk(u'╣', [DIRECTION.LEFT, DIRECTION.UP, DIRECTION.DOWN])
+    shaft  = Chunk(u'║', [DIRECTION.UP, DIRECTION.DOWN])
+    ulCorn = Chunk(u'╔', [DIRECTION.RIGHT, DIRECTION.DOWN])
+    llCorn = Chunk(u'╚', [DIRECTION.RIGHT, DIRECTION.UP])
+    urCorn = Chunk(u'╗', [DIRECTION.LEFT, DIRECTION.DOWN])
+    lrCorn = Chunk(u'╝', [DIRECTION.LEFT, DIRECTION.UP])
     
     chunks = [hall, cross, tUp, tDown, tLeft, tRight, shaft, ulCorn, llCorn, urCorn, lrCorn]
     layedout = layOutChunks(50, chunks)
