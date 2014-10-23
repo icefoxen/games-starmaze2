@@ -102,67 +102,104 @@ into a python file"""
             
     def on_mouse_press(s, x, y, button, modifiers):
         #print "Mouse press:", x, y, button, modifiers
-        s.currentTarget = createBlockCorner(x-s.camera.x, y-s.camera.y, 1, 1)
-        s.startDrag = (x, y)
-
+        if button == 1:
+            s.currentTarget = createBlockCorner(x-s.camera.x, y-s.camera.y, 1, 1)
+            s.startDrag = (x, y)
+        elif button == 4:
+            # Check if a block is under the click location
+            # If so, select it
+            for act in s.actors:
+                bb = act.physicsObj.getBB()
+                print bb
+                # Adjust for camera position
+                cx = x - s.camera.x
+                cy = y - s.camera.y
+                print cx, cy
+                if bb.contains_vect((cx,cy)):
+                    s.currentTarget = act
+                    print 'Clicked on', act
+                    return
+            s.currentTarget = None
+            print 'clicked on nothing'
             
     def on_mouse_drag(s, x, y, dx, dy, button, modifiers):
         #print "Mouse drag:", x, y, dx, dy, button, modifiers
         #print "Start drag", s.startDrag
         if s.currentTarget is not None:
-            # We have to make it so you can start dragging from
-            # any corner, but it will adjusted it to the bottom
-            # left corner that is the reference point for our
-            # box-creation code.
-            startx, starty = s.startDrag
-            snapToSize = 16
-            correctedStartX = (startx + snapToSize) - (startx % snapToSize)
-            correctedStartY = (starty + snapToSize) - (starty % snapToSize)
+            if button == 1:
+                # Left-click creates new thing
+                # We have to make it so you can start dragging from
+                # any corner, but it will adjusted it to the bottom
+                # left corner that is the reference point for our
+                # box-creation code.
+                startx, starty = s.startDrag
+                snapToSize = 16
+                correctedStartX = (startx + snapToSize) - (startx % snapToSize)
+                correctedStartY = (starty + snapToSize) - (starty % snapToSize)
 
-            correctedCurrentX = (x + snapToSize) - (x % snapToSize)
-            correctedCurrentY = (y + snapToSize) - (y % snapToSize)
+                correctedCurrentX = (x + snapToSize) - (x % snapToSize)
+                correctedCurrentY = (y + snapToSize) - (y % snapToSize)
 
-            width = correctedCurrentX - correctedStartX
-            height = correctedCurrentY - correctedStartY
+                width = correctedCurrentX - correctedStartX
+                height = correctedCurrentY - correctedStartY
             
-            cameraAdjustedX = correctedStartX - s.camera.x
-            cameraAdjustedY = correctedStartY - s.camera.y
+                cameraAdjustedX = correctedStartX - s.camera.x
+                cameraAdjustedY = correctedStartY - s.camera.y
 
-            # switching out the renderer shouldn't really be ncessary but it is...
-            # Because s.currentTarget isn't really in the list of actors and so
-            # then things get a little squirrelly.
-            s.renderManager.removeActorIfPossible(s.currentTarget)
-            s.currentTarget = createBlockCorner(cameraAdjustedX, cameraAdjustedY,
-                                                width, height)
-            s.renderManager.addActorIfPossible(s.currentTarget)
+                # switching out the renderer shouldn't really be ncessary but it is...
+                # Because s.currentTarget isn't really in the list of actors and so
+                # then things get a little squirrelly.
+                s.renderManager.removeActorIfPossible(s.currentTarget)
+                s.currentTarget = createBlockCorner(cameraAdjustedX, cameraAdjustedY,
+                                                    width, height)
+                s.renderManager.addActorIfPossible(s.currentTarget)
+            #elif button == 4:
+                # Right-click moves thing
 
 
     def on_mouse_release(s, x, y, button, modifiers):
         #print "Mouse release:", x, y, button, modifiers
-        print "Obj created:", s.currentTarget.corners
-        s.actors.add(s.currentTarget)
-        s.currentTarget = None
+        if s.currentTarget is not None:
+            if button == 1:
+                #print "Obj created:", s.currentTarget.corners
+                s.actors.add(s.currentTarget)
+                s.currentTarget = None
             
     def on_mouse_scroll(s, x, y, scroll_x, scroll_y):
-        print "Mouse scroll:", x, y, scroll_x, scroll_y
+        #print "Mouse scroll:", x, y, scroll_x, scroll_y
+        pass
             
     def on_key_press(s, k, modifiers):
         if k == key.P:
             s.startGameInstance()
         if k == key.O:
             s.outputGameInstance()
+        if s.currentTarget is not None:
+            x, y = s.currentTarget.physicsObj.position
+            if k == key.BACKSPACE or k == key.DELETE:
+                s.actors.remove(s.currentTarget)
+                s.renderManager.removeActorIfPossible(s.currentTarget)
+            elif k == key.LEFT:
+                s.currentTarget.physicsObj.position = (x - 16, y)
+            elif k == key.RIGHT:
+                s.currentTarget.physicsObj.position = (x + 16, y)
+            elif k == key.UP:
+                s.currentTarget.physicsObj.position = (x, y + 16)
+            elif k == key.DOWN:
+                s.currentTarget.physicsObj.position = (x, y - 16)
 
     def handleInputState(s):
-        x, y = s.cameraTarget.position
-        if s.keyboard[key.LEFT]:
-            s.cameraTarget.position = (x-10, y)
-        elif s.keyboard[key.RIGHT]:
-            s.cameraTarget.position = (x+10, y)
-        x, y = s.cameraTarget.position
-        if s.keyboard[key.UP]:
-            s.cameraTarget.position = (x, y+10)
-        elif s.keyboard[key.DOWN]:
-            s.cameraTarget.position = (x, y-10)
+        pass
+        # x, y = s.cameraTarget.position
+        # if s.keyboard[key.LEFT]:
+        #     s.cameraTarget.position = (x-10, y)
+        # elif s.keyboard[key.RIGHT]:
+        #     s.cameraTarget.position = (x+10, y)
+        # x, y = s.cameraTarget.position
+        # if s.keyboard[key.UP]:
+        #     s.cameraTarget.position = (x, y+10)
+        # elif s.keyboard[key.DOWN]:
+        #     s.cameraTarget.position = (x, y-10)
             
 
 

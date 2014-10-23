@@ -383,7 +383,14 @@ Call one of the setCollision*() methods too."""
     def _set_velocity_limit(s, vel):
         s.body.velocity_limit = vel
 
-
+    # XXX: This function is what can only be described
+    # as a bad approximation... but it's also only used
+    # in the level editor, which doesn't have an actual
+    # running physics space in it.
+    def getBB(s):
+        for shape in s.shapes:
+            shape.cache_bb()
+            return shape.bb
 
     # It seems easiest to wrap these properties to expose them
     # rather than inheriting from Body or anything silly like that.
@@ -805,7 +812,7 @@ class BlockPhysicsObj(PhysicsObj):
         s.setFriction(0.8)
         s.setElasticity(0.8)
         s.setCollisionTerrain()
-        
+
     def startCollisionWith(s, other, arbiter):
         return other.startCollisionWithTerrain(s, arbiter)
 
