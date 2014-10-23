@@ -172,20 +172,27 @@ into a python file"""
             s.startGameInstance()
         if k == key.O:
             s.outputGameInstance()
+        if k == key.BACKSPACE and modifiers & key.MOD_CTRL:
+            for act in s.actors:
+                s.renderManager.removeActorIfPossible(act)
+            s.actors = set()
         if s.currentTarget is not None:
             x, y = s.currentTarget.physicsObj.position
+            moveDistance = 16
+            if modifiers & key.MOD_SHIFT:
+                moveDistance *= 8
             if k == key.BACKSPACE or k == key.DELETE:
                 s.actors.remove(s.currentTarget)
                 s.renderManager.removeActorIfPossible(s.currentTarget)
                 s.currentTarget = None
             elif k == key.LEFT:
-                s.currentTarget.physicsObj.position = (x - 16, y)
+                s.currentTarget.physicsObj.position = (x - moveDistance, y)
             elif k == key.RIGHT:
-                s.currentTarget.physicsObj.position = (x + 16, y)
+                s.currentTarget.physicsObj.position = (x + moveDistance, y)
             elif k == key.UP:
-                s.currentTarget.physicsObj.position = (x, y + 16)
+                s.currentTarget.physicsObj.position = (x, y + moveDistance)
             elif k == key.DOWN:
-                s.currentTarget.physicsObj.position = (x, y - 16)
+                s.currentTarget.physicsObj.position = (x, y - moveDistance)
 
     def handleInputState(s):
         pass
