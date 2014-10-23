@@ -163,7 +163,7 @@ Actually, what would be useful is a routine to automagically block off
 particular entrances so we don't have to go through another pass and add
 more things to do that later."""
 
-    size = 512
+    size = 1024
 
     def __init__(s, name="", descrs=[], entrances=[]):
         s.name = name

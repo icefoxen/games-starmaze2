@@ -59,8 +59,8 @@ suitable for copy-pasting into a Python file."""
         
     def on_draw(s):
         s.window.clear()
-        s.chunkGuide.batch.draw()
         with s.camera:
+            s.chunkGuide.batch.draw()
             s.renderManager.render()
         s.fps_display.draw()
 
@@ -115,27 +115,25 @@ into a python file"""
             # left corner that is the reference point for our
             # box-creation code.
             startx, starty = s.startDrag
-            bottomLeftX = min(x, startx)
-            bottomLeftY = min(y, starty)
-            maxX = max(x, startx)
-            maxY = max(y, starty)
-            width = maxX - bottomLeftX
-            height = maxY - bottomLeftY
-
             snapToSize = 16
-            bottomLeftX = bottomLeftX - (bottomLeftX % snapToSize)
-            bottomLeftY = bottomLeftY - (bottomLeftY % snapToSize)
-            width = width - (width % snapToSize)
-            height = height - (height % snapToSize)
+            correctedStartX = (startx + snapToSize) - (startx % snapToSize)
+            correctedStartY = (starty + snapToSize) - (starty % snapToSize)
 
-            cameraAdjustedX = bottomLeftX - s.camera.x
-            cameraAdjustedY = bottomLeftY - s.camera.y
-            
+            correctedCurrentX = (x + snapToSize) - (x % snapToSize)
+            correctedCurrentY = (y + snapToSize) - (y % snapToSize)
 
+            width = correctedCurrentX - correctedStartX
+            height = correctedCurrentY - correctedStartY
             
+            cameraAdjustedX = correctedStartX - s.camera.x
+            cameraAdjustedY = correctedStartY - s.camera.y
+
+            # switching out the renderer shouldn't really be ncessary but it is...
+            # Because s.currentTarget isn't really in the list of actors and so
+            # then things get a little squirrelly.
             s.renderManager.removeActorIfPossible(s.currentTarget)
             s.currentTarget = createBlockCorner(cameraAdjustedX, cameraAdjustedY,
-                                                width , height)
+                                                width, height)
             s.renderManager.addActorIfPossible(s.currentTarget)
 
 
@@ -172,7 +170,7 @@ into a python file"""
 
 def main():
     screenw = 1024
-    screenh = 768
+    screenh = 1024
 
     editor = LevelEditor(screenw, screenh)
 

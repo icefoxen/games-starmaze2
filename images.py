@@ -294,12 +294,12 @@ def chunkGuide():
     """Crudely draws some guide lines for level chunk sizes.  Used in the level editor."""
     polys = []
     color = (32, 32, 32, 128)
-    polys.append(Polygon.rectCenter((1024/2), (768/2), 512, 512, color))
+    chunkSize = 1024
     # BUGGO: Oh gods horribly resolution-dependent
-    startX = (1024 / 2) - 256
-    startY = (768 / 2) - 256
-    for x in xrange(startX, startX + 512 + 1, 16):
-        for y in xrange(startY, startY + 512 + 1, 16):
+    startX = - (chunkSize / 2)
+    startY = - (chunkSize / 2)
+    for x in xrange(startX, startX + chunkSize + 1, 16):
+        for y in xrange(startY, startY + chunkSize + 1, 16):
             polys.append(Polygon.line(x, startY, x, y, color, strokeWidth=1))
             polys.append(Polygon.line(startX, y, x, y, color, strokeWidth=1))
     return LineImage(polys)
