@@ -123,6 +123,15 @@ along with code to create them.
     def getActors(s):
         return map(lambda descfunc: descfunc(), s.descr)
 
+    @staticmethod
+    def fromLayout(name, layout):
+        descrs = []
+        for (x,y), chunk in layout.iteritems():
+            dx = x * chunk.size
+            dy = y * chunk.size
+            d = chunk.getRelocatedDescrs((dx, dy))
+            descrs += d
+        return Room(name, descrs)
  
 
 DIRECTION = enum("LEFT", "RIGHT", "UP", "DOWN")
@@ -185,15 +194,14 @@ more things to do that later."""
     def getRelocatedDescrs(s, offset):
         """Returns all the descriptors in the Chunk,
 relocated to start at the given offset coordinate."""
-        acts = [descr() for descr in s.descrs]
-        s._relocateActors(offset, acts)
-        return acts
+        descrs = [s._relocateDescr(descr, offset) for descr in s.descrs]
+        return descrs
 
     def __str__(s):
         return u"Chunk({})".format(s.name)
 
 
-def layOutChunks(num, chunklist):
+def layoutChunks(num, chunklist):
     """Returns a list of num chunks
 selected from chunklist, laid out at random.
 Just feed the list into a Room object and bob's yer uncle
@@ -289,7 +297,7 @@ def testTerrainGen():
     lrCorn = Chunk(u'╝', [DIRECTION.LEFT, DIRECTION.UP])
     
     chunks = [hall, cross, tUp, tDown, tLeft, tRight, shaft, ulCorn, llCorn, urCorn, lrCorn]
-    layedout = layOutChunks(50, chunks)
+    layedout = layoutChunks(50, chunks)
     
     print "Number of chunks created:", len(layedout)
     chars = []

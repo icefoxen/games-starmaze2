@@ -62,7 +62,7 @@ suitable for copy-pasting into a Python file."""
         with s.camera:
             s.chunkGuide.batch.draw()
             s.renderManager.render()
-        s.fps_display.draw()
+        #s.fps_display.draw()
 
     def startGameInstance(s):
         """Starts a new World with the objects specified in the level editor."""
@@ -161,7 +161,6 @@ into a python file"""
             if button == 1:
                 #print "Obj created:", s.currentTarget.corners
                 s.actors.add(s.currentTarget)
-                #s.currentTarget = None
             
     def on_mouse_scroll(s, x, y, scroll_x, scroll_y):
         #print "Mouse scroll:", x, y, scroll_x, scroll_y
@@ -170,13 +169,13 @@ into a python file"""
     def on_key_press(s, k, modifiers):
         if k == key.P:
             s.startGameInstance()
-        if k == key.O:
+        elif k == key.O:
             s.outputGameInstance()
-        if k == key.BACKSPACE and modifiers & key.MOD_CTRL:
+        elif k == key.BACKSPACE and modifiers & key.MOD_CTRL:
             for act in s.actors:
                 s.renderManager.removeActorIfPossible(act)
             s.actors = set()
-        if s.currentTarget is not None:
+        elif s.currentTarget is not None:
             x, y = s.currentTarget.physicsObj.position
             moveDistance = 16
             if modifiers & key.MOD_SHIFT:
