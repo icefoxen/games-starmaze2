@@ -256,6 +256,9 @@ capped off (TODO: eventually).
         random.shuffle(chunk.entrances)
         for entrance in chunk.entrances:
             #print "Checking entrance {}".format(entrance)
+            # BUGGO: This might fuck up and hang forever somehow.
+            # I suspect it will occur if it accidentally creates
+            # an entirely closed shape?
             if chunkExistsPastEntrance(x, y, entrance):
                 pass
                 #print "Chunk exists past that entrance, skipping."

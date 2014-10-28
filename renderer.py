@@ -419,6 +419,8 @@ class RenderManager(object):
 def preloadRenderers():
     """Instantiates all renderers into the rcache to prevent the first lookup from lagging.
 For instance AirP2BulletRenderer does relatively expensive setup work."""
+    # Operates by walking down all the subclasses of Renderer and
+    # adding them to the rcache.
     # Note that __subclasses__() only gets direct sublcasses, see:
     # http://stackoverflow.com/questions/5881873/python-find-all-classes-which-inherit-from-this-one
 

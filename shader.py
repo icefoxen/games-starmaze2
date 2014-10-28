@@ -8,6 +8,8 @@
 # Modified by Simon Heath, 2014
 # Changes: Let you push and pop a stack of shaders
 # Though it's not thread-safe.
+
+from ctypes import *
  
 from pyglet.gl import *
 
