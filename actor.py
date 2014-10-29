@@ -822,6 +822,7 @@ class PowerSet(Component):
         Component.__init__(s, owner)
         s.powerIndex = 0
         s.powers = [NullPower(owner)]
+        s.powers = [AirPower(owner)]
         s.currentPower = s.powers[s.powerIndex]
 
     def addPower(s, power):

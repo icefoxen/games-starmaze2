@@ -314,6 +314,21 @@ def testTerrainGen():
         chars.append('\n')
                 
     print ''.join(chars)
+
+def generateFixedTerrain():
+    import zone_beginnings
+    chunks = zone_beginnings.chunks
+    c1 = chunks[2]
+    c2 = chunks[3]
+    c3 = chunks[4]
+
+    cz = {}
+    cz[(0,0)]  = c1
+    cz[(-1,0)] = c2
+    cz[(1,0)]  = c3
+
+    return cz
+    
     
 if __name__ == '__main__':
     testTerrainGen()

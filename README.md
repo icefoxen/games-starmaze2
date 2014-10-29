@@ -4,7 +4,7 @@ Starmaze.  It's a game.
 
 # Dependencies
 
-* pyglet 1.1
+* pyglet 1.2alpha (sigh)
 * pymunk 4.0
 
 # Tests
@@ -29,7 +29,8 @@ hg clone ssh://hg@bitbucket.org/icefox/starmaze
 cd starmaze
 virtualenv env
 source env/bin/activate
-pip install pyglet
+#pip install pyglet 
+pip install --upgrade http://pyglet.googlecode.com/archive/tip.zip
 pip install pymunk
 echo 'default-push = ssh://hg@bitbucket.org/icefox/starmaze' >> .hg/hgrc
 ```

@@ -72,10 +72,11 @@ class World(object):
 
         s.createWorld()
         s.currentRoom = None
-        layout = layoutChunks(20, zone_beginnings.chunks)
+        #layout = layoutChunks(20, zone_beginnings.chunks)
+        layout = generateFixedTerrain()
         room = Room.fromLayout("TestRoom", layout)
         s.nextRoom = room
-        s.nextRoomLoc = (0.0, 0.0)
+        s.nextRoomLoc = (0.0, 100.0)
         # The player is automatically added to the room here.
         s.enterNextRoom()
 
