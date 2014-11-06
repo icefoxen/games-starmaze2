@@ -72,7 +72,7 @@ class Vec(namedtuple("Vec", ["x", "y"])):
             v2 = s.unit()
             return v2 * magnitude
         else:
-            return v
+            return s
 
     # Returns true if the points v1 and v2 are within dist units of each other
     def within(s, v2, dist):
@@ -103,7 +103,7 @@ class Vec(namedtuple("Vec", ["x", "y"])):
         sa = math.sin(rads)
         x = v[0] * ca - v[1] * sa
         y = v[0] * sa + v[1] * ca
-        return new(x, y)
+        return Vec(x, y)
 
 class BBox(namedtuple("BBox", ["x", "y", "w", "h"])):
     "A bounding box."

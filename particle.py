@@ -41,7 +41,9 @@ class ParticleController(object):
     def update(s, group, dt):
         group.particles = [s.updateParticle(pos, color, vel, rot, age, dt)
                            for (pos, color, vel, rot, age) in group.particles]
-
+        if random.random() < 0.01:
+            print 'Number of particles: ', len(group.particles)
+            
 class ParticleRenderer(object):
     """A thing that draws a ParticleGroup."""
     def __init__(s):
