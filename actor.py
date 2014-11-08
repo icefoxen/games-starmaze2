@@ -160,11 +160,12 @@ class Player(Actor):
         s.door = None
 
         s.life = Life(s, 100)
-
+        s.energy = Energy(s)
     def update(s, dt):
         s.controller.update(dt)
         s.powers.update(dt)
         s.glow += 0.05
+        s.energy.update(dt)
 
     def onDeath(s):
         print "oh noez, player died!"

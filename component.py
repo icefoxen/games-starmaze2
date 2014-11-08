@@ -1046,6 +1046,30 @@ its owner when it runs out."""
             s.owner.alive = False
         print "Took {} out of {} damage, life is now {}".format(attenuatedDamage, damage, s.life)
 
+
+class Energy(Component):
+    """mana for powers"""
+    def __init__(s, owner, maxEnergy=100.0, regenRate=1.0):
+        Component.__init__(s,owner)
+
+        s.maxEnergy=maxEnergy
+        s.energy=0
+        s.regenRate=regenRate
+
+    def expend(s,amount):
+        if(amount <=s.energy):
+            s.energy=s.energy-amount
+            return True
+        else:
+            return False
+
+    def update(s,dt):
+        if(s.energy<s.maxEnergy):
+            s.energy=s.energy+s.regenRate*dt
+        if(s.energy>s.maxEnergy):
+            s.energy=s.maxEnergy
+                        
+
 class TimedLife(Component):
     """A component that kills the owner after
 a certain timeout."""

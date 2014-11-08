@@ -77,7 +77,7 @@ class GUIRenderer(Renderer):
         player = actor.player
         lifeFraction = player.life.life / player.life.maxLife
         # TODO: Energy doesn't exist yet.
-        energyFraction = player.life.life / player.life.maxLife
+        energyFraction = player.energy.energy / player.energy.maxEnergy
         
         s.shader.uniformi("facing", 1)
         s.shader.uniformf("alpha", 1.0)

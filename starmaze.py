@@ -223,8 +223,8 @@ update frame."""
             s.enterNextRoom()
 
         # Update the particle system.
-        s.particleEmitter.update(s.particleGroup, dt)
-        s.particleController.update(s.particleGroup, dt)
+        #s.particleEmitter.update(s.particleGroup, dt)
+        #s.particleController.update(s.particleGroup, dt)
             
         s.time += dt
 
