@@ -748,10 +748,11 @@ class AirPower(NullPower):
     def startAttack1(s):
         if s.attack1Timer.expired():
             s.attack1Timer.reset()
-            if s.owner.onGround:
-                s.owner.fireBullet(AirP1BulletGround)
-            else:
-                s.owner.fireBullet(AirP1BulletAir)
+            if s.owner.energy.expend(5.0)==True:
+                if s.owner.onGround:
+                    s.owner.fireBullet(AirP1BulletGround)
+                else:
+                    s.owner.fireBullet(AirP1BulletAir)
 
     def startAttack2(s):
         s.attack2Timer.reset()
