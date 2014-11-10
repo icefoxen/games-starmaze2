@@ -704,15 +704,21 @@ class AirPower(NullPower):
         s.defenseVelLimit = 0.0
         s.defenseTimer = Timer(defaultTime = 0.3)
         s.defenseCooldownTimer = Timer(defaultTime = 1.25)
+
+        s.attack1Cost = 5.0
+        s.attack2Cost = 40.0
+        s.defendCost = 5.0
+        s.jumpCost = 0.0
         
     def startDefend(s):
         if s.defenseCooldownTimer.expired():
-            s.defending = True
-            s.defenseCooldownTimer.reset()
-            s.defenseTimer.reset()
-            s.defenseAngularVel = s.owner.physicsObj.angular_velocity
-            s.defenseVelLimit = s.owner.physicsObj.velocity_limit
-            s.owner.physicsObj.velocity_limit = 1000.0
+            if s.owner.energy.expend(s.defendCost):
+                s.defending = True
+                s.defenseCooldownTimer.reset()
+                s.defenseTimer.reset()
+                s.defenseAngularVel = s.owner.physicsObj.angular_velocity
+                s.defenseVelLimit = s.owner.physicsObj.velocity_limit
+                s.owner.physicsObj.velocity_limit = 1000.0
 
     def update(s, dt):
         s.attack1Timer.update(dt)
@@ -737,7 +743,8 @@ class AirPower(NullPower):
         
     def startJump(s):
         if s.owner.onGround:
-            s.owner.physicsObj.apply_impulse((0, 300))
+            if s.owner.energy.expend(s.jumpCost):
+                s.owner.physicsObj.apply_impulse((0, 300))
         # With the Air jump we can float down slowly even
         # if we didn't start off jumping
         s.jumping = True
@@ -748,15 +755,16 @@ class AirPower(NullPower):
     def startAttack1(s):
         if s.attack1Timer.expired():
             s.attack1Timer.reset()
-            if s.owner.energy.expend(5.0)==True:
+            if s.owner.energy.expend(s.attack1Cost)==True:
                 if s.owner.onGround:
                     s.owner.fireBullet(AirP1BulletGround)
                 else:
                     s.owner.fireBullet(AirP1BulletAir)
 
     def startAttack2(s):
-        s.attack2Timer.reset()
-        s.attack2Charging = True
+        if s.owner.energy.expend(s.attack2Cost):
+            s.attack2Timer.reset()
+            s.attack2Charging = True
 
     def stopAttack2(s):
         s.attack2Charging = False
