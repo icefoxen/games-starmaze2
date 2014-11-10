@@ -629,6 +629,11 @@ class BeginningsPower(NullPower):
         s.defending = False
         s.shieldImage = rcache.getLineImage(images.shieldImage)
 
+        s.attack1Cost = 0.25
+        s.attack2Cost = 5.0
+        s.defendCost = 5.0
+        s.jumpCost = 0.0
+
     # XXX: This is a little awkward.
     def draw(s, shader):
         if s.defending:
@@ -638,14 +643,21 @@ class BeginningsPower(NullPower):
         s.attack1Refire.update(dt)
         s.attack2Refire.update(dt)
         s.jumpTimer.update(dt)
+        if s.defending:
+            if s.owner.energy.expend(s.defendCost*dt):
+                s.owner.life.damageAttenuation = 0.25
+            else:
+                s.defending=False
+                s.owner.life.damageAttenuation = 1.0
         if s.jumping and not s.jumpTimer.expired():
             s.owner.physicsObj.apply_impulse((0, 2000 * dt))
 
         if s.usingAttack1 and s.attack1Refire.expired():
             # BUGGO: Make the number of bullets fired
             # correct even at low framerates
-            s.owner.fireBullet(BeginningP1Bullet)
-            s.attack1Refire.reset()
+            if s.owner.energy.expend(s.attack1Cost):
+                s.owner.fireBullet(BeginningP1Bullet)
+                s.attack1Refire.reset()
 
     # BUGGO: It's concievable we'd have to fire multiple shots in the same frame...
     # If we lag real bad at least.
@@ -659,13 +671,14 @@ class BeginningsPower(NullPower):
         
     def attack2(s):
         if s.attack2Refire.expired():
-            s.attack2Refire.reset()
-            s.owner.fireBullet(BeginningP2Bullet)
+            if s.owner.energy.expend(s.attack2Cost):
+                s.attack2Refire.reset()
+                s.owner.fireBullet(BeginningP2Bullet)
 
     def startDefend(s):
         #print "Starting defend"
         s.defending = True
-        s.owner.life.damageAttenuation = 0.25
+        
 
     def stopDefend(s):
         #print "Stopping defend"
@@ -832,7 +845,7 @@ class PowerSet(Component):
         Component.__init__(s, owner)
         s.powerIndex = 0
         s.powers = [NullPower(owner)]
-        s.powers = [AirPower(owner)]
+        s.powers = [AirPower(owner),BeginningsPower(owner)]
         s.currentPower = s.powers[s.powerIndex]
 
     def addPower(s, power):
