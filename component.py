@@ -1041,6 +1041,14 @@ its owner when it runs out."""
         reducedDamage = max(0, damage - s.damageReduction)
         attenuatedDamage = reducedDamage * s.damageAttenuation
         #print "Damage: {}, reducedDamage: {}, attenuatedDamage: {}".format(damage, reducedDamage, attenuatedDamage)
+        if attenuatedDamage >=4:
+            rcache.get_sound("damage_4").play()
+        if attenuatedDamage >=3:
+            rcache.get_sound("damage_3").play()
+        elif attenuatedDamage>0:
+            rcache.get_sound("damage").play()
+        else:
+            rcache.get_sound("damage_0").play()
         s.life -= attenuatedDamage
         if s.life <= 0:
             s.owner.alive = False
