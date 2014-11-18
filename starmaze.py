@@ -283,11 +283,11 @@ update frame."""
         items = s.frameTimes.items()
         items.sort()
         print "Frame latencies:"
-        print "Seconds\tNumber"
-        totalFrames = 0
+        print "Seconds\tNumber\tFraction"
+        totalFrames = sum(num for time, num in items)
         for time, num in items:
-            print "{}\t{}".format(time, num)
-            totalFrames += num
+            percentage = float(num) / totalFrames
+            print "{}\t{}\t{:0.2f}".format(time, num, percentage)
         print "Total frames: {}".format(totalFrames)
 
 def main():
