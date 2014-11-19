@@ -101,7 +101,10 @@ class Tree(Actor):
         s.physicsObj = PhysicsObj(s, position=position)
         s.img = rcache.getLineImage(images.tree)
         s.renderer = rcache.getRenderer(TreeRenderer)
-    
+
+# TODO:
+# Door, locked door/gate, keys, proper
+
 class Room(object):
     """Basically a specification of a bunch of Actors to create,
 along with code to create them.
@@ -109,16 +112,6 @@ along with code to create them.
     def __init__(s, name, descr):
         s.name = name
         s.descr = descr
-
-        # XXX: Not sure if rooms should handle more stuff themselves
-        # or whether the world should just do it.
-        # s.world = world
-
-        # s.newActors = set()
-        # s.actorsToRemove = set()
-        # s.activeActors = set()
-
-        # s.initNewSpace()
 
     def getActors(s):
         return map(lambda descfunc: descfunc(), s.descr)

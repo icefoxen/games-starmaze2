@@ -167,6 +167,9 @@ into a python file"""
         pass
             
     def on_key_press(s, k, modifiers):
+        moveDistance = 16
+        if modifiers & key.MOD_SHIFT:
+            moveDistance *= 8
         if k == key.P:
             s.startGameInstance()
         elif k == key.O:
@@ -177,9 +180,6 @@ into a python file"""
             s.actors = set()
         elif s.currentTarget is not None:
             x, y = s.currentTarget.physicsObj.position
-            moveDistance = 16
-            if modifiers & key.MOD_SHIFT:
-                moveDistance *= 8
             if k == key.BACKSPACE or k == key.DELETE:
                 s.actors.remove(s.currentTarget)
                 s.renderManager.removeActorIfPossible(s.currentTarget)
@@ -192,19 +192,30 @@ into a python file"""
                 s.currentTarget.physicsObj.position = (x, y + moveDistance)
             elif k == key.DOWN:
                 s.currentTarget.physicsObj.position = (x, y - moveDistance)
+        # else:
+        #     print s.camera.aimedAtX, s.camera.aimedAtY
+        #     if k == key.LEFT:
+        #         print 'rar', moveDistance, s.camera.aimedAtX
+        #         s.cameraTarget.position[0] -= moveDistance
+        #         print 'roar', s.camera.aimedAtX
+        #     elif k == key.RIGHT:
+        #         s.camera.aimedAtX -= moveDistance
+        #     elif k == key.UP:
+        #         s.camera.aimedAtY += moveDistance
+        #     elif k == key.DOWN:
+        #         s.camera.aimedAtY -= moveDistance
 
     def handleInputState(s):
-        pass
-        # x, y = s.cameraTarget.position
-        # if s.keyboard[key.LEFT]:
-        #     s.cameraTarget.position = (x-10, y)
-        # elif s.keyboard[key.RIGHT]:
-        #     s.cameraTarget.position = (x+10, y)
-        # x, y = s.cameraTarget.position
-        # if s.keyboard[key.UP]:
-        #     s.cameraTarget.position = (x, y+10)
-        # elif s.keyboard[key.DOWN]:
-        #     s.cameraTarget.position = (x, y-10)
+        if s.currentTarget is None:
+            x, y = s.cameraTarget.position
+            if s.keyboard[key.LEFT]:
+                s.cameraTarget.position = (x-10, y)
+            elif s.keyboard[key.RIGHT]:
+                s.cameraTarget.position = (x+10, y)
+            if s.keyboard[key.UP]:
+                s.cameraTarget.position = (x, y+10)
+            elif s.keyboard[key.DOWN]:
+                s.cameraTarget.position = (x, y-10)
             
 
 
