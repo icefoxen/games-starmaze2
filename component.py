@@ -254,6 +254,7 @@ XXX: This method might best be refactored out into a superclass."""
             s.sightCheck.reset()
             if s.checkSight():
                 s.owner.fireBullet(actor.TrooperBullet)
+                rcache.get_sound("EnemyShot1").play()
             
 class ArcherAIController(Component):
     """Archers are immobile, they sit in one place and lob projectiles."""
@@ -267,6 +268,7 @@ class ArcherAIController(Component):
             s.fireTimer.reset()
             s.owner.fireBullet(actor.TrooperBullet, facing=FACING_LEFT)
             s.owner.fireBullet(actor.TrooperBullet, facing=FACING_RIGHT)
+            rcache.get_sound("EnemyShot1").play()
 
 class FloaterAIController(Component):
     """Floaters wander back and forth and fire at the player if they are close.
@@ -322,6 +324,7 @@ Their vision, and firing, is omnidirectional, and they can see through walls."""
             xPos = xs * r
             yPos = ys * r
             s.owner.fireBulletAt(actor.FloaterBullet, (xPos, yPos), (xForce, yForce), facing=FACING_RIGHT)
+        rcache.get_sound("EnemyShot2").play()
 
         
 ######################################################################
@@ -1061,7 +1064,7 @@ class Energy(Component):
         Component.__init__(s,owner)
 
         s.maxEnergy=maxEnergy
-        s.energy=0
+        s.energy=maxEnergy/2
         s.regenRate=regenRate
 
     def expend(s,amount):
