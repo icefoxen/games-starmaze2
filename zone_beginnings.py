@@ -114,6 +114,10 @@ Chunk("SplitHallway", [DIRECTION.LEFT, DIRECTION.RIGHT],
 (lambda: Block((-509.0, 515.0), [(0, 0), (1024, 0), (1024, -96), (0, -96)], (255, 255, 255, 255))) ,
 (lambda: Block((-509.0, -493.0), [(0, 0), (1024, 0), (1024, 96), (0, 96)], (255, 255, 255, 255))) ,
 (lambda: Block((-509.0, 83.0), [(0, 0), (1024, 0), (1024, -112), (0, -112)], (255, 255, 255, 255))) ,
+(lambda: CrawlerEnemy(position=(-400, 50))),
+(lambda: TrooperEnemy(position=(400, 50))),
+(lambda: ArcherEnemy(position=(-200, 50))),
+(lambda: FloaterEnemy(position=(200, 50))),
 ]
 ),
 

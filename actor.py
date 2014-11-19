@@ -462,6 +462,7 @@ class BeginningP2Bullet(Actor):
             b.life = TimedLife(b, 0.15)
             b.physicsObj.body.angle = rangle
             s.world.addActor(b)
+        rcache.get_sound("Powers_Begining_Grenade_Hit").play()
 
 class AirP1BulletAir(Actor):
     def __init__(s, firer, position, direction):
@@ -657,6 +658,7 @@ class BeginningsPower(NullPower):
             # correct even at low framerates
             if s.owner.energy.expend(s.attack1Cost):
                 s.owner.fireBullet(BeginningP1Bullet)
+                rcache.get_sound("Powers_Begining_Gun").play()
                 s.attack1Refire.reset()
 
     # BUGGO: It's concievable we'd have to fire multiple shots in the same frame...
@@ -674,6 +676,7 @@ class BeginningsPower(NullPower):
             if s.owner.energy.expend(s.attack2Cost):
                 s.attack2Refire.reset()
                 s.owner.fireBullet(BeginningP2Bullet)
+                rcache.get_sound("Powers_Begining_Grenade_Launch").play()
 
     def startDefend(s):
         #print "Starting defend"
@@ -751,7 +754,9 @@ class AirPower(NullPower):
                 s.owner.physicsObj.velocity_limit = s.defenseVelLimit
 
         if s.attack2Charging and s.attack2Timer.expired():
-            s.owner.fireBullet(AirP2Bullet)
+            if s.owner.energy.expend(s.attack2Cost):
+                s.owner.fireBullet(AirP2Bullet)
+                rcache.get_sound("Powers_Air_Lit").play()
             s.attack2Charging = False
         
     def startJump(s):
@@ -771,13 +776,14 @@ class AirPower(NullPower):
             if s.owner.energy.expend(s.attack1Cost)==True:
                 if s.owner.onGround:
                     s.owner.fireBullet(AirP1BulletGround)
+                    rcache.get_sound("Powers_Air_Wave_Small").play()
                 else:
                     s.owner.fireBullet(AirP1BulletAir)
+                    rcache.get_sound("Powers_Air_Wave_Large").play()
 
     def startAttack2(s):
-        if s.owner.energy.expend(s.attack2Cost):
-            s.attack2Timer.reset()
-            s.attack2Charging = True
+        s.attack2Timer.reset()
+        s.attack2Charging = True
 
     def stopAttack2(s):
         s.attack2Charging = False
