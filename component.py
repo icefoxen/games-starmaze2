@@ -1060,7 +1060,7 @@ its owner when it runs out."""
 
 class Energy(Component):
     """mana for powers"""
-    def __init__(s, owner, maxEnergy=100.0, regenRate=1.0):
+    def __init__(s, owner, maxEnergy=100.0, regenRate=10.0):
         Component.__init__(s,owner)
 
         s.maxEnergy=maxEnergy

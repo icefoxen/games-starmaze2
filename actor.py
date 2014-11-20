@@ -630,9 +630,9 @@ class BeginningsPower(NullPower):
         s.defending = False
         s.shieldImage = rcache.getLineImage(images.shieldImage)
 
-        s.attack1Cost = 0.25
-        s.attack2Cost = 5.0
-        s.defendCost = 5.0
+        s.attack1Cost = 1.0
+        s.attack2Cost = 10.0
+        s.defendCost = 25.0
         s.jumpCost = 0.0
 
     # XXX: This is a little awkward.
