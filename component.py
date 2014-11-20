@@ -685,7 +685,7 @@ class PlayerPhysicsObj(PhysicsObj):
 class DoorPhysicsObj(PhysicsObj):
     def __init__(s, owner, **kwargs):
         PhysicsObj.__init__(s, owner, **kwargs)
-        poly = pymunk.Poly(s.body, rectCornersCenter(0, 0, 40, 40))
+        poly = pymunk.Poly(s.body, rectCornersCenter(0, 0, 20, 20))
         # Sensors call collision callbacks but don't actually do any physics.
         poly.sensor = True
         s.addShapes(poly)
@@ -730,14 +730,14 @@ class BeginningsBulletPhysicsObj(PlayerBulletPhysicsObj):
 class AirP1PhysicsObjAir(PlayerBulletPhysicsObj):
     def __init__(s, owner, **kwargs):
         PlayerBulletPhysicsObj.__init__(s, owner, **kwargs)
-        shape = pymunk.Poly(s.body, rectCornersCenter(0, 0, 10, 80))
+        shape = pymunk.Poly(s.body, rectCornersCenter(0, 0, 5, 40))
         s.addShapes(shape)
         s.setCollisionPlayerBullet()
 
 class AirP1PhysicsObjGround(PlayerBulletPhysicsObj):
     def __init__(s, owner, **kwargs):
         PlayerBulletPhysicsObj.__init__(s, owner, **kwargs)
-        shape = pymunk.Poly(s.body, rectCornersCenter(0, 0, 10, 30))
+        shape = pymunk.Poly(s.body, rectCornersCenter(0, 0, 5, 15))
         s.addShapes(shape)
         s.setCollisionPlayerBullet()
 
@@ -749,8 +749,8 @@ class AirP2PhysicsObj(PhysicsObj):
     def __init__(s, owner, **kwargs):
         PhysicsObj.__init__(s, owner, mass=1, moment=100, **kwargs)
         s.body.position_func = AirP2PhysicsObj.position_func
-        s.width = 400
-        s.height = 20
+        s.width = 200
+        s.height = 10
         shape = pymunk.Poly(s.body, rectCornersCorner(0, -(s.height / 2), s.width * owner.facing, s.height))
         s.addShapes(shape)
         s.setCollisionPlayerBullet()
@@ -867,8 +867,8 @@ class CollectablePhysicsObj(PhysicsObj):
     def __init__(s, owner, **kwargs):
         PhysicsObj.__init__(s, owner, 1, 200, **kwargs)
         corners = []
-        corners.append(rectCornersCenter(0, 0, 20, 10))
-        corners.append(rectCornersCenter(0, 0, 10, 20))
+        corners.append(rectCornersCenter(0, 0, 10, 5))
+        corners.append(rectCornersCenter(0, 0, 5, 10))
 
         s.addShapes(*[
             pymunk.Poly(s.body, c)
@@ -888,7 +888,7 @@ class CollectablePhysicsObj(PhysicsObj):
 class PowerupPhysicsObj(PhysicsObj):
     def __init__(s, owner, **kwargs):
         PhysicsObj.__init__(s, owner, **kwargs) # Static physics object
-        corners = rectCornersCenter(0, 0, 10, 10)
+        corners = rectCornersCenter(0, 0, 5, 5)
 
         shape = pymunk.Poly(s.body, corners)
         shape.Sensor = True
@@ -924,7 +924,7 @@ class EnemyPhysicsObj(PhysicsObj):
 class CrawlerPhysicsObj(EnemyPhysicsObj):
     def __init__(s, owner, **kwargs):
         EnemyPhysicsObj.__init__(s, owner, mass=100, moment=pymunk.inf, **kwargs)
-        corners = rectCornersCenter(0, 0, 25, 20)
+        corners = rectCornersCenter(0, 0, 12, 10)
 
         s.addShapes(pymunk.Poly(s.body, corners))
         s.setCollisionEnemy()
@@ -943,7 +943,7 @@ class CrawlerPhysicsObj(EnemyPhysicsObj):
 class TrooperPhysicsObj(EnemyPhysicsObj):
     def __init__(s, owner, **kwargs):
         EnemyPhysicsObj.__init__(s, owner, mass=100, moment=pymunk.inf, **kwargs)
-        corners = rectCornersCenter(0, 0, 30, 60)
+        corners = rectCornersCenter(0, 0, 15, 30)
 
         s.addShapes(pymunk.Poly(s.body, corners))
         s.setCollisionEnemy()
@@ -964,7 +964,7 @@ class TrooperPhysicsObj(EnemyPhysicsObj):
 class ArcherPhysicsObj(EnemyPhysicsObj):
     def __init__(s, owner, **kwargs):
         EnemyPhysicsObj.__init__(s, owner, mass=100, moment=pymunk.inf, **kwargs)
-        corners = rectCornersCenter(0, 0, 50, 25)
+        corners = rectCornersCenter(0, 0, 25, 12)
 
         s.addShapes(pymunk.Poly(s.body, corners))
         s.setCollisionEnemy()
@@ -972,7 +972,7 @@ class ArcherPhysicsObj(EnemyPhysicsObj):
 class FloaterPhysicsObj(EnemyPhysicsObj):
     def __init__(s, owner, **kwargs):
         EnemyPhysicsObj.__init__(s, owner, mass=100, moment=pymunk.inf, **kwargs)
-        corners = rectCornersCenter(0, 0, 35, 35)
+        corners = rectCornersCenter(0, 0, 17, 17)
         s.negateGravity()
 
         s.addShapes(pymunk.Poly(s.body, corners))
@@ -987,7 +987,7 @@ class FloaterPhysicsObj(EnemyPhysicsObj):
 class ElitePhysicsObj(EnemyPhysicsObj):
     def __init__(s, owner, **kwargs):
         EnemyPhysicsObj.__init__(s, owner, mass=100, moment=pymunk.inf, **kwargs)
-        corners = rectCornersCenter(0, 0, 25, 20)
+        corners = rectCornersCenter(0, 0, 12, 10)
 
         s.addShapes(pymunk.Poly(s.body, corners))
         s.setCollisionEnemy()
@@ -995,7 +995,7 @@ class ElitePhysicsObj(EnemyPhysicsObj):
 class HeavyPhysicsObj(EnemyPhysicsObj):
     def __init__(s, owner, **kwargs):
         EnemyPhysicsObj.__init__(s, owner, mass=100, moment=pymunk.inf, **kwargs)
-        corners = rectCornersCenter(0, 0, 25, 20)
+        corners = rectCornersCenter(0, 0, 12, 10)
 
         s.addShapes(pymunk.Poly(s.body, corners))
         s.setCollisionEnemy()
@@ -1004,7 +1004,7 @@ class HeavyPhysicsObj(EnemyPhysicsObj):
 class DragonPhysicsObj(EnemyPhysicsObj):
     def __init__(s, owner, **kwargs):
         EnemyPhysicsObj.__init__(s, owner, mass=100, moment=pymunk.inf, **kwargs)
-        corners = rectCornersCenter(0, 0, 25, 20)
+        corners = rectCornersCenter(0, 0, 12, 10)
 
         s.addShapes(pymunk.Poly(s.body, corners))
         s.setCollisionEnemy()
@@ -1013,7 +1013,7 @@ class DragonPhysicsObj(EnemyPhysicsObj):
 class AnnihilatorPhysicsObj(EnemyPhysicsObj):
     def __init__(s, owner, **kwargs):
         EnemyPhysicsObj.__init__(s, owner, mass=100, moment=pymunk.inf, **kwargs)
-        corners = rectCornersCenter(0, 0, 25, 20)
+        corners = rectCornersCenter(0, 0, 12, 10)
 
         s.addShapes(pymunk.Poly(s.body, corners))
         s.setCollisionEnemy()

@@ -145,13 +145,13 @@ class Player(Actor):
     """The player object."""
     def __init__(s, keyboard, position=(0,0)):
         print s, keyboard
-        s.radius = 20
+        s.radius = 10
         Actor.__init__(s)
         s.controller = KeyboardController(s, keyboard)
         s.physicsObj = PlayerPhysicsObj(s, position=position)
 
         s.renderer = rcache.getRenderer(PlayerRenderer)
-        s.bulletOffset = (20,0)
+        s.bulletOffset = (s.radius,0)
 
         s.powers = PowerSet(s)
         s.facing = FACING_RIGHT

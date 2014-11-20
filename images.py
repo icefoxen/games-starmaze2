@@ -6,12 +6,12 @@ from graphics import *
 def player():
     """Returns a new LineImage with an image of the player."""
     polyList = []
-    radius = 20
+    radius = 10
     pcol = (64, 224, 64, 255)
     polyList.append(Polygon.circle(0, 0, radius, pcol, numSegments=16))
 
-    spokeLength = radius + 18
-    spokeBase = 8
+    spokeLength = radius + 9
+    spokeBase = 4
     polyList.append(Polygon.line(0, spokeBase, spokeLength, 0, pcol))
     polyList.append(Polygon.line(0, -spokeBase, spokeLength, 0, pcol))
     polyList.append(Polygon.line(spokeBase, 0, 0, spokeLength, pcol))
@@ -26,13 +26,13 @@ def player():
 
 def shieldImage():
     polys = []
-    polys.append(Polygon.circle(0, 0, 25, (200, 200, 255, 172), strokeWidth=10))
+    polys.append(Polygon.circle(0, 0, 15, (200, 200, 255, 172), strokeWidth=10))
     return LineImage(polys)
 
 def playerGlow():
 
     polyList = []
-    radius = 20
+    radius = 10
     pcol = (64, 224, 64, 255)
     polyList.append(Polygon.circle(0, 0, radius, pcol, numSegments=128, strokeWidth=30))
 
@@ -52,9 +52,10 @@ def playerGlow():
 
 def beginningsP1Bullet():
     #p = Polygon.line(10, 0, -10, 0, (192, 0, 0, 255), strokeWidth=4)
+    length = 5
     vs = [
-        Vertex(10, 0, (255,0,0,255)),
-        Vertex(-10, 0, (192,0,0,128))
+        Vertex(length, 0, (255,0,0,255)),
+        Vertex(-length, 0, (192,0,0,128))
         ]
     p = Polygon(vs, closed=False, strokeWidth=4)
     return LineImage([p])
@@ -62,7 +63,7 @@ def beginningsP1Bullet():
 def airP1BulletAir():
     color = (0, 0, 255, 255)
     shadeColor = (128, 128, 255, 128)
-    radius = 80
+    radius = 40
     polyList = [Polygon.arc(-radius/2, 0, radius, 90, color, startAngle=135, closed=False),
                 Polygon.arc(-radius/2, 0, radius, 90, shadeColor, startAngle=135, strokeWidth=15, closed=False),
                 ]
@@ -72,7 +73,7 @@ def airP1BulletAir():
 def airP1BulletGround():
     color = (0, 0, 255, 255)
     shadeColor = (128, 128, 255, 128)
-    radius = 80
+    radius = 40
     angle = 60
     polyList = [Polygon.arc(-radius/2, 0, radius, angle, color, startAngle=120, closed=False),
                 Polygon.arc(-radius/2, 0, radius, angle, shadeColor, startAngle=120, strokeWidth=15, closed=False),
@@ -84,9 +85,9 @@ def airP2Bullet():
     color2 = (0, 0, 255, 128)
     shadeColor1 = (224, 225, 255, 128)
     shadeColor2 = (0, 0, 128, 32)
-    length = 400
-    yoff = 50
-    xoff = 50
+    length = 200
+    yoff = 25
+    xoff = 25
     xoff1 = random.random() * xoff - (xoff/2)
     xoff2 = random.random() * xoff - (xoff/2)
     yoff1 = random.random() * yoff - (yoff/2)
@@ -102,35 +103,35 @@ def airP2Bullet():
     return LineImage(polyList1 + polyList2 + polyList3 + polyList4)
 
 def gate():
-    poly = Polygon.rectCenter(0, 0, 40, 40, (128, 128, 255, 255))
+    poly = Polygon.rectCenter(0, 0, 20, 20, (128, 128, 255, 255))
     return LineImage([poly])
 
 def powerup():
-    poly = Polygon.rectCenter(0, 0, 10, 10, (192, 0, 0, 255))
+    poly = Polygon.rectCenter(0, 0, 5, 5, (192, 0, 0, 255))
     return LineImage([poly])
 
 def crawler():
     polyList = []
     color = (192, 192, 192, 255)
-    polyList.append(Polygon.arc(0, 0, 15, 180, color, startAngle=90.0, numSegments=6))
+    polyList.append(Polygon.arc(0, 0, 8, 180, color, startAngle=90.0, numSegments=6))
     #polyList.append(cornersToLines(circleCorners(0, 0, 15, numSegments=6, color)))
-    polyList.append(Polygon.line(0, 0, 20, 20, color))
-    polyList.append(Polygon.line(0, 0, -20, 20, color))
-    polyList.append(Polygon.line(0, 0, 10, 25, color))
-    polyList.append(Polygon.line(0, 0, -10, 25, color))
-    polyList.append(Polygon.line(0, 0, 30, 10, color))
-    polyList.append(Polygon.line(0, 0, -30, 10, color))
+    polyList.append(Polygon.line(0, 0, 10, 10, color))
+    polyList.append(Polygon.line(0, 0, -10, 10, color))
+    polyList.append(Polygon.line(0, 0, 5, 12, color))
+    polyList.append(Polygon.line(0, 0, -5, 12, color))
+    polyList.append(Polygon.line(0, 0, 15, 5, color))
+    polyList.append(Polygon.line(0, 0, -15, 5, color))
 
     return LineImage(polyList)
 
 def trooper():
     polys = []
     color = (224, 192, 192, 255)
-    polys.append(Polygon.rectCenter(0, 0, 30, 50, color))
-    polys.append(Polygon.rectCenter(10, 0, 30, 10, color))
-    polys.append(Polygon.line(-15, 30, -15, 45, color))
-    polys.append(Polygon.line(-15, 45, 20, 25, color))
-    polys.append(Polygon.line(20, 25, -15, 30, color))
+    polys.append(Polygon.rectCenter(0, 0, 15, 25, color))
+    polys.append(Polygon.rectCenter(5, 0, 15, 5, color))
+    polys.append(Polygon.line(-7, 15, -7, 22, color))
+    polys.append(Polygon.line(-7, 22, 10, 12, color))
+    polys.append(Polygon.line(10, 12, -7, 15, color))
 
     return LineImage(polys)
 
@@ -138,26 +139,27 @@ def trooper():
 def trooperBullet():
     polys = []
     color = (255, 224, 0, 255)
-    polys.append(Polygon.rectCenter(0, 0, 7, 7, color))
+    polys.append(Polygon.rectCenter(0, 0, 3, 3, color))
 
     return LineImage(polys)
 
 def archer():
     polys = []
     color = (192, 224, 192, 255)
-    polys.append(Polygon.rectCenter(0, 0, 50, 25, color))
-    polys.append(Polygon.line(0, 0, 35, 35, color))
-    polys.append(Polygon.line(0, 0, -35, 35, color))
+    polys.append(Polygon.rectCenter(0, 0, 25, 12, color))
+    polys.append(Polygon.line(0, 0, 17, 17, color))
+    polys.append(Polygon.line(0, 0, -17, 17, color))
 
     return LineImage(polys)
 
 def floater():
     polys = []
     color = (192, 192, 224, 255)
-    polys.append(Polygon.rectCenter(0, 0, 30, 30, color))
-    polys.append(Polygon.circle(0, 0, 30, color, numSegments=4))
-    polys.append(Polygon.line(-30, -30,  30,  30, color))
-    polys.append(Polygon.line(-30,  30,  30, -30, color))
+    size = 15
+    polys.append(Polygon.rectCenter(0, 0, size, size, color))
+    polys.append(Polygon.circle(0, 0, size, color, numSegments=4))
+    polys.append(Polygon.line(-size, -size,  size,  size, color))
+    polys.append(Polygon.line(-size,  size,  size, -size, color))
 
     return LineImage(polys)
 
