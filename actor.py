@@ -745,7 +745,7 @@ class AirPower(NullPower):
         if s.defending:
             facing = s.owner.facing
             #s.owner.physicsObj.apply_impulse((-facing * 3000 * dt, 0))
-            s.owner.physicsObj.velocity = (-facing * 1000, 0)
+            s.owner.physicsObj.velocity = (-facing * 500, 0)
             s.defenseTimer.update(dt)
             if s.defenseTimer.expired():
                 s.defending = False
