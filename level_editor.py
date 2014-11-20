@@ -209,13 +209,13 @@ into a python file"""
         if s.currentTarget is None:
             x, y = s.cameraTarget.position
             if s.keyboard[key.LEFT]:
-                s.cameraTarget.position = (x-10, y)
+                s.cameraTarget.position = (x-16, y)
             elif s.keyboard[key.RIGHT]:
-                s.cameraTarget.position = (x+10, y)
+                s.cameraTarget.position = (x+16, y)
             if s.keyboard[key.UP]:
-                s.cameraTarget.position = (x, y+10)
+                s.cameraTarget.position = (x, y+16)
             elif s.keyboard[key.DOWN]:
-                s.cameraTarget.position = (x, y-10)
+                s.cameraTarget.position = (x, y-16)
             
 
 
