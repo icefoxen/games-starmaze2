@@ -47,16 +47,9 @@ gets printed out into a level spec file and then re-loaded.
     def describeString(self):
         name = self.__class__.__name__
         args, kwargs = self.__args
-        # Alas, str.format alone is not quite powerful enough to handle
-        # this nicely.
-        sargs = ", ".join(repr(arg) for arg in args)
-        kargs = ", ".join("{}={}".format(ky, repr(vl)) for ky,vl in kwargs.iteritems())
-        # Dammit this is kinda narsty
-        if len(sargs) > 0 and len(kargs) > 0:
-            argsWithComma = sargs + ", " + kargs
-            return "(lambda: {}({}))".format(name, argsWithComma)
-        else:
-            return "(lambda: {}({}))".format(name, sargs + kargs)
+        # Positional arguments must naturally come before keyword arguments.
+        arg_reprs = [repr(arg) for arg in args] + ["{}={}".format(ky, repr(vl)) for ky,vl in kwargs.iteritems()]
+        return "(lambda: {}({}))".format(name, ", ".join(arg_reprs))
     
     cls.__init__ = newinit
     cls.describe = describe
