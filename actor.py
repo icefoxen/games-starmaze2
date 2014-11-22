@@ -48,8 +48,8 @@ gets printed out into a level spec file and then re-loaded.
         name = self.__class__.__name__
         args, kwargs = self.__args
         # Positional arguments must naturally come before keyword arguments.
-        arg_reprs = [repr(arg) for arg in args] + ["{}={}".format(ky, repr(vl)) for ky,vl in kwargs.iteritems()]
-        return "(lambda: {}({}))".format(name, ", ".join(arg_reprs))
+        argReprs = [repr(arg) for arg in args] + ["{}={}".format(ky, repr(vl)) for ky,vl in kwargs.iteritems()]
+        return "(lambda: {}({}))".format(name, ", ".join(argReprs))
     
     cls.__init__ = newinit
     cls.describe = describe
