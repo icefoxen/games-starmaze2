@@ -33,7 +33,7 @@ class Renderer(object):
     def __init__(s):
         s.layer = LAYER_FG
         s.shader = shader.Shader([shader.vprog], [shader.fprog])
-		
+
     def __lt__(s, other):
         return s.layer < other.layer
 
@@ -116,6 +116,7 @@ CURRENTLY EXPERIMENTAL."""
         s.image = rcache.get_image("playertest")
         s.batch = pyglet.graphics.Batch()
         s.sprite = pyglet.sprite.Sprite(s.image, batch=s.batch)
+        s.shader = shader.Shader([shader.texture_vprog], [shader.texture_fprog])
 
     def renderActor(s, actor):
         s.shader.uniformi("facing", 1)
@@ -334,7 +335,7 @@ class GateRenderer(Renderer):
 
     def renderActor(s, actor):
         pos = actor.physicsObj.position
-        rot = math.degrees(actor.physicsObj.angle)
+        rot = math.degrees(actor.rotation)
         s.shader.uniformi("facing", actor.facing)
         s.shader.uniformf("alpha", 1.0)
         s.shader.uniformf("vertexDiff", 0, 0, 0, 0)

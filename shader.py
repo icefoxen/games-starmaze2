@@ -58,6 +58,35 @@ void main() {
 }
 '''
 
+texture_vprog = '''#version 120
+// Vertex shader
+
+uniform vec4 vertexDiff;
+uniform int facing;
+
+void main(void) {
+   gl_Position = gl_ModelViewProjectionMatrix * ((gl_Vertex * vec4(facing, 1, 1, 1)) + vertexDiff);   
+   gl_FrontColor = gl_Color;
+   gl_TexCoord[0] = gl_MultiTexCoord0;
+}
+
+'''
+
+
+texture_fprog = '''#version 120
+// Fragment shader
+
+uniform sampler2D tex;
+
+uniform vec4 colorDiff;
+uniform float alpha;
+void main() {
+   vec4 color = vec4(gl_Color.r, gl_Color.g, gl_Color.b, gl_Color.a * alpha);
+   vec4 texColor = texture2D(tex, gl_TexCoord[0].st);
+   gl_FragColor = texColor;
+}
+'''
+
 # XXX: Not thread-safe!
 _root_shader = None
 
