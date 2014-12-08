@@ -62,6 +62,9 @@ class ParticleRenderer(object):
             sprite.position = pos
         s.batch.draw()
 
+
+
+        
 class ParticleEmitter(object):
     """A thing that regularly adds particles to a ParticleGroup."""
     def __init__(s):

@@ -115,7 +115,7 @@ CURRENTLY EXPERIMENTAL."""
         Renderer.__init__(s)
         s.image = rcache.get_image("playertest")
         s.batch = pyglet.graphics.Batch()
-        s.sprite = pyglet.sprite.Sprite(s.pimage, batch=s.batch)
+        s.sprite = pyglet.sprite.Sprite(s.image, batch=s.batch)
 
     def renderActor(s, actor):
         s.shader.uniformi("facing", 1)

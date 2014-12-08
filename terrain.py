@@ -112,6 +112,7 @@ along with code to create them.
     def __init__(s, name, descr):
         s.name = name
         s.descr = descr
+        s.music = None
 
     def getActors(s):
         return map(lambda descfunc: descfunc(), s.descr)

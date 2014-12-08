@@ -23,7 +23,6 @@ import renderer
 
 import zone_beginnings
 
-DISPLAY_FPS = True
 PHYSICS_FPS = 60.0
 GRAVITY_FORCE = -400.0
 
@@ -48,7 +47,6 @@ class World(object):
         # of the stack and let the events propegate down.
         s.window.push_handlers(s.keyboard)
         s.window.push_handlers(
-            #s.keyboard,
             on_draw = lambda: s.on_draw(),
             on_key_press = lambda k, mods: s.on_key_press(k, mods),
             on_key_release = lambda k, mods: s.on_key_release(k, mods),
