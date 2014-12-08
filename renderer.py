@@ -106,7 +106,27 @@ class LineSpriteRenderer(Renderer):
         with graphics.Affine((sp._x, sp._y), sp.rotation, (sp._scale, sp._scale)):
             # For now, this updates the sprite's position and shader props and such
             sp._batch.draw()
+            
+class SpriteRenderer(Renderer):
+    """A renderer that just draws a bitmap sprite.
 
+CURRENTLY EXPERIMENTAL."""
+    def __init__(s):
+        Renderer.__init__(s)
+        s.image = rcache.get_image("playertest")
+        s.batch = pyglet.graphics.Batch()
+        s.sprite = pyglet.sprite.Sprite(s.pimage, batch=s.batch)
+
+    def renderActor(s, actor):
+        s.shader.uniformi("facing", 1)
+        s.shader.uniformf("alpha", 1.0)
+        s.shader.uniformf("vertexDiff", 0, 0, 0, 0)
+        s.shader.uniformf("colorDiff", 0, 0, 0, 0)
+        pos = actor.physicsObj.position
+        rot = math.degrees(actor.physicsObj.angle)
+        with graphics.Affine(pos, rot):
+            #s.sprite.position = actor.physicsObj.pos
+            s.batch.draw()
 
 
 class PlayerRenderer(Renderer):
