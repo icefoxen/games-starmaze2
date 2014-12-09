@@ -11,7 +11,6 @@ from component import *
 import rcache
 import images
 from renderer import *
-import util
 
 def described(cls):
     """MAGIC!
@@ -855,14 +854,9 @@ class PowerSet(Component):
         # from NullPower, so.
         if len(s.powers) == 1 and s.powers[0].__class__ == NullPower:
             s.powers = [power]
-        else:
-            # I feel like there should be a better way of doing this
-            # using Python sets, but sets don't preserve order and
-            # making an ordered set in Python is (while well described)
-            # kinda a pain, so we just do this.
+        elif power not in s.powers:
             s.powers.append(power)
             s.powers.sort()
-            s.powers = util.unique(s.powers)
         s.currentPower = power
         s.powerIndex = s.powers.index(power)
         print "Added power:", power
