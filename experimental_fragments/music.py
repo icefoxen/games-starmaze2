@@ -21,8 +21,9 @@ class MusicSystem:
     def update(s):
     	#If we're in a stinger, check and see if it's finished
     	#if it is finished, trun the regular music back on if it exists
-    	print(s.currentStinger)
-    	print(s.stinger.playing)
+    	print("Current stinger:", s.currentStinger)
+    	print("Stinger playing:", s.stinger.playing)
+        print("Current track:", s.currentTrack)
     	if(s.currentStinger!=None):
     		if(s.stinger.playing == False):
     			s.currentStinger = None
@@ -70,30 +71,32 @@ def on_draw():
     window.clear()
     label.draw()
     jukebox.update()
-    print('boop')
 
 
-lightstroke = pyglet.resource.media('ijimusic/lightstroke.mp3',streaming=False)
-darkstroke = pyglet.resource.media('ijimusic/darkstroke.mp3',streaming=False)
-sevenfour = pyglet.resource.media('ijimusic/sec5.mp3',streaming=False)
-hero3d = pyglet.resource.media('ijimusic/hero3d.mp3',streaming=False)
+lightstroke = pyglet.resource.media('ijimusic/secintro.mp3',streaming=True)
+darkstroke = pyglet.resource.media('ijimusic/dark.mp3',streaming=True)
+sevenfour = pyglet.resource.media('ijimusic/sec5.mp3',streaming=True)
+hero3d = pyglet.resource.media('ijimusic/hero3d.mp3',streaming=True)
 #jukebox.start_track(music)
 
 @window.event
 def on_key_press(symbol,modifiers):
-	foo = 0
-	if symbol==key.Q:
-		jukebox.start_track(sevenfour)
-	if symbol==key.W:
-		jukebox.start_track(hero3d)
-	if symbol==key.A:
-		jukebox.stinger_interrupt(lightstroke)
-	if symbol==key.S:
-		jukebox.stinger_interrupt(darkstroke)
-	if symbol==key.Z:
-		jukebox.stinger_transition(lightstroke,sevenfour)
-	if symbol==key.X:
-		jukebox.stinger_transition(darkstroke,hero3d)
+    foo = 0
+    try:
+        if symbol==key.Q:
+            jukebox.start_track(sevenfour)
+        elif symbol==key.W:
+            jukebox.start_track(hero3d)
+        elif symbol==key.A:
+            jukebox.stinger_interrupt(lightstroke)
+        elif symbol==key.S:
+            jukebox.stinger_interrupt(darkstroke)
+        elif symbol==key.Z:
+            jukebox.stinger_transition(lightstroke,sevenfour)
+        elif symbol==key.X:
+            jukebox.stinger_transition(darkstroke,hero3d)
+    except pyglet.media.MediaException:
+        print 'whatever'
 
 pyglet.clock.schedule_interval(lambda dt: jukebox.update, 0.1)
 pyglet.app.run()
