@@ -150,7 +150,7 @@ class Player(Actor):
         s.facing = FACING_RIGHT
         s.glow = 0.0
 
-        s.door = None
+        s.gate = None
 
         s.life = Life(s, 100)
         s.energy = Energy(s)

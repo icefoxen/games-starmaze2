@@ -161,9 +161,9 @@ update frame."""
             s.space.remove(shape)
 
 
-    def enterDoor(s, door):
-        s.nextRoom = s.rooms[door.destination]
-        s.nextRoomLoc = (door.destx, door.desty)
+    def enterGate(s, gate):
+        s.nextRoom = s.rooms[gate.destination]
+        s.nextRoomLoc = (gate.destx, gate.desty)
 
     def enterNextRoom(s):
         """Actually creates all the game objects for the given room and adds them to the current state."""

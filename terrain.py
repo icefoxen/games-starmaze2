@@ -82,7 +82,7 @@ x and y are the coordinates of the lower-left point."""
 class Gate(Actor):
     def __init__(s, position, destination, destx, desty):
         Actor.__init__(s)
-        s.physicsObj = DoorPhysicsObj(s, position=position)
+        s.physicsObj = GatePhysicsObj(s, position=position)
         s.passable = True
         s.destination = destination
         s.destx = destx
@@ -128,3 +128,6 @@ along with code to create them.
         return Room(name, descrs)
  
 
+class Zone(object):
+    """A collection of Rooms, with connections between them,
+and also Zone-wide properties like music."""

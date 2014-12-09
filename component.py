@@ -34,7 +34,7 @@ LAYER_ENEMY        = 1 << 2
 LAYER_PLAYERBULLET = 1 << 3
 LAYER_ENEMYBULLET  = 1 << 4
 LAYER_BULLET       = LAYER_PLAYERBULLET & LAYER_ENEMYBULLET
-LAYER_DOOR         = 1 << 5
+LAYER_GATE         = 1 << 5
 
 # These get a little weird because we're specifying what layers
 # things occupy...
@@ -50,8 +50,8 @@ LAYERSPEC_COLLECTABLE  = LAYERSPEC_ALL # & ~LAYER_ENEMY & ~LAYER_BULLET
 LAYERSPEC_PLAYERBULLET = LAYER_PLAYERBULLET
 # Enemy bullets only touch players and terrain...
 LAYERSPEC_ENEMYBULLET  = LAYER_PLAYER
-# Doors only touch the player
-LAYERSPEC_DOOR         = LAYERSPEC_ALL
+# Gates only touch the player
+LAYERSPEC_GATE         = LAYERSPEC_ALL
 
 class Component(object):
     """Actors are made out of components.
@@ -132,8 +132,8 @@ down."""
 
         if s.keyboard[key.SPACE]:
             print "Enter room"
-            if s.owner.door is not None:
-                s.owner.world.enterDoor(s.owner.door)
+            if s.owner.gate is not None:
+                s.owner.world.enterGate(s.owner.gate)
 
         # Powers
         if s.keyboard[key.Z]:
@@ -443,8 +443,8 @@ Call one of the setCollision*() methods too."""
     def setCollisionTerrain(s):
         s.setCollisionProperties(CGROUP_NONE, LAYERSPEC_ALL)
 
-    def setCollisionDoor(s):
-        s.setCollisionProperties(CGROUP_NONE, LAYERSPEC_DOOR)
+    def setCollisionGate(s):
+        s.setCollisionProperties(CGROUP_NONE, LAYERSPEC_GATE)
 
     def setFriction(s, f):
         for shape in s.shapes:
@@ -483,7 +483,7 @@ Call one of the setCollision*() methods too."""
     def startCollisionWithEnemy(s, other, arbiter):
         return True
 
-    def startCollisionWithDoor(s, other, arbiter):
+    def startCollisionWithGate(s, other, arbiter):
         return True
 
     def endCollisionWith(s, other, arbiter):
@@ -510,7 +510,7 @@ Call one of the setCollision*() methods too."""
     def endCollisionWithEnemy(s, other, arbiter):
         return True
 
-    def endCollisionWithDoor(s, other, arbiter):
+    def endCollisionWithGate(s, other, arbiter):
         return True
 
 
@@ -613,7 +613,7 @@ class NativePhysicsObj(Component):
     def setCollisionTerrain(s):
         pass
 
-    def setCollisionDoor(s):
+    def setCollisionGate(s):
         pass
 
     def setFriction(s, f):
@@ -668,34 +668,34 @@ class PlayerPhysicsObj(PhysicsObj):
     def endCollisionWithTerrain(s, other, arbiter):
         s.owner.onGround = False
 
-    def startCollisionWithDoor(s, other, arbiter):
-        print 'starting collision with door'
-        door = other.owner
-        s.owner.door = door
+    def startCollisionWithGate(s, other, arbiter):
+        print 'starting collision with gate'
+        gate = other.owner
+        s.owner.gate = gate
         return False
 
-    def endCollisionWithDoor(s, other, arbiter):
+    def endCollisionWithGate(s, other, arbiter):
         player = s.owner
-        player.door = None
+        player.gate = None
 
     def startCollisionWithEnemyBullet(s, other, arbiter):
         print 'ow!'
         return False
 
-class DoorPhysicsObj(PhysicsObj):
+class GatePhysicsObj(PhysicsObj):
     def __init__(s, owner, **kwargs):
         PhysicsObj.__init__(s, owner, **kwargs)
         poly = pymunk.Poly(s.body, rectCornersCenter(0, 0, 20, 20))
         # Sensors call collision callbacks but don't actually do any physics.
         poly.sensor = True
         s.addShapes(poly)
-        s.setCollisionDoor()
+        s.setCollisionGate()
     
     def startCollisionWith(s, other, arbiter):
-        return other.startCollisionWithDoor(s, arbiter)
+        return other.startCollisionWithGate(s, arbiter)
 
     def endCollisionWith(s, other, arbiter):
-        return other.endCollisionWithDoor(s, arbiter)
+        return other.endCollisionWithGate(s, arbiter)
 
         
 class PlayerBulletPhysicsObj(PhysicsObj):
