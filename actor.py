@@ -119,20 +119,6 @@ class GUI(Actor):
     def update(s, dt):
         pass
 
-class Background(Actor):
-    def __init__(s, rotateDir=-1, position=(0,0)):
-        Actor.__init__(s)
-        s.img = images.backgroundSpiral()
-        s.physicsObj = PhysicsObj(s, position=position)
-        s.renderer = rcache.getRenderer(BackgroundRenderer)
-        s.rotateDir = rotateDir
-
-    def update(s, dt):
-        rotateSpeed = 100
-        s.physicsObj.angle += (dt / rotateSpeed) * s.rotateDir
-
-
-
 # No description; the keyboard object can't be readily printed.
 class Player(Actor):
     """The player object."""

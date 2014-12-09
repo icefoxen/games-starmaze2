@@ -109,10 +109,13 @@ class Room(object):
     """Basically a specification of a bunch of Actors to create,
 along with code to create them.
     """
-    def __init__(s, name, descr):
+    def __init__(s, name, zone, descr):
         s.name = name
         s.descr = descr
         s.music = None
+        s.gatePoints = []
+        s.zone = zone
+        s.zone.addRoom(s)
 
     def getActors(s):
         return map(lambda descfunc: descfunc(), s.descr)
@@ -130,4 +133,24 @@ along with code to create them.
 
 class Zone(object):
     """A collection of Rooms, with connections between them,
-and also Zone-wide properties like music."""
+and also Zone-wide properties like music and background.
+
+Will eventually dynamically generate and connect rooms, but
+for now, they're all wired together in a fixed layout."""
+    def __init__(s, name):
+        s.name = name
+        s.music = None
+        s.rooms = {}
+        s.backgroundActors = []
+
+    def addRoom(s, room):
+        s.rooms[room.name] = room
+
+    def generate(s):
+        pass
+    
+
+    def getZoneActors(s):
+        """Returns a list of actors that any Room in the Zone should have.
+Mainly, backgrounds."""
+        return s.backgroundActors

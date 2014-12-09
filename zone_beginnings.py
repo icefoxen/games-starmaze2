@@ -23,8 +23,38 @@ track of by a global flags dict, kept by the World object.
 
 from terrain import *
 
+class BeginningsBackground(Actor):
+    def __init__(s, rotateDir=-1, position=(0,0)):
+        Actor.__init__(s)
+        s.img = images.backgroundSpiral()
+        s.physicsObj = PhysicsObj(s, position=position)
+        s.renderer = rcache.getRenderer(BackgroundRenderer)
+        s.rotateDir = rotateDir
 
-cathedral = Room("Cathedral", [
+    def update(s, dt):
+        rotateSpeed = 100
+        s.physicsObj.angle += (dt / rotateSpeed) * s.rotateDir
+
+
+class ZoneBeginnings(Zone):
+    def __init__(s):
+        Zone.__init__(s, "Beginnings")
+        s.music = None
+
+        s.backgroundActors = [
+            BeginningsBackground(rotateDir=-1, position=(100, 0)),
+            BeginningsBackground(rotateDir=1, position=(-100, 0)),
+            BeginningsBackground(rotateDir=-1, position=(0, 100)),
+            BeginningsBackground(rotateDir=1, position=(0, -100)),
+            ]
+
+theZone = ZoneBeginnings()
+
+# Rooms add themselves to the specified zone when created.
+# It's a little wonky but as long as we keep this sort of file structure
+# for defining rooms/levels then there's not much to it.
+
+cathedral = Room("Cathedral", theZone, [
     (lambda: Block((344.997236241, -629.999187503), [(0, 0), (528, 0), (528, 110), (0, 110)], (255, 255, 255, 255))),
 (lambda: Block((-419.0, -75.2722326316), [(0, 0), (104, 0), (104, 100), (0, 100)], (255, 255, 255, 255))),
 (lambda: Block((-301.020837096, -568.991405161), [(0, 0), (643, 0), (643, 80), (0, 80)], (255, 255, 255, 255))),
@@ -45,7 +75,7 @@ cathedral = Room("Cathedral", [
 ])
 
 
-entryway = Room("Entryway", [
+entryway = Room("Entryway", theZone, [
 (lambda: Block((595.999999876, -409.999999866), [(0, 0), (121, 0), (121, 122), (0, 122)], (255, 255, 255, 255))),
 (lambda: Block((410.931422407, -326.0), [(0, 0), (92, 0), (92, 92), (0, 92)], (255, 255, 255, 255))),
 (lambda: Block((880.999153668, -471.999943878), [(0, 0), (501, 0), (501, 49), (0, 49)], (255, 255, 255, 255))),
@@ -64,7 +94,7 @@ entryway = Room("Entryway", [
 
 
 # A unit testing arena
-arena = Room("Arena", [
+arena = Room("Arena", theZone, [
 (lambda: Block((-680.914246829, 626.999999989), [(0, 0), (102, 0), (102, 252), (0, 252)], (255, 255, 255, 255))),
 (lambda: Block((347.749025925, 69.9999993128), [(0, 0), (210, 0), (210, 77), (0, 77)], (255, 255, 255, 255))),
 (lambda: Block((-142.704277382, 77.9999999984), [(0, 0), (253, 0), (253, 67), (0, 67)], (255, 255, 255, 255))),
@@ -87,5 +117,3 @@ arena = Room("Arena", [
 (lambda: FloaterEnemy(position=(200, 0))),
 ])
 
-def generateZone():
-    return [entryway, cathedral, arena]

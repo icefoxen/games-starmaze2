@@ -56,25 +56,19 @@ class World(object):
         s.initNewSpace()
         s.renderManager = renderer.RenderManager()
         renderer.preloadRenderers()
-        bg1 = Background(rotateDir=-1, position=(100, 0))
-        bg2 = Background(rotateDir=1, position=(-100, 0))
-        bg3 = Background(rotateDir=-1, position=(0, 100))
-        bg4 = Background(rotateDir=1, position=(0, -100))
         
         s.player = Player(s.keyboard)
         s.gui = GUI(s.player)
         s.camera = Camera(s.player.physicsObj, s.screenw, s.screenh)
         s.actors = set()
-        s.actorsToAdd = set([bg1, bg2, bg3, bg4])
+        s.actorsToAdd = set()
         s.actorsToRemove = set()
 
-        s.createWorld()
+        s.zones = {"Beginnings" : zone_beginnings.theZone}
+        s.currentZone = None
         s.currentRoom = None
-        #layout = layoutChunks(20, zone_beginnings.chunks)
-        #layout = generateFixedTerrain()
-        #room = Room.fromLayout("TestRoom", layout)
-        room = zone_beginnings.entryway
-        s.nextRoom = room
+        startRoom = s.zones["Beginnings"].rooms["Entryway"]
+        s.nextRoom = startRoom
         s.nextRoomLoc = (0.0, 0.0)
         # The player is automatically added to the room here.
         s.enterNextRoom()
@@ -98,14 +92,6 @@ class World(object):
                                       begin=World.handleCollision,
                                       separate=World.handleCollisionEnd)
 
-    def createWorld(s):
-        s.rooms = {}
-        zones = [zone_beginnings]
-        for zone in zones:
-            for room in zone.generateZone():
-                s.rooms[room.name] = room
-                
-        
     def addActor(s, act):
         """You see, we can't have actors add or remove other actors inside
 their update() method, 'cause that'd modify the set of actors while we're
@@ -114,6 +100,11 @@ iterating through it, which is a no-no.
 So instead of calling _addActor directly, call this, which will cause the
 actor to be added next update frame."""
         s.actorsToAdd.add(act)
+
+    def addActors(s, act):
+        """Add a collection of actors."""
+        for a in act:
+            s.addActor(a)
 
     def removeActor(s, act):
         """The complement to addActor(), sets its so te given actor gets removed next
@@ -162,7 +153,7 @@ update frame."""
 
 
     def enterGate(s, gate):
-        s.nextRoom = s.rooms[gate.destination]
+        s.nextRoom = s.currentZone.rooms[gate.destination]
         s.nextRoomLoc = (gate.destx, gate.desty)
 
     def enterNextRoom(s):
@@ -170,10 +161,10 @@ update frame."""
         s.clearRoom()
         room = s.nextRoom
         s.currentRoom = room
-        print "Entering", room.name
-        actors = room.getActors()
-        for act in actors:
-            s.addActor(act)
+        s.currentZone = s.currentRoom.zone
+        print "Entering {} in zone {}".format(room.name, room.zone.name)
+        s.addActors(room.getActors())
+        s.addActors(room.zone.getZoneActors())
         locx, locy = s.nextRoomLoc
         s.addActor(s.player)
         s.addActor(s.gui)
