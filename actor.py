@@ -107,7 +107,7 @@ doing the firing."""
         s.world.addActor(bullet)
 
 
-# XXX: This is a little weird, but hey, it ties fairly nicely into the
+# XXX: This being an actor little weird, but hey, it ties fairly nicely into the
 # update and rendering systems.
 class GUI(Actor):
     def __init__(s, player):
@@ -119,7 +119,21 @@ class GUI(Actor):
 
     def update(s, dt):
         pass
+    
+class Indicator(Actor):
+    """This is an Actor that just sticks to a given actor and
+moves around with it.  Initially for the level editor, but it
+might eventually be useful for a crosshairs or something."""
+    def __init__(s, target):
+        s.renderer = rcache.getRenderer(IndicatorRenderer)
+        s.target = target
+        s.physicsObj = PhysicsObj(s)
+        s.facing = FACING_LEFT
 
+    def update(s, dt):
+        s.physicsObj.position = s.target.position
+        print 'indicator exists'
+    
 # No description; the keyboard object can't be readily printed.
 class Player(Actor):
     """The player object."""

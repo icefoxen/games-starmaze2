@@ -305,3 +305,12 @@ def chunkGuide():
             polys.append(Polygon.line(x, startY, x, y, color, strokeWidth=1))
             polys.append(Polygon.line(startX, y, x, y, color, strokeWidth=1))
     return LineImage(polys)
+
+def crosshair():
+    polys = []
+    color = (255, 0, 0, 255)
+    size = 16
+    start = size / 2
+    polys.append(Polygon.line(-start, 0, start, 0, color, strokeWidth=2))
+    polys.append(Polygon.line(0, -start, 0, start, color, strokeWidth=2))
+    return LineImage(polys)

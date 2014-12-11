@@ -224,6 +224,37 @@ class BeginningsP1BulletRenderer(Renderer):
         Renderer.__init__(s)
         s.img = rcache.getLineImage(images.beginningsP1Bullet)
 
+class IndicatorRenderer(Renderer):
+    def __init__(s):
+        Renderer.__init__(s)
+        s.img = rcache.getLineImage(images.crosshair)
+        s.layer = LAYER_GUI
+
+    def renderActor(s, actor):
+        targetBB = actor.target.physicsObj.getBB()
+
+        spacing = 4
+        bottomLeft = (targetBB.left - spacing, targetBB.bottom - spacing)
+        bottomRight = (targetBB.right + spacing, targetBB.bottom - spacing)
+        topLeft = (targetBB.left - spacing, targetBB.top + spacing)
+        topRight = (targetBB.right + spacing, targetBB.top + spacing)
+
+        s.shader.uniformi("facing", actor.facing)
+        s.shader.uniformf("alpha", 1.0)
+        s.shader.uniformf("vertexDiff", 0, 0, 0, 0)
+        s.shader.uniformf("colorDiff", 0, 0, 0, 0)
+
+        rot = math.degrees(actor.physicsObj.angle)
+        with graphics.Affine(bottomLeft, rot):
+            s.img.batch.draw()
+        with graphics.Affine(bottomRight, rot):
+            s.img.batch.draw()
+        with graphics.Affine(topLeft, rot):
+            s.img.batch.draw()
+        with graphics.Affine(topRight, rot):
+            s.img.batch.draw()
+    
+
 class BackgroundRenderer(Renderer):
     def __init__(s):
         Renderer.__init__(s)

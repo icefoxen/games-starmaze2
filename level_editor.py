@@ -43,6 +43,7 @@ suitable for copy-pasting into a Python file."""
         s.actors = set()
 
         s.currentTarget = None
+        s.indicator = None
         s.startDrag = (0.0, 0.0)
         
         s.cameraTarget = pymunk.Body()
@@ -55,8 +56,23 @@ suitable for copy-pasting into a Python file."""
 
     def update(s, dt):
         s.handleInputState()
+        s.updateIndicator()
         s.camera.update(dt)
-        
+
+    def updateIndicator(s):
+        if s.currentTarget is not None:
+            if s.indicator is None:
+                s.indicator = Indicator(s.currentTarget)
+                s.actors.add(s.indicator)
+                s.renderManager.addActorIfPossible(s.indicator)
+            else:
+                s.indicator.target = s.currentTarget
+        elif s.currentTarget is None:
+            if s.indicator is not None:
+                s.renderManager.removeActorIfPossible(s.indicator)
+                s.actors.remove(s.indicator)
+                s.indicator = None
+
     def on_draw(s):
         s.window.clear()
         with s.camera:
@@ -113,7 +129,7 @@ into a python file"""
                 # Adjust for camera position
                 cx = x - s.camera.x
                 cy = y - s.camera.y
-                if bb.contains_vect((cx,cy)):
+                if bb is not None and bb.contains_vect((cx,cy)):
                     s.currentTarget = act
                     print 'Selected', act
                     return
