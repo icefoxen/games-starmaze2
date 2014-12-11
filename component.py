@@ -120,6 +120,7 @@ down."""
         #print 'bop'
         # BUGGO: It works if we initialize s.body here but not
         # in the actual initializer.
+        # "self" might be a little odd in initializers.
         s.body = s.owner.physicsObj
         s.stopBrake()
         s.stopMoving()
@@ -828,7 +829,6 @@ class BlockPhysicsObj(PhysicsObj):
         return other.endCollisionWithTerrain(s, arbiter)
 
 
-        
 class FallingBlockPhysicsObj(PhysicsObj):
     """Like a BlockPhysicsObject but...
 

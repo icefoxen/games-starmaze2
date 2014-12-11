@@ -45,11 +45,18 @@ class DestroyableBlock(Block):
     def __init__(s, position, corners, color, hp=20):
         Block.__init__(s, position, corners, color)
         s.life = Life(s, hp)
+
+@described
+class PassableBlock(Block):
+    """A block that you can pass through."""
+    def __init__(s, position, corners, color):
+        Block.__init__(s, position, corners, color)
         # XXX
         # We create and then throw away a physicsObj in the Block.__init__ call,
         # which I'd prefer to avoid, but...
-        s.physicsObj = BlockPhysicsObj(s, position=position)
+        s.physicsObj = PhysicsObj(s, position=position)
 
+        
 @described
 class FallingBlock(Actor):
     """A block that falls when the player lands on it.
