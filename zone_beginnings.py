@@ -89,6 +89,7 @@ entryway = Room("Entryway", theZone, [
 (lambda: CrawlerEnemy(position=(400, -200))),
 (lambda: Gate((1140, -400), "Cathedral", 0, 0)),
 (lambda: Tree((1080, -420))),
+(lambda: DestroyableBlock((1200, -450), [(0, 0), (119, 0), (119, 142), (0, 142)], (255, 255, 0, 255))),
 #(lambda: FallingBlock((200.0, 140.0), [(0, 0), (106, 0), (106, 37), (0, 37)], (255, 255, 255, 255))),
 ])
 

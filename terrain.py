@@ -39,6 +39,16 @@ corners is a list of the corners of the polygon.  NOT line endpoins.
             maxy = max(maxy, y)
         return (maxx/2, maxy/2)
 
+@described
+class DestroyableBlock(Block):
+    """A block that can be blown up by shooting it."""
+    def __init__(s, position, corners, color, hp=20):
+        Block.__init__(s, position, corners, color)
+        s.life = Life(s, hp)
+        # XXX
+        # We create and then throw away a physicsObj in the Block.__init__ call,
+        # which I'd prefer to avoid, but...
+        s.physicsObj = DestroyableBlockPhysicsObj(s, position=position)
 
 @described
 class FallingBlock(Actor):

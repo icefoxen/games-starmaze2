@@ -67,8 +67,7 @@ class World(object):
         s.zones = {"Beginnings" : zone_beginnings.theZone}
         s.currentZone = None
         s.currentRoom = None
-        startRoom = s.zones["Beginnings"].rooms["Entryway"]
-        s.nextRoom = startRoom
+        s.nextRoom = s.zones["Beginnings"].rooms["Entryway"]
         s.nextRoomLoc = (0.0, 0.0)
         # The player is automatically added to the room here.
         s.enterNextRoom()

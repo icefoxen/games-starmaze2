@@ -822,6 +822,23 @@ class BlockPhysicsObj(PhysicsObj):
     def endCollisionWith(s, other, arbiter):
         return other.endCollisionWithTerrain(s, arbiter)
 
+class DestroyableBlockPhysicsObj(PhysicsObj):
+    """A Block that can be blown up."""
+    def __init__(s, owner, **kwargs):
+        # Static body 
+        PhysicsObj.__init__(s, owner, **kwargs)
+        s.addShapes(pymunk.Poly(s.body, owner.corners))
+        s.setFriction(0.8)
+        s.setElasticity(0.8)
+        s.setCollisionEnemy()
+
+    def startCollisionWith(s, other, arbiter):
+        return other.startCollisionWithEnemy(s, arbiter)
+
+    def endCollisionWith(s, other, arbiter):
+        return other.endCollisionWithEnemy(s, arbiter)
+
+
         
 class FallingBlockPhysicsObj(PhysicsObj):
     """Like a BlockPhysicsObject but...

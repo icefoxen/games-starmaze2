@@ -68,6 +68,7 @@ class Actor(object):
         s.motionX = 0
         s.braking = False
         s.world = None
+        s.life = None
         s.facing = FACING_RIGHT
         s.onGround = False
         s.bulletOffset = (0,0)
