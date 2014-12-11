@@ -655,11 +655,6 @@ class PlayerPhysicsObj(PhysicsObj):
             # a vertical component of like -1.0e-15
             # But in general, if we hit something moving downward,
             # the y component of the normal is < 0
-            #
-            # TODO: Oooh, we should probably see if there's a
-            # callback for when two things _stop_ colliding with each other,
-            # I think there is.  Setting onGround to false in such a callback
-            # would be a good thing
 
             if normal.y < -0.001:
                 s.owner.onGround = True
@@ -710,7 +705,12 @@ class PlayerBulletPhysicsObj(PhysicsObj):
         return other.endCollisionWithPlayerBullet(s, arbiter)
 
     def startCollisionWithTerrain(s, other, arbiter):
-        s.owner.alive = False
+        bullet = s.owner
+        target = other.owner
+        bullet.alive = False
+        # XXX: This is a bit of a hack for DestroyableBlock's
+        if target.life is not None:
+            target.life.takeDamage(bullet, bullet.damage)
         return False
 
     def startCollisionWithEnemy(s, other, arbiter):
@@ -762,6 +762,11 @@ class AirP2PhysicsObj(PhysicsObj):
         return other.endCollisionWithPlayerBullet(s, arbiter)
 
     def startCollisionWithTerrain(s, other, arbiter):
+        # XXX: This is a bit of a hack for DestroyableBlock's
+        target = other.owner
+        if target.life is not None:
+            s.owner.enemiesTouching.add(target)
+            
         return False
 
     def startCollisionWithEnemy(s, other, arbiter):
@@ -821,22 +826,6 @@ class BlockPhysicsObj(PhysicsObj):
 
     def endCollisionWith(s, other, arbiter):
         return other.endCollisionWithTerrain(s, arbiter)
-
-class DestroyableBlockPhysicsObj(PhysicsObj):
-    """A Block that can be blown up."""
-    def __init__(s, owner, **kwargs):
-        # Static body 
-        PhysicsObj.__init__(s, owner, **kwargs)
-        s.addShapes(pymunk.Poly(s.body, owner.corners))
-        s.setFriction(0.8)
-        s.setElasticity(0.8)
-        s.setCollisionEnemy()
-
-    def startCollisionWith(s, other, arbiter):
-        return other.startCollisionWithEnemy(s, arbiter)
-
-    def endCollisionWith(s, other, arbiter):
-        return other.endCollisionWithEnemy(s, arbiter)
 
 
         

@@ -48,7 +48,7 @@ class DestroyableBlock(Block):
         # XXX
         # We create and then throw away a physicsObj in the Block.__init__ call,
         # which I'd prefer to avoid, but...
-        s.physicsObj = DestroyableBlockPhysicsObj(s, position=position)
+        s.physicsObj = BlockPhysicsObj(s, position=position)
 
 @described
 class FallingBlock(Actor):
