@@ -92,18 +92,6 @@ class GUIRenderer(Renderer):
             s.energyBarImage.batch.draw()
 
         
-class LineSpriteRenderer(Renderer):
-    def __init__(s):
-        Renderer.__init__(s)
-        s.shader = shader.DummyShader()
-
-    def renderActor(s, actor):
-        sp = actor.sprite
-        actor.draw(s.shader)
-        with graphics.Affine((sp._x, sp._y), sp.rotation, (sp._scale, sp._scale)):
-            # For now, this updates the sprite's position and shader props and such
-            sp._batch.draw()
-            
 class SpriteRenderer(Renderer):
     """A renderer that just draws a bitmap sprite.
 
@@ -114,6 +102,7 @@ CURRENTLY EXPERIMENTAL."""
         s.batch = pyglet.graphics.Batch()
         s.sprite = pyglet.sprite.Sprite(s.image, batch=s.batch)
         s.shader = rcache.getShader('texture')
+        s.shader = rcache.getShader('bloom')
 
     def renderActor(s, actor):
         s.shader.uniformi("facing", 1)
@@ -122,7 +111,6 @@ CURRENTLY EXPERIMENTAL."""
         pos = actor.physicsObj.position
         rot = math.degrees(actor.physicsObj.angle)
         with graphics.Affine(pos, rot):
-            #s.sprite.position = actor.physicsObj.pos
             s.batch.draw()
 
 

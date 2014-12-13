@@ -145,6 +145,7 @@ class Player(Actor):
         s.physicsObj = PlayerPhysicsObj(s, position=position)
 
         s.renderer = rcache.getRenderer(PlayerRenderer)
+        s.renderer = rcache.getRenderer(SpriteRenderer)
         s.bulletOffset = (s.radius,0)
 
         s.powers = PowerSet(s)
