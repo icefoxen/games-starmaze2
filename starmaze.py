@@ -17,7 +17,7 @@ from actor import *
 import shader
 from terrain import *
 
-from particle import *
+#from particle import *
 
 import renderer
 
@@ -74,10 +74,10 @@ class World(object):
 
         s.time = 0.0
 
-        s.particleGroup = ParticleGroup()
-        s.particleController = ParticleController()
-        s.particleRenderer = ParticleRenderer()
-        s.particleEmitter = ParticleEmitter()
+        #s.particleGroup = ParticleGroup()
+        #s.particleController = ParticleController()
+        #s.particleRenderer = ParticleRenderer()
+        #s.particleEmitter = ParticleEmitter()
 
         s.frameTimes = collections.defaultdict(lambda: 0)
 
@@ -234,7 +234,7 @@ update frame."""
             s.renderManager.render()
         s.fps_display.draw()
 
-        s.particleRenderer.draw(s.particleGroup)
+        #s.particleRenderer.draw(s.particleGroup)
 
     def on_key_press(s, k, modifiers):
         s.player.controller.handleKeyPress(k, modifiers)
