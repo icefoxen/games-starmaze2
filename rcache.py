@@ -2,8 +2,10 @@ import pyglet
 
 import os
 
+import shader
+
 # Doesn't search recursively.
-pyglet.resource.path = ['images', 'sound']
+pyglet.resource.path = ['images', 'sounds', 'shaders']
 pyglet.resource.reindex()
 
 # TODO: Sort out AVbin and make oggs work
@@ -23,6 +25,7 @@ def get_image(name):
 def get_sprite(name):
     img = get_image(name)
     return pyglet.sprite.Sprite(img)
+
 
 
 # collections.defaultdict might be useful here.
@@ -45,3 +48,14 @@ def getRenderer(renderer):
         r = renderer()
         RENDERERCACHE[renderer] = r
         return r
+
+SHADERCACHE = {}
+def getShader(name):
+    try:
+        return SHADERCACHE[name]
+    except KeyError:
+        vertex_program = pyglet.resource.text(name + '.vert')
+        fragment_program = pyglet.resource.text(name + '.frag')
+        shaderObj = shader.Shader([vertex_program.text], [fragment_program.text])
+        SHADERCACHE[name] = shaderObj
+        return shaderObj

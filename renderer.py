@@ -32,7 +32,7 @@ class Renderer(object):
     """A class that draws a particular type of thing."""
     def __init__(s):
         s.layer = LAYER_FG
-        s.shader = shader.Shader([shader.vprog], [shader.fprog])
+        s.shader = rcache.getShader('default')
 
     def __lt__(s, other):
         return s.layer < other.layer
@@ -116,7 +116,7 @@ CURRENTLY EXPERIMENTAL."""
         s.image = rcache.get_image("playertest")
         s.batch = pyglet.graphics.Batch()
         s.sprite = pyglet.sprite.Sprite(s.image, batch=s.batch)
-        s.shader = shader.Shader([shader.texture_vprog], [shader.texture_fprog])
+        s.shader = rcache.getShader('texture')
 
     def renderActor(s, actor):
         s.shader.uniformi("facing", 1)
