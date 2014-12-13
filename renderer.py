@@ -49,7 +49,6 @@ class Renderer(object):
         s.shader.unbind()
         glPopAttrib()
 
-    # XXX: For now this assumes we're using the sorta default-ish shader...
     def renderActor(s, actor):
         pos = actor.physicsObj.position
         rot = math.degrees(actor.physicsObj.angle)
@@ -188,7 +187,7 @@ class TrooperBulletRenderer(Renderer):
     def __init__(s):
         Renderer.__init__(s)
         s.img = rcache.getLineImage(images.trooperBullet)
-        
+
 class ArcherRenderer(Renderer):
     def __init__(s):
         Renderer.__init__(s)
@@ -223,6 +222,21 @@ class BeginningsP1BulletRenderer(Renderer):
     def __init__(s):
         Renderer.__init__(s)
         s.img = rcache.getLineImage(images.beginningsP1Bullet)
+        s.shader = rcache.getShader('colorshift')
+        
+    def renderActor(s, actor):
+        pos = actor.physicsObj.position
+        rot = math.degrees(actor.physicsObj.angle)
+        amount = float(actor.life.time) / float(actor.life.maxTime)
+        with graphics.Affine(pos, rot):
+            s.shader.uniformi("facing", actor.facing)
+            s.shader.uniformf("alpha", 1.0)
+            s.shader.uniformf("vertexDiff", 0, 0, 0, 0)
+            s.shader.uniformf("colorDiff", 0, 0, 0, 0)
+            s.shader.uniformf("colorTo", 1.0, 1.0, 0.0, 1.0)
+            s.shader.uniformf("amount", amount)
+            s.img.batch.draw()
+
 
 class IndicatorRenderer(Renderer):
     def __init__(s):

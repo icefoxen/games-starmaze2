@@ -984,6 +984,7 @@ a certain timeout."""
     def __init__(s, owner, time):
         Component.__init__(s, owner)
         s.time = float(time)
+        s.maxTime = time
 
     def update(s, dt):
         s.time -= dt
