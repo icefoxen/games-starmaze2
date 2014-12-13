@@ -56,7 +56,6 @@ class Renderer(object):
             s.shader.uniformi("facing", actor.facing)
             s.shader.uniformf("alpha", 1.0)
             s.shader.uniformf("vertexDiff", 0, 0, 0, 0)
-            s.shader.uniformf("colorDiff", 0, 0, 0, 0)
             s.img.batch.draw()
         
     def renderAll(s, actors):
@@ -81,7 +80,6 @@ class GUIRenderer(Renderer):
         s.shader.uniformi("facing", 1)
         s.shader.uniformf("alpha", 1.0)
         s.shader.uniformf("vertexDiff", 0, 0, 0, 0)
-        s.shader.uniformf("colorDiff", 0, 0, 0, 0)
 
 
         x = actor.world.camera.currentX
@@ -121,7 +119,6 @@ CURRENTLY EXPERIMENTAL."""
         s.shader.uniformi("facing", 1)
         s.shader.uniformf("alpha", 1.0)
         s.shader.uniformf("vertexDiff", 0, 0, 0, 0)
-        s.shader.uniformf("colorDiff", 0, 0, 0, 0)
         pos = actor.physicsObj.position
         rot = math.degrees(actor.physicsObj.angle)
         with graphics.Affine(pos, rot):
@@ -147,12 +144,10 @@ class PlayerRenderer(Renderer):
             s.shader.uniformi("facing", actor.facing)
             s.shader.uniformf("alpha", 1.0)
             s.shader.uniformf("vertexDiff", 0, 0, 0, 0)
-            s.shader.uniformf("colorDiff", 0, 0, 0, 0)
             s.img.batch.draw()
             
             glow = -0.3 * abs(math.sin(actor.glow))
             s.shader.uniformf("vertexDiff", 0, 0, 0.0, glow)
-            s.shader.uniformf("colorDiff", 0, 0, 0, glow)
 
             # XXX
             actor.powers.draw(s.shader)
@@ -232,7 +227,6 @@ class BeginningsP1BulletRenderer(Renderer):
             s.shader.uniformi("facing", actor.facing)
             s.shader.uniformf("alpha", 1.0)
             s.shader.uniformf("vertexDiff", 0, 0, 0, 0)
-            s.shader.uniformf("colorDiff", 0, 0, 0, 0)
             s.shader.uniformf("colorTo", 1.0, 1.0, 0.0, 1.0)
             s.shader.uniformf("amount", amount)
             s.img.batch.draw()
@@ -256,7 +250,6 @@ class IndicatorRenderer(Renderer):
         s.shader.uniformi("facing", actor.facing)
         s.shader.uniformf("alpha", 1.0)
         s.shader.uniformf("vertexDiff", 0, 0, 0, 0)
-        s.shader.uniformf("colorDiff", 0, 0, 0, 0)
 
         rot = math.degrees(actor.physicsObj.angle)
         with graphics.Affine(bottomLeft, rot):
@@ -286,7 +279,6 @@ class BackgroundRenderer(Renderer):
         s.shader.uniformi("facing", actor.facing)
         s.shader.uniformf("alpha", 1.0)
         s.shader.uniformf("vertexDiff", 0, 0, 0, 0)
-        s.shader.uniformf("colorDiff", 0, 0, 0, 0)
         for thing in [0, 90, 180, 270]:
             with graphics.Affine(pos1, rot + thing):
                 img.batch.draw()
@@ -315,7 +307,6 @@ class AirP1BulletAirRenderer(Renderer):
                         
             s.shader.uniformf("alpha", lifePercentage)
             s.shader.uniformf("vertexDiff", 0, 0, 0, 0)
-            s.shader.uniformf("colorDiff", 0, 0, 0, 0)
             s.img.batch.draw()
 
 
@@ -334,7 +325,6 @@ class AirP1BulletGroundRenderer(Renderer):
                         
             s.shader.uniformf("alpha", lifePercentage)
             s.shader.uniformf("vertexDiff", 0, 0, 0, 0)
-            s.shader.uniformf("colorDiff", 0, 0, 0, 0)
             s.img.batch.draw()
 
         
@@ -352,7 +342,6 @@ class AirP2BulletRenderer(Renderer):
             s.shader.uniformi("facing", actor.facing)
             s.shader.uniformf("alpha", 1.0)
             s.shader.uniformf("vertexDiff", 0, 0, 0, 0)
-            s.shader.uniformf("colorDiff", 0, 0, 0, 0)
 
             imagenum = actor.animationCount % s.numImages
             s.images[imagenum].batch.draw()
@@ -370,7 +359,6 @@ class BlockRenderer(Renderer):
             s.shader.uniformi("facing", actor.facing)
             s.shader.uniformf("alpha", 1.0)
             s.shader.uniformf("vertexDiff", 0, 0, 0, 0)
-            s.shader.uniformf("colorDiff", 0, 0, 0, 0)
             img.batch.draw()
 
 class GateRenderer(Renderer):
@@ -384,7 +372,6 @@ class GateRenderer(Renderer):
         s.shader.uniformi("facing", actor.facing)
         s.shader.uniformf("alpha", 1.0)
         s.shader.uniformf("vertexDiff", 0, 0, 0, 0)
-        s.shader.uniformf("colorDiff", 0, 0, 0, 0)
         with graphics.Affine(pos, rot):
             s.img.batch.draw()
         with graphics.Affine(pos, -rot):
@@ -402,7 +389,6 @@ class TreeRenderer(Renderer):
             s.shader.uniformi("facing", actor.facing)
             s.shader.uniformf("alpha", 1.0)
             s.shader.uniformf("vertexDiff", 0, 0, 0, 0)
-            s.shader.uniformf("colorDiff", 0, 0, 0, 0)
             img.batch.draw()
 
 
@@ -436,7 +422,6 @@ used by the main rendering loop."""
         s.shader.uniformi("facing", 1)
         s.shader.uniformf("alpha", 1.0)
         s.shader.uniformf("vertexDiff", 0, 0, 0, 0)
-        s.shader.uniformf("colorDiff", 0, 0, 0, 0)
         img.batch.draw()
         #pos = actor.physicsObj.position
         #rot = math.degrees(actor.physicsObj.angle)
@@ -445,7 +430,6 @@ used by the main rendering loop."""
         #    s.shader.uniformi("facing", actor.facing)
         #    s.shader.uniformf("alpha", 1.0)
         #    s.shader.uniformf("vertexDiff", 0, 0, 0, 0)
-        #    s.shader.uniformf("colorDiff", 0, 0, 0, 0)
         #    img.batch.draw()
         
 
