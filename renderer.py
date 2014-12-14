@@ -1,5 +1,6 @@
 import collections
 import math
+from ctypes import *
 
 import pyglet
 from pyglet.gl import *
@@ -423,12 +424,17 @@ used by the main rendering loop."""
 
 class RenderManager(object):
     """A class that manages rendering of a set of Renderers."""
-    def __init__(s):
+    def __init__(s, screenw, screenh):
         # A list of layers
         # Each layer contains a dict: Renderers -> RenderComponents
         # We use defaultdict to create a new empty set of RenderComponents
         # if you look up a non-existent Renderers
         s.renderers = [collections.defaultdict(set) for _ in LAYERS]
+        s.screenw = screenw
+        s.screenh = screenh
+
+        s.ppSetup()
+        s.ppShader = rcache.getShader('postproc')
 
     def add(s, renderer, actor):
         layer = s.renderers[renderer.layer]
@@ -453,6 +459,121 @@ class RenderManager(object):
             for r, actors in layer.iteritems():
                 r.renderAll(actors)
 
+    def ppSetup(s):
+        """Create back-buffer, depth buffer, frame buffer for post-processing."""
+
+        # Back-buffer
+        s.fbo_texture = c_uint(0)
+        glActiveTexture(GL_TEXTURE0)
+        glGenTextures(1, byref(s.fbo_texture))
+        glBindTexture(GL_TEXTURE_2D, s.fbo_texture)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, s.screenw, s.screenw, 0, GL_RGBA, GL_UNSIGNED_BYTE, None);
+        glBindTexture(GL_TEXTURE_2D, 0);
+
+        # Depth buffer
+        s.rbo_depth = c_uint(0)
+        glGenRenderbuffers(1, byref(s.rbo_depth))
+        glBindRenderbuffer(GL_RENDERBUFFER, s.rbo_depth)
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, s.screenw, s.screenh)
+        glBindRenderbuffer(GL_RENDERBUFFER, 0)
+
+        # Frame buffer
+        s.fbo = c_uint(0)
+        glGenFramebuffers(1, byref(s.fbo))
+        glBindFramebuffer(GL_FRAMEBUFFER, s.fbo)
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, s.fbo_texture, 0)
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, s.rbo_depth)
+        status = glCheckFramebufferStatus(GL_FRAMEBUFFER)
+        if status != GL_FRAMEBUFFER_COMPLETE:
+            raise Exception("Something went wrong with glCheckFramebufferStatus: {}".format(status))
+        glBindFramebuffer(GL_FRAMEBUFFER, 0)
+
+
+        bbVertsArray = c_float * 8
+        s.bbVerts = bbVertsArray(
+            -100, -100,
+             100, -100,
+            -100,  100,
+             100,  100
+            )
+        s.vbo_fbo_vertices = c_uint(0)
+        glGenBuffers(1, byref(s.vbo_fbo_vertices))
+        glBindBuffer(GL_ARRAY_BUFFER, s.vbo_fbo_vertices)
+        glBufferData(GL_ARRAY_BUFFER, sizeof(s.vbo_fbo_vertices), s.bbVerts, GL_STATIC_DRAW)
+        glBindBuffer(GL_ARRAY_BUFFER, 0)
+
+    def ppReshape(s, screenw, screenh):
+        "Rescale FBO and RBO."
+        s.screenw = screenw
+        s.screenh = screenh
+        glBindTexture(GL_TEXTURE_2D, s.fbo_texture)
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, s.screenw, s.screenh, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL)
+        glBindTexture(GL_TEXTURE_2D, 0)
+ 
+        glBindRenderbuffer(GL_RENDERBUFFER, s.rbo_depth)
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, s.screenw, s.screenh)
+        glBindRenderbuffer(GL_RENDERBUFFER, 0)
+
+    def ppFree(s):
+        glDeleteRenderbuffers(1, byref(s.rbo_depth))
+        glDeleteTextures(1, byref(s.fbo_texture))
+        glDeleteFramebuffers(1, byref(s.fbo))
+
+        glDeleteBuffers(1, byref(s.vbo_fbo_vertices))
+
+    def ppRender(s, camera):
+        # Render to fbo
+        glBindFramebuffer(GL_FRAMEBUFFER, s.fbo)
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+        # We only render with the camera here;
+        # If the camera is in effect when we do all the stuff below,
+        # it'll apply twice; once to the render-to-backbuffer, once to
+        # the actual rendering!
+        with camera:
+            s.render()
+        glBindFramebuffer(GL_FRAMEBUFFER, 0)
+
+        # aspect ratioooooooo
+        # But since all this rendering is done with Pyglet's default
+        # projection matrix and everything, 0,0 is the bottom-left of
+        # the screen, and 1 OpenGL unit = 1 pixel.
+        xoff = s.screenw
+        yoff = s.screenh * (4.0 / 3.0)
+
+        s.ppShader.bind()
+        glBindTexture(GL_TEXTURE_2D, s.fbo_texture)
+
+        # BUGGO: Immediate mode is Bad, clean this up.
+        glBegin(GL_QUADS)
+        
+        glTexCoord2f(0,0)
+        glVertex2f(0, 0)
+        
+        glTexCoord2f(0,1)
+        glVertex2f(0,  yoff)
+
+        glTexCoord2f(1,1)
+        glVertex2f( xoff,  yoff)
+        
+        glTexCoord2f(1,0)
+        glVertex2f( xoff, 0)
+        glEnd()
+        #glBindTexture(GL_TEXTURE_2D, s.fbo_texture)
+        #glUniform1i('fbo_texture', 0)
+        #s.ppShader.uniformi('fbo_texture', 0)
+        #attribute_v_coord_postproc = glGetAttribLocation(s.ppShader.handle, 'v_coord')
+        #glEnableVertexAttribArray(attribute_v_coord_postproc)
+
+        #glBindBuffer(GL_ARRAY_BUFFER, s.vbo_fbo_vertices)
+        #glVertexAttribPointer(
+        #    attribute_v_coord_postproc, 2, GL_FLOAT, GL_FALSE, 0, 0)
+        #glDrawArrays(GL_TRIANGLE_STRIP, 0, 4)
+        #glDisableVertexAttribArray(attribute_v_coord_postproc)
+        s.ppShader.unbind()
 
 def preloadRenderers():
     """Instantiates all renderers into the rcache to prevent the first lookup from lagging.

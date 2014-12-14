@@ -54,7 +54,7 @@ class World(object):
         )
 
         s.initNewSpace()
-        s.renderManager = renderer.RenderManager()
+        s.renderManager = renderer.RenderManager(s.screenw, s.screenh)
         renderer.preloadRenderers()
         
         s.player = Player(s.keyboard)
@@ -230,8 +230,9 @@ update frame."""
         
     def on_draw(s):
         s.window.clear()
-        with s.camera:
-            s.renderManager.render()
+        #with s.camera:
+            #s.renderManager.render()
+        s.renderManager.ppRender(s.camera)
         s.fps_display.draw()
 
         #s.particleRenderer.draw(s.particleGroup)
