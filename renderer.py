@@ -436,6 +436,8 @@ class RenderManager(object):
         s.ppSetup()
         s.ppShader = rcache.getShader('postproc')
 
+        s.offset = 0.0
+
     def add(s, renderer, actor):
         layer = s.renderers[renderer.layer]
         layer[renderer].add(actor)
@@ -545,23 +547,39 @@ class RenderManager(object):
         yoff = s.screenh * (4.0 / 3.0)
 
         s.ppShader.bind()
+        s.ppShader.uniformf('offset', s.offset)
+        s.offset += 0.1
         glBindTexture(GL_TEXTURE_2D, s.fbo_texture)
 
-        # BUGGO: Immediate mode is Bad, clean this up.
-        glBegin(GL_QUADS)
         
-        glTexCoord2f(0,0)
-        glVertex2f(0, 0)
-        
-        glTexCoord2f(0,1)
-        glVertex2f(0,  yoff)
+        bbVertsArray = c_float * 8
+        s.bbVerts = bbVertsArray(
+            0, 0,
+            0, yoff,
+            xoff, yoff,
+            xoff, 0
+            )
+        s.bbTexCoords = bbVertsArray(
+            0, 0,
+            0, 1,
+            1, 1,
+            1, 0
+            )
 
-        glTexCoord2f(1,1)
-        glVertex2f( xoff,  yoff)
-        
-        glTexCoord2f(1,0)
-        glVertex2f( xoff, 0)
-        glEnd()
+        glEnableClientState(GL_VERTEX_ARRAY)
+        glVertexPointer(2, GL_FLOAT, sizeof(c_float), byref(s.bbVerts))
+        glBindTexture(GL_TEXTURE_2D, s.fbo_texture)
+        glEnableClientState(GL_TEXTURE_COORD_ARRAY)
+        glTexCoordPointer(2, GL_FLOAT, sizeof(c_float), byref(s.bbTexCoords))
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, 8)
+
+        # s.vbo_fbo_vertices = c_uint(0)
+        # glGenBuffers(1, byref(s.vbo_fbo_vertices))
+        # glBindBuffer(GL_ARRAY_BUFFER, s.vbo_fbo_vertices)
+        # glBufferData(GL_ARRAY_BUFFER, sizeof(s.vbo_fbo_vertices), s.bbVerts, GL_STATIC_DRAW)
+        # glVertexAttribPointer(
+        # glBindBuffer(GL_ARRAY_BUFFER, 0)
+
         #glBindTexture(GL_TEXTURE_2D, s.fbo_texture)
         #glUniform1i('fbo_texture', 0)
         #s.ppShader.uniformi('fbo_texture', 0)
