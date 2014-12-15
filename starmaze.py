@@ -7,6 +7,7 @@ import time
 
 #import lepton
 import pyglet
+pyglet.options['shadow_window'] = False
 import pyglet.window.key as key
 from pyglet.gl import *
 import pymunk
@@ -21,7 +22,6 @@ from terrain import *
 
 import renderer
 
-import zone_beginnings
 
 PHYSICS_FPS = 60.0
 GRAVITY_FORCE = -400.0
@@ -64,6 +64,7 @@ class World(object):
         s.actorsToAdd = set()
         s.actorsToRemove = set()
 
+        import zone_beginnings
         s.zones = {"Beginnings" : zone_beginnings.theZone}
         s.currentZone = None
         s.currentRoom = None
