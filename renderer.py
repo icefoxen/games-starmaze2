@@ -135,14 +135,13 @@ class PlayerRenderer(Renderer):
             s.shader.uniformf("vertexDiff", 0, 0, 0, 0)
             s.img.batch.draw()
             
-            glow = -0.3 * abs(math.sin(actor.glow))
-            s.shader.uniformf("vertexDiff", 0, 0, 0.0, glow)
-
             # XXX
             actor.powers.draw(s.shader)
             
+            glow = -0.3 * abs(math.sin(actor.glow))
+            s.shader.uniformf("vertexDiff", 0, 0, 0.0, glow)
+
             s.shader.uniformf("alpha", 0.2)
-            #s.glowImage.position = s.physicsObj.position
             s.glowImage.batch.draw()
 
 # Having a renderer that does nothing but draw a particular image seems a bit lame
@@ -271,7 +270,6 @@ class BackgroundRenderer(Renderer):
         for thing in [0, 90, 180, 270]:
             with graphics.Affine(pos1, rot + thing):
                 img.batch.draw()
-
         # Okay this particular background effects makes your eyeballs
         # strip gears...
         #pos2 = (x / (s.parallaxFactor*1.1), y / (s.parallaxFactor*1.1))
@@ -473,6 +471,7 @@ class RenderManager(object):
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        # XXX: power-of-two textures here!
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, s.screenw, s.screenw, 0, GL_RGBA, GL_UNSIGNED_BYTE, None);
         glBindTexture(GL_TEXTURE_2D, 0);
 
@@ -493,6 +492,8 @@ class RenderManager(object):
         if status != GL_FRAMEBUFFER_COMPLETE:
             raise Exception("Something went wrong with glCheckFramebufferStatus: {}".format(status))
         glBindFramebuffer(GL_FRAMEBUFFER, 0)
+
+
 
 
         bbVertsArray = c_float * 8
@@ -544,7 +545,7 @@ class RenderManager(object):
         # projection matrix and everything, 0,0 is the bottom-left of
         # the screen, and 1 OpenGL unit = 1 pixel.
         xoff = s.screenw
-        yoff = s.screenh * (4.0 / 3.0)
+        yoff = s.screenh
 
         s.ppShader.bind()
         s.ppShader.uniformf('offset', s.offset)
@@ -561,17 +562,17 @@ class RenderManager(object):
             )
         s.bbTexCoords = bbVertsArray(
             0, 0,
-            0, 1,
-            1, 1,
+            0, 1 / (4.0/3.0),
+            1, 1 / (4.0/3.0),
             1, 0
             )
 
         glEnableClientState(GL_VERTEX_ARRAY)
-        glVertexPointer(2, GL_FLOAT, sizeof(c_float), byref(s.bbVerts))
+        glVertexPointer(2, GL_FLOAT, 0, byref(s.bbVerts))
         glBindTexture(GL_TEXTURE_2D, s.fbo_texture)
         glEnableClientState(GL_TEXTURE_COORD_ARRAY)
-        glTexCoordPointer(2, GL_FLOAT, sizeof(c_float), byref(s.bbTexCoords))
-        glDrawArrays(GL_TRIANGLE_STRIP, 0, 8)
+        glTexCoordPointer(2, GL_FLOAT, 0, byref(s.bbTexCoords))
+        glDrawArrays(GL_TRIANGLE_FAN, 0, 4)
 
         # s.vbo_fbo_vertices = c_uint(0)
         # glGenBuffers(1, byref(s.vbo_fbo_vertices))

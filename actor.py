@@ -562,7 +562,7 @@ class NullPower(object):
         s.owner = owner
 
     def __eq__(s, other):
-        return isinstance(other, s.__class__)
+        return s.__class__ == other.__class__
 
     def update(s, dt):
         pass

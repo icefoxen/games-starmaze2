@@ -232,7 +232,7 @@ update frame."""
     def on_draw(s):
         s.window.clear()
         #with s.camera:
-            #s.renderManager.render()
+        #    s.renderManager.render()
         s.renderManager.ppRender(s.camera)
         s.fps_display.draw()
 
