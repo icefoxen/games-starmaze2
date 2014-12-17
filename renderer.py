@@ -460,7 +460,7 @@ class RenderManager(object):
                 r.renderAll(actors)
 
     def ppSetup(s):
-        """Create back-buffer, depth buffer, frame buffer for post-processing."""
+        """Create back-buffer and frame buffer for post-processing."""
 
         # Back-buffer
         s.fbo_texture = c_uint(0)
@@ -475,54 +475,25 @@ class RenderManager(object):
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, s.screenw, s.screenw, 0, GL_RGBA, GL_UNSIGNED_BYTE, None);
         glBindTexture(GL_TEXTURE_2D, 0);
 
-        # Depth buffer
-        s.rbo_depth = c_uint(0)
-        glGenRenderbuffers(1, byref(s.rbo_depth))
-        glBindRenderbuffer(GL_RENDERBUFFER, s.rbo_depth)
-        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, s.screenw, s.screenh)
-        glBindRenderbuffer(GL_RENDERBUFFER, 0)
-
         # Frame buffer
         s.fbo = c_uint(0)
         glGenFramebuffers(1, byref(s.fbo))
         glBindFramebuffer(GL_FRAMEBUFFER, s.fbo)
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, s.fbo_texture, 0)
-        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, s.rbo_depth)
         status = glCheckFramebufferStatus(GL_FRAMEBUFFER)
         if status != GL_FRAMEBUFFER_COMPLETE:
             raise Exception("Something went wrong with glCheckFramebufferStatus: {}".format(status))
         glBindFramebuffer(GL_FRAMEBUFFER, 0)
 
-
-
-
-        bbVertsArray = c_float * 8
-        s.bbVerts = bbVertsArray(
-            -100, -100,
-             100, -100,
-            -100,  100,
-             100,  100
-            )
-        s.vbo_fbo_vertices = c_uint(0)
-        glGenBuffers(1, byref(s.vbo_fbo_vertices))
-        glBindBuffer(GL_ARRAY_BUFFER, s.vbo_fbo_vertices)
-        glBufferData(GL_ARRAY_BUFFER, sizeof(s.vbo_fbo_vertices), s.bbVerts, GL_STATIC_DRAW)
-        glBindBuffer(GL_ARRAY_BUFFER, 0)
-
     def ppReshape(s, screenw, screenh):
-        "Rescale FBO and RBO."
+        "Rescale FBO."
         s.screenw = screenw
         s.screenh = screenh
         glBindTexture(GL_TEXTURE_2D, s.fbo_texture)
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, s.screenw, s.screenh, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL)
         glBindTexture(GL_TEXTURE_2D, 0)
  
-        glBindRenderbuffer(GL_RENDERBUFFER, s.rbo_depth)
-        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, s.screenw, s.screenh)
-        glBindRenderbuffer(GL_RENDERBUFFER, 0)
-
     def ppFree(s):
-        glDeleteRenderbuffers(1, byref(s.rbo_depth))
         glDeleteTextures(1, byref(s.fbo_texture))
         glDeleteFramebuffers(1, byref(s.fbo))
 
@@ -574,24 +545,6 @@ class RenderManager(object):
         glTexCoordPointer(2, GL_FLOAT, 0, byref(s.bbTexCoords))
         glDrawArrays(GL_TRIANGLE_FAN, 0, 4)
 
-        # s.vbo_fbo_vertices = c_uint(0)
-        # glGenBuffers(1, byref(s.vbo_fbo_vertices))
-        # glBindBuffer(GL_ARRAY_BUFFER, s.vbo_fbo_vertices)
-        # glBufferData(GL_ARRAY_BUFFER, sizeof(s.vbo_fbo_vertices), s.bbVerts, GL_STATIC_DRAW)
-        # glVertexAttribPointer(
-        # glBindBuffer(GL_ARRAY_BUFFER, 0)
-
-        #glBindTexture(GL_TEXTURE_2D, s.fbo_texture)
-        #glUniform1i('fbo_texture', 0)
-        #s.ppShader.uniformi('fbo_texture', 0)
-        #attribute_v_coord_postproc = glGetAttribLocation(s.ppShader.handle, 'v_coord')
-        #glEnableVertexAttribArray(attribute_v_coord_postproc)
-
-        #glBindBuffer(GL_ARRAY_BUFFER, s.vbo_fbo_vertices)
-        #glVertexAttribPointer(
-        #    attribute_v_coord_postproc, 2, GL_FLOAT, GL_FALSE, 0, 0)
-        #glDrawArrays(GL_TRIANGLE_STRIP, 0, 4)
-        #glDisableVertexAttribArray(attribute_v_coord_postproc)
         s.ppShader.unbind()
 
 def preloadRenderers():
