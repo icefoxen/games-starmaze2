@@ -431,8 +431,7 @@ class RenderManager(object):
         s.screenw = screenw
         s.screenh = screenh
 
-        s.ppSetup()
-        s.ppShader = rcache.getShader('postproc')
+        s.ppPipelineSetup(screenw, screenh)
 
         s.offset = 0.0
 
@@ -493,11 +492,38 @@ class RenderManager(object):
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, s.screenw, s.screenh, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL)
         glBindTexture(GL_TEXTURE_2D, 0)
  
-    def ppFree(s):
+    def __del__(s):
+        return
         glDeleteTextures(1, byref(s.fbo_texture))
         glDeleteFramebuffers(1, byref(s.fbo))
 
-        glDeleteBuffers(1, byref(s.vbo_fbo_vertices))
+    def ppPipelineSetup(s, screenx, screeny):
+        s.renderSteps = []
+        shader1 = rcache.getShader('postproc')
+        #shader2 = rcache.getShader('postproc2')
+        newStep1 = PostprocStep(shader1, s.screenw, s.screenh)
+        s.renderSteps.append(newStep1)
+        #newStep2 = PostprocStep(shader2, s.screenw, s.screenh)
+        #s.renderSteps.append(newStep2)
+        s.ppSetup()
+        
+    def ppPipelineRender(s, camera):
+        # Render to fbo
+        glBindFramebuffer(GL_FRAMEBUFFER, s.fbo)
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+        # We only render with the camera here;
+        # If the camera is in effect when we do all the stuff below,
+        # it'll apply twice; once to the render-to-backbuffer, once to
+        # the actual rendering!
+        with camera:
+            s.render()
+        glBindFramebuffer(GL_FRAMEBUFFER, 0)
+        
+        fromTexture = s.fbo_texture
+        for step in s.renderSteps[:-1]:
+            step.render(fromTexture)
+            fromTexture = step.toTexture
+        s.renderSteps[-1].render(fromTexture, final=True)
 
     def ppRender(s, camera):
         # Render to fbo
@@ -546,6 +572,88 @@ class RenderManager(object):
         glDrawArrays(GL_TRIANGLE_FAN, 0, 4)
 
         s.ppShader.unbind()
+
+class PostprocStep(object):
+    """A class that represents a single step in a post-processing pipeline.
+It takes a texture and renders it to a new texture with a particular shader."""
+    def __init__(s, shader, screenw, screenh):
+        s.screenw = screenw
+        s.screenh = screenh
+        s.toTexture = c_uint(0)
+        s.fbo = c_uint(0)
+        s.shader = shader
+
+        # Create back-buffer
+        glActiveTexture(GL_TEXTURE0)
+        glGenTextures(1, byref(s.toTexture))
+        glBindTexture(GL_TEXTURE_2D, s.toTexture)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        # XXX: power-of-two textures here!
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, s.screenw, s.screenw, 0, GL_RGBA, GL_UNSIGNED_BYTE, None);
+        glBindTexture(GL_TEXTURE_2D, 0);
+
+        # Create frame buffer
+        s.fbo = c_uint(0)
+        glGenFramebuffers(1, byref(s.fbo))
+        glBindFramebuffer(GL_FRAMEBUFFER, s.fbo)
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, s.toTexture, 0)
+        status = glCheckFramebufferStatus(GL_FRAMEBUFFER)
+        if status != GL_FRAMEBUFFER_COMPLETE:
+            raise Exception("Something went wrong with glCheckFramebufferStatus: {}".format(status))
+        glBindFramebuffer(GL_FRAMEBUFFER, 0)
+
+        
+        # Make a billboard to render to.
+        xoff = s.screenw
+        yoff = s.screenh
+        bbVertsArray = c_float * 8
+        s.bbVerts = bbVertsArray(
+            0, 0,
+            0, yoff,
+            xoff, yoff,
+            xoff, 0
+            )
+        s.bbTexCoords = bbVertsArray(
+            0, 0,
+            0, 1 / (4.0/3.0),
+            1, 1 / (4.0/3.0),
+            1, 0
+            )
+
+    def __del__(s):
+        glDeleteTextures(1, byref(s.toTexture))
+        glDeleteFramebuffers(1, byref(s.fbo))
+
+    def reshape(s, screenw, screenh):
+        "Rescale FBO."
+        s.screenw = screenw
+        s.screenh = screenh
+        glBindTexture(GL_TEXTURE_2D, s.toTexture)
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, s.screenw, s.screenh, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL)
+        glBindTexture(GL_TEXTURE_2D, 0)
+ 
+    def render(s, fromTexture, final=False):
+        # If not the last step, render to fbo
+        if not final:
+            glBindFramebuffer(GL_FRAMEBUFFER, s.fbo)
+        s.shader.bind()
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+        #glBindTexture(GL_TEXTURE_2D, fromTexture)
+
+        glEnableClientState(GL_VERTEX_ARRAY)
+        glVertexPointer(2, GL_FLOAT, 0, byref(s.bbVerts))
+        glBindTexture(GL_TEXTURE_2D, fromTexture)
+        glEnableClientState(GL_TEXTURE_COORD_ARRAY)
+        glTexCoordPointer(2, GL_FLOAT, 0, byref(s.bbTexCoords))
+        glDrawArrays(GL_TRIANGLE_FAN, 0, 4)
+
+        s.shader.unbind()
+        if not final:
+            glBindFramebuffer(GL_FRAMEBUFFER, 0)
+    
 
 def preloadRenderers():
     """Instantiates all renderers into the rcache to prevent the first lookup from lagging.
