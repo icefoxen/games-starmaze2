@@ -233,7 +233,7 @@ update frame."""
         s.window.clear()
         #with s.camera:
         #    s.renderManager.render()
-        s.renderManager.ppPipelineRender(s.camera)
+        s.renderManager.render(s.camera)
         s.fps_display.draw()
 
         #s.particleRenderer.draw(s.particleGroup)

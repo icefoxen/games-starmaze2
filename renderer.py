@@ -431,7 +431,7 @@ class RenderManager(object):
         s.screenw = screenw
         s.screenh = screenh
 
-        s.ppPipelineSetup(screenw, screenh)
+        s.postprocPipelineSetup(screenw, screenh)
 
         s.offset = 0.0
 
@@ -453,14 +453,27 @@ class RenderManager(object):
             if actor in layer[actor.renderer]:
                 s.remove(actor.renderer, actor)
 		
-    def render(s):
+    def renderActors(s):
         for layer in s.renderers:
             for r, actors in layer.iteritems():
                 r.renderAll(actors)
 
-    def ppSetup(s):
-        """Create back-buffer and frame buffer for post-processing."""
+    def __del__(s):
+        return
+        glDeleteTextures(1, byref(s.fbo_texture))
+        glDeleteFramebuffers(1, byref(s.fbo))
 
+    def postprocPipelineSetup(s, screenx, screeny):
+        s.renderSteps = []
+        shader1 = rcache.getShader('postproc')
+        #shader2 = rcache.getShader('postproc2')
+        newStep1 = PostprocStep(shader1, s.screenw, s.screenh)
+        s.renderSteps.append(newStep1)
+        #newStep2 = PostprocStep(shader2, s.screenw, s.screenh)
+        #s.renderSteps.append(newStep2)
+        #s.ppSetup()
+
+        # Now we set up the initial framebuffer
         # Back-buffer
         s.fbo_texture = c_uint(0)
         glActiveTexture(GL_TEXTURE0)
@@ -484,30 +497,8 @@ class RenderManager(object):
             raise Exception("Something went wrong with glCheckFramebufferStatus: {}".format(status))
         glBindFramebuffer(GL_FRAMEBUFFER, 0)
 
-    def ppReshape(s, screenw, screenh):
-        "Rescale FBO."
-        s.screenw = screenw
-        s.screenh = screenh
-        glBindTexture(GL_TEXTURE_2D, s.fbo_texture)
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, s.screenw, s.screenh, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL)
-        glBindTexture(GL_TEXTURE_2D, 0)
- 
-    def __del__(s):
-        return
-        glDeleteTextures(1, byref(s.fbo_texture))
-        glDeleteFramebuffers(1, byref(s.fbo))
-
-    def ppPipelineSetup(s, screenx, screeny):
-        s.renderSteps = []
-        shader1 = rcache.getShader('postproc')
-        #shader2 = rcache.getShader('postproc2')
-        newStep1 = PostprocStep(shader1, s.screenw, s.screenh)
-        s.renderSteps.append(newStep1)
-        #newStep2 = PostprocStep(shader2, s.screenw, s.screenh)
-        #s.renderSteps.append(newStep2)
-        s.ppSetup()
         
-    def ppPipelineRender(s, camera):
+    def render(s, camera):
         # Render to fbo
         glBindFramebuffer(GL_FRAMEBUFFER, s.fbo)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
@@ -516,7 +507,7 @@ class RenderManager(object):
         # it'll apply twice; once to the render-to-backbuffer, once to
         # the actual rendering!
         with camera:
-            s.render()
+            s.renderActors()
         glBindFramebuffer(GL_FRAMEBUFFER, 0)
         
         fromTexture = s.fbo_texture
@@ -524,54 +515,6 @@ class RenderManager(object):
             step.render(fromTexture)
             fromTexture = step.toTexture
         s.renderSteps[-1].render(fromTexture, final=True)
-
-    def ppRender(s, camera):
-        # Render to fbo
-        glBindFramebuffer(GL_FRAMEBUFFER, s.fbo)
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-        # We only render with the camera here;
-        # If the camera is in effect when we do all the stuff below,
-        # it'll apply twice; once to the render-to-backbuffer, once to
-        # the actual rendering!
-        with camera:
-            s.render()
-        glBindFramebuffer(GL_FRAMEBUFFER, 0)
-
-        # aspect ratioooooooo
-        # But since all this rendering is done with Pyglet's default
-        # projection matrix and everything, 0,0 is the bottom-left of
-        # the screen, and 1 OpenGL unit = 1 pixel.
-        xoff = s.screenw
-        yoff = s.screenh
-
-        s.ppShader.bind()
-        s.ppShader.uniformf('offset', s.offset)
-        s.offset += 0.1
-        glBindTexture(GL_TEXTURE_2D, s.fbo_texture)
-
-        
-        bbVertsArray = c_float * 8
-        s.bbVerts = bbVertsArray(
-            0, 0,
-            0, yoff,
-            xoff, yoff,
-            xoff, 0
-            )
-        s.bbTexCoords = bbVertsArray(
-            0, 0,
-            0, 1 / (4.0/3.0),
-            1, 1 / (4.0/3.0),
-            1, 0
-            )
-
-        glEnableClientState(GL_VERTEX_ARRAY)
-        glVertexPointer(2, GL_FLOAT, 0, byref(s.bbVerts))
-        glBindTexture(GL_TEXTURE_2D, s.fbo_texture)
-        glEnableClientState(GL_TEXTURE_COORD_ARRAY)
-        glTexCoordPointer(2, GL_FLOAT, 0, byref(s.bbTexCoords))
-        glDrawArrays(GL_TRIANGLE_FAN, 0, 4)
-
-        s.ppShader.unbind()
 
 class PostprocStep(object):
     """A class that represents a single step in a post-processing pipeline.
