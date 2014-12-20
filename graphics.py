@@ -7,25 +7,25 @@ from pyglet.gl import *
 
 class Vertex(namedtuple("Vertex", ["x", "y", "color"])):
     """A 2D vertex, which might also contain color and other properties.
-    Vertices are made into triangles, which are then made into other shapes."""
+    Vertices are made into triangleself, which are then made into other shapes."""
 
     @property
-    def coords(s):
+    def coords(self):
         """Returns the coordinates of the vertex."""
-        return (s.x, s.y)
+        return (s.x, self.y)
 
-    def distanceSquared(s, v2):
-        dx = v2.x - s.x
-        dy = v2.y - s.y
+    def distanceSquared(self, v2):
+        dx = v2.x - self.x
+        dy = v2.y - self.y
         return dx**2 + dy**2
     
-    def distance(s, v2):
-        return math.sqrt(s.distanceSquared(v2))
+    def distance(self, v2):
+        return math.sqrt(self.distanceSquared(v2))
 
 class Triangle(namedtuple("Triangle", ["v1", "v2", "v3"])):
     """A triangle made of 3 vertices."""
 
-    def fixWinding(s):
+    def fixWinding(self):
         """Makes sure that the vertices are wound in
 counter-clockwise order.
 TODO: implement this
@@ -34,26 +34,26 @@ you can take the cross product of them to see which
 way the normal points."""
         pass
 
-    def getCoordList(s):
+    def getCoordList(self):
         # Because we inherit from a namedtuple, 'self' is a
         # sequence of all its members.  Huzzah!
-        return [v.coords for v in s]
+        return [v.coords for v in self]
 
-    def getColorList(s):
-        return [v.color for v in s]
+    def getColorList(self):
+        return [v.color for v in self]
 
 class Line(object):
-    """A line between two points, specified by two (x,y) tuples.
+    """A line between two pointself, specified by two (x,y) tuples.
 
 Don't use this for representing line shapes; this is more or
 less only used internally by `Polygon`s."""
-    def __init__(s, v1, v2, width=2):
-        s.v1 = v1
-        s.v2 = v2
-        s.width = width
+    def __init__(self, v1, v2, width=2):
+        self.v1 = v1
+        self.v2 = v2
+        self.width = width
 
-    def toTriangles(s):
-        """Returns a list of Triangles,
+    def toTriangles(self):
+        """Returns a list of Triangleself,
 suitable for drawing with GL_TRIANGLES.
 
 GL_TRIANGLE_STRIP is for losers.  And also causes isses
@@ -69,17 +69,17 @@ TODO: Endcaps (fairly easy)
 TODO MORE: Polylines (harder)
 TODO (POWER GOAL): Handle overlapping nicely
 """
-        rise = s.v2.y - s.v1.y
-        run = s.v2.x - s.v1.x
+        rise = self.v2.y - self.v1.y
+        run = self.v2.x - self.v1.x
         angle = math.atan2(rise, run)
-        xoff = math.sin(angle) * s.width
-        yoff = math.cos(angle) * s.width
+        xoff = math.sin(angle) * self.width
+        yoff = math.cos(angle) * self.width
         # Calculate points to the 'left' and 'right' of the endpoints
         # XXX: Gods these names are awful
-        x1 = s.v1.x
-        x2 = s.v2.x
-        y1 = s.v1.y
-        y2 = s.v2.y
+        x1 = self.v1.x
+        x2 = self.v2.x
+        y1 = self.v1.y
+        y2 = self.v2.y
         v1lx = x1 - xoff
         v1ly = y1 + yoff
         v1rx = x1 + xoff
@@ -90,10 +90,10 @@ TODO (POWER GOAL): Handle overlapping nicely
         v2rx = x2 + xoff
         v2ry = y2 - yoff
 
-        color1center = s.v1.color
-        color2center = s.v2.color
-        r1, g1, b1, a1 = s.v1.color
-        r2, g2, b2, a2 = s.v2.color
+        color1center = self.v1.color
+        color2center = self.v2.color
+        r1, g1, b1, a1 = self.v1.color
+        r2, g2, b2, a2 = self.v2.color
         color1edge = (r1, g1, b1, 0)
         color2edge = (r2, g2, b2, 0)
         
@@ -115,19 +115,19 @@ TODO (POWER GOAL): Handle overlapping nicely
 
 class Polygon(object):
     """A closed polygon specified by a list of vertices."""
-    def __init__(s, verts, closed=True, solid=False, strokeWidth=2):
-        s.verts = verts
-        s.closed = closed
-        s.solid = solid
-        s.strokeWidth = strokeWidth
+    def __init__(self, vertself, closed=True, solid=False, strokeWidth=2):
+        self.verts = verts
+        self.closed = closed
+        self.solid = solid
+        self.strokeWidth = strokeWidth
         
-    def toLines(s):
+    def toLines(self):
         """Returns a list of `Line`s representing the polygon."""
-        endpointPairs = zip(s.verts, s.verts[1:])
-        lines = [Line(p1, p2, width=s.strokeWidth) for p1, p2 in endpointPairs]
-        if s.closed:
+        endpointPairs = zip(self.vertself, self.verts[1:])
+        lines = [Line(p1, p2, width=self.strokeWidth) for p1, p2 in endpointPairs]
+        if self.closed:
             # Close the last side
-            lines.append(Line(s.verts[-1], s.verts[0], width=s.strokeWidth))
+            lines.append(Line(self.verts[-1], self.verts[0], width=self.strokeWidth))
 
         return lines
 
@@ -139,7 +139,7 @@ of a circle.
 Uses the algorithm described at http://slabode.exofire.net/circle_draw.shtml
 
 BUGGO: Solid colors only"""
-        return Polygon.arc(cx, cy, r, 360, color, numSegments=numSegments, **kwargs)
+        return Polygon.arc(cx, cy, r, 360, color, numSegments=numSegmentself, **kwargs)
 
     @staticmethod
     def arc(cx, cy, r, angle, color, startAngle=0.0, numSegments=32, **kwargs):
@@ -166,7 +166,7 @@ BUGGO: Solid colors only"""
             y += ty * tangentialFactor
             x *= radialFactor
             y *= radialFactor
-        return Polygon(verts, **kwargs)
+        return Polygon(vertself, **kwargs)
 
     @staticmethod
     def rectCenter(cx, cy, w, h, color, **kwargs):
@@ -189,7 +189,7 @@ BUGGO: should be implemented in terms of rectCorner, or vice versa?"""
             Vertex(x+w, y+h, color),
             Vertex(x, y+h, color)
             ]
-        return Polygon(verts, **kwargs)
+        return Polygon(vertself, **kwargs)
 
     @staticmethod
     def line(x1, y1, x2, y2, color, **kwargs):
@@ -200,7 +200,7 @@ BUGGO: Solid colors only"""
             Vertex(x1, y1, color),
             Vertex(x2, y2, color)
             ]
-        return Polygon(verts, closed=False, **kwargs)
+        return Polygon(vertself, closed=False, **kwargs)
 
 def rectCornersCenter(cx, cy, w, h):
     """Returns a list of points outlining a rectangle, given the center point"""
@@ -244,16 +244,16 @@ Also, doesn't really use groups right I think.
 
 Also, our framework code doesn't use batches right at all argh
 """
-    def __init__(s, polys):
-        s.polys = polys
-        s.batch = pyglet.graphics.Batch()
+    def __init__(self, polys):
+        self.polys = polys
+        self.batch = pyglet.graphics.Batch()
 
-        s._vertexLists = []
-        s._addToBatch()
+        self._vertexLists = []
+        self._addToBatch()
 
 
-    def _addToBatch(s):
-        """Turns the lines given into a bunch of triangles, then adds
+    def _addToBatch(self):
+        """Turns the lines given into a bunch of triangleself, then adds
 them to the image's batch."""
         def polysToLines(polys):
             lines = [poly.toLines() for poly in polys]
@@ -269,7 +269,7 @@ them to the image's batch."""
             colorsList = [tri.getColorList() for tri in tris]
             colors = list(itertools.chain.from_iterable(colorsList))
             return list(itertools.chain.from_iterable(colors))
-        lines = polysToLines(s.polys)
+        lines = polysToLines(self.polys)
         tris = linesToTriangles(lines)
         coords = trisToCoords(tris)
         colors = trisToColors(tris)
@@ -279,14 +279,14 @@ them to the image's batch."""
         vertFormat = 'v2f/static'
         colorFormat = 'c4B/static'
         numPoints = len(tris) * 3
-        vertexList = s.batch.add(
-            numPoints,
-            pyglet.graphics.GL_TRIANGLES,
+        vertexList = self.batch.add(
+            numPointself,
+            pyglet.graphics.GL_TRIANGLEself,
             None,
             (vertFormat, coords),
             (colorFormat, colors)
             )
-        s._vertexLists.append(vertexList)
+        self._vertexLists.append(vertexList)
 
 
         
@@ -297,7 +297,7 @@ polygon into a list of (x1, y1) (x2, y2) line endpoints."""
     if len(corners) < 2:
         return []
  
-    endpointPairs = zip(corners, corners[1:])
+    endpointPairs = zip(cornerself, corners[1:])
     flattenedEndpoints = list(itertools.chain.from_iterable(endpointPairs))
      
     # Close the last side
@@ -317,23 +317,23 @@ You use it something like::
 
 Pretty cool, huh?
 """
-    def __init__(s, translation=(0.0, 0.0), rotation=0.0, scale=(1.0, 1.0)):
-        s.x, s.y = translation
-        s.rotation = rotation
-        s.scaleX, s.scaleY = scale
+    def __init__(self, translation=(0.0, 0.0), rotation=0.0, scale=(1.0, 1.0)):
+        self.x, self.y = translation
+        self.rotation = rotation
+        self.scaleX, self.scaleY = scale
 
-    def __enter__(s):
+    def __enter__(self):
         glPushMatrix()
-        glTranslatef(s.x, s.y, 0)
-        glRotatef(s.rotation, 0.0, 0.0, 1.0)
-        glScalef(s.scaleX, s.scaleY, 0.0)
+        glTranslatef(self.x, self.y, 0)
+        glRotatef(self.rotation, 0.0, 0.0, 1.0)
+        glScalef(self.scaleX, self.scaleY, 0.0)
 
-    def __exit__(s, kind, exception, traceback):
+    def __exit__(self, kind, exception, traceback):
         glPopMatrix()
 
-    def __repr__(s):
+    def __repr__(self):
         return "Affine(({}, {}), {}, ({}, {})".format(
-            s.x, s.y, s.rotation, s.scaleX, s.scaleY)
+            self.x, self.y, self.rotation, self.scaleX, self.scaleY)
 
 class Camera(Affine):
     """An `Affine` which takes a target `Actor` and
@@ -343,63 +343,63 @@ hardBoundaryFactor is a hard limit of how far the target
 can be off-center.  It defaults to 50% of the screen.
 """
 
-    def __init__(s, target, screenw, screenh, hardBoundaryFactor = 0.50):
+    def __init__(self, target, screenw, screenh, hardBoundaryFactor = 0.50):
         # 'target' is any pymunk.body
-        Affine.__init__(s)
-        s.target = target
-        s.speedFactor = 2.5
-        s.halfScreenW = screenw / 2
-        s.halfScreenH = screenh / 2
-        s.aimedAtX = 0.0
-        s.aimedAtY = 0.0
-        s.currentX = s.target.position[0]
-        s.currentY = s.target.position[1]
+        Affine.__init__(self)
+        self.target = target
+        self.speedFactor = 2.5
+        self.halfScreenW = screenw / 2
+        self.halfScreenH = screenh / 2
+        self.aimedAtX = 0.0
+        self.aimedAtY = 0.0
+        self.currentX = self.target.position[0]
+        self.currentY = self.target.position[1]
 
-        s.hardBoundaryX = s.halfScreenW * hardBoundaryFactor
-        s.hardBoundaryY = s.halfScreenH * hardBoundaryFactor
+        self.hardBoundaryX = self.halfScreenW * hardBoundaryFactor
+        self.hardBoundaryY = self.halfScreenH * hardBoundaryFactor
 
-    def snapTo(s, pos):
+    def snapTo(self, pos):
         """Snaps instantly to the given coordinates."""
         x, y = pos
-        s.aimedAtX = x
-        s.aimedAtY = y
-        s.currentX = x
-        s.currentY = y
+        self.aimedAtX = x
+        self.aimedAtY = y
+        self.currentX = x
+        self.currentY = y
 
-    def update(s, dt):
+    def update(self, dt):
         """Calculates the camera's position for a new frame.
 
 Basically, we lerp towards the target's position."""
-        s.aimedAtX, s.aimedAtY = s.target.position
-        deltaX = s.aimedAtX - s.currentX
-        deltaY = s.aimedAtY - s.currentY
+        self.aimedAtX, self.aimedAtY = self.target.position
+        deltaX = self.aimedAtX - self.currentX
+        deltaY = self.aimedAtY - self.currentY
 
-        s.currentX += deltaX * s.speedFactor * dt
-        s.currentY += deltaY * s.speedFactor * dt
+        self.currentX += deltaX * self.speedFactor * dt
+        self.currentY += deltaY * self.speedFactor * dt
 
         # We have to test whether the _next_ frame
         # will be out of bounds and account for that;
         # if we do it on the current frame's numbers
         # then once you get close to the corners
         # of the screen the view gets 'sucked' into them.
-        deltaX2 = s.aimedAtX - s.currentX
-        deltaY2 = s.aimedAtY - s.currentY
+        deltaX2 = self.aimedAtX - self.currentX
+        deltaY2 = self.aimedAtY - self.currentY
 
-        if deltaX2 > s.hardBoundaryX:
-            s.currentX = s.aimedAtX - s.hardBoundaryX
-        elif deltaX2 < -s.hardBoundaryX:
-            s.currentX = s.aimedAtX + s.hardBoundaryX
+        if deltaX2 > self.hardBoundaryX:
+            self.currentX = self.aimedAtX - self.hardBoundaryX
+        elif deltaX2 < -self.hardBoundaryX:
+            self.currentX = self.aimedAtX + self.hardBoundaryX
 
-        if deltaY2 > s.hardBoundaryY:
-            s.currentY = s.aimedAtY - s.hardBoundaryY
-        elif deltaY2 < -s.hardBoundaryY:
-            s.currentY = s.aimedAtY + s.hardBoundaryY
+        if deltaY2 > self.hardBoundaryY:
+            self.currentY = self.aimedAtY - self.hardBoundaryY
+        elif deltaY2 < -self.hardBoundaryY:
+            self.currentY = self.aimedAtY + self.hardBoundaryY
 
-        #print("Current:", s.currentX, s.currentY)
-        #print("Target: ", s.aimedAtX, s.aimedAtY)
+        #print("Current:", self.currentX, self.currentY)
+        #print("Target: ", self.aimedAtX, self.aimedAtY)
         #print("Delta:  ", deltaX, deltaY)
-        s.x = -s.currentX + s.halfScreenW
-        s.y = -s.currentY + s.halfScreenH
+        self.x = -self.currentX + self.halfScreenW
+        self.y = -self.currentY + self.halfScreenH
 
 def vertsToIndexedVerts(verts):
     """Turns a sequence of vertex pairs into a (smaller) sequence of verts and
