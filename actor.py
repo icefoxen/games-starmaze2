@@ -910,9 +910,9 @@ class PowerSet(Component):
         self.currentPower.draw(shader)
 
     def nextPower(self):
-        self.powerIndex = (s.powerIndex + 1) % len(s.powers)
-        self.currentPower = s.powers[s.powerIndex]
+        self.powerIndex = (self.powerIndex + 1) % len(self.powers)
+        self.currentPower = self.powers[self.powerIndex]
 
     def prevPower(self):
-        self.powerIndex = (s.powerIndex - 1) % len(s.powers)
-        self.currentPower = s.powers[s.powerIndex]
+        self.powerIndex = (self.powerIndex - 1) % len(self.powers)
+        self.currentPower = self.powers[self.powerIndex]

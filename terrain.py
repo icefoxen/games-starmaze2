@@ -20,18 +20,18 @@ things might come later.
 
 corners is a list of the corners of the polygon.  NOT line endpoins.
 """
-    def __init__(s, position, corners, color):
-        s.corners = corners
-        s.color = color
-        Actor.__init__(s)
-        s.physicsObj = BlockPhysicsObj(s, position=position)
+    def __init__(self, position, corners, color):
+        self.corners = corners
+        self.color = color
+        Actor.__init__(self)
+        self.physicsObj = BlockPhysicsObj(self, position=position)
 
         verts = [Vertex(x, y, color) for (x,y) in corners]
         poly = Polygon(verts)
-        s.img = LineImage([poly])
-        s.renderer = rcache.getRenderer(BlockRenderer)
+        self.img = LineImage([poly])
+        self.renderer = rcache.getRenderer(BlockRenderer)
 
-    def findShapeCenter(s, corners):
+    def findShapeCenter(self, corners):
         maxx = 0
         maxy = 0
         for (x,y) in corners:
@@ -42,36 +42,36 @@ corners is a list of the corners of the polygon.  NOT line endpoins.
 @described
 class DestroyableBlock(Block):
     """A block that can be blown up by shooting it."""
-    def __init__(s, position, corners, color, hp=20):
-        Block.__init__(s, position, corners, color)
-        s.life = Life(s, hp)
+    def __init__(self, position, corners, color, hp=20):
+        Block.__init__(self, position, corners, color)
+        self.life = Life(self, hp)
 
 @described
 class PassableBlock(Block):
     """A block that you can pass through."""
-    def __init__(s, position, corners, color):
-        Block.__init__(s, position, corners, color)
+    def __init__(self, position, corners, color):
+        Block.__init__(self, position, corners, color)
         # XXX
         # We create and then throw away a physicsObj in the Block.__init__ call,
         # which I'd prefer to avoid, but...
-        s.physicsObj = PhysicsObj(s, position=position)
+        self.physicsObj = PhysicsObj(self, position=position)
 
         
 @described
 class FallingBlock(Actor):
     """A block that falls when the player lands on it.
 """
-    def __init__(s, position, corners, color):
-        s.corners = corners
-        s.color = color
-        Actor.__init__(s)
-        s.physicsObj = FallingBlockPhysicsObj(s, position=position)
+    def __init__(self, position, corners, color):
+        self.corners = corners
+        self.color = color
+        Actor.__init__(self)
+        self.physicsObj = FallingBlockPhysicsObj(self, position=position)
 
         
         verts = [Vertex(x, y, color) for (x,y) in corners]
         poly = Polygon(verts)
-        s.img = LineImage([poly])
-        s.renderer = rcache.getRenderer(BlockRenderer)
+        self.img = LineImage([poly])
+        self.renderer = rcache.getRenderer(BlockRenderer)
 
 def createBlockCenter(x, y, w, h, color=(255, 255, 255, 255)):
     """Creates a `Terrain` object representing a block of the given size.
@@ -97,27 +97,27 @@ x and y are the coordinates of the lower-left point."""
 
 @described
 class Gate(Actor):
-    def __init__(s, position, destination, destx, desty):
-        Actor.__init__(s)
-        s.physicsObj = GatePhysicsObj(s, position=position)
-        s.passable = True
-        s.destination = destination
-        s.destx = destx
-        s.desty = desty
-        s.rotation = 0.0
-        s.renderer = rcache.getRenderer(GateRenderer)
+    def __init__(self, position, destination, destx, desty):
+        Actor.__init__(self)
+        self.physicsObj = GatePhysicsObj(self, position=position)
+        self.passable = True
+        self.destination = destination
+        self.destx = destx
+        self.desty = desty
+        self.rotation = 0.0
+        self.renderer = rcache.getRenderer(GateRenderer)
 
-    def update(s, dt):
-        s.rotation += dt
+    def update(self, dt):
+        self.rotation += dt
 
 
 @described
 class Tree(Actor):
-    def __init__(s, position):
-        Actor.__init__(s)
-        s.physicsObj = PhysicsObj(s, position=position)
-        s.img = rcache.getLineImage(images.tree)
-        s.renderer = rcache.getRenderer(TreeRenderer)
+    def __init__(self, position):
+        Actor.__init__(self)
+        self.physicsObj = PhysicsObj(self, position=position)
+        self.img = rcache.getLineImage(images.tree)
+        self.renderer = rcache.getRenderer(TreeRenderer)
 
 # TODO:
 # Door, locked door/gate, keys, proper
@@ -126,16 +126,16 @@ class Room(object):
     """Basically a specification of a bunch of Actors to create,
 along with code to create them.
     """
-    def __init__(s, name, zone, descr):
-        s.name = name
-        s.descr = descr
-        s.music = None
-        s.gatePoints = []
-        s.zone = zone
-        s.zone.addRoom(s)
+    def __init__(self, name, zone, descr):
+        self.name = name
+        self.descr = descr
+        self.music = None
+        self.gatePoints = []
+        self.zone = zone
+        self.zone.addRoom(self)
 
-    def getActors(s):
-        return map(lambda descfunc: descfunc(), s.descr)
+    def getActors(self):
+        return map(lambda descfunc: descfunc(), self.descr)
 
     @staticmethod
     def fromLayout(name, layout):
@@ -154,20 +154,20 @@ and also Zone-wide properties like music and background.
 
 Will eventually dynamically generate and connect rooms, but
 for now, they're all wired together in a fixed layout."""
-    def __init__(s, name):
-        s.name = name
-        s.music = None
-        s.rooms = {}
-        s.backgroundActors = []
+    def __init__(self, name):
+        self.name = name
+        self.music = None
+        self.rooms = {}
+        self.backgroundActors = []
 
-    def addRoom(s, room):
-        s.rooms[room.name] = room
+    def addRoom(self, room):
+        self.rooms[room.name] = room
 
-    def generate(s):
+    def generate(self):
         pass
     
 
-    def getZoneActors(s):
+    def getZoneActors(self):
         """Returns a list of actors that any Room in the Zone should have.
 Mainly, backgrounds."""
-        return s.backgroundActors
+        return self.backgroundActors

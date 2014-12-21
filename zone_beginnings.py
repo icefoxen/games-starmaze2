@@ -24,24 +24,24 @@ track of by a global flags dict, kept by the World object.
 from terrain import *
 
 class BeginningsBackground(Actor):
-    def __init__(s, rotateDir=-1, position=(0,0)):
-        Actor.__init__(s)
-        s.img = images.backgroundSpiral()
-        s.physicsObj = PhysicsObj(s, position=position)
-        s.renderer = rcache.getRenderer(BackgroundRenderer)
-        s.rotateDir = rotateDir
+    def __init__(self, rotateDir=-1, position=(0,0)):
+        Actor.__init__(self)
+        self.img = images.backgroundSpiral()
+        self.physicsObj = PhysicsObj(self, position=position)
+        self.renderer = rcache.getRenderer(BackgroundRenderer)
+        self.rotateDir = rotateDir
 
-    def update(s, dt):
+    def update(self, dt):
         rotateSpeed = 100
-        s.physicsObj.angle += (dt / rotateSpeed) * s.rotateDir
+        self.physicsObj.angle += (dt / rotateSpeed) * self.rotateDir
 
 
 class ZoneBeginnings(Zone):
-    def __init__(s):
-        Zone.__init__(s, "Beginnings")
-        s.music = None
+    def __init__(self):
+        Zone.__init__(self, "Beginnings")
+        self.music = None
 
-        s.backgroundActors = [
+        self.backgroundActors = [
             BeginningsBackground(rotateDir=-1, position=(100, 0)),
             BeginningsBackground(rotateDir=1, position=(-100, 0)),
             BeginningsBackground(rotateDir=-1, position=(0, 100)),
