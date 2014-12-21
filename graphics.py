@@ -12,7 +12,7 @@ class Vertex(namedtuple("Vertex", ["x", "y", "color"])):
     @property
     def coords(self):
         """Returns the coordinates of the vertex."""
-        return (s.x, self.y)
+        return (self.x, self.y)
 
     def distanceSquared(self, v2):
         dx = v2.x - self.x
@@ -115,7 +115,7 @@ TODO (POWER GOAL): Handle overlapping nicely
 
 class Polygon(object):
     """A closed polygon specified by a list of vertices."""
-    def __init__(self, vertself, closed=True, solid=False, strokeWidth=2):
+    def __init__(self, verts, closed=True, solid=False, strokeWidth=2):
         self.verts = verts
         self.closed = closed
         self.solid = solid
@@ -123,7 +123,7 @@ class Polygon(object):
         
     def toLines(self):
         """Returns a list of `Line`s representing the polygon."""
-        endpointPairs = zip(self.vertself, self.verts[1:])
+        endpointPairs = zip(self.verts, self.verts[1:])
         lines = [Line(p1, p2, width=self.strokeWidth) for p1, p2 in endpointPairs]
         if self.closed:
             # Close the last side
@@ -139,7 +139,7 @@ of a circle.
 Uses the algorithm described at http://slabode.exofire.net/circle_draw.shtml
 
 BUGGO: Solid colors only"""
-        return Polygon.arc(cx, cy, r, 360, color, numSegments=numSegmentself, **kwargs)
+        return Polygon.arc(cx, cy, r, 360, color, numSegments=numSegments, **kwargs)
 
     @staticmethod
     def arc(cx, cy, r, angle, color, startAngle=0.0, numSegments=32, **kwargs):
@@ -166,7 +166,7 @@ BUGGO: Solid colors only"""
             y += ty * tangentialFactor
             x *= radialFactor
             y *= radialFactor
-        return Polygon(vertself, **kwargs)
+        return Polygon(verts, **kwargs)
 
     @staticmethod
     def rectCenter(cx, cy, w, h, color, **kwargs):
@@ -189,7 +189,7 @@ BUGGO: should be implemented in terms of rectCorner, or vice versa?"""
             Vertex(x+w, y+h, color),
             Vertex(x, y+h, color)
             ]
-        return Polygon(vertself, **kwargs)
+        return Polygon(verts, **kwargs)
 
     @staticmethod
     def line(x1, y1, x2, y2, color, **kwargs):
@@ -200,7 +200,7 @@ BUGGO: Solid colors only"""
             Vertex(x1, y1, color),
             Vertex(x2, y2, color)
             ]
-        return Polygon(vertself, closed=False, **kwargs)
+        return Polygon(verts, closed=False, **kwargs)
 
 def rectCornersCenter(cx, cy, w, h):
     """Returns a list of points outlining a rectangle, given the center point"""
@@ -280,8 +280,8 @@ them to the image's batch."""
         colorFormat = 'c4B/static'
         numPoints = len(tris) * 3
         vertexList = self.batch.add(
-            numPointself,
-            pyglet.graphics.GL_TRIANGLEself,
+            numPoints,
+            pyglet.graphics.GL_TRIANGLES,
             None,
             (vertFormat, coords),
             (colorFormat, colors)

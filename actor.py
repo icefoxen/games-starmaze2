@@ -76,7 +76,7 @@ class Actor(object):
     def onDeath(self):
         pass
 
-    def update(self. dt):
+    def update(self, dt):
         pass
 
     def fireBullet(self, bulletClass, facing=None):
@@ -138,7 +138,7 @@ might eventually be useful for a crosshairs or something."""
 class Player(Actor):
     """The player object."""
     def __init__(self, keyboard, position=(0,0)):
-        print s, keyboard
+        print self, keyboard
         self.radius = 10
         Actor.__init__(self)
         self.controller = KeyboardController(self, keyboard)
@@ -158,7 +158,7 @@ class Player(Actor):
         self.energy = Energy(self)
     def update(self, dt):
         self.controller.update(dt)
-        self.powerself.update(dt)
+        self.powers.update(dt)
         self.glow += 0.05
         self.energy.update(dt)
 
@@ -192,7 +192,7 @@ class BeginningsPowerup(Actor):
         
     def collect(self, player):
         print "Gained Beginnings power!"
-        player.powerself.addPower(BeginningsPower(player))
+        player.powers.addPower(BeginningsPower(player))
 
 @described
 class AirPowerup(Actor):
@@ -626,7 +626,7 @@ class BeginningsPower(NullPower):
         self.jumping = False
 
         self.defending = False
-        self.shieldImage = rcache.getLineImage(imageself.shieldImage)
+        self.shieldImage = rcache.getLineImage(images.shieldImage)
 
         self.attack1Cost = 1.0
         self.attack2Cost = 10.0
@@ -860,59 +860,59 @@ class PowerSet(Component):
         if len(self.powers) == 1 and self.powers[0].__class__ == NullPower:
             self.powers = [power]
         elif power not in self.powers:
-            self.powerself.append(power)
-            self.powerself.sort()
+            self.powers.append(power)
+            self.powers.sort()
         self.currentPower = power
-        self.powerIndex = self.powerself.index(power)
+        self.powerIndex = self.powers.index(power)
         print "Added power:", power
-        print s.powers
+        print self.powers
         
     def update(self, dt):
-        s.currentPower.update(dt)
+        self.currentPower.update(dt)
 
     def attack1(self):
-        s.currentPower.attack1()
+        self.currentPower.attack1()
 
     def attack2(self):
-        s.currentPower.attack2()
+        self.currentPower.attack2()
 
     def defend(self):
-        s.currentPower.defend()
+        self.currentPower.defend()
 
     def jump(self):
-        s.currentPower.jump()
+        self.currentPower.jump()
 
     def startAttack1(self):
-        s.currentPower.startAttack1()
+        self.currentPower.startAttack1()
 
     def startAttack2(self):
-        s.currentPower.startAttack2()
+        self.currentPower.startAttack2()
 
     def startDefend(self):
-        s.currentPower.startDefend()
+        self.currentPower.startDefend()
 
     def startJump(self):
-        s.currentPower.startJump()
+        self.currentPower.startJump()
 
     def stopAttack1(self):
-        s.currentPower.stopAttack1()
+        self.currentPower.stopAttack1()
 
     def stopAttack2(self):
-        s.currentPower.stopAttack2()
+        self.currentPower.stopAttack2()
 
     def stopDefend(self):
-        s.currentPower.stopDefend()
+        self.currentPower.stopDefend()
 
     def stopJump(self):
-        s.currentPower.stopJump()
+        self.currentPower.stopJump()
 
     def draw(self, shader):
-        s.currentPower.draw(shader)
+        self.currentPower.draw(shader)
 
     def nextPower(self):
-        s.powerIndex = (s.powerIndex + 1) % len(s.powers)
-        s.currentPower = s.powers[s.powerIndex]
+        self.powerIndex = (s.powerIndex + 1) % len(s.powers)
+        self.currentPower = s.powers[s.powerIndex]
 
     def prevPower(self):
-        s.powerIndex = (s.powerIndex - 1) % len(s.powers)
-        s.currentPower = s.powers[s.powerIndex]
+        self.powerIndex = (s.powerIndex - 1) % len(s.powers)
+        self.currentPower = s.powers[s.powerIndex]

@@ -347,7 +347,7 @@ Call one of the setCollision*() methods too."""
         self.body.position = position
         # Add a backlink to the Body so we can get this object
         # from collision handler callbacks
-        self.body.component = s
+        self.body.component = self
         self.auxBodys = []
         # We have to hold on to a reference to the shapes
         # because it appears that the pymunk.Body doesn't do it
@@ -398,13 +398,13 @@ Call one of the setCollision*() methods too."""
 
     # It seems easiest to wrap these properties to expose them
     # rather than inheriting from Body or anything silly like that.
-    angle = property(lambda s: self.body.angle, _set_angle)
-    position = property(lambda s: self.body.position, _set_position)
-    is_static = property(lambda s: self.body.is_static)
-    velocity = property(lambda s: self.body.velocity, _set_velocity)
-    angular_velocity = property(lambda s: self.body.angular_velocity, _set_angular_velocity)
-    velocity_limit = property(lambda s: self.body.velocity_limit, _set_velocity_limit)
-    torque = property(lambda s: self.body.torque)
+    angle = property(lambda self: self.body.angle, _set_angle)
+    position = property(lambda self: self.body.position, _set_position)
+    is_static = property(lambda self: self.body.is_static)
+    velocity = property(lambda self: self.body.velocity, _set_velocity)
+    angular_velocity = property(lambda self: self.body.angular_velocity, _set_angular_velocity)
+    velocity_limit = property(lambda self: self.body.velocity_limit, _set_velocity_limit)
+    torque = property(lambda self: self.body.torque)
     def apply_impulse(self, impulse, r=(0,0)):
         self.body.apply_impulse(impulse, r=r)
         
