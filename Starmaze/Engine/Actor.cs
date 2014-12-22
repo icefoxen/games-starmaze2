@@ -1,4 +1,5 @@
 using System;
+using OpenTK;
 
 namespace Starmaze.Engine
 {
@@ -20,6 +21,7 @@ namespace Starmaze.Engine
 	public class Actor
 	{
 		// Default components.
+		public Vector2d Position;
 		public object PhysicsObj;
 		public Renderer Renderer;
 
@@ -33,7 +35,6 @@ namespace Starmaze.Engine
 
 		public virtual void Update(double dt)
 		{
-
 		}
 
 		public virtual void OnDeath()

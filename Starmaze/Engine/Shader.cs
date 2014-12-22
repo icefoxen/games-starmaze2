@@ -6,8 +6,7 @@ namespace Starmaze.Engine
 {
 	public class Shader
 	{
-		int Handle;
-		bool Linked;
+		readonly int Handle;
 		public const string DefaultVertShader = @"#version 120
 uniform sampler2D fbo_texture;
 void main(void) {
