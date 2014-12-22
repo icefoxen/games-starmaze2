@@ -12,7 +12,7 @@ namespace Starmaze.Engine
 
 		string ResourceRoot;
 		Dictionary<string, Renderer> RendererCache;
-		Dictionary<string, object> ImageCache;
+		Dictionary<string, uint> ImageCache;
 		Dictionary<string, Shader> ShaderCache;
 
 		public ResourceLoader()
@@ -22,7 +22,7 @@ namespace Starmaze.Engine
 				ResourceRoot = "..";
 			}
 			RendererCache = new Dictionary<string, Renderer>();
-			ImageCache = new Dictionary<string, object>();
+			ImageCache = new Dictionary<string, uint>();
 			ShaderCache = new Dictionary<string, Shader>();
 
 			Preload();
@@ -55,7 +55,7 @@ namespace Starmaze.Engine
 			return null;
 		}
 
-		public object GetImage(string r)
+		public uint GetImage(string r)
 		{
 			return Get(ImageCache, LoadImage, r);
 		}

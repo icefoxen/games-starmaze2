@@ -2,10 +2,10 @@ using System;
 
 namespace Starmaze
 {
-	public class Util
+	public static class Util
 	{
-		public Util()
-		{
+		public static bool IsPowerOf2(int i) {
+			return (i != 0) && ((i & (i - 1)) == 0);
 		}
 	}
 }
