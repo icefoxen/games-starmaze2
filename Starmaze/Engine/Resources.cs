@@ -1,35 +1,21 @@
 using System;
 using System.Collections.Generic;
+using System.Drawing;
+using System.Drawing.Imaging;
+using System.IO;
+using OpenTK.Graphics.OpenGL;
 
 namespace Starmaze.Engine
 {
-	/// <summary>
-	/// A singleton class that handles resource loading and caching.
-	/// </summary>
-	public class Resources
+	public class ResourceLoader
 	{
-		// Singleton pattern.
-		// Except with explicit initialization because latency matters.
-		private static Resources _TheResources;
-		public static Resources TheResources {
-			get {
-				return _TheResources;
-			}
-		}
-		public static Resources InitResources() {
-			if(_TheResources != null) {
-				throw new Exception("Bogusly re-init'ing Resources");
-			}
-			_TheResources = new Resources();
-			return _TheResources;
-		}
 
 		string ResourceRoot;
 		Dictionary<string, Renderer> RendererCache;
 		Dictionary<string, object> ImageCache;
 		Dictionary<string, Shader> ShaderCache;
 
-		public Resources()
+		public ResourceLoader()
 		{
 			ResourceRoot = Environment.GetEnvironmentVariable("STARMAZE_HOME");
 			if(ResourceRoot == null) {
@@ -42,15 +28,26 @@ namespace Starmaze.Engine
 			Preload();
 		}
 
-		public Renderer GetRenderer(string r)
+		TVal Get<TKey,TVal>(Dictionary<TKey,TVal> cache, Func<TKey,TVal> loader, TKey name)
 		{
 			try {
-				return RendererCache[r];
+				return cache[name];
 			} catch(KeyNotFoundException) {
-				var renderer = LoadRenderer(r);
-				RendererCache.Add(r, renderer);
-				return renderer;
+				Console.WriteLine("Loading {0}", name);
+				try {
+					var t = loader(name);
+					cache.Add(name, t);
+					return t;
+				} catch {
+					Console.WriteLine("Error loading {0}!", name);
+					throw;
+				}
 			}
+		}
+
+		public Renderer GetRenderer(string r)
+		{
+			return Get(RendererCache, LoadRenderer, r);
 		}
 
 		Renderer LoadRenderer(string r)
@@ -60,40 +57,79 @@ namespace Starmaze.Engine
 
 		public object GetImage(string r)
 		{
-			try {
-				return ImageCache[r];
-			} catch(KeyNotFoundException) {
-				var image = LoadImage(r);
-				ImageCache.Add(r, image);
-				return image;
-			}
+			return Get(ImageCache, LoadImage, r);
 		}
 
-		object LoadImage(string r)
+		uint LoadImage(string file)
 		{
-			return null;
+			// BUGGO: The path handling really needs to be better
+			var fullPath = ResourceRoot + "/images/" + file + ".png";
+			// BUGGO: Copy-pasta'd from other source, needs verification
+			Bitmap bitmap = new Bitmap(fullPath);
+			if(!Util.IsPowerOf2(bitmap.Width) || !Util.IsPowerOf2(bitmap.Height)) {
+				// XXX: FormatException isn't really the best here, buuuut...
+				throw new FormatException("Texture sizes must be powers of 2!");
+			}
+			uint texture;
+			GL.Hint(HintTarget.PerspectiveCorrectionHint, HintMode.Nicest);
+
+			GL.GenTextures(1, out texture);
+			GL.BindTexture(TextureTarget.Texture2D, texture);
+
+			BitmapData data = bitmap.LockBits(new System.Drawing.Rectangle(0, 0, bitmap.Width, bitmap.Height),
+				ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+
+			GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, data.Width, data.Height, 0,
+				OpenTK.Graphics.OpenGL.PixelFormat.Bgra, PixelType.UnsignedByte, data.Scan0);
+			bitmap.UnlockBits(data);
+
+			GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
+			GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+
+			return texture;
 		}
 
 		public Shader GetShader(string r)
 		{
-			try {
-				return ShaderCache[r];
-			} catch(KeyNotFoundException) {
-				var shader = LoadShader(r);
-				ShaderCache.Add(r, shader);
-				return shader;
-			}
+			return Get(ShaderCache, LoadShader, r);
 		}
 
-		Shader LoadShader(string r)
+		Shader LoadShader(string name)
 		{
-			return null;
+			// BUGGO: The path handling really needs to be better
+			var fullPath = ResourceRoot + "/shaders/" + name;
+			var vertData = File.ReadAllText(fullPath + ".vert");
+			var fragData = File.ReadAllText(fullPath + ".frag");
+			return new Shader(vertData, fragData);
 		}
 
 		// If any resources need pre-loading, do it here.
 		void Preload()
 		{
 			return;
+		}
+	}
+
+	/// <summary>
+	/// A singleton class that handles resource loading and caching.
+	/// </summary>
+	public static class Resources
+	{
+		// Singleton pattern.
+		// Except with explicit initialization because latency matters.
+		static ResourceLoader _TheResources;
+		public static ResourceLoader TheResources {
+			get {
+				return _TheResources;
+			}
+		}
+		public static ResourceLoader InitResources() {
+			if(_TheResources != null) {
+				// XXX: Better exception type
+				throw new Exception("Bogusly re-init'ing ResourceLoader");
+			}
+			_TheResources = new ResourceLoader();
+			return _TheResources;
 		}
 	}
 }

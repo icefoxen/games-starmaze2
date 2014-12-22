@@ -26,6 +26,8 @@ namespace Starmaze
 
 			Camera = new Starmaze.Engine.Camera(Player, w, h);
 			Graphics = new Graphics(w, h);
+
+			Starmaze.Engine.Resources.InitResources();
 		}
 
 		public void AddActor(Actor a)
