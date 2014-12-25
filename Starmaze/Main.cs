@@ -18,7 +18,10 @@ namespace Starmaze
 		HashSet<Actor> ActorsToAdd;
 		HashSet<Actor> ActorsToRemove;
 
-		public World(int w, int h) : base(w,h)
+		Shader shader;
+
+		public World(int w, int h)
+			: base(w, h)
 		{
 			Actors = new HashSet<Actor>();
 			ActorsToAdd = new HashSet<Actor>();
@@ -26,8 +29,11 @@ namespace Starmaze
 
 			Camera = new Starmaze.Engine.Camera(Player, w, h);
 			Graphics = new Graphics(w, h);
-
+			// Probably has to be called after the Graphics setup if it's going to be preloading
+			// textures and such...  Bit of a weird dependency inversion there, since the Graphics system
+			// will likely require loading shaders and such.
 			Starmaze.Engine.Resources.InitResources();
+			shader = Resources.TheResources.GetShader("default");
 		}
 
 		public void AddActor(Actor a)
@@ -80,9 +86,10 @@ namespace Starmaze
 
 		protected override void OnRenderFrame(FrameEventArgs e)
 		{
-			Graphics.StartDraw();
+			Graphics.StartDraw(shader);
 			SwapBuffers();
 		}
+
 	}
 
 	public class MainClass

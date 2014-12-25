@@ -16,6 +16,7 @@ void main(void) {
    //gl_Position = gl_ProjectionMatrix * gl_ModelViewMatrix * gl_Vertex;
    // Technically equivalent to above but fewer fp multiplications is better.
    gl_Position = gl_ModelViewProjectionMatrix * ((gl_Vertex * vec4(facing, 1, 1, 1)) + vertexDiff);
+   gl_Position = gl_Vertex;
 
    
    gl_FrontColor = gl_Color;

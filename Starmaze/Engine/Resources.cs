@@ -19,7 +19,7 @@ namespace Starmaze.Engine
 		{
 			ResourceRoot = Environment.GetEnvironmentVariable("STARMAZE_HOME");
 			if(ResourceRoot == null) {
-				ResourceRoot = "..";
+				ResourceRoot = "../../..";
 			}
 			RendererCache = new Dictionary<string, Renderer>();
 			ImageCache = new Dictionary<string, uint>();
@@ -33,7 +33,6 @@ namespace Starmaze.Engine
 			try {
 				return cache[name];
 			} catch(KeyNotFoundException) {
-				Console.WriteLine("Loading {0}", name);
 				try {
 					var t = loader(name);
 					cache.Add(name, t);
@@ -64,6 +63,7 @@ namespace Starmaze.Engine
 		{
 			// BUGGO: The path handling really needs to be better
 			var fullPath = ResourceRoot + "/images/" + file + ".png";
+			Console.WriteLine("Loading image {0}", fullPath);
 			// BUGGO: Copy-pasta'd from other source, needs verification
 			Bitmap bitmap = new Bitmap(fullPath);
 			if(!Util.IsPowerOf2(bitmap.Width) || !Util.IsPowerOf2(bitmap.Height)) {
@@ -98,6 +98,7 @@ namespace Starmaze.Engine
 		{
 			// BUGGO: The path handling really needs to be better
 			var fullPath = ResourceRoot + "/shaders/" + name;
+			Console.WriteLine("Loading shader {0}", fullPath);
 			var vertData = File.ReadAllText(fullPath + ".vert");
 			var fragData = File.ReadAllText(fullPath + ".frag");
 			return new Shader(vertData, fragData);
