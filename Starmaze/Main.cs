@@ -13,7 +13,7 @@ namespace Starmaze
 		Actor Player;
 		Actor Gui;
 		Camera Camera;
-		Graphics Graphics;
+		readonly Graphics Graphics;
 		HashSet<Actor> Actors;
 		HashSet<Actor> ActorsToAdd;
 		HashSet<Actor> ActorsToRemove;
@@ -21,7 +21,8 @@ namespace Starmaze
 		Shader shader;
 
 		public World(int w, int h)
-			: base(w, h)
+			: base(w, h, new GraphicsMode(), Util.WindowTitle, GameWindowFlags.Default, DisplayDevice.Default,
+				Util.GlMajorVersion, Util.GlMinorVersion, GraphicsContextFlags.Default)
 		{
 			Actors = new HashSet<Actor>();
 			ActorsToAdd = new HashSet<Actor>();
@@ -88,6 +89,11 @@ namespace Starmaze
 		{
 			Graphics.StartDraw(shader);
 			SwapBuffers();
+		}
+
+		public override void Dispose() {
+			Graphics.Dispose();
+			base.Dispose();
 		}
 
 	}

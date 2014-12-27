@@ -7,23 +7,6 @@ namespace Starmaze.Engine
 	public class Shader
 	{
 		readonly int Handle;
-		public const string DefaultVertShader = @"#version 120
-uniform sampler2D fbo_texture;
-void main(void) {
-   gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
-   gl_FrontColor = gl_Color;
-   gl_TexCoord[0] = gl_MultiTexCoord0;
-}
-";
-		public const string DefaultFragShader = @"#version 120
-uniform sampler2D fbo_texture;
-void main(void) {
-
-  vec2 texcoord = gl_TexCoord[0].st;
-  vec4 texColor = texture2D(fbo_texture, texcoord);
-  gl_FragColor = texColor;
-}
-";
 
 		public Shader(string vertexProgram, string fragmentProgram)
 		{
@@ -123,6 +106,12 @@ void main(void) {
 		{
 			var loc = GL.GetUniformLocation(Handle, name);
 			GL.Uniform4(loc, val1, val2, val3, val4);
+		}
+
+		public void UniformMatrix(string name, Matrix4 matrix)
+		{
+			var loc = GL.GetUniformLocation(Handle, name);
+			GL.UniformMatrix4(loc, false, ref matrix);
 		}
 
 		public void UniformMatrix(string name, Matrix4d matrix)
