@@ -1,10 +1,12 @@
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
 
 namespace Starmaze.Engine
 {
+	/*
 	public class Camera
 	{
 		int ScreenW, ScreenH;
@@ -19,12 +21,119 @@ namespace Starmaze.Engine
 
 		}
 	}
-
-	public class Affine
+	*/
+	/// <summary>
+	/// A coordinate transform.  Can have a parent, at which point it specifies a position
+	/// relative to its parent.  Useful for animation as well as specifying anchor points for
+	/// things like particle effects or weapon firing points.
+	/// </summary>
+	public class PositionNode
 	{
-		public Affine(Vector2 translation, Vector2 rotation, Vector2 scale)
+		public Matrix2d Position;
+		public double Rotation;
+		public PositionNode Parent;
+	}
+
+	/// <summary>
+	/// Represents an array of a single vertex attribute.
+	/// On its own, does nothing apart from hold data.
+	/// </summary>
+	public class VertexAttributeArray
+	{
+		public float[] Data;
+		public int CountPerVertex;
+		public const int SizeOfElement = sizeof(float);
+
+		public VertexAttributeArray(float[] data, int countPerVertex)
+		{
+			Data = data;
+			CountPerVertex = countPerVertex;
+		}
+
+		public int LengthInElements()
+		{
+			return Data.Length;
+		}
+	}
+
+	/// <summary>
+	/// Contains one or more VertexAttributeArray's, shoves them into OpenGL memory,
+	/// and draws them.
+	/// </summary>
+	// XXX: It might be easier to just have a 'vertex' type for each _sort_ of thing we want
+	// to put together, and make this able to load the things in and interleave them properly
+	// and stuff...  but then one starts worrying about packing and stuff like that.
+	// Some reflection might make it easier.
+	// It might be better to have each Vertex be composed of multiple VertexAttributes, which can
+	// then be fed into this in interleaved order.
+	// XXX: It might be nicer to associate vertex attributes with names, but for now,
+	// we don't do that.
+	public class VertexArray
+	{
+		VertexAttributeArray[] AttributeLists;
+		int vao;
+		int buffer;
+		BufferUsageHint usageHint;
+
+		public VertexArray(VertexAttributeArray[] attrs) : this(attrs, BufferUsageHint.StaticDraw)
 		{
 
+		}
+
+		public VertexArray(VertexAttributeArray[] attrs, BufferUsageHint usage)
+		{
+			AttributeLists = attrs;
+			usageHint = usage;
+			vao = GL.GenVertexArray();
+			GL.BindVertexArray(vao);
+			buffer = GL.GenBuffer();
+			GL.BindBuffer(BufferTarget.ArrayBuffer, buffer);
+			AddAttributesToBuffer(attrs);
+			SetupVertexPointers(attrs);
+			// Unbinding the buffer *does not* alter the state of the vertex array object.
+			// The association is made on the GL.VertexAttribPointer() call.
+			GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+			GL.BindVertexArray(0);
+		}
+
+		void AddAttributesToBuffer(VertexAttributeArray[] attrs)
+		{
+			// Not the fastest way, but the easiest.
+			var accm = new List<float>();
+			foreach (var attr in attrs) {
+				accm.AddRange(attr.Data);
+			}
+			var allAttrs = accm.ToArray();
+			GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(allAttrs.Length * VertexAttributeArray.SizeOfElement),
+			              allAttrs, usageHint);
+		}
+
+		void SetupVertexPointers(VertexAttributeArray[] attrs)
+		{
+			var byteOffset = 0;
+			for (int i = 0; i < attrs.Length; i++) {
+				var attr = attrs[i];
+				GL.EnableVertexAttribArray(i);
+				GL.VertexAttribPointer(i, attr.CountPerVertex, VertexAttribPointerType.Float,
+				                       false, 0, byteOffset);
+				byteOffset += attr.LengthInElements() * VertexAttributeArray.SizeOfElement;
+			}
+		}
+
+		int TotalDataLengthInElements()
+		{
+			var total = 0;
+			foreach (var a in AttributeLists) {
+				total += a.LengthInElements();
+			}
+			return total;
+		}
+
+		public void Draw()
+		{
+			GL.BindVertexArray(vao);
+			GL.DrawArrays(PrimitiveType.Triangles, 0, 3);
+			GL.BindVertexArray(0);
 		}
 	}
 
@@ -41,32 +150,40 @@ namespace Starmaze.Engine
 		public static double ClipFar = 20.0;
 		public static Vector3d Up = new Vector3d(0.0, 1.0, 0.0);
 		public static Vector3d OutOfScreen = new Vector3d(0.0, 0.0, -1.0);
-
 		Matrix4 projectionMatrix;
-		int vao;
 		int vertexBuffer;
-		float[] vertexData;
+		VertexArray verts;
 
 		public Graphics(int screenw, int screenh)
 		{
 			ScreenW = screenw;
 			ScreenH = screenh;
 
-			vertexData = new float[]{
+			var vertexData = new float[] {
 				// Verts
-				0.0f,    0.5f, 0.0f, 1.0f,
-				0.5f, -0.366f, 0.0f, 1.0f,
-				-0.5f, -0.366f, 0.0f, 1.0f,
-
+				0.0f, 0.5f, 0.0f,
+				0.5f, -0.366f, 0.0f,
+				-0.5f, -0.366f, 0.0f,
+			};
+			var colorData = new float[] {
 				// Colors
-				1.0f,    0.0f, 0.0f, 1.0f,
-				0.0f,    1.0f, 0.0f, 1.0f,
-				0.0f,    0.0f, 1.0f, 1.0f,
+				1.0f, 0.0f, 0.0f, 1.0f,
+				0.0f, 1.0f, 0.0f, 1.0f,
+				0.0f, 0.0f, 1.0f, 1.0f,
 			};
 
 			InitGL();
+
+			var v = new VertexAttributeArray()[] {
+				new VertexAttributeArray(vertexData, 3),
+				new VertexAttributeArray(colorData, 4)
+			};
+			verts = new VertexArray(v);
+
 		}
-		public string GetGLInfo() {
+
+		public string GetGLInfo()
+		{
 			var version = GL.GetString(StringName.Version);
 			var vendor = GL.GetString(StringName.Vendor);
 			var renderer = GL.GetString(StringName.Renderer);
@@ -74,6 +191,7 @@ namespace Starmaze.Engine
 
 			return String.Format("Using OpenGL version {0} from {1}, renderer {2}, GLSL version {3}", version, vendor, renderer, glslVersion);
 		}
+
 		public void InitGL()
 		{
 			GL.Enable(EnableCap.DepthTest);
@@ -82,18 +200,13 @@ namespace Starmaze.Engine
 			GL.DepthRange(0.0f, 1.0f);
 			Console.WriteLine(GetGLInfo());
 			vertexBuffer = GL.GenBuffer();
-			GL.BindBuffer(BufferTarget.ArrayBuffer, vertexBuffer);
-			GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(vertexData.Length * sizeof(float)), vertexData, BufferUsageHint.StaticDraw);
-			GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
 
-			vao = GL.GenVertexArray();
-			GL.BindVertexArray(vao);
 
 			projectionMatrix = Matrix4.CreateOrthographicOffCenter(-3, 20, -3, 20, 0, 10);
 		}
 
-		public void Dispose() {
-			GL.DeleteVertexArray(vao);
+		public void Dispose()
+		{
 			GL.DeleteBuffer(vertexBuffer);
 		}
 
@@ -108,7 +221,10 @@ namespace Starmaze.Engine
 
 			shader.Enable();
 			shader.UniformMatrix("projection", projectionMatrix);
+			verts.Draw();
+			//mesh.Draw();
 
+			/*
 			GL.BindBuffer(BufferTarget.ArrayBuffer, vertexBuffer);
 			GL.EnableVertexAttribArray(0);
 			GL.EnableVertexAttribArray(1);
@@ -121,6 +237,7 @@ namespace Starmaze.Engine
 
 			GL.DisableVertexAttribArray(0);
 			GL.DisableVertexAttribArray(1);
+			*/
 			shader.Disable();
 		}
 	}
