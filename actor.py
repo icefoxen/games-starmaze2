@@ -432,6 +432,7 @@ class BeginningP2Bullet(Actor):
         self.physicsObj.apply_impulse((xImpulse, yImpulse))
         
         self.damage = 10
+        self.hitSound =rcache.get_sound("Powers_Begining_Grenade_Hit")
 
     def update(self, dt):
         pass
@@ -457,7 +458,7 @@ class BeginningP2Bullet(Actor):
             b.life = TimedLife(b, 0.15)
             b.physicsObj.body.angle = rangle
             self.world.addActor(b)
-        rcache.get_sound("Powers_Begining_Grenade_Hit").play()
+        self.hitSound.play()
 
 class AirP1BulletAir(Actor):
     def __init__(self, firer, position, direction):
@@ -619,8 +620,10 @@ class BeginningsPower(NullPower):
 
         self.usingAttack1 = False
         self.attack1Refire = Timer(defaultTime = 0.05)
+        self.attack1Sound = rcache.get_sound("Powers_Begining_Gun")
         
         self.attack2Refire = Timer(defaultTime = 1.5)
+        self.attack2Sound = rcache.get_sound("Powers_Begining_Grenade_Launch")
         
         self.jumpTimer = Timer(defaultTime = 0.20)
         self.jumping = False
@@ -656,7 +659,7 @@ class BeginningsPower(NullPower):
             # correct even at low framerates
             if self.owner.energy.expend(self.attack1Cost):
                 self.owner.fireBullet(BeginningP1Bullet)
-                rcache.get_sound("Powers_Begining_Gun").play()
+                self.attack1Sound.play()
                 self.attack1Refire.reset()
 
     # BUGGO: It's concievable we'd have to fire multiple shots in the same frame...
@@ -674,7 +677,7 @@ class BeginningsPower(NullPower):
             if self.owner.energy.expend(self.attack2Cost):
                 self.attack2Refire.reset()
                 self.owner.fireBullet(BeginningP2Bullet)
-                rcache.get_sound("Powers_Begining_Grenade_Launch").play()
+                self.attack2Sound.play()
 
     def startDefend(self):
         #print "Starting defend"
@@ -711,6 +714,12 @@ class AirPower(NullPower):
         self.attack2FireTimer = Timer(defaultTime = 0.3)
         self.attack2Charging = False
         
+        self.attack2FireSound = rcache.get_sound("Powers_Air_Lit")
+        #self.attack2ChargingSound =
+
+        self.attack1FireSoundSmall = rcache.get_sound("Powers_Air_Wave_Small")
+        self.attack1FireSoundHeavy = rcache.get_sound("Powers_Air_Wave_Large")
+
         self.jumping = False
 
         self.defending = False
@@ -754,7 +763,7 @@ class AirPower(NullPower):
         if self.attack2Charging and self.attack2Timer.expired():
             if self.owner.energy.expend(self.attack2Cost):
                 self.owner.fireBullet(AirP2Bullet)
-                rcache.get_sound("Powers_Air_Lit").play()
+                self.attack2FireSound.play()
             self.attack2Charging = False
         
     def startJump(self):
@@ -774,10 +783,10 @@ class AirPower(NullPower):
             if self.owner.energy.expend(self.attack1Cost)==True:
                 if self.owner.onGround:
                     self.owner.fireBullet(AirP1BulletGround)
-                    rcache.get_sound("Powers_Air_Wave_Small").play()
+                    self.attack1FireSoundSmall.play()
                 else:
                     self.owner.fireBullet(AirP1BulletAir)
-                    rcache.get_sound("Powers_Air_Wave_Large").play()
+                    self.attack1FireSoundLarge.play()
 
     def startAttack2(self):
         self.attack2Timer.reset()
