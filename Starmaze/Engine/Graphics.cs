@@ -6,22 +6,47 @@ using OpenTK.Graphics.OpenGL;
 
 namespace Starmaze.Engine
 {
-	/*
-	public class Camera
+	/// <summary>
+	/// Stores and defines the projection matrix, which sets the size of the world view, where the "camera"
+	/// is looking, and so on.
+	/// </summary>
+	public class ViewManager
 	{
-		int ScreenW, ScreenH;
-		double HardBoundaryFactor = 0.50;
-		Actor Target;
+		public Vector2 VisibleSize;
+		public Matrix4 ProjectionMatrix;
+		public float ZNear;
+		public float ZFar;
 
-		public Camera(Actor target, int screenw, int screenh)
+		public ViewManager(float width, float height)
 		{
-			Target = target;
-			ScreenW = screenw;
-			ScreenH = screenh;
+			VisibleSize = new Vector2(width, height);
+			// XXX: Right now these values are pretty arbitrary.
+			ZNear = 0.0f;
+			ZFar = 10.0f;
+			ProjectionMatrix = Matrix4.CreateOrthographic(width, height, ZNear, ZFar);
+		}
 
+		public void Translate(Vector2 location)
+		{
+			Translate(location.X, location.Y);
+		}
+
+		public void Translate(float x, float y)
+		{
+			var translation = Matrix4.CreateTranslation(new Vector3(x, y, 0.0f));
+			ProjectionMatrix = ProjectionMatrix * translation;
+		}
+
+		public void CenterOn(float x, float y)
+		{
+			var halfWidth = VisibleSize.X / 2;
+			var halfHeight = VisibleSize.Y / 2;
+			ProjectionMatrix = Matrix4.CreateOrthographicOffCenter(x - halfWidth, x + halfWidth,
+			                                                       y - halfHeight, y + halfHeight,
+			                                                       ZNear, ZFar);
 		}
 	}
-	*/
+	/*
 	/// <summary>
 	/// A coordinate transform.  Can have a parent, at which point it specifies a position
 	/// relative to its parent.  Useful for animation as well as specifying anchor points for
@@ -29,13 +54,13 @@ namespace Starmaze.Engine
 	/// </summary>
 	public class PositionNode
 	{
-		public Matrix2d Position;
+		public Vector2d Position;
 		public double Rotation;
 		public PositionNode Parent;
 	}
-
+	*/
 	/// <summary>
-	/// Represents an array of a single vertex attribute.
+	/// Represents an array of a single vertex attribute type.
 	/// On its own, does nothing apart from hold data.
 	/// </summary>
 	public class VertexAttributeArray
@@ -43,9 +68,11 @@ namespace Starmaze.Engine
 		public float[] Data;
 		public int CountPerVertex;
 		public const int SizeOfElement = sizeof(float);
+		public string Name;
 
-		public VertexAttributeArray(float[] data, int countPerVertex)
+		public VertexAttributeArray(string name, float[] data, int countPerVertex)
 		{
+			Name = name;
 			Data = data;
 			CountPerVertex = countPerVertex;
 		}
@@ -59,7 +86,16 @@ namespace Starmaze.Engine
 	/// <summary>
 	/// Contains one or more VertexAttributeArray's, shoves them into OpenGL memory,
 	/// and draws them.
+	/// 
+	/// Note that this process is specific to a particular shader, since it has to know where
+	/// the shader's inputs are to put the right vertex data in the right place.  The alternative
+	/// is having some convention so that position data is always location 0, color data is always
+	/// location 1, and so on, but then we have to ensure it's identical across all shaders, and they
+	/// all follow the same convention, and the first time we'll know something is wrong is when it crashes
+	/// or draws corrupt.  SO, we'll do it this way, and have it check for us that vertex attribute locations
+	/// match with the shader correctly.
 	/// </summary>
+	// XXX: Making all the shader variables uniform could be done easily by making 
 	// XXX: It might be easier to just have a 'vertex' type for each _sort_ of thing we want
 	// to put together, and make this able to load the things in and interleave them properly
 	// and stuff...  but then one starts worrying about packing and stuff like that.
@@ -75,12 +111,11 @@ namespace Starmaze.Engine
 		int buffer;
 		BufferUsageHint usageHint;
 
-		public VertexArray(VertexAttributeArray[] attrs) : this(attrs, BufferUsageHint.StaticDraw)
+		public VertexArray(Shader shader, VertexAttributeArray[] attrs) : this(shader, attrs, BufferUsageHint.StaticDraw)
 		{
-
 		}
 
-		public VertexArray(VertexAttributeArray[] attrs, BufferUsageHint usage)
+		public VertexArray(Shader shader, VertexAttributeArray[] attrs, BufferUsageHint usage)
 		{
 			AttributeLists = attrs;
 			usageHint = usage;
@@ -89,7 +124,7 @@ namespace Starmaze.Engine
 			buffer = GL.GenBuffer();
 			GL.BindBuffer(BufferTarget.ArrayBuffer, buffer);
 			AddAttributesToBuffer(attrs);
-			SetupVertexPointers(attrs);
+			SetupVertexPointers(shader, attrs);
 			// Unbinding the buffer *does not* alter the state of the vertex array object.
 			// The association is made on the GL.VertexAttribPointer() call.
 			GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
@@ -108,15 +143,16 @@ namespace Starmaze.Engine
 			              allAttrs, usageHint);
 		}
 
-		void SetupVertexPointers(VertexAttributeArray[] attrs)
+		void SetupVertexPointers(Shader shader, VertexAttributeArray[] attrs)
 		{
 			var byteOffset = 0;
-			for (int i = 0; i < attrs.Length; i++) {
-				var attr = attrs[i];
-				GL.EnableVertexAttribArray(i);
-				GL.VertexAttribPointer(i, attr.CountPerVertex, VertexAttribPointerType.Float,
+			foreach (var attr in attrs) {
+				var location = shader.VertexAttributeLocation(attr.Name);
+				GL.EnableVertexAttribArray(location);
+				GL.VertexAttribPointer(location, attr.CountPerVertex, VertexAttribPointerType.Float,
 				                       false, 0, byteOffset);
 				byteOffset += attr.LengthInElements() * VertexAttributeArray.SizeOfElement;
+
 			}
 		}
 
@@ -138,51 +174,11 @@ namespace Starmaze.Engine
 	}
 
 	/// <summary>
-	/// For now the Camera contains pretty much all the projection and location properties
-	/// to set up the OpenGL state.
+	/// Functions for handily setting up OpenGL state.
 	/// </summary>
-	public class Graphics : IDisposable
+	public static class Graphics
 	{
-		int ScreenW, ScreenH;
-		public Matrix4d Projection;
-		public Matrix4d Modelview;
-		public static double ClipNear = 10.0;
-		public static double ClipFar = 20.0;
-		public static Vector3d Up = new Vector3d(0.0, 1.0, 0.0);
-		public static Vector3d OutOfScreen = new Vector3d(0.0, 0.0, -1.0);
-		Matrix4 projectionMatrix;
-		int vertexBuffer;
-		VertexArray verts;
-
-		public Graphics(int screenw, int screenh)
-		{
-			ScreenW = screenw;
-			ScreenH = screenh;
-
-			var vertexData = new float[] {
-				// Verts
-				0.0f, 0.5f, 0.0f,
-				0.5f, -0.366f, 0.0f,
-				-0.5f, -0.366f, 0.0f,
-			};
-			var colorData = new float[] {
-				// Colors
-				1.0f, 0.0f, 0.0f, 1.0f,
-				0.0f, 1.0f, 0.0f, 1.0f,
-				0.0f, 0.0f, 1.0f, 1.0f,
-			};
-
-			InitGL();
-
-			var v = new VertexAttributeArray()[] {
-				new VertexAttributeArray(vertexData, 3),
-				new VertexAttributeArray(colorData, 4)
-			};
-			verts = new VertexArray(v);
-
-		}
-
-		public string GetGLInfo()
+		public static string GetGLInfo()
 		{
 			var version = GL.GetString(StringName.Version);
 			var vendor = GL.GetString(StringName.Vendor);
@@ -192,53 +188,24 @@ namespace Starmaze.Engine
 			return String.Format("Using OpenGL version {0} from {1}, renderer {2}, GLSL version {3}", version, vendor, renderer, glslVersion);
 		}
 
-		public void InitGL()
+		public static void InitGL()
 		{
 			GL.Enable(EnableCap.DepthTest);
 			GL.DepthMask(true);
 			GL.DepthFunc(DepthFunction.Lequal);
 			GL.DepthRange(0.0f, 1.0f);
 			Console.WriteLine(GetGLInfo());
-			vertexBuffer = GL.GenBuffer();
-
-
-			projectionMatrix = Matrix4.CreateOrthographicOffCenter(-3, 20, -3, 20, 0, 10);
 		}
 
-		public void Dispose()
-		{
-			GL.DeleteBuffer(vertexBuffer);
-		}
-
-		public void Resize()
-		{
-		}
-
-		public void StartDraw(Shader shader)
+		public static void StartDraw()
 		{
 			GL.ClearColor(Color.Gray);
 			GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+		}
 
-			shader.Enable();
-			shader.UniformMatrix("projection", projectionMatrix);
-			verts.Draw();
-			//mesh.Draw();
+		public static void FinishDraw()
+		{
 
-			/*
-			GL.BindBuffer(BufferTarget.ArrayBuffer, vertexBuffer);
-			GL.EnableVertexAttribArray(0);
-			GL.EnableVertexAttribArray(1);
-			// Vertex data 
-			GL.VertexAttribPointer(0, 4, VertexAttribPointerType.Float, false, 0, 0);
-			// Color data
-			GL.VertexAttribPointer(1, 4, VertexAttribPointerType.Float, false, 0, 48);
-
-			GL.DrawArrays(PrimitiveType.Triangles, 0, 3);
-
-			GL.DisableVertexAttribArray(0);
-			GL.DisableVertexAttribArray(1);
-			*/
-			shader.Disable();
 		}
 	}
 }

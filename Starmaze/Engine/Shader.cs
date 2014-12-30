@@ -119,6 +119,11 @@ namespace Starmaze.Engine
 			var loc = GL.GetUniformLocation(Handle, name);
 			GL.UniformMatrix4(loc, false, ref matrix);
 		}
+
+		public int VertexAttributeLocation(string name)
+		{
+			return GL.GetAttribLocation(Handle, name);
+		}
 	}
 }
 

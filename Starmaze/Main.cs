@@ -12,13 +12,12 @@ namespace Starmaze
 		RenderManager RenderManager;
 		Actor Player;
 		Actor Gui;
-		Camera Camera;
-		readonly Graphics Graphics;
+		ViewManager View;
 		HashSet<Actor> Actors;
 		HashSet<Actor> ActorsToAdd;
 		HashSet<Actor> ActorsToRemove;
-
 		Shader shader;
+		VertexArray verts;
 
 		public World(int w, int h)
 			: base(w, h, new GraphicsMode(), Util.WindowTitle, GameWindowFlags.Default, DisplayDevice.Default,
@@ -28,13 +27,35 @@ namespace Starmaze
 			ActorsToAdd = new HashSet<Actor>();
 			ActorsToRemove = new HashSet<Actor>();
 
-			Camera = new Starmaze.Engine.Camera(Player, w, h);
-			Graphics = new Graphics(w, h);
+			View = new ViewManager(w, h);
 			// Probably has to be called after the Graphics setup if it's going to be preloading
 			// textures and such...  Bit of a weird dependency inversion there, since the Graphics system
 			// will likely require loading shaders and such.
 			Starmaze.Engine.Resources.InitResources();
+
+
+			View = new ViewManager(10, 10);
+
+			var vertexData = new float[] {
+				// Verts
+				0.0f, 0.5f, 0.0f,
+				0.5f, -0.366f, 0.0f,
+				-0.5f, -0.366f, 0.0f,
+			};
+			var colorData = new float[] {
+				// Colors
+				1.0f, 0.0f, 0.0f, 1.0f,
+				0.0f, 1.0f, 0.0f, 1.0f,
+				0.0f, 0.0f, 1.0f, 1.0f,
+			};
+
 			shader = Resources.TheResources.GetShader("default");
+
+			var v = new VertexAttributeArray[] {
+				new VertexAttributeArray("position", vertexData, 3),
+				new VertexAttributeArray("color", colorData, 4)
+			};
+			verts = new VertexArray(shader, v);
 		}
 
 		public void AddActor(Actor a)
@@ -82,20 +103,26 @@ namespace Starmaze
 
 		protected override void OnUpdateFrame(FrameEventArgs e)
 		{
-
+			View.Translate(0.001f, 0.0f);
 		}
 
 		protected override void OnRenderFrame(FrameEventArgs e)
 		{
-			Graphics.StartDraw(shader);
+			Graphics.StartDraw();
+			
+			shader.Enable();
+			shader.UniformMatrix("projection", View.ProjectionMatrix);
+			verts.Draw();
+			shader.Disable();
+
 			SwapBuffers();
 		}
 
-		public override void Dispose() {
+		public override void Dispose()
+		{
 			Graphics.Dispose();
 			base.Dispose();
 		}
-
 	}
 
 	public class MainClass
