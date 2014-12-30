@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
@@ -17,10 +18,13 @@ namespace Starmaze.Engine
 
 		public ResourceLoader()
 		{
-			ResourceRoot = Environment.GetEnvironmentVariable("STARMAZE_HOME");
-			if(ResourceRoot == null) {
-				ResourceRoot = "../../..";
+			var basePath = Environment.GetEnvironmentVariable("STARMAZE_HOME");
+			if (basePath == null) {
+				basePath = AppDomain.CurrentDomain.BaseDirectory;
 			}
+			// BUGGO: Still a bit ugly.
+			basePath = Path.Combine(basePath, "..");
+			ResourceRoot = basePath;
 			RendererCache = new Dictionary<string, Renderer>();
 			ImageCache = new Dictionary<string, uint>();
 			ShaderCache = new Dictionary<string, Shader>();
@@ -32,7 +36,7 @@ namespace Starmaze.Engine
 		{
 			try {
 				return cache[name];
-			} catch(KeyNotFoundException) {
+			} catch (KeyNotFoundException) {
 				try {
 					var t = loader(name);
 					cache.Add(name, t);
@@ -61,12 +65,11 @@ namespace Starmaze.Engine
 
 		uint LoadImage(string file)
 		{
-			// BUGGO: The path handling really needs to be better
-			var fullPath = ResourceRoot + "/images/" + file + ".png";
+			var fullPath = Path.Combine(ResourceRoot, "images", file + ".png");
 			Console.WriteLine("Loading image {0}", fullPath);
 			// BUGGO: Copy-pasta'd from other source, needs verification
 			Bitmap bitmap = new Bitmap(fullPath);
-			if(!Util.IsPowerOf2(bitmap.Width) || !Util.IsPowerOf2(bitmap.Height)) {
+			if (!Util.IsPowerOf2(bitmap.Width) || !Util.IsPowerOf2(bitmap.Height)) {
 				// XXX: FormatException isn't really the best here, buuuut...
 				throw new FormatException("Texture sizes must be powers of 2!");
 			}
@@ -77,10 +80,10 @@ namespace Starmaze.Engine
 			GL.BindTexture(TextureTarget.Texture2D, texture);
 
 			BitmapData data = bitmap.LockBits(new System.Drawing.Rectangle(0, 0, bitmap.Width, bitmap.Height),
-				ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+			                                  ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
 
 			GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, data.Width, data.Height, 0,
-				OpenTK.Graphics.OpenGL.PixelFormat.Bgra, PixelType.UnsignedByte, data.Scan0);
+			              OpenTK.Graphics.OpenGL.PixelFormat.Bgra, PixelType.UnsignedByte, data.Scan0);
 			bitmap.UnlockBits(data);
 
 			GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
@@ -96,14 +99,12 @@ namespace Starmaze.Engine
 
 		Shader LoadShader(string name)
 		{
-			// BUGGO: The path handling really needs to be better
-			var fullPath = ResourceRoot + "/shaders/" + name;
+			var fullPath = Path.Combine(ResourceRoot, "shaders", name);
 			Console.WriteLine("Loading shader {0}", fullPath);
 			var vertData = File.ReadAllText(fullPath + ".vert");
 			var fragData = File.ReadAllText(fullPath + ".frag");
 			return new Shader(vertData, fragData);
 		}
-
 		// If any resources need pre-loading, do it here.
 		void Preload()
 		{
@@ -119,13 +120,16 @@ namespace Starmaze.Engine
 		// Singleton pattern.
 		// Except with explicit initialization because latency matters.
 		static ResourceLoader _TheResources;
+
 		public static ResourceLoader TheResources {
 			get {
 				return _TheResources;
 			}
 		}
-		public static ResourceLoader InitResources() {
-			if(_TheResources != null) {
+
+		public static ResourceLoader InitResources()
+		{
+			if (_TheResources != null) {
 				// XXX: Better exception type
 				throw new Exception("Bogusly re-init'ing ResourceLoader");
 			}

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
@@ -28,6 +29,7 @@ namespace Starmaze
 			ActorsToRemove = new HashSet<Actor>();
 
 			View = new ViewManager(w, h);
+			Graphics.InitGL();
 			// Probably has to be called after the Graphics setup if it's going to be preloading
 			// textures and such...  Bit of a weird dependency inversion there, since the Graphics system
 			// will likely require loading shaders and such.
@@ -56,6 +58,7 @@ namespace Starmaze
 				new VertexAttributeArray("color", colorData, 4)
 			};
 			verts = new VertexArray(shader, v);
+			Debug.Assert(false);
 		}
 
 		public void AddActor(Actor a)
@@ -115,13 +118,8 @@ namespace Starmaze
 			verts.Draw();
 			shader.Disable();
 
+			Graphics.FinishDraw();
 			SwapBuffers();
-		}
-
-		public override void Dispose()
-		{
-			Graphics.Dispose();
-			base.Dispose();
 		}
 	}
 

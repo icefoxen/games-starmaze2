@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
@@ -72,6 +73,9 @@ namespace Starmaze.Engine
 
 		public VertexAttributeArray(string name, float[] data, int countPerVertex)
 		{
+			Debug.Assert(name != null);
+			Debug.Assert(data != null);
+			Debug.Assert(countPerVertex > 0);
 			Name = name;
 			Data = data;
 			CountPerVertex = countPerVertex;
@@ -117,6 +121,8 @@ namespace Starmaze.Engine
 
 		public VertexArray(Shader shader, VertexAttributeArray[] attrs, BufferUsageHint usage)
 		{
+			Debug.Assert(shader != null);
+			Debug.Assert(attrs != null);
 			AttributeLists = attrs;
 			usageHint = usage;
 			vao = GL.GenVertexArray();
@@ -133,6 +139,7 @@ namespace Starmaze.Engine
 
 		void AddAttributesToBuffer(VertexAttributeArray[] attrs)
 		{
+			Debug.Assert(attrs != null);
 			// Not the fastest way, but the easiest.
 			var accm = new List<float>();
 			foreach (var attr in attrs) {
@@ -145,6 +152,8 @@ namespace Starmaze.Engine
 
 		void SetupVertexPointers(Shader shader, VertexAttributeArray[] attrs)
 		{
+			Debug.Assert(shader != null);
+			Debug.Assert(attrs != null);
 			var byteOffset = 0;
 			foreach (var attr in attrs) {
 				var location = shader.VertexAttributeLocation(attr.Name);

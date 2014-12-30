@@ -11,6 +11,15 @@ Flags in comments:
 * XXX marks a questionable design decision
 * OPT marks something that might need optimization
 
+# Background things that are always useful
+
+If you don't have anything else to do, try these!
+
+* Find an issue, fix it.
+* Comb through code for BUGGO, XXX, etc flags and fix them.
+* Comb through code, add assertions and input checks.  (Note that assertions * should be considered an immediate unconditional fail.)
+* Write tests
+
 # C# version
 
 This is going to be the main version, but for the moment doesn't really exist.
