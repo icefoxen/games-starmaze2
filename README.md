@@ -19,6 +19,7 @@ If you don't have anything else to do, try these!
 * Comb through code for BUGGO, XXX, etc flags and fix them.
 * Comb through code, add assertions and input checks.  (Note that assertions * should be considered an immediate unconditional fail.)
 * Write tests
+* Write doc comments
 
 # C# version
 

@@ -17,48 +17,15 @@ namespace Starmaze
 		HashSet<Actor> Actors;
 		HashSet<Actor> ActorsToAdd;
 		HashSet<Actor> ActorsToRemove;
-		Shader shader;
-		VertexArray verts;
 
 		public World(int w, int h)
-			: base(w, h, new GraphicsMode(), Util.WindowTitle, GameWindowFlags.Default, DisplayDevice.Default,
+			// Using 32 as the color format and depth causes issues on Linux, see
+			// https://github.com/opentk/opentk/issues/108
+			: base(w, h, new GraphicsMode(24, 24, 0, 0), Util.WindowTitle, GameWindowFlags.Default, DisplayDevice.Default,
 				Util.GlMajorVersion, Util.GlMinorVersion, GraphicsContextFlags.Default)
 		{
-			Actors = new HashSet<Actor>();
-			ActorsToAdd = new HashSet<Actor>();
-			ActorsToRemove = new HashSet<Actor>();
-
-			View = new ViewManager(w, h);
-			Graphics.InitGL();
-			// Probably has to be called after the Graphics setup if it's going to be preloading
-			// textures and such...  Bit of a weird dependency inversion there, since the Graphics system
-			// will likely require loading shaders and such.
-			Starmaze.Engine.Resources.InitResources();
-
-
-			View = new ViewManager(10, 10);
-
-			var vertexData = new float[] {
-				// Verts
-				0.0f, 0.5f, 0.0f,
-				0.5f, -0.366f, 0.0f,
-				-0.5f, -0.366f, 0.0f,
-			};
-			var colorData = new float[] {
-				// Colors
-				1.0f, 0.0f, 0.0f, 1.0f,
-				0.0f, 1.0f, 0.0f, 1.0f,
-				0.0f, 0.0f, 1.0f, 1.0f,
-			};
-
-			shader = Resources.TheResources.GetShader("default");
-
-			var v = new VertexAttributeArray[] {
-				new VertexAttributeArray("position", vertexData, 3),
-				new VertexAttributeArray("color", colorData, 4)
-			};
-			verts = new VertexArray(shader, v);
-			Debug.Assert(false);
+			// All of this is basically done in OnLoad() because that guarentees the OpenGL context has been
+			// set up.
 		}
 
 		public void AddActor(Actor a)
@@ -86,12 +53,27 @@ namespace Starmaze
 
 		protected override void OnLoad(System.EventArgs e)
 		{
-			RenderManager = new RenderManager(Width, Height);
+
+			Actors = new HashSet<Actor>();
+			ActorsToAdd = new HashSet<Actor>();
+			ActorsToRemove = new HashSet<Actor>();
+			View = new ViewManager(Width, Height);
+			Graphics.InitGL();
+			// Probably has to be called after the Graphics setup if it's going to be preloading
+			// textures and such...  Bit of a weird dependency inversion there, since the Graphics system
+			// will likely require loading shaders and such.
+			Starmaze.Engine.Resources.InitResources();
+			RenderManager = new RenderManager();
+
+			var testrend = Resources.TheResources.GetRenderer("TestRenderer");
+			var testact = new Actor();
+			RenderManager.Add(testrend, testact);
+
+			View = new ViewManager(10, 10);
 		}
 
 		protected override void OnUnload(EventArgs e)
 		{
-
 		}
 
 		protected override void OnResize(EventArgs e)
@@ -112,12 +94,7 @@ namespace Starmaze
 		protected override void OnRenderFrame(FrameEventArgs e)
 		{
 			Graphics.StartDraw();
-			
-			shader.Enable();
-			shader.UniformMatrix("projection", View.ProjectionMatrix);
-			verts.Draw();
-			shader.Disable();
-
+			RenderManager.Render(View);
 			Graphics.FinishDraw();
 			SwapBuffers();
 		}

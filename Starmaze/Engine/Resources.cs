@@ -1,9 +1,11 @@
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
+using System.Reflection;
 using OpenTK.Graphics.OpenGL;
 
 namespace Starmaze.Engine
@@ -28,8 +30,6 @@ namespace Starmaze.Engine
 			RendererCache = new Dictionary<string, Renderer>();
 			ImageCache = new Dictionary<string, uint>();
 			ShaderCache = new Dictionary<string, Shader>();
-
-			Preload();
 		}
 
 		TVal Get<TKey,TVal>(Dictionary<TKey,TVal> cache, Func<TKey,TVal> loader, TKey name)
@@ -45,6 +45,30 @@ namespace Starmaze.Engine
 					Console.WriteLine("Error loading {0}!", name);
 					throw;
 				}
+			}
+		}
+
+		/// <summary>
+		/// Produces a mapping from string to instance of all of the subclasses of Renderer.
+		/// Conveneiently both preloads all Renderer's and makes an association of them to their
+		/// name.  Using strings to refer to them is a _little_ grotty but reflects nicely.
+		/// </summary>
+		/// <returns>The render map.</returns>
+		static void PreloadRenderers(Dictionary<string, Renderer> rendererMap)
+		{
+			var baseType = typeof(Renderer);
+			var assembly = baseType.Assembly;
+			// Monodevelop stupidly doesn't know about Linq.
+			var subclasses = assembly.GetTypes().Where(t => t.IsSubclassOf(baseType));
+			// We go through all subclasses of Renderer, instantiate one of each, and 
+			// associate each with its name, and that gets us the string -> Renderer mapping.
+			foreach (Type subclass in subclasses) {
+				Console.WriteLine(String.Format("Loading renderer {0}", subclass.Name));
+				var ctors = subclass.GetConstructors();
+				var renderer = new TestRenderer();
+				//var renderer = (Renderer)ctors[0].Invoke(new object[] { } );
+				//var renderer = (Renderer)Activator.CreateInstance(subclass);
+				rendererMap.Add(subclass.Name, renderer);
 			}
 		}
 
@@ -105,10 +129,16 @@ namespace Starmaze.Engine
 			var fragData = File.ReadAllText(fullPath + ".frag");
 			return new Shader(vertData, fragData);
 		}
-		// If any resources need pre-loading, do it here.
-		void Preload()
+
+		/// <summary>
+		/// Preload any resources that take a long time to load; ie, all of them.
+		/// This is called AFTER the Resources object is already created, so that for instance
+		/// the resources loaded in it can call upon other resources and it won't freak out
+		/// due to Resources.TheResources not existing.
+		/// </summary>
+		public void Preload()
 		{
-			return;
+			PreloadRenderers(RendererCache);
 		}
 	}
 
@@ -134,6 +164,7 @@ namespace Starmaze.Engine
 				throw new Exception("Bogusly re-init'ing ResourceLoader");
 			}
 			_TheResources = new ResourceLoader();
+			_TheResources.Preload();
 			return _TheResources;
 		}
 	}

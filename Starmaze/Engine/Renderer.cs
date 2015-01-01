@@ -8,13 +8,14 @@ namespace Starmaze.Engine
 
 	public class RenderManager
 	{
-		int ScreenW, ScreenH;
+		// Will be needed eventually for postprocessing...
+		//int ScreenW, ScreenH;
 		SortedDictionary<Layer, RendererSet> Renderers;
 
-		public RenderManager(int screenw, int screenh)
+		public RenderManager() //int screenw, int screenh)
 		{
-			ScreenW = screenw;
-			ScreenH = screenh;
+			//ScreenW = screenw;
+			//ScreenH = screenh;
 			Renderers = new SortedDictionary<Layer, RendererSet>();
 			foreach (Layer layer in Enum.GetValues(typeof(Layer))) {
 				Renderers[layer] = new Dictionary<Renderer, HashSet<Actor>>();
@@ -53,14 +54,14 @@ namespace Starmaze.Engine
 			}
 		}
 
-		public void Render()
+		public void Render(ViewManager view)
 		{
 			foreach (var layer in Renderers) {
 				var renderset = layer.Value;
 				foreach (var i in renderset) {
 					var renderer = i.Key;
 					var actors = i.Value;
-					renderer.RenderActors(actors);
+					renderer.RenderActors(view, actors);
 				}
 			}
 		}
@@ -68,9 +69,9 @@ namespace Starmaze.Engine
 
 	public enum Layer
 	{
-		BG = 0,
-		FG = 1,
-		GUI = 2,
+		BG = 10,
+		FG = 20,
+		GUI = 30,
 	}
 
 	/// <summary>
@@ -81,10 +82,15 @@ namespace Starmaze.Engine
 	/// </summary>
 	public class Renderer : IComparable<Renderer>
 	{
-		public Layer Layer;
-		public Shader Shader;
+		public Layer Layer = Layer.FG;
+		protected Shader Shader;
 
-		public virtual void RenderStart()
+		public Renderer()
+		{
+
+		}
+
+		public virtual void RenderStart(ViewManager view)
 		{
 			GL.PushAttrib(AttribMask.ColorBufferBit);
 			GL.Enable(EnableCap.Blend);
@@ -103,9 +109,9 @@ namespace Starmaze.Engine
 
 		}
 
-		public void RenderActors(IEnumerable<Actor> actors)
+		public void RenderActors(ViewManager view, IEnumerable<Actor> actors)
 		{
-			RenderStart();
+			RenderStart(view);
 			foreach (var act in actors) {
 				RenderActor(act);
 			}
@@ -115,6 +121,52 @@ namespace Starmaze.Engine
 		public int CompareTo(Renderer other)
 		{
 			return Layer.CompareTo(other.Layer);
+		}
+	}
+
+	public class TestRenderer : Renderer
+	{
+		VertexArray Model;
+
+		public TestRenderer()
+		{
+			var vertexData = new float[] {
+				// Verts
+				0.0f, 0.5f, 0.0f,
+				0.5f, -0.366f, 0.0f,
+				-0.5f, -0.366f, 0.0f,
+			};
+			var colorData = new float[] {
+				// Colors
+				1.0f, 0.0f, 0.0f, 1.0f,
+				0.0f, 1.0f, 0.0f, 1.0f,
+				0.0f, 0.0f, 1.0f, 1.0f,
+			};
+
+			Shader = Resources.TheResources.GetShader("default");
+
+			var v = new VertexAttributeArray[] {
+				new VertexAttributeArray("position", vertexData, 3),
+				new VertexAttributeArray("color", colorData, 4)
+			};
+			Model = new VertexArray(Shader, v);
+		}
+
+		public override void RenderStart(ViewManager view)
+		{
+			Shader.Enable();
+			Shader.UniformMatrix("projection", view.ProjectionMatrix);
+			Model.Draw();
+		}
+
+		public override void RenderEnd()
+		{
+			Shader.Disable();
+		}
+
+		public override void RenderActor(Actor act)
+		{
+
 		}
 	}
 }
