@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using OpenTK;
 using OpenTK.Graphics.OpenGL;
 
 namespace Starmaze.Engine
@@ -90,7 +91,7 @@ namespace Starmaze.Engine
 
 		}
 
-		public virtual void RenderStart(ViewManager view)
+		public virtual void RenderStart()
 		{
 			GL.PushAttrib(AttribMask.ColorBufferBit);
 			GL.Enable(EnableCap.Blend);
@@ -104,16 +105,16 @@ namespace Starmaze.Engine
 			GL.PopAttrib();
 		}
 
-		public virtual void RenderActor(Actor act)
+		public virtual void RenderActor(ViewManager view, Actor act)
 		{
 
 		}
 
 		public void RenderActors(ViewManager view, IEnumerable<Actor> actors)
 		{
-			RenderStart(view);
+			RenderStart();
 			foreach (var act in actors) {
-				RenderActor(act);
+				RenderActor(view, act);
 			}
 			RenderEnd();
 		}
@@ -132,15 +133,23 @@ namespace Starmaze.Engine
 		{
 			var vertexData = new float[] {
 				// Verts
-				0.0f, 0.5f, 0.0f,
-				0.5f, -0.366f, 0.0f,
-				-0.5f, -0.366f, 0.0f,
+				-0.5f, -0.5f,   0.0f,
+				-0.5f,  0.5f,   0.0f,
+				+0.5f,  0.5f,   0.0f,
+
+				+0.5f,  0.5f,   0.0f,
+				+0.5f, -0.5f,   0.0f,
+				-0.5f, -0.5f,   0.0f,
 			};
 			var colorData = new float[] {
 				// Colors
 				1.0f, 0.0f, 0.0f, 1.0f,
 				0.0f, 1.0f, 0.0f, 1.0f,
 				0.0f, 0.0f, 1.0f, 1.0f,
+
+				0.0f, 0.0f, 1.0f, 1.0f,
+				0.0f, 1.0f, 0.0f, 1.0f,
+				1.0f, 0.0f, 0.0f, 1.0f,
 			};
 
 			Shader = Resources.TheResources.GetShader("default");
@@ -149,14 +158,12 @@ namespace Starmaze.Engine
 				new VertexAttributeArray("position", vertexData, 3),
 				new VertexAttributeArray("color", colorData, 4)
 			};
-			Model = new VertexArray(Shader, v);
+			Model = new VertexArray(Shader, v, prim: PrimitiveType.Triangles);
 		}
 
-		public override void RenderStart(ViewManager view)
+		public override void RenderStart()
 		{
 			Shader.Enable();
-			Shader.UniformMatrix("projection", view.ProjectionMatrix);
-			Model.Draw();
 		}
 
 		public override void RenderEnd()
@@ -164,9 +171,17 @@ namespace Starmaze.Engine
 			Shader.Disable();
 		}
 
-		public override void RenderActor(Actor act)
-		{
+		float rot = 0.0f;
 
+		public override void RenderActor(ViewManager view, Actor act)
+		{
+			//rot += 0.01f;
+			var transform = new Transform(rot);
+			var mat = transform.TransformMatrix(view.ProjectionMatrix);
+			//var transform = Matrix4.CreateTranslation(0, rot, 0);
+			//var mat = view.ProjectionMatrix * transform;
+			Shader.UniformMatrix("projection", mat);
+			Model.Draw();
 		}
 	}
 }

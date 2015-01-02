@@ -22,7 +22,7 @@ namespace Starmaze
 			// Using 32 as the color format and depth causes issues on Linux, see
 			// https://github.com/opentk/opentk/issues/108
 			: base(w, h, new GraphicsMode(24, 24, 0, 0), Util.WindowTitle, GameWindowFlags.Default, DisplayDevice.Default,
-				Util.GlMajorVersion, Util.GlMinorVersion, GraphicsContextFlags.Default)
+			       Util.GlMajorVersion, Util.GlMinorVersion, GraphicsContextFlags.Default)
 		{
 			// All of this is basically done in OnLoad() because that guarentees the OpenGL context has been
 			// set up.
@@ -69,7 +69,10 @@ namespace Starmaze
 			var testact = new Actor();
 			RenderManager.Add(testrend, testact);
 
-			View = new ViewManager(10, 10);
+			// 4/3 aspect ratio...
+			// XXX: This should be different.  We're going to need a resolution-independent coordinate
+			// system _some_day if we want to make it possible to resize the game, so...
+			View = new ViewManager(10f, 7.5f);
 		}
 
 		protected override void OnUnload(EventArgs e)
@@ -88,7 +91,7 @@ namespace Starmaze
 
 		protected override void OnUpdateFrame(FrameEventArgs e)
 		{
-			View.Translate(0.001f, 0.0f);
+			//View.Translate(0.001f, 0.0f);
 		}
 
 		protected override void OnRenderFrame(FrameEventArgs e)
