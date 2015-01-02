@@ -117,18 +117,18 @@ namespace Starmaze.Engine
 	public class VertexAttributeArray
 	{
 		public float[] Data;
-		public int CountPerVertex;
+		public int ElementsPerVertex;
 		public const int SizeOfElement = sizeof(float);
 		public string Name;
 
-		public VertexAttributeArray(string name, float[] data, int countPerVertex)
+		public VertexAttributeArray(string name, float[] data, int elementsPerVertex)
 		{
 			Debug.Assert(name != null);
 			Debug.Assert(data != null);
-			Debug.Assert(countPerVertex > 0);
+			Debug.Assert(elementsPerVertex > 0);
 			Name = name;
 			Data = data;
-			CountPerVertex = countPerVertex;
+			ElementsPerVertex = elementsPerVertex;
 		}
 
 		public int LengthInElements()
@@ -156,8 +156,6 @@ namespace Starmaze.Engine
 	// Some reflection might make it easier.
 	// It might be better to have each Vertex be composed of multiple VertexAttributes, which can
 	// then be fed into this in interleaved order.
-	// XXX: It might be nicer to associate vertex attributes with names, but for now,
-	// we don't do that.
 	public class VertexArray
 	{
 		VertexAttributeArray[] AttributeLists;
@@ -165,6 +163,7 @@ namespace Starmaze.Engine
 		int buffer;
 		BufferUsageHint usageHint;
 		PrimitiveType primitive;
+		int NumberOfVerts;
 
 		public VertexArray(Shader shader, 
 		                   VertexAttributeArray[] attrs, 
@@ -176,6 +175,7 @@ namespace Starmaze.Engine
 			AttributeLists = attrs;
 			usageHint = usage;
 			primitive = prim;
+			NumberOfVerts = GetVertCount(attrs);
 			vao = GL.GenVertexArray();
 			GL.BindVertexArray(vao);
 			buffer = GL.GenBuffer();
@@ -186,6 +186,20 @@ namespace Starmaze.Engine
 			// The association is made on the GL.VertexAttribPointer() call.
 			GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
 			GL.BindVertexArray(0);
+		}
+
+		int  GetVertCount(VertexAttributeArray[] attrs)
+		{
+			var vertCount = int.MaxValue;
+			foreach (var attr in attrs) {
+				var totalVerts = attr.LengthInElements() / attr.ElementsPerVertex;
+				// BUGGO: Make this warning work.
+				//Util.Warn(vertCount != int.MaxValue && totalVerts != vertCount, "Inititalizing VertexArray with different size attributes");
+				//Console.WriteLine("Length: {0}, eltsPerVert: {1}, total: {2}, vertCount: {3}", attr.LengthInElements(), attr.ElementsPerVertex, totalVerts, vertCount);
+				// We want to draw the minimum number of vertices we have all the data for.
+				vertCount = Math.Min(totalVerts, vertCount);
+			}
+			return vertCount;
 		}
 
 		void AddAttributesToBuffer(VertexAttributeArray[] attrs)
@@ -209,7 +223,7 @@ namespace Starmaze.Engine
 			foreach (var attr in attrs) {
 				var location = shader.VertexAttributeLocation(attr.Name);
 				GL.EnableVertexAttribArray(location);
-				GL.VertexAttribPointer(location, attr.CountPerVertex, VertexAttribPointerType.Float,
+				GL.VertexAttribPointer(location, attr.ElementsPerVertex, VertexAttribPointerType.Float,
 					false, 0, byteOffset);
 				byteOffset += attr.LengthInElements() * VertexAttributeArray.SizeOfElement;
 
@@ -228,7 +242,7 @@ namespace Starmaze.Engine
 		public void Draw()
 		{
 			GL.BindVertexArray(vao);
-			GL.DrawArrays(primitive, 0, 3);
+			GL.DrawArrays(primitive, 0, NumberOfVerts);
 			GL.BindVertexArray(0);
 		}
 	}
