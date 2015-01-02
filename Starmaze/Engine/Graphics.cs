@@ -50,6 +50,7 @@ namespace Starmaze.Engine
 
 	/// <summary>
 	/// A coordinate transform.  Performs low-level translation, rotation, etc.
+	/// Rotation is clockwise.
 	/// </summary>
 	public struct Transform
 	{
@@ -82,30 +83,16 @@ namespace Starmaze.Engine
 		/// Applies the Transform to the given matrix and returns a new one.
 		/// </summary>
 		/// <returns>The matrix.</returns>
-		/// <param name="m">M.</param>
+		/// <param name="matrix">matrix</param>
 		public Matrix4 TransformMatrix(Matrix4 matrix)
 		{
-			//Console.WriteLine(Rotation);
-
-			var S = (float)Math.Sin(Rotation);
-			var C = (float)Math.Cos(Rotation);
-
-
-
-
-			//var scaleX = Scale.X;
-			//var scaleY = Scale.Y;
-			//var translateX = Translation.X;
-			//var translateY = Translation.Y;
-			// Row-major vs. column-major causes a bit of grief here.
-			// Just imagine it mirrored along the diagonal, it'll be fine.
-			Matrix4 transformMatrix = new Matrix4(
-				                          C, S, 0, 0,
-				                          -S, C, 0, 0,
-				                          0, 0, 1, 0,
-				                          2.5f, 0.5f, 0, 1
-			                          );
+			// This might be done more efficiently without creating a bunch of matrices and doing lots
+			// of multiplications, but, for now, we do it the way that involves fewer headaches.
+			var translationMatrix = Matrix4.CreateTranslation(Translation.X, Translation.Y, 0.0f);
+			var rotationMatrix = Matrix4.CreateRotationZ(-Rotation);
+			var scaleMatrix = Matrix4.CreateScale(Scale.X, Scale.Y, 0.0f);
 			// Remember order is important here!
+			var transformMatrix = scaleMatrix * (rotationMatrix * translationMatrix);
 			return transformMatrix * matrix;
 		}
 	}
