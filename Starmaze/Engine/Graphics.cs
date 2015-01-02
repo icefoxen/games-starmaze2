@@ -43,23 +43,73 @@ namespace Starmaze.Engine
 			var halfWidth = VisibleSize.X / 2;
 			var halfHeight = VisibleSize.Y / 2;
 			ProjectionMatrix = Matrix4.CreateOrthographicOffCenter(x - halfWidth, x + halfWidth,
-			                                                       y - halfHeight, y + halfHeight,
-			                                                       ZNear, ZFar);
+				y - halfHeight, y + halfHeight,
+				ZNear, ZFar);
 		}
 	}
-	/*
+
 	/// <summary>
-	/// A coordinate transform.  Can have a parent, at which point it specifies a position
-	/// relative to its parent.  Useful for animation as well as specifying anchor points for
-	/// things like particle effects or weapon firing points.
+	/// A coordinate transform.  Performs low-level translation, rotation, etc.
 	/// </summary>
-	public class PositionNode
+	public struct Transform
 	{
-		public Vector2d Position;
-		public double Rotation;
-		public PositionNode Parent;
+		public Vector2 Translation;
+		public float Rotation;
+		public Vector2 Scale;
+
+		public Transform(Vector2 trans, float rot, Vector2 scale)
+		{
+			Translation = trans;
+			Rotation = rot;
+			Scale = scale;
+		}
+
+		public Transform(Vector2 trans, float rot) : this(trans, rot, Vector2.One)
+		{
+
+		}
+
+		public Transform(Vector2 trans) : this(trans, 0, Vector2.One)
+		{
+
+		}
+
+		public Transform(float rot) : this(Vector2.Zero, rot, Vector2.One)
+		{
+		}
+
+		/// <summary>
+		/// Applies the Transform to the given matrix and returns a new one.
+		/// </summary>
+		/// <returns>The matrix.</returns>
+		/// <param name="m">M.</param>
+		public Matrix4 TransformMatrix(Matrix4 matrix)
+		{
+			//Console.WriteLine(Rotation);
+
+			var S = (float)Math.Sin(Rotation);
+			var C = (float)Math.Cos(Rotation);
+
+
+
+
+			//var scaleX = Scale.X;
+			//var scaleY = Scale.Y;
+			//var translateX = Translation.X;
+			//var translateY = Translation.Y;
+			// Row-major vs. column-major causes a bit of grief here.
+			// Just imagine it mirrored along the diagonal, it'll be fine.
+			Matrix4 transformMatrix = new Matrix4(
+				                          C, S, 0, 0,
+				                          -S, C, 0, 0,
+				                          0, 0, 1, 0,
+				                          2.5f, 0.5f, 0, 1
+			                          );
+			// Remember order is important here!
+			return transformMatrix * matrix;
+		}
 	}
-	*/
+
 	/// <summary>
 	/// Represents an array of a single vertex attribute type.
 	/// On its own, does nothing apart from hold data.
@@ -114,17 +164,18 @@ namespace Starmaze.Engine
 		int vao;
 		int buffer;
 		BufferUsageHint usageHint;
+		PrimitiveType primitive;
 
-		public VertexArray(Shader shader, VertexAttributeArray[] attrs) : this(shader, attrs, BufferUsageHint.StaticDraw)
-		{
-		}
-
-		public VertexArray(Shader shader, VertexAttributeArray[] attrs, BufferUsageHint usage)
+		public VertexArray(Shader shader, 
+		                   VertexAttributeArray[] attrs, 
+		                   PrimitiveType prim = PrimitiveType.Triangles, 
+		                   BufferUsageHint usage = BufferUsageHint.StaticDraw)
 		{
 			Debug.Assert(shader != null);
 			Debug.Assert(attrs != null);
 			AttributeLists = attrs;
 			usageHint = usage;
+			primitive = prim;
 			vao = GL.GenVertexArray();
 			GL.BindVertexArray(vao);
 			buffer = GL.GenBuffer();
@@ -147,7 +198,7 @@ namespace Starmaze.Engine
 			}
 			var allAttrs = accm.ToArray();
 			GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(allAttrs.Length * VertexAttributeArray.SizeOfElement),
-			              allAttrs, usageHint);
+				allAttrs, usageHint);
 		}
 
 		void SetupVertexPointers(Shader shader, VertexAttributeArray[] attrs)
@@ -159,7 +210,7 @@ namespace Starmaze.Engine
 				var location = shader.VertexAttributeLocation(attr.Name);
 				GL.EnableVertexAttribArray(location);
 				GL.VertexAttribPointer(location, attr.CountPerVertex, VertexAttribPointerType.Float,
-				                       false, 0, byteOffset);
+					false, 0, byteOffset);
 				byteOffset += attr.LengthInElements() * VertexAttributeArray.SizeOfElement;
 
 			}
@@ -177,7 +228,7 @@ namespace Starmaze.Engine
 		public void Draw()
 		{
 			GL.BindVertexArray(vao);
-			GL.DrawArrays(PrimitiveType.Triangles, 0, 3);
+			GL.DrawArrays(primitive, 0, 3);
 			GL.BindVertexArray(0);
 		}
 	}
