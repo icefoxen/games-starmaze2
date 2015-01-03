@@ -56,18 +56,11 @@ namespace Starmaze.Engine
 		/// <returns>The render map.</returns>
 		static void PreloadRenderers(Dictionary<string, Renderer> rendererMap)
 		{
-			var baseType = typeof(Renderer);
-			var assembly = baseType.Assembly;
-			// Monodevelop stupidly doesn't know about Linq.
-			var subclasses = assembly.GetTypes().Where(t => t.IsSubclassOf(baseType));
+			var subclasses = Util.GetSubclassesOf(typeof(Renderer));
 			// We go through all subclasses of Renderer, instantiate one of each, and 
 			// associate each with its name, and that gets us the string -> Renderer mapping.
 			foreach (Type subclass in subclasses) {
-				Console.WriteLine(String.Format("Loading renderer {0}", subclass.Name));
-				var ctors = subclass.GetConstructors();
-				var renderer = new TestRenderer();
-				//var renderer = (Renderer)ctors[0].Invoke(new object[] { } );
-				//var renderer = (Renderer)Activator.CreateInstance(subclass);
+				var renderer = (Renderer)Activator.CreateInstance(subclass);
 				rendererMap.Add(subclass.Name, renderer);
 			}
 		}

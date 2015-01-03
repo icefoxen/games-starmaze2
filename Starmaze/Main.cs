@@ -65,9 +65,8 @@ namespace Starmaze
 			Starmaze.Engine.Resources.InitResources();
 			RenderManager = new RenderManager();
 
-			var testrend = Resources.TheResources.GetRenderer("TestRenderer");
 			var testact = new Actor();
-			RenderManager.Add(testrend, testact);
+			ReallyAddActor(testact);
 
 			// 4/3 aspect ratio...
 			// XXX: This should be different.  We're going to need a resolution-independent coordinate
