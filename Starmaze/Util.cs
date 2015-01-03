@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 
 namespace Starmaze
 {
@@ -13,6 +15,29 @@ namespace Starmaze
 		{
 			return (i != 0) && ((i & (i - 1)) == 0);
 		}
+
+		private static long _serial = 0;
+		/// <summary>
+		/// Returns a serial number that is never the same twice (to within the accuracy of a long at least).
+		/// </summary>
+		/// <returns>Serial number</returns>
+		public static long GetSerial()
+		{
+			_serial += 1;
+			return _serial;
+		}
+
+		public static IEnumerable<Type> GetSubclassesOf(Type baseType)
+		{
+			var assembly = baseType.Assembly;
+			// Monodevelop stupidly doesn't know about Linq.
+			var subclasses = assembly.GetTypes().Where(t => t.IsSubclassOf(baseType));
+			return subclasses;
+		}
+	}
+
+	public static class Log
+	{
 		// These Conditional() flags mark these methods as never getting called if we are not
 		// making a DEBUG build.  Monodevelop sets the DEBUG #define or not based
 		// on project build mode.  Supposedly; in reality, it seems a little conservative
@@ -39,7 +64,7 @@ namespace Starmaze
 		}
 
 		[Conditional("DEBUG")]
-		public static void Log(string message)
+		public static void Message(string message)
 		{
 			// TODO: Implement this for messages (like OpenGL version) that are useful to have
 			// but which the user shouldn't confront unless they look for it.
