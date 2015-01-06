@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
 using System.Linq;
 
 namespace Starmaze
@@ -17,6 +18,7 @@ namespace Starmaze
 		}
 
 		private static long _serial = 0;
+
 		/// <summary>
 		/// Returns a serial number that is never the same twice (to within the accuracy of a long at least).
 		/// </summary>
@@ -33,6 +35,25 @@ namespace Starmaze
 			// Monodevelop stupidly doesn't know about Linq.
 			var subclasses = assembly.GetTypes().Where(t => t.IsSubclassOf(baseType));
 			return subclasses;
+		}
+
+		public static float Lerp(float a, float b, float amount)
+		{
+			return a + (b - a) * amount;
+		}
+
+		public static double Lerp(double a, double b, double amount)
+		{
+			return a + (b - a) * amount;
+		}
+
+		public static Color Lerp(Color c1, Color c2, double amount)
+		{
+			var r = (int)Math.Round(c1.R + (c2.R - c1.R) * amount);
+			var b = (int)Math.Round(c1.B + (c2.B - c1.B) * amount);
+			var g = (int)Math.Round(c1.G + (c2.G - c1.G) * amount);
+			var a = (int)Math.Round(c1.A + (c2.A - c1.A) * amount);
+			return Color.FromArgb(a, r, g, b);
 		}
 	}
 
