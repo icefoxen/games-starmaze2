@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.Drawing.Imaging;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
 
@@ -98,6 +99,79 @@ namespace Starmaze.Engine
 	}
 
 	/// <summary>
+	/// A texture.
+	/// It's small, but it's _not_ a struct, because it allocates resources and thus needs
+	/// the reference semantics of a real object.
+	/// </summary>
+	//  We could make it a value type but that would require making
+	// an object to manage them beyond the ResourceLoader or making the ResourceLoader do more work,
+	// so.
+	public class Texture : IDisposable
+	{
+		int Handle;
+
+		public Texture(Bitmap bitmap)
+		{
+			if (!Util.IsPowerOf2(bitmap.Width) || !Util.IsPowerOf2(bitmap.Height)) {
+				// XXX: FormatException isn't really the best here, buuuut...
+				throw new FormatException("Texture sizes must be powers of 2!");
+			}
+			GL.Hint(HintTarget.PerspectiveCorrectionHint, HintMode.Nicest);
+
+			Handle = GL.GenTexture();
+			GL.BindTexture(TextureTarget.Texture2D, Handle);
+
+			BitmapData data = bitmap.LockBits(new System.Drawing.Rectangle(0, 0, bitmap.Width, bitmap.Height),
+			                                  ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+			GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, data.Width, data.Height, 0,
+			              OpenTK.Graphics.OpenGL.PixelFormat.Bgra, PixelType.UnsignedByte, data.Scan0);
+			bitmap.UnlockBits(data);
+
+			GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
+			GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+
+			GL.BindTexture(TextureTarget.Texture2D, 0);
+		}
+
+		public void Enable()
+		{
+			GL.BindTexture(TextureTarget.Texture2D, Handle);
+		}
+
+		public void Disable()
+		{
+			GL.BindTexture(TextureTarget.Texture2D, 0);
+		}
+
+		private bool disposed = false;
+
+		~Texture()
+		{
+			Dispose(false);
+		}
+
+		public void Dispose()
+		{
+			Dispose(true);
+			// Don't run the finalizer, since it's a waste of time.
+			GC.SuppressFinalize(this);
+		}
+
+		protected virtual void Dispose(bool disposing)
+		{
+			if (disposed) {
+				return;
+			}
+			disposed = true;
+			if (disposing) {
+				// Clean up managed resources
+			}
+			// Clean up unmanaged resources
+			GL.DeleteTexture(Handle);
+		}
+	}
+
+	/// <summary>
 	/// Represents an array of a single vertex attribute type.
 	/// On its own, does nothing apart from hold data.
 	/// </summary>
@@ -188,27 +262,28 @@ namespace Starmaze.Engine
 
 		protected virtual void Dispose(bool disposing)
 		{
+			if (disposed) {
+				return;
+			}
+			disposed = true;
 			if (disposing) {
 				// Clean up managed resources
 				// This bit is only here in the unlikely event we need to do stuff
 				// in the finalizer or override this in a child class or something, I guess.
 				// But resource allocation is Important and Hard so I'm cleaving to the
 				// recommended idiom in this.
-			} else {
-				// Clean up unmanaged resources
-				// BUGGO: On the other hand, these calls crash the program whenever they happen, so.
-				//GL.DeleteVertexArray(vao);
-				//GL.DeleteBuffer(buffer);
 			}
+			// Clean up unmanaged resources
+			// BUGGO: On the other hand, these calls crash the program whenever they happen, so.
+			//GL.DeleteVertexArray(vao);
+			//GL.DeleteBuffer(buffer);
 		}
 
 		public void Dispose()
 		{
-			if (!disposed) {
-				Dispose(true);
-				// Don't run the finalizer, since it's a waste of time.
-				GC.SuppressFinalize(this);
-			}
+			Dispose(true);
+			// Don't run the finalizer, since it's a waste of time.
+			GC.SuppressFinalize(this);
 		}
 
 		int  GetVertCount(VertexAttributeArray[] attrs)

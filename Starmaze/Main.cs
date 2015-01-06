@@ -76,6 +76,7 @@ namespace Starmaze
 
 		protected override void OnUnload(EventArgs e)
 		{
+			Resources.CleanupResources();
 		}
 
 		protected override void OnResize(EventArgs e)

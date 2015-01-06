@@ -72,6 +72,12 @@ namespace Starmaze
 			// but which the user shouldn't confront unless they look for it.
 			Console.WriteLine(message);
 		}
+
+		[Conditional("DEBUG")]
+		public static void Message(string message, params object[] args)
+		{
+			Message(String.Format(message, args));
+		}
 	}
 }
 

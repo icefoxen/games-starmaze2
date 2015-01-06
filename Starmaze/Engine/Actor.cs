@@ -9,6 +9,7 @@ namespace Starmaze.Engine
 	public class Component
 	{
 		public Actor Owner;
+
 		public Component(Actor owner)
 		{
 			Owner = owner;
@@ -25,12 +26,12 @@ namespace Starmaze.Engine
 		public object PhysicsObj;
 		public string RenderClass;
 		public Renderer Renderer;
-
 		// Other properties
 		public bool Alive = true;
 		public World World;
 		public bool OnGround = false;
 		public readonly long OrderingNumber;
+
 		public Actor()
 		{
 			RenderClass = "TestRenderer";

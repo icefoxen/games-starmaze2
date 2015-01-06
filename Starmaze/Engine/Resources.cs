@@ -10,25 +10,28 @@ using OpenTK.Graphics.OpenGL;
 
 namespace Starmaze.Engine
 {
-	public class ResourceLoader
+	public class ResourceLoader : IDisposable
 	{
 
 		string ResourceRoot;
 		Dictionary<string, Renderer> RendererCache;
-		Dictionary<string, uint> ImageCache;
+		Dictionary<string, Texture> TextureCache;
 		Dictionary<string, Shader> ShaderCache;
+		List<Dictionary<string, object>> DisposableThings;
 
 		public ResourceLoader()
 		{
 			var basePath = Environment.GetEnvironmentVariable("STARMAZE_HOME");
 			if (basePath == null) {
+				// This gets the location of the .exe, essentially.
 				basePath = AppDomain.CurrentDomain.BaseDirectory;
 			}
-			// BUGGO: Still a bit ugly.
+			// BUGGO: Still a bit ugly, since in the current build system the .exe is not
+			// in the resource path root.
 			basePath = Path.Combine(basePath, "..");
 			ResourceRoot = basePath;
 			RendererCache = new Dictionary<string, Renderer>();
-			ImageCache = new Dictionary<string, uint>();
+			TextureCache = new Dictionary<string, Texture>();
 			ShaderCache = new Dictionary<string, Shader>();
 		}
 
@@ -50,7 +53,7 @@ namespace Starmaze.Engine
 
 		/// <summary>
 		/// Produces a mapping from string to instance of all of the subclasses of Renderer.
-		/// Conveneiently both preloads all Renderer's and makes an association of them to their
+		/// Conveniently both preloads all Renderer's and makes an association of them to their
 		/// name.  Using strings to refer to them is a _little_ grotty but reflects nicely.
 		/// </summary>
 		/// <returns>The render map.</returns>
@@ -67,46 +70,24 @@ namespace Starmaze.Engine
 
 		public Renderer GetRenderer(string r)
 		{
-			return Get(RendererCache, LoadRenderer, r);
+			// We don't use the ResourceLoader.Get function here 'cause all renderers
+			// are preloaded and associating a string to a renderer is a little squirrelly.
+			// So we don't actually have a LoadRenderer function.
+			return RendererCache[r];
 		}
 
-		Renderer LoadRenderer(string r)
+		public Texture GetImage(string r)
 		{
-			return null;
+			return Get(TextureCache, LoadTexture, r);
 		}
 
-		public uint GetImage(string r)
-		{
-			return Get(ImageCache, LoadImage, r);
-		}
-
-		uint LoadImage(string file)
+		Texture LoadTexture(string file)
 		{
 			var fullPath = Path.Combine(ResourceRoot, "images", file + ".png");
-			Console.WriteLine("Loading image {0}", fullPath);
-			// BUGGO: Copy-pasta'd from other source, needs verification
+			Log.Message("Loading image {0}", fullPath);
 			Bitmap bitmap = new Bitmap(fullPath);
-			if (!Util.IsPowerOf2(bitmap.Width) || !Util.IsPowerOf2(bitmap.Height)) {
-				// XXX: FormatException isn't really the best here, buuuut...
-				throw new FormatException("Texture sizes must be powers of 2!");
-			}
-			uint texture;
-			GL.Hint(HintTarget.PerspectiveCorrectionHint, HintMode.Nicest);
-
-			GL.GenTextures(1, out texture);
-			GL.BindTexture(TextureTarget.Texture2D, texture);
-
-			BitmapData data = bitmap.LockBits(new System.Drawing.Rectangle(0, 0, bitmap.Width, bitmap.Height),
-			                                  ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
-
-			GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, data.Width, data.Height, 0,
-			              OpenTK.Graphics.OpenGL.PixelFormat.Bgra, PixelType.UnsignedByte, data.Scan0);
-			bitmap.UnlockBits(data);
-
-			GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
-			GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
-
-			return texture;
+			var t = new Texture(bitmap);
+			return t;
 		}
 
 		public Shader GetShader(string r)
@@ -117,7 +98,7 @@ namespace Starmaze.Engine
 		Shader LoadShader(string name)
 		{
 			var fullPath = Path.Combine(ResourceRoot, "shaders", name);
-			Console.WriteLine("Loading shader {0}", fullPath);
+			Log.Message("Loading shader {0}", fullPath);
 			var vertData = File.ReadAllText(fullPath + ".vert");
 			var fragData = File.ReadAllText(fullPath + ".frag");
 			return new Shader(vertData, fragData);
@@ -133,6 +114,54 @@ namespace Starmaze.Engine
 		{
 			PreloadRenderers(RendererCache);
 		}
+
+		private bool disposed = false;
+
+		~ResourceLoader()
+		{
+			Dispose(false);
+		}
+
+		public void Dispose()
+		{
+			Dispose(true);
+			// Don't run the finalizer, since it's a waste of time.
+			GC.SuppressFinalize(this);
+		}
+
+		protected virtual void Dispose(bool disposing)
+		{
+			if (disposed) {
+				return;
+			}
+			disposed = true;
+			if (disposing) {
+				// Clean up managed resources
+			}
+			// Clean up unmanaged resources
+			foreach (var kv in ShaderCache) {
+				var shader = kv.Value;
+				Log.Message("Freeing shader {0}", kv.Key);
+				shader.Dispose();
+			}
+
+			foreach (var kv in TextureCache) {
+				var texture = kv.Value;
+				Log.Message("Freeing texture {0}", kv.Key);
+				texture.Dispose();
+			}
+
+			// XXX:
+			// Disposing of Renderer's is a little sticky;
+			// in a perfect world they would get all their stuff
+			// from the ResourceLoader and thus all of it would be
+			// managed already
+			// But we have yet to see whether or not the world is that perfect.
+			//foreach (var kv in RendererCache) {
+			//var renderer = kv.Value;
+			//renderer.Dispose();
+			//}
+		}
 	}
 
 	/// <summary>
@@ -142,6 +171,7 @@ namespace Starmaze.Engine
 	{
 		// Singleton pattern.
 		// Except with explicit initialization because latency matters.
+		// And explicit destruction because that matters too.
 		static ResourceLoader _TheResources;
 
 		public static ResourceLoader TheResources {
@@ -160,6 +190,17 @@ namespace Starmaze.Engine
 			_TheResources = new ResourceLoader();
 			_TheResources.Preload();
 			return _TheResources;
+		}
+
+		public static void CleanupResources()
+		{
+			if (_TheResources == null) {
+				// XXX: Better exception type
+				throw new Exception("Bogusly cleaning up already-disposed ResourceLoader");
+			} else {
+				_TheResources.Dispose();
+				_TheResources = null;
+			}
 		}
 	}
 }
