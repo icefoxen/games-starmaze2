@@ -67,7 +67,9 @@
     <Compile Include="Content\Air\Powers.cs" />
     <Compile Include="Content\Air\Zone.cs" />
     <Compile Include="Content\Enemies.cs" />
-    <Compile Include="Engine\SMath.cs" />
+    <Compile Include="SMath.cs">
+      <DependentUpon>Util.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
