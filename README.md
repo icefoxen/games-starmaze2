@@ -17,7 +17,7 @@ If you don't have anything else to do, try these!
 
 * Find an issue, fix it.
 * Comb through code for BUGGO, XXX, etc flags and fix them.
-* Comb through code, add assertions and input checks.  (Note that assertions * should be considered an immediate unconditional fail.)
+* Comb through code, add assertions and input checks.  (Note that assertions should be considered an immediate unconditional fail, they're for when the code is doing something Really Wrong.  Also be aware that they will not be present in Release builds, so don't worry about slowing things down with them!)
 * Write tests
 * Write doc comments
 
