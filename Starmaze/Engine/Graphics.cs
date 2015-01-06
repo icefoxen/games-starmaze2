@@ -144,7 +144,7 @@ namespace Starmaze.Engine
 	// Some reflection might make it easier.
 	// It might be better to have each Vertex be composed of multiple VertexAttributes, which can
 	// then be fed into this in interleaved order.
-	public class VertexArray
+	public class VertexArray : IDisposable
 	{
 		VertexAttributeArray[] AttributeLists;
 		int vao;
@@ -171,9 +171,44 @@ namespace Starmaze.Engine
 			AddAttributesToBuffer(attrs);
 			SetupVertexPointers(shader, attrs);
 			// Unbinding the buffer *does not* alter the state of the vertex array object.
-			// The association is made on the GL.VertexAttribPointer() call.
+			// The association between buffer and vao is made on the GL.VertexAttribPointer() call.
 			GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
 			GL.BindVertexArray(0);
+		}
+		// Implementing tedious disposal-tracking semantics, see
+		// http://gregbee.ch/blog/implementing-and-using-the-idisposable-interface
+		// and
+		// http://msdn.microsoft.com/en-us/library/system.idisposable%28v=vs.110%29.aspx
+		private bool disposed = false;
+
+		~VertexArray()
+		{
+			Dispose(false);
+		}
+
+		protected virtual void Dispose(bool disposing)
+		{
+			if (disposing) {
+				// Clean up managed resources
+				// This bit is only here in the unlikely event we need to do stuff
+				// in the finalizer or override this in a child class or something, I guess.
+				// But resource allocation is Important and Hard so I'm cleaving to the
+				// recommended idiom in this.
+			} else {
+				// Clean up unmanaged resources
+				// BUGGO: On the other hand, these calls crash the program whenever they happen, so.
+				//GL.DeleteVertexArray(vao);
+				//GL.DeleteBuffer(buffer);
+			}
+		}
+
+		public void Dispose()
+		{
+			if (!disposed) {
+				Dispose(true);
+				// Don't run the finalizer, since it's a waste of time.
+				GC.SuppressFinalize(this);
+			}
 		}
 
 		int  GetVertCount(VertexAttributeArray[] attrs)
