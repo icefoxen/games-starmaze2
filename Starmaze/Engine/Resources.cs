@@ -17,7 +17,6 @@ namespace Starmaze.Engine
 		Dictionary<string, Renderer> RendererCache;
 		Dictionary<string, Texture> TextureCache;
 		Dictionary<string, Shader> ShaderCache;
-		List<Dictionary<string, object>> DisposableThings;
 
 		public ResourceLoader()
 		{

@@ -70,6 +70,7 @@
     <Compile Include="SMath.cs">
       <DependentUpon>Util.cs</DependentUpon>
     </Compile>
+    <Compile Include="Engine\Drawing.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
