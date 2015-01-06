@@ -117,7 +117,6 @@ namespace Starmaze.Engine
 		}
 	}
 
-
 	/// <summary>
 	/// A renderer that draws nothing.
 	/// </summary>
@@ -140,13 +139,13 @@ namespace Starmaze.Engine
 		{
 			var vertexData = new float[] {
 				// Verts
-				-0.5f, -0.5f,   0.0f,
-				-0.5f,  0.5f,   0.0f,
-				+0.5f,  0.5f,   0.0f,
+				-0.5f, -0.5f, 0.0f,
+				-0.5f, 0.5f, 0.0f,
+				+0.5f, 0.5f, 0.0f,
 
-				+0.5f,  0.5f,   0.0f,
-				+0.5f, -0.5f,   0.0f,
-				-0.5f, -0.5f,   0.0f,
+				+0.5f, 0.5f, 0.0f,
+				+0.5f, -0.5f, 0.0f,
+				-0.5f, -0.5f, 0.0f,
 			};
 			var colorData = new float[] {
 				// Colors

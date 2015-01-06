@@ -1,4 +1,5 @@
 using System;
+using OpenTK;
 
 namespace Starmaze.Engine
 {
@@ -11,4 +12,3 @@ namespace Starmaze.Engine
 		public const double TAU = Math.PI * 2;
 	}
 }
-

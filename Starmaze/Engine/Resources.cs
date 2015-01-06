@@ -146,6 +146,7 @@ namespace Starmaze.Engine
 
 		public static ResourceLoader TheResources {
 			get {
+				Log.Assert(_TheResources != null);
 				return _TheResources;
 			}
 		}

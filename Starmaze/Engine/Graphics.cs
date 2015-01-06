@@ -43,8 +43,8 @@ namespace Starmaze.Engine
 			var halfWidth = VisibleSize.X / 2;
 			var halfHeight = VisibleSize.Y / 2;
 			ProjectionMatrix = Matrix4.CreateOrthographicOffCenter(x - halfWidth, x + halfWidth,
-				y - halfHeight, y + halfHeight,
-				ZNear, ZFar);
+			                                                       y - halfHeight, y + halfHeight,
+			                                                       ZNear, ZFar);
 		}
 	}
 
@@ -137,6 +137,7 @@ namespace Starmaze.Engine
 	/// match with the shader correctly.
 	/// </summary>
 	// XXX: Making all the shader variables uniform could be done easily by making 
+	// the shaders all include a common header file, buuuuut...
 	// XXX: It might be easier to just have a 'vertex' type for each _sort_ of thing we want
 	// to put together, and make this able to load the things in and interleave them properly
 	// and stuff...  but then one starts worrying about packing and stuff like that.
@@ -199,7 +200,7 @@ namespace Starmaze.Engine
 			}
 			var allAttrs = accm.ToArray();
 			GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(allAttrs.Length * VertexAttributeArray.SizeOfElement),
-				allAttrs, usageHint);
+			              allAttrs, usageHint);
 		}
 
 		void SetupVertexPointers(Shader shader, VertexAttributeArray[] attrs)
@@ -211,7 +212,7 @@ namespace Starmaze.Engine
 				var location = shader.VertexAttributeLocation(attr.Name);
 				GL.EnableVertexAttribArray(location);
 				GL.VertexAttribPointer(location, attr.ElementsPerVertex, VertexAttribPointerType.Float,
-					false, 0, byteOffset);
+				                       false, 0, byteOffset);
 				byteOffset += attr.LengthInElements() * VertexAttributeArray.SizeOfElement;
 
 			}
@@ -265,6 +266,190 @@ namespace Starmaze.Engine
 		}
 
 		public static void FinishDraw()
+		{
+
+		}
+
+		public static readonly Color DEFAULT_COLOR = Color.White;
+		public const double DEFAULT_STROKE_WIDTH = 2.0;
+	}
+
+	////////////////////////////////////////////////////////////////////////////////////////////
+	/// Ported Drake code below here, might require fiddling, clarification, commentating.
+	////////////////////////////////////////////////////////////////////////////////////////////
+
+	/// <summary>
+	/// A vertex to be part of a line art graphics model.
+	/// Note that these objects are used for identity, not merely as
+	/// value objects.
+	/// </summary>
+	public struct LineArtVertex
+	{
+		public Vector2d Pos;
+		public Color Color;
+		public double StrokeHalfWidth;
+
+		public double X { 
+			get {
+				return Pos.X;
+			}
+		}
+
+		public double Y { 
+			get {
+				return Pos.Y;
+			}
+		}
+
+		public double StrokeWidth { 
+			get {
+				return StrokeHalfWidth * 2;
+			}
+		}
+		// The nullable color here is a little hacky 'cause structs can't be const, or else their
+		// initializer might do _anything_ at runtime and they won't actually be constant as in
+		// 'fixed at compile time'.  Inconvenient, but true.
+		public LineArtVertex(Vector2d pos, Color? color = null,
+		                     double strokeHalfWidth = Graphics.DEFAULT_STROKE_WIDTH / 2.0)
+		{
+			Pos = pos;
+			Color = color ?? Graphics.DEFAULT_COLOR;
+			StrokeHalfWidth = strokeHalfWidth;
+		}
+	}
+
+	/// <summary>
+	/// Abstract base class for segments that can be part of `Path`s.
+	///
+	/// Slots:
+	/// `v0`, `v1` - starting and ending vertexes
+	/// `before`, `after` - adjoining segments in the path
+	/// `closing` - `True` iff this segment is the last segment in a closed path
+	/// </summary>
+	public abstract class PathSegment
+	{
+		public LineArtVertex V0;
+		public LineArtVertex V1;
+		public PathSegment Before;
+		public PathSegment After;
+		public bool Closing;
+
+		public Vector2d Pos0 {
+			get {
+				return V0.Pos;
+			}
+		}
+
+		public Vector2d Pos1 {
+			get {
+				return V1.Pos;
+			}
+		}
+
+		public PathSegment(LineArtVertex v0, LineArtVertex v1)
+		{
+			V0 = v0;
+			V1 = v1;
+			// These are normally set by Path below
+			Before = null;
+			After = null;
+			Closing = false;
+		}
+		// Implement the following methods in subclasses
+		/// <summary>
+		/// Call an appropriate method on `tessellator` for
+		/// handling this segment using double-dispatch
+		/// </summary>
+		/// <param name="t">T.</param>
+		public virtual void TesselateWith(Tesselator t)
+		{
+			Log.Assert(false);
+		}
+
+		/// <summary>
+		/// Return the RawJoin for entering this segment at V0.
+		/// </summary>
+		/// <returns>The join in.</returns>
+		public virtual RawJoin RawJoinIn()
+		{
+			Log.Assert(false);
+			return new RawJoin();
+		}
+
+		/// <summary>
+		/// Return the RawJoin for leaving this segment at V1.
+		/// </summary>
+		/// <returns>The join out.</returns>
+		public virtual RawJoin RawJoinOut()
+		{
+			Log.Assert(false);
+			return new RawJoin();
+		}
+	}
+
+	/// <summary>
+	/// The geometry of how a path segment should join at one end.
+	///
+	/// Each side vector is an offset from the segment endpoint, with
+	/// `sideR` being on the 'right'.  The along vectors must be unit
+	/// vectors and should point in the general direction of the path
+	/// segment (thus, into the segment from the beginning, or out of it
+	/// from the end).  A (side, along) pair defines a line.
+	/// </summary>
+	public struct RawJoin
+	{
+		public Vector2d SideR;
+		public Vector2d SideL;
+		public Vector2d AlongR;
+		public Vector2d AlongL;
+
+		public RawJoin(Vector2d sideR, Vector2d alongR, Vector2d sideL, Vector2d alongL)
+		{
+			SideR = sideR;
+			AlongR = alongR;
+			SideL = sideL;
+			AlongL = alongL;
+		}
+	}
+
+	/// <summary>
+	/// The path segment for a straight line
+	/// </summary>
+	public class LineSegment : PathSegment
+	{
+		public bool Cap = true;
+
+		public LineSegment(LineArtVertex v0, LineArtVertex v1) : base(v0, v1)
+		{
+		}
+
+		RawJoin RawJoinAt(LineArtVertex v)
+		{
+			var along = (V1.Pos - V0.Pos).Normalized();
+			var side = along.PerpendicularRight;
+			// OPT: vector math
+			return new RawJoin(side * v.StrokeWidth, along, side * -v.StrokeWidth, along);
+		}
+
+		public override RawJoin RawJoinIn()
+		{
+			return RawJoinAt(V0);
+		}
+
+		public override RawJoin RawJoinOut()
+		{
+			return RawJoinAt(V1);
+		}
+
+		public override void TesselateWith(Tesselator t)
+		{
+			t.TesselateLine(this);
+		}
+	}
+
+	public class Tesselator
+	{
+		public void TesselateLine(LineSegment l)
 		{
 
 		}
