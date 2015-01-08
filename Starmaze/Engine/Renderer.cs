@@ -181,12 +181,17 @@ namespace Starmaze.Engine
 
 		public override void RenderActor(ViewManager view, Actor act)
 		{
-			rot += 0.01f;
-			var transform = new Transform(new Vector2(rot, 0), rot, new Vector2(1.0f, rot));
-			var mat = transform.TransformMatrix(view.ProjectionMatrix);
+			rot += 0.001f;
+			var transform1 = new Transform(new Vector2(0, (float)Math.Sin(rot)), 0, new Vector2(1.0f, 1.0f));
+			var mat1 = transform1.TransformMatrix(view.ProjectionMatrix);
 			//var transform = Matrix4.CreateTranslation(0, rot, 0);
 			//var mat = view.ProjectionMatrix * transform;
-			Shader.UniformMatrix("projection", mat);
+			Shader.UniformMatrix("projection", mat1);
+			Model.Draw();
+			
+			var transform2 = new Transform(new Vector2((float)Math.Sin(rot), 0), 0, new Vector2(1.0f, 1.0f));
+			var mat2 = transform2.TransformMatrix(view.ProjectionMatrix);
+			Shader.UniformMatrix("projection", mat2);
 			Model.Draw();
 		}
 	}

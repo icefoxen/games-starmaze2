@@ -1,7 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using OpenTK;
+using OpenTK.Graphics;
+using OpenTK.Graphics.OpenGL;
 
 namespace Starmaze.Engine
 {
@@ -14,10 +15,10 @@ namespace Starmaze.Engine
 	/// Note that these objects are used for identity, not merely as
 	/// value objects.
 	/// </summary>
-	public struct LineArtVertex
+	public struct LineArtVertex : IEquatable<LineArtVertex>
 	{
 		public Vector2d Pos;
-		public Color Color;
+		public Color4 Color;
 		public double StrokeHalfWidth;
 
 		public double X { 
@@ -40,7 +41,7 @@ namespace Starmaze.Engine
 		// The nullable color here is a little hacky 'cause structs can't be const, or else their
 		// initializer might do _anything_ at runtime and they won't actually be constant as in
 		// 'fixed at compile time'.  Inconvenient, but true.
-		public LineArtVertex(Vector2d pos, Color? color = null,
+		public LineArtVertex(Vector2d pos, Color4? color = null,
 		                     double strokeWidth = Graphics.DEFAULT_STROKE_WIDTH / 2.0)
 		{
 			Pos = pos;
@@ -55,6 +56,11 @@ namespace Starmaze.Engine
 				color: SMath.Lerp(v0.Color, v1.Color, alpha),
 				strokeWidth: SMath.Lerp(v0.StrokeWidth, v1.StrokeWidth, alpha)
 			);
+		}
+
+		public bool Equals(LineArtVertex other)
+		{
+			return Pos == other.Pos && Color == other.Color && StrokeHalfWidth == other.StrokeHalfWidth;
 		}
 	}
 
@@ -304,8 +310,176 @@ namespace Starmaze.Engine
 		}
 	}
 
+	/// <summary>
+	/// A single 'stroke' of the pen.
+	/// 
+	/// Disjoint paths are not currently supported.
+	/// 
+	/// Segments: A list of path segments
+	/// Closed: True iff the last segment adjoins back to the first.
+	/// </summary>
+	public class Path
+	{
+		public List<PathSegment> Segments;
+		public bool Closed;
+
+		public Path()
+		{
+			Segments = new List<PathSegment>();
+			Closed = false;
+		}
+
+		/// <summary>
+		/// Append a segment to the path.
+		/// 
+		/// 'segment' must begin at the same vertex the last segment ended at.
+		/// </summary>
+		/// <param name="">.</param>
+		public void AddSegment(PathSegment segment)
+		{
+			// BUGGO: Fix this.
+			//Log.Assert(Segments.Count == 0 || segment.V0 == Segments[-1].V1);
+			Log.Assert(!Closed);
+
+			if (Segments.Count != 0) {
+				segment.Before = Segments[-1];
+				Segments[-1].After = segment;
+			}
+			Segments.Add(segment);
+		}
+
+		/// <summary>
+		/// Close the path.
+		/// 
+		/// If closingSegment is specified, use it; it must begin at the
+		/// ending vertex of the current last segment of the path and 
+		/// end at the beginning of the path.  It closingSegment is null,
+		/// generate an appropriate segment to use.
+		/// </summary>
+		/// <param name="">.</param>
+		public void Close(PathSegment closingSegment = null)
+		{
+			if (closingSegment == null) {
+				closingSegment = new LineSegment(Segments[-1].V1, Segments[0].V0);
+			}
+
+			AddSegment(closingSegment);
+			// This works (and must continue to work) even if the closing segment is
+			// also the opening segment.
+			closingSegment.After = Segments[0];
+			Segments[0].Before = closingSegment;
+			closingSegment.Closing = true;
+			Closed = true;
+		}
+
+		public bool Empty { 
+			get {
+				return Segments.Count == 0;
+			}
+		}
+	}
+
+	/// <summary>
+	/// A model with packed vertex data suitable for uploading to OpenGL.z
+	/// </summary>
+	public class VertexModel
+	{
+		const int POSITION_DIMENSIONS = 2;
+		const int COLOR_DIMENSIONS = 4;
+		List<float> positions;
+		List<float> colors;
+		List<int> indices;
+		int freeIndex;
+
+		public VertexModel()
+		{
+			positions = new List<float>();
+			colors = new List<float>();
+			indices = new List<int>();
+			freeIndex = 0;
+		}
+
+		/// <summary>
+		/// Append vertices to vertex data.
+		/// </summary>
+		/// <returns>Index of the first newly-appended index.</returns>
+		/// <param name="vertices">Vertices.</param>
+		public int AddVertexes(IEnumerable<LineArtVertex> vertices)
+		{
+			int vertexCount = 0;
+			foreach (var vertex in vertices) {
+				// Note that this is where we go from double-precision coordinates to 
+				// single-precision coordinates for drawing.
+				positions.Add((float)vertex.Pos.X);
+				positions.Add((float)vertex.Pos.Y);
+				colors.Add(vertex.Color.R);
+				colors.Add(vertex.Color.G);
+				colors.Add(vertex.Color.B);
+				colors.Add(vertex.Color.A);
+				vertexCount += 1;
+			}
+			var firstIndex = freeIndex;
+			freeIndex += vertexCount;
+			return firstIndex;
+		}
+
+		/// <summary>
+		/// Append 'ind' to the list of indices to draw.
+		/// 
+		/// Normally it will have a length that is a multiple of 3, for drawing triangles.
+		/// </summary>
+		/// <param name="ind">Collection of indices.</param>
+		public void addIndices(IEnumerable<int> ind)
+		{
+			indices.AddRange(ind);
+		}
+
+		/// <summary>
+		/// Returns a new vertex array containing the data in the VertexModel.
+		/// Makes some assumptions about what you're going to be drawing.
+		/// </summary>
+		/// <returns>The vertex array.</returns>
+		/// XXX: Doesn't actually use indices.
+		public VertexArray ToVertexArray(Shader s)
+		{
+			var thePositions = new VertexAttributeArray("position", positions.ToArray(), POSITION_DIMENSIONS);
+			var theColors = new VertexAttributeArray("color", colors.ToArray(), COLOR_DIMENSIONS);
+			var attrList = new List<VertexAttributeArray>();
+			attrList.Add(thePositions);
+			attrList.Add(theColors);
+			var vertArray = new VertexArray(s, attrList, 
+			                                prim: PrimitiveType.Triangles, usage: BufferUsageHint.StaticDraw);
+			return vertArray;
+		}
+	}
+
+	/// <summary>
+	/// Tessellate lines and arcs using a two-lane road of quads.
+	/// 
+	/// Each base vertex encountered along a path is converted into a
+	/// string of three subvertexes: the central one plus right and left
+	/// edges.  Subvertexes at the same position in each string form the
+	/// borders of quadrilaterals, which are each rendered using two
+	/// triangles.
+	///
+	/// Multiple paths may be tessellated using a single tessellator so long as
+	/// `beginPath`() and `endPath`() are called properly.  If you use the main
+	/// entrypoint `tessellatePath`(), this is done automatically.
+	/// </summary>
 	public class Tesselator
 	{
+		readonly Color4 BACKGROUND_COLOR = new Color4(0.0f, 0.0f, 0.0f, 0.0f);
+		// Number of quad strips across the roaad
+		const int ROAD_LANES = 2;
+		VertexModel output;
+		List<int> firstIndices;
+		List<int> lastIndices;
+
+		public Tesselator(VertexModel output)
+		{
+			this.output = output;
+		}
+
 		public void TesselateLine(LineSegment l)
 		{
 
@@ -314,6 +488,62 @@ namespace Starmaze.Engine
 		public void TesselateArc(ArcSegment a)
 		{
 
+		}
+
+		/// <summary>
+		/// Given a RawJoin, compute the corners of a square cap.
+		/// </summary>
+		/// <returns>The cap.</returns>
+		/// <param name="rj">The RawJoin</param>
+		/// <param name="multiplier">Usually -1.0 for backward or +1.0 for forward, 
+		/// depending on the segment being capped.</param>
+		static Tuple<Vector2d, Vector2d> SquarishCap(RawJoin rj, double multiplier)
+		{
+			var extent = multiplier * (0.5 * (rj.SideR - rj.SideL).Length);
+			return new Tuple<Vector2d, Vector2d>(rj.SideR + rj.AlongR * extent, rj.SideL + rj.AlongL * extent);
+		}
+
+		/// <summary>
+		/// Given two adjoining (side, along) pairs, computer a miter-ish point for them.
+		/// 
+		// These are named A and B because they're on the same side but come from two different segments.
+		// Solve for position = (sideA + alongA * parameterA) = (sideB + alongB * parameterB)
+		// (ie, just a line intersection).
+		/// </summary>
+		/// <returns>The intersect.</returns>
+		/// <param name="sideA">Side a.</param>
+		/// <param name="alongA">Along a.</param>
+		/// <param name="sideB">Side b.</param>
+		/// <param name="alongB">Along b.</param>
+		// OPT: This may not be the most efficient way.
+		static Vector2d MiterishIntersect(Vector2d sideA, Vector2d alongA, Vector2d sideB, Vector2d alongB)
+		{
+			// Transform to origin at sideA, +x is alongA.
+			var tlSideB = sideB - sideA;
+			var relSideB = new Vector2d(Vector2d.Dot(tlSideB, alongA), Vector2d.Dot(tlSideB, alongA.PerpendicularLeft));
+			var rotAlongB = new Vector2d(Vector2d.Dot(alongB, alongA), Vector2d.Dot(alongB, alongA.PerpendicularLeft));
+			if (Math.Abs(rotAlongB.Y) < Math.Abs(rotAlongB.X) && Math.Abs(rotAlongB.Y / rotAlongB.X) < 0.001) {
+				// Very closely angled lines.  Give up and approximate for numerical stability.
+				return Vector2d.Lerp(sideA, sideB, 0.5);
+			}
+
+			// B's transformed line equation in terms of A
+			var xSlope = rotAlongB.X / rotAlongB.Y;
+			var xIntercept = relSideB.X - relSideB.Y * xSlope;
+			// Transform (xIntercept, 0) back into world coordinates.
+			return sideA + alongA * xIntercept;
+		}
+
+		/// <summary>
+		/// Given two adjoining RawJoin's, computer the right and left sides of a miter-ish join.
+		/// </summary>
+		/// <returns>The join.</returns>
+		static Tuple<Vector2d, Vector2d> MiterishJoin(RawJoin rjIn, RawJoin rjOut)
+		{
+			var v1 = MiterishIntersect(rjIn.SideR, rjIn.AlongR, rjOut.SideR, rjOut.AlongR);
+			var v2 = MiterishIntersect(rjIn.SideL, rjIn.AlongL, rjOut.SideL, rjOut.AlongL);
+
+			return new Tuple<Vector2d, Vector2d>(v1, v2);
 		}
 	}
 }

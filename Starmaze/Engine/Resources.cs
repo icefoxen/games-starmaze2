@@ -27,7 +27,7 @@ namespace Starmaze.Engine
 			}
 			// BUGGO: Still a bit ugly, since in the current build system the .exe is not
 			// in the resource path root.
-			basePath = Path.Combine(basePath, "..");
+			basePath = System.IO.Path.Combine(basePath, "..");
 			ResourceRoot = basePath;
 			RendererCache = new Dictionary<string, Renderer>();
 			TextureCache = new Dictionary<string, Texture>();
@@ -82,7 +82,7 @@ namespace Starmaze.Engine
 
 		Texture LoadTexture(string file)
 		{
-			var fullPath = Path.Combine(ResourceRoot, "images", file + ".png");
+			var fullPath = System.IO.Path.Combine(ResourceRoot, "images", file + ".png");
 			Log.Message("Loading image {0}", fullPath);
 			Bitmap bitmap = new Bitmap(fullPath);
 			var t = new Texture(bitmap);
@@ -96,7 +96,7 @@ namespace Starmaze.Engine
 
 		Shader LoadShader(string name)
 		{
-			var fullPath = Path.Combine(ResourceRoot, "shaders", name);
+			var fullPath = System.IO.Path.Combine(ResourceRoot, "shaders", name);
 			Log.Message("Loading shader {0}", fullPath);
 			var vertData = File.ReadAllText(fullPath + ".vert");
 			var fragData = File.ReadAllText(fullPath + ".frag");

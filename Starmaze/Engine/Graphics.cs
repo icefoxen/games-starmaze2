@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using OpenTK;
+using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
 
 namespace Starmaze.Engine
@@ -218,9 +219,11 @@ namespace Starmaze.Engine
 	// Some reflection might make it easier.
 	// It might be better to have each Vertex be composed of multiple VertexAttributes, which can
 	// then be fed into this in interleaved order.
+	// TODO: Make this indexed?  Even simply indexed, it would lay the path for properly indexed
+	// stuff in the future.  If we ever want to load meshes from files, for instance.
 	public class VertexArray : IDisposable
 	{
-		VertexAttributeArray[] AttributeLists;
+		IEnumerable<VertexAttributeArray> AttributeLists;
 		int vao;
 		int buffer;
 		BufferUsageHint usageHint;
@@ -228,7 +231,7 @@ namespace Starmaze.Engine
 		int NumberOfVerts;
 
 		public VertexArray(Shader shader, 
-		                   VertexAttributeArray[] attrs, 
+		                   IEnumerable<VertexAttributeArray> attrs, 
 		                   PrimitiveType prim = PrimitiveType.Triangles, 
 		                   BufferUsageHint usage = BufferUsageHint.StaticDraw)
 		{
@@ -275,6 +278,8 @@ namespace Starmaze.Engine
 			}
 			// Clean up unmanaged resources
 			// BUGGO: On the other hand, these calls crash the program whenever they happen, so.
+			// We just need to take out the test code in TestRenderer and only ever create these through
+			// the ResourceLoader, so.
 			//GL.DeleteVertexArray(vao);
 			//GL.DeleteBuffer(buffer);
 		}
@@ -286,7 +291,7 @@ namespace Starmaze.Engine
 			GC.SuppressFinalize(this);
 		}
 
-		int  GetVertCount(VertexAttributeArray[] attrs)
+		int  GetVertCount(IEnumerable<VertexAttributeArray> attrs)
 		{
 			var vertCount = int.MaxValue;
 			foreach (var attr in attrs) {
@@ -300,7 +305,7 @@ namespace Starmaze.Engine
 			return vertCount;
 		}
 
-		void AddAttributesToBuffer(VertexAttributeArray[] attrs)
+		void AddAttributesToBuffer(IEnumerable<VertexAttributeArray> attrs)
 		{
 			Debug.Assert(attrs != null);
 			// Not the fastest way, but the easiest.
@@ -313,7 +318,7 @@ namespace Starmaze.Engine
 			              allAttrs, usageHint);
 		}
 
-		void SetupVertexPointers(Shader shader, VertexAttributeArray[] attrs)
+		void SetupVertexPointers(Shader shader, IEnumerable<VertexAttributeArray> attrs)
 		{
 			Debug.Assert(shader != null);
 			Debug.Assert(attrs != null);
@@ -371,16 +376,16 @@ namespace Starmaze.Engine
 
 		public static void StartDraw()
 		{
-			GL.ClearColor(Color.Gray);
+			var c = Color4.AliceBlue;
+			GL.ClearColor(Color4.Gray);
 			GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 		}
 
 		public static void FinishDraw()
 		{
-
 		}
 
-		public static readonly Color DEFAULT_COLOR = Color.White;
+		public static readonly Color4 DEFAULT_COLOR = new Color4(1.0f, 1.0f, 1.0f, 1.0f);
 		public const double DEFAULT_STROKE_WIDTH = 2.0;
 	}
 }
