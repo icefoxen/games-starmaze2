@@ -17,6 +17,7 @@ namespace Starmaze
 		HashSet<Actor> Actors;
 		HashSet<Actor> ActorsToAdd;
 		HashSet<Actor> ActorsToRemove;
+		VertexArray model;
 
 		public World(int w, int h)
 			// Using 32 as the color format and depth causes issues on Linux, see
@@ -70,7 +71,7 @@ namespace Starmaze
 			// 4/3 aspect ratio...
 			// XXX: This should be different.  We're going to need a resolution-independent coordinate
 			// system _some_day if we want to make it possible to resize the game, so...
-			View = new ViewManager(10f, 7.5f);
+			View = new ViewManager(160f, 120f);
 		}
 
 		protected override void OnUnload(EventArgs e)

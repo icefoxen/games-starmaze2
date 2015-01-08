@@ -36,6 +36,15 @@ namespace Starmaze
 			var subclasses = assembly.GetTypes().Where(t => t.IsSubclassOf(baseType));
 			return subclasses;
 		}
+		// XXX: Does C# already have a generator like this somewhere?
+		// step < 0 doesn't work.
+		public static IEnumerable<uint> UnsignedRange(uint start, uint to, int step = 1)
+		{
+			//Console.WriteLine("Got {0}, {1}, {2}", start, to, step);
+			for (uint i = start; i < to; i = (uint)(i + step)) {
+				yield return i;
+			}
+		}
 	}
 
 	public static class Log

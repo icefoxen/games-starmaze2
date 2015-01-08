@@ -137,7 +137,9 @@ namespace Starmaze.Engine
 
 		public TestRenderer()
 		{
-			Model = Resources.TheResources.GetModel("TestModel");
+			//Model = Starmaze.Content.Images.TestModel2();
+			//Model = Resources.TheResources.GetModel("TestModel2");
+			Model = Resources.TheResources.GetModel("TestModel2");
 			Shader = Resources.TheResources.GetShader("default");
 		}
 

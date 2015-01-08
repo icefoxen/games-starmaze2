@@ -88,6 +88,7 @@ namespace Starmaze.Engine
 		/// <param name="matrix">matrix</param>
 		public Matrix4 TransformMatrix(Matrix4 matrix)
 		{
+			// OPT:
 			// This might be done more efficiently without creating a bunch of matrices and doing lots
 			// of multiplications, but, for now, we do it the way that involves fewer headaches.
 			var translationMatrix = Matrix4.CreateTranslation(Translation.X, Translation.Y, 0.0f);
@@ -313,7 +314,7 @@ namespace Starmaze.Engine
 		{
 			int vertexCount = 0;
 			foreach (var attr in attrs) {
-				var length = attr.LengthInElements();
+				//var length = attr.LengthInElements();
 				// BUGGO: This is actually hugely misguided; LengthInElements isn't necessarily valid
 				// when we're using indexed drawing.
 				//Log.Warn(vertexCount != 0 && length != vertexCount, "VertexAttributeArray's have different lengths");
@@ -437,9 +438,6 @@ namespace Starmaze.Engine
 		public static void FinishDraw()
 		{
 		}
-
-		public static readonly Color4 DEFAULT_COLOR = new Color4(1.0f, 1.0f, 1.0f, 1.0f);
-		public const double DEFAULT_STROKE_WIDTH = 2.0;
 	}
 }
 

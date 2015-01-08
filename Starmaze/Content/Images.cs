@@ -1,6 +1,7 @@
 using System;
 using Starmaze;
 using Starmaze.Engine;
+using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
 
 namespace Starmaze.Content
@@ -32,6 +33,16 @@ namespace Starmaze.Content
 			};
 			var indices = new uint[] { 0, 1, 2, 0, 2, 3 };
 			return new VertexArray(shader, v, indices);
+		}
+
+		public static VertexArray TestModel2()
+		{
+			var shader = Resources.TheResources.GetShader("default");
+			var mb = new Starmaze.Engine.ModelBuilder();
+			mb.Circle(0, 0, 15, Color4.Green, numSegments: 16);
+			var model = mb.Finish();
+			var va = model.ToVertexArray(shader);
+			return va;
 		}
 	}
 }

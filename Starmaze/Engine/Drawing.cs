@@ -17,6 +17,9 @@ namespace Starmaze.Engine
 	/// </summary>
 	public struct LineArtVertex : IEquatable<LineArtVertex>
 	{
+
+		public static readonly Color4 DEFAULT_COLOR = new Color4(1.0f, 1.0f, 1.0f, 1.0f);
+		public const double DEFAULT_STROKE_WIDTH = 2.0;
 		public Vector2d Pos;
 		public Color4 Color;
 		public double StrokeHalfWidth;
@@ -42,10 +45,10 @@ namespace Starmaze.Engine
 		// initializer might do _anything_ at runtime and they won't actually be constant as in
 		// 'fixed at compile time'.  Inconvenient, but true.
 		public LineArtVertex(Vector2d pos, Color4? color = null,
-		                     double strokeWidth = Graphics.DEFAULT_STROKE_WIDTH / 2.0)
+		                     double strokeWidth = DEFAULT_STROKE_WIDTH)
 		{
 			Pos = pos;
-			Color = color ?? Graphics.DEFAULT_COLOR;
+			Color = color ?? DEFAULT_COLOR;
 			StrokeHalfWidth = strokeWidth / 2.0;
 		}
 
@@ -79,6 +82,7 @@ namespace Starmaze.Engine
 		public PathSegment Before;
 		public PathSegment After;
 		public bool Closing;
+		public bool Cap = false;
 
 		public Vector2d Pos0 {
 			get {
@@ -163,10 +167,10 @@ namespace Starmaze.Engine
 	/// </summary>
 	public class LineSegment : PathSegment
 	{
-		public bool Cap = true;
 
 		public LineSegment(LineArtVertex v0, LineArtVertex v1) : base(v0, v1)
 		{
+			Cap = true;
 		}
 
 		RawJoin RawJoinAt(LineArtVertex v)
@@ -206,6 +210,7 @@ namespace Starmaze.Engine
 		Vector2d Center;
 		bool Clockwise;
 		int? RequestedSegments;
+		const int DEFAULT_SEGMENTS = 16;
 		const double RADIANS_PER_PIECE = SMath.TAU / 16.0;
 
 		public ArcSegment(LineArtVertex v0, LineArtVertex v1, Vector2d center,
@@ -388,14 +393,14 @@ namespace Starmaze.Engine
 		const int COLOR_DIMENSIONS = 4;
 		List<float> positions;
 		List<float> colors;
-		List<int> indices;
-		int freeIndex;
+		List<uint> indices;
+		uint freeIndex;
 
 		public VertexModel()
 		{
 			positions = new List<float>();
 			colors = new List<float>();
-			indices = new List<int>();
+			indices = new List<uint>();
 			freeIndex = 0;
 		}
 
@@ -404,9 +409,9 @@ namespace Starmaze.Engine
 		/// </summary>
 		/// <returns>Index of the first newly-appended index.</returns>
 		/// <param name="vertices">Vertices.</param>
-		public int AddVertexes(IEnumerable<LineArtVertex> vertices)
+		public uint AddVertexes(IEnumerable<LineArtVertex> vertices)
 		{
-			int vertexCount = 0;
+			uint vertexCount = 0;
 			foreach (var vertex in vertices) {
 				// Note that this is where we go from double-precision coordinates to 
 				// single-precision coordinates for drawing.
@@ -429,7 +434,7 @@ namespace Starmaze.Engine
 		/// Normally it will have a length that is a multiple of 3, for drawing triangles.
 		/// </summary>
 		/// <param name="ind">Collection of indices.</param>
-		public void addIndices(IEnumerable<int> ind)
+		public void addIndices(IEnumerable<uint> ind)
 		{
 			indices.AddRange(ind);
 		}
@@ -439,7 +444,6 @@ namespace Starmaze.Engine
 		/// Makes some assumptions about what you're going to be drawing.
 		/// </summary>
 		/// <returns>The vertex array.</returns>
-		/// XXX: Doesn't actually use indices.
 		public VertexArray ToVertexArray(Shader s)
 		{
 			var thePositions = new VertexAttributeArray("position", positions.ToArray(), POSITION_DIMENSIONS);
@@ -447,10 +451,9 @@ namespace Starmaze.Engine
 			var attrList = new List<VertexAttributeArray>();
 			attrList.Add(thePositions);
 			attrList.Add(theColors);
-			//var vertArray = new VertexArray(s, attrList, 
-			//                                prim: PrimitiveType.Triangles, usage: BufferUsageHint.StaticDraw);
-			//return vertArray;
-			return null;
+			var vertArray = new VertexArray(s, attrList, indices,
+			                                prim: PrimitiveType.Triangles, usage: BufferUsageHint.StaticDraw);
+			return vertArray;
 		}
 	}
 
@@ -467,28 +470,197 @@ namespace Starmaze.Engine
 	/// `beginPath`() and `endPath`() are called properly.  If you use the main
 	/// entrypoint `tessellatePath`(), this is done automatically.
 	/// </summary>
+	// XXX: For now this is the only Tesselator we have, but in the Python code
+	// it's called the FadeLineTesselator.  If we ever write other tesselators
+	// they should all inherit from a base class.
 	public class Tesselator
 	{
 		readonly Color4 BACKGROUND_COLOR = new Color4(0.0f, 0.0f, 0.0f, 0.0f);
 		// Number of quad strips across the roaad
 		const int ROAD_LANES = 2;
 		VertexModel output;
-		List<int> firstIndices;
-		List<int> lastIndices;
+		List<uint> firstIndices;
+		List<uint> lastIndices;
 
 		public Tesselator(VertexModel output)
 		{
 			this.output = output;
+			firstIndices = null;
+			lastIndices = null;
 		}
 
-		public void TesselateLine(LineSegment l)
+		public void BeginPath()
 		{
-
+			firstIndices = null;
+			lastIndices = null;
 		}
 
-		public void TesselateArc(ArcSegment a)
+		public void EndPath()
 		{
+			firstIndices = null;
+			lastIndices = null;
+		}
 
+		/// <summary>
+		/// Create a LineArtVertex with the default background color.
+		/// </summary>
+		/// <param name="pos">Position.</param>
+		public LineArtVertex Background(Vector2d pos)
+		{
+			return new LineArtVertex(pos, BACKGROUND_COLOR);
+		}
+
+		IEnumerable<uint> AddVertices(IList<LineArtVertex> verts)
+		{
+			uint start = (uint)output.AddVertexes(verts);
+			return Util.UnsignedRange(start, (uint)(start + verts.Count));
+		}
+
+		void AddQuad(uint a, uint b, uint c, uint d)
+		{
+			var quadIndices = new uint[] { a, b, c, a, c, d };
+			output.addIndices(quadIndices);
+		}
+
+		void BeginRoad(IList<LineArtVertex> verts)
+		{
+			var indices = AddVertices(verts);
+			firstIndices = new List<uint>(indices);
+			lastIndices = new List<uint>(indices);
+		}
+		// Might be nicer with a params argument?  I dunno...
+		void AdvanceTo(IList<LineArtVertex> verts)
+		{
+			var indices = new List<uint>(AddVertices(verts));
+			//Console.WriteLine("Verts length: {0}, indices length: {1}", verts.Count, indices.Count);
+			for (int i = 0; i < ROAD_LANES; i++) {
+				//Console.WriteLine("lastIndices: {0}, i: {1}, indices: {2}", lastIndices.Count, i, indices.Count);
+				AddQuad(lastIndices[i], lastIndices[i + 1], indices[i + 1], indices[i]);
+			}
+			lastIndices = indices;
+		}
+
+		void CloseRoad()
+		{
+			for (int i = 0; i < ROAD_LANES; i++) {
+				AddQuad(lastIndices[i], lastIndices[i + 1], firstIndices[i + 1], firstIndices[i]);
+			}
+			firstIndices = null;
+			lastIndices = null;
+		}
+
+		void AdvanceToSegmentIn(PathSegment seg)
+		{
+			if (seg.Before == null) {
+				var rjIn = seg.RawJoinIn();
+				var nextVerts = new LineArtVertex[] {
+					Background(seg.Pos0 + rjIn.SideR),
+					seg.V0,
+					Background(seg.Pos0 + rjIn.SideL)
+				};
+				if (seg.Cap) {
+					var cap = SquarishCap(rjIn, -1.0);
+					var cap0 = cap.Item1;
+					var cap1 = cap.Item2;
+					var beginVerts = new LineArtVertex[] {
+						Background(seg.Pos0 + cap0),
+						Background(seg.Pos0 + Vector2d.Lerp(cap0, cap1, 0.5)),
+						Background(seg.Pos0 + cap1)
+					};
+					BeginRoad(beginVerts);
+					AdvanceTo(nextVerts);
+				} else {
+					// No cap
+					BeginRoad(nextVerts);
+				}
+			} else if (seg.Before.Closing || (lastIndices == null)) {
+				// The RHS of the disjunction is in case we start tessellating in the middle of a
+				// path somehow.  That feels like it might be useful later.
+				var jn = MiterishJoin(seg.Before.RawJoinOut(), seg.Before.RawJoinIn());
+				var sideR = jn.Item1;
+				var sideL = jn.Item2;
+				var verts = new LineArtVertex[] {
+					Background(seg.Pos0 + sideR),
+					seg.V0,
+					Background(seg.Pos0 + sideL)
+				};
+				BeginRoad(verts);
+			}
+		}
+
+		void AdvanceToSegmentOut(PathSegment seg)
+		{
+			if (seg.After == null) {
+				var rjOut = seg.RawJoinOut();
+				var nextVerts = new LineArtVertex[] {
+					Background(seg.Pos1 + rjOut.SideR),
+					seg.V1,
+					Background(seg.Pos1 + rjOut.SideL)
+				};
+				if (seg.Cap) {
+					var cap = SquarishCap(rjOut, +1.0);
+					var cap0 = cap.Item1;
+					var cap1 = cap.Item2;
+					var endVerts = new LineArtVertex[] {
+						Background(seg.Pos1 + cap0),
+						Background(seg.Pos1 + Vector2d.Lerp(cap0, cap1, 0.5)),
+						Background(seg.Pos1 + cap1)
+					};
+					AdvanceTo(nextVerts);
+					AdvanceTo(endVerts);
+				} else {
+					AdvanceTo(nextVerts);
+				}
+			} else if (seg.Closing) {
+				CloseRoad();
+			} else {
+				var j = MiterishJoin(seg.RawJoinOut(), seg.RawJoinIn());
+				var sideR = j.Item1;
+				var sideL = j.Item2;
+				var nextVerts = new LineArtVertex[] {
+					Background(seg.Pos1 + sideR),
+					seg.V1,
+					Background(seg.Pos1 + sideL)
+				};
+				AdvanceTo(nextVerts);
+			}
+		}
+
+		public void TesselateLine(LineSegment line)
+		{
+			AdvanceToSegmentIn(line);
+			AdvanceToSegmentOut(line);
+		}
+
+		public void TesselateArc(ArcSegment arc)
+		{
+			AdvanceToSegmentIn(arc);
+			foreach (var pt in arc.GenerateInteriorPoints()) {
+				var interior = pt.Item1;
+				var sideR = pt.Item2;
+				var sideL = pt.Item3;
+
+				var verts = new LineArtVertex[] {
+					Background(interior.Pos + sideR),
+					interior,
+					Background(interior.Pos + sideL)
+				};
+
+				AdvanceTo(verts);
+			}
+			AdvanceToSegmentOut(arc);
+		}
+
+		public void TesselatePath(Path path)
+		{
+			if (path.Empty) {
+				return;
+			}
+			BeginPath();
+			foreach (var seg in path.Segments) {
+				seg.TesselateWith(this);
+			}
+			EndPath();
 		}
 
 		/// <summary>
@@ -545,6 +717,64 @@ namespace Starmaze.Engine
 			var v2 = MiterishIntersect(rjIn.SideL, rjIn.AlongL, rjOut.SideL, rjOut.AlongL);
 
 			return new Tuple<Vector2d, Vector2d>(v1, v2);
+		}
+	}
+
+	/// <summary>
+	/// A convenient way to construct `VertexModel`s.
+	///
+	/// Create one of these, then call methods on it to add geometry.
+	/// This is somewhat similar to using a Cairo context.  When done,
+	/// call `finish`() to obtain the finished model.  You should not
+	/// call `finish`() twice.
+	/// </summary>
+	public class ModelBuilder
+	{
+		VertexModel model;
+		Tesselator tesselator;
+
+		public ModelBuilder()
+		{
+			model = new VertexModel();
+			tesselator = new Tesselator(model);
+		}
+
+		public VertexModel Finish()
+		{
+			return model;
+		}
+
+		public void SubmitPath(Path path)
+		{
+			tesselator.TesselatePath(path);
+		}
+
+		public void SubmitClosedPath(IList<PathSegment> segments)
+		{
+			var path = new Path();
+			for (int i = 0; i < segments.Count - 1; i++) {
+				path.AddSegment(segments[i]);
+			}
+			path.Close(segments[segments.Count - 1]);
+			SubmitPath(path);
+		}
+
+		public void SubmitOpenPath(IList<PathSegment> segments)
+		{
+			var path = new Path();
+			foreach (var segment in segments) {
+				path.AddSegment(segment);
+			}
+			SubmitPath(path);
+		}
+
+		public void Circle(double x, double y, double radius, Color4 color, int? numSegments = null)
+		{
+			var vertex = new LineArtVertex(new Vector2d(x + radius, y), color);
+			var verts = new PathSegment[] {
+				new ArcSegment(vertex, vertex, new Vector2d(x,y), true, numSegments)
+			};
+			SubmitClosedPath(verts);
 		}
 	}
 }
