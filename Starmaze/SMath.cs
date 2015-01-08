@@ -30,10 +30,10 @@ namespace Starmaze.Engine
 
 		public static Color4 Lerp(Color4 c1, Color4 c2, double alpha)
 		{
-			var r = Math.Round(c1.R + (c2.R - c1.R) * alpha);
-			var b = Math.Round(c1.B + (c2.B - c1.B) * alpha);
-			var g = Math.Round(c1.G + (c2.G - c1.G) * alpha);
-			var a = Math.Round(c1.A + (c2.A - c1.A) * alpha);
+			var r = (float)Math.Round(c1.R + (c2.R - c1.R) * alpha);
+			var b = (float)Math.Round(c1.B + (c2.B - c1.B) * alpha);
+			var g = (float)Math.Round(c1.G + (c2.G - c1.G) * alpha);
+			var a = (float)Math.Round(c1.A + (c2.A - c1.A) * alpha);
 			return new Color4(r, g, b, a);
 		}
 	}

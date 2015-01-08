@@ -447,9 +447,10 @@ namespace Starmaze.Engine
 			var attrList = new List<VertexAttributeArray>();
 			attrList.Add(thePositions);
 			attrList.Add(theColors);
-			var vertArray = new VertexArray(s, attrList, 
-			                                prim: PrimitiveType.Triangles, usage: BufferUsageHint.StaticDraw);
-			return vertArray;
+			//var vertArray = new VertexArray(s, attrList, 
+			//                                prim: PrimitiveType.Triangles, usage: BufferUsageHint.StaticDraw);
+			//return vertArray;
+			return null;
 		}
 	}
 

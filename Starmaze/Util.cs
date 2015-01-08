@@ -54,15 +54,11 @@ namespace Starmaze
 		}
 
 		[Conditional("DEBUG")]
-		public static void Warn(bool assertion, string message = null)
+		public static void Warn(bool assertion, string message)
 		{
 			// TODO: Implement this for cases where an assertion is too strong;
 			// ie, recoverable errors that nonetheless should never happen.
-			if (message == null) {
-				Debug.Assert(assertion);
-			} else {
-				Debug.Assert(assertion, message);
-			}
+			Debug.Assert(assertion, message);
 		}
 
 		[Conditional("DEBUG")]

@@ -185,9 +185,9 @@ namespace Starmaze.Engine
 
 		public VertexAttributeArray(string name, float[] data, int elementsPerVertex)
 		{
-			Debug.Assert(name != null);
-			Debug.Assert(data != null);
-			Debug.Assert(elementsPerVertex > 0);
+			Log.Assert(name != null);
+			Log.Assert(data != null);
+			Log.Assert(elementsPerVertex > 0);
 			Name = name;
 			Data = data;
 			ElementsPerVertex = elementsPerVertex;
@@ -224,32 +224,46 @@ namespace Starmaze.Engine
 	public class VertexArray : IDisposable
 	{
 		IEnumerable<VertexAttributeArray> AttributeLists;
+		IList<uint> indices;
 		int vao;
 		int buffer;
+		int indexBuffer;
 		BufferUsageHint usageHint;
 		PrimitiveType primitive;
-		int NumberOfVerts;
+		int NumberOfIndices;
 
 		public VertexArray(Shader shader, 
 		                   IEnumerable<VertexAttributeArray> attrs, 
+		                   IList<uint> idxs = null,
 		                   PrimitiveType prim = PrimitiveType.Triangles, 
 		                   BufferUsageHint usage = BufferUsageHint.StaticDraw)
 		{
-			Debug.Assert(shader != null);
-			Debug.Assert(attrs != null);
+			Log.Assert(shader != null);
+			Log.Assert(attrs != null);
+
+			var vertexCount = checkVertexArrays(attrs);
+			if (idxs == null) {
+				idxs = generateLinearIndices(vertexCount);
+			}
 			AttributeLists = attrs;
+			indices = idxs;
 			usageHint = usage;
 			primitive = prim;
-			NumberOfVerts = GetVertCount(attrs);
+			NumberOfIndices = indices.Count;
 			vao = GL.GenVertexArray();
 			GL.BindVertexArray(vao);
 			buffer = GL.GenBuffer();
 			GL.BindBuffer(BufferTarget.ArrayBuffer, buffer);
+			indexBuffer = GL.GenBuffer();
+			GL.BindBuffer(BufferTarget.ElementArrayBuffer, indexBuffer);
 			AddAttributesToBuffer(attrs);
+			AddIndicesToBuffer(indices);
 			SetupVertexPointers(shader, attrs);
 			// Unbinding the buffer *does not* alter the state of the vertex array object.
 			// The association between buffer and vao is made on the GL.VertexAttribPointer() call.
 			GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+			// Except here, I think.
+			//GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
 			GL.BindVertexArray(0);
 		}
 		// Implementing tedious disposal-tracking semantics, see
@@ -291,6 +305,31 @@ namespace Starmaze.Engine
 			GC.SuppressFinalize(this);
 		}
 
+		/// <summary>
+		/// Verifies that all the vertex attribute arrays are of the same size
+		/// </summary>
+		/// <param name="attr">Attr.</param>
+		int checkVertexArrays(IEnumerable<VertexAttributeArray> attrs)
+		{
+			int vertexCount = 0;
+			foreach (var attr in attrs) {
+				var length = attr.LengthInElements();
+				Log.Warn(vertexCount != 0 && length != vertexCount, "VertexAttributeArray's have different lengths");
+			}
+			return vertexCount;
+		}
+
+		uint[] generateLinearIndices(int count)
+		{
+			var newIndices = new uint[count];
+			for (int i = 0; i < count; i++) {
+				newIndices[i] = (uint)i;
+			}
+			return newIndices;
+		}
+		/*
+		 * This is old but verifying that the number of verts in all buffers is the same might be
+		 * a good idea anyway.
 		int  GetVertCount(IEnumerable<VertexAttributeArray> attrs)
 		{
 			var vertCount = int.MaxValue;
@@ -304,10 +343,10 @@ namespace Starmaze.Engine
 			}
 			return vertCount;
 		}
-
+		*/
 		void AddAttributesToBuffer(IEnumerable<VertexAttributeArray> attrs)
 		{
-			Debug.Assert(attrs != null);
+			Log.Assert(attrs != null);
 			// Not the fastest way, but the easiest.
 			var accm = new List<float>();
 			foreach (var attr in attrs) {
@@ -318,10 +357,20 @@ namespace Starmaze.Engine
 			              allAttrs, usageHint);
 		}
 
+		void AddIndicesToBuffer(IList<uint> indices)
+		{
+			Log.Assert(indices != null);
+			var indexArray = new uint[indices.Count];
+			// OPT: If we were stricter we might be able to get rid of this copy
+			indices.CopyTo(indexArray, 0);
+			GL.BufferData(BufferTarget.ElementArrayBuffer, (IntPtr)(indexArray.Length * sizeof(int)),
+			              indexArray, BufferUsageHint.StaticRead);
+		}
+
 		void SetupVertexPointers(Shader shader, IEnumerable<VertexAttributeArray> attrs)
 		{
-			Debug.Assert(shader != null);
-			Debug.Assert(attrs != null);
+			Log.Assert(shader != null);
+			Log.Assert(attrs != null);
 			var byteOffset = 0;
 			foreach (var attr in attrs) {
 				var location = shader.VertexAttributeLocation(attr.Name);
@@ -345,7 +394,9 @@ namespace Starmaze.Engine
 		public void Draw()
 		{
 			GL.BindVertexArray(vao);
-			GL.DrawArrays(primitive, 0, NumberOfVerts);
+			// XXX: DrawElementType.Short might be better, but then we have to check and make sure everything's
+			// within reach of a short...
+			GL.DrawElements(primitive, NumberOfIndices, DrawElementsType.UnsignedInt, 0);
 			GL.BindVertexArray(0);
 		}
 	}

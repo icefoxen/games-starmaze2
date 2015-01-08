@@ -142,20 +142,14 @@ namespace Starmaze.Engine
 				-0.5f, -0.5f, 0.0f,
 				-0.5f, 0.5f, 0.0f,
 				+0.5f, 0.5f, 0.0f,
-
-				+0.5f, 0.5f, 0.0f,
 				+0.5f, -0.5f, 0.0f,
-				-0.5f, -0.5f, 0.0f,
 			};
 			var colorData = new float[] {
 				// Colors
 				1.0f, 0.0f, 0.0f, 1.0f,
 				0.0f, 1.0f, 0.0f, 1.0f,
 				0.0f, 0.0f, 1.0f, 1.0f,
-
-				0.0f, 0.0f, 1.0f, 1.0f,
-				0.0f, 1.0f, 0.0f, 1.0f,
-				1.0f, 0.0f, 0.0f, 1.0f,
+				1.0f, 1.0f, 1.0f, 1.0f,
 			};
 
 			Shader = Resources.TheResources.GetShader("default");
@@ -164,7 +158,8 @@ namespace Starmaze.Engine
 				new VertexAttributeArray("position", vertexData, 3),
 				new VertexAttributeArray("color", colorData, 4)
 			};
-			Model = new VertexArray(Shader, v, prim: PrimitiveType.Triangles);
+			var indices = new uint[] { 0, 1, 2, 0, 2, 3 };
+			Model = new VertexArray(Shader, v, indices, prim: PrimitiveType.Triangles);
 		}
 
 		public override void RenderStart()
