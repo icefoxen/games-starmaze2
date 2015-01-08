@@ -120,7 +120,7 @@ namespace Starmaze.Engine
 	/// <summary>
 	/// A renderer that draws nothing.
 	/// </summary>
-	// XXX: Having a Renderer that draws nothing and using that for invisible objects is wasteful because
+	// OPT: Having a Renderer that draws nothing and using that for invisible objects is wasteful because
 	// we still go through all the mechanics of adding and removing Actors to it, calling the code to draw
 	// them, and so on.  BUT, for now, it is also simpler, because we don't have to special-case out Renderers
 	// that do nothing.  Overriding RenderActors makes life a little better though.
@@ -137,29 +137,8 @@ namespace Starmaze.Engine
 
 		public TestRenderer()
 		{
-			var vertexData = new float[] {
-				// Verts
-				-0.5f, -0.5f, 0.0f,
-				-0.5f, 0.5f, 0.0f,
-				+0.5f, 0.5f, 0.0f,
-				+0.5f, -0.5f, 0.0f,
-			};
-			var colorData = new float[] {
-				// Colors
-				1.0f, 0.0f, 0.0f, 1.0f,
-				0.0f, 1.0f, 0.0f, 1.0f,
-				0.0f, 0.0f, 1.0f, 1.0f,
-				1.0f, 1.0f, 1.0f, 1.0f,
-			};
-
+			Model = Resources.TheResources.GetModel("TestModel");
 			Shader = Resources.TheResources.GetShader("default");
-
-			var v = new VertexAttributeArray[] {
-				new VertexAttributeArray("position", vertexData, 3),
-				new VertexAttributeArray("color", colorData, 4)
-			};
-			var indices = new uint[] { 0, 1, 2, 0, 2, 3 };
-			Model = new VertexArray(Shader, v, indices, prim: PrimitiveType.Triangles);
 		}
 
 		public override void RenderStart()

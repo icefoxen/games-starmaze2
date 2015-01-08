@@ -17,6 +17,7 @@ namespace Starmaze.Engine
 		Dictionary<string, Renderer> RendererCache;
 		Dictionary<string, Texture> TextureCache;
 		Dictionary<string, Shader> ShaderCache;
+		Dictionary<string, VertexArray> ModelCache;
 
 		public ResourceLoader()
 		{
@@ -32,6 +33,7 @@ namespace Starmaze.Engine
 			RendererCache = new Dictionary<string, Renderer>();
 			TextureCache = new Dictionary<string, Texture>();
 			ShaderCache = new Dictionary<string, Shader>();
+			ModelCache = new Dictionary<string, VertexArray>();
 		}
 
 		TVal Get<TKey,TVal>(Dictionary<TKey,TVal> cache, Func<TKey,TVal> loader, TKey name)
@@ -103,6 +105,20 @@ namespace Starmaze.Engine
 			return new Shader(vertData, fragData);
 		}
 
+		public VertexArray GetModel(string name)
+		{
+			return Get(ModelCache, LoadModel, name);
+		}
+
+		VertexArray LoadModel(string name)
+		{
+			var t = typeof(Starmaze.Content.Images);
+			var method = t.GetMethod(name);
+			Console.WriteLine("Loading model {0}", method.Name);
+			var model = (VertexArray)method.Invoke(null, null);
+			return model;
+		}
+
 		/// <summary>
 		/// Preload any resources that take a long time to load; ie, all of them.
 		/// This is called AFTER the Resources object is already created, so that for instance
@@ -148,6 +164,12 @@ namespace Starmaze.Engine
 				var texture = kv.Value;
 				Log.Message("Freeing texture {0}", kv.Key);
 				texture.Dispose();
+			}
+
+			foreach (var kv in ModelCache) {
+				var model = kv.Value;
+				Log.Message("Freeing model {0}", kv.Key);
+				model.Dispose();
 			}
 
 			// XXX:

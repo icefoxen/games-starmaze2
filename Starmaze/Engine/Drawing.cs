@@ -380,7 +380,7 @@ namespace Starmaze.Engine
 	}
 
 	/// <summary>
-	/// A model with packed vertex data suitable for uploading to OpenGL.z
+	/// A model with packed vertex data suitable for uploading to OpenGL.
 	/// </summary>
 	public class VertexModel
 	{

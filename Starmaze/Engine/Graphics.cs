@@ -262,7 +262,7 @@ namespace Starmaze.Engine
 			// Unbinding the buffer *does not* alter the state of the vertex array object.
 			// The association between buffer and vao is made on the GL.VertexAttribPointer() call.
 			GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
-			// Except here, I think.
+			// Except for ElementArrayBuffer's, OF COURSE.
 			//GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
 			GL.BindVertexArray(0);
 		}
@@ -294,8 +294,8 @@ namespace Starmaze.Engine
 			// BUGGO: On the other hand, these calls crash the program whenever they happen, so.
 			// We just need to take out the test code in TestRenderer and only ever create these through
 			// the ResourceLoader, so.
-			//GL.DeleteVertexArray(vao);
-			//GL.DeleteBuffer(buffer);
+			GL.DeleteVertexArray(vao);
+			GL.DeleteBuffer(buffer);
 		}
 
 		public void Dispose()
@@ -314,7 +314,9 @@ namespace Starmaze.Engine
 			int vertexCount = 0;
 			foreach (var attr in attrs) {
 				var length = attr.LengthInElements();
-				Log.Warn(vertexCount != 0 && length != vertexCount, "VertexAttributeArray's have different lengths");
+				// BUGGO: This is actually hugely misguided; LengthInElements isn't necessarily valid
+				// when we're using indexed drawing.
+				//Log.Warn(vertexCount != 0 && length != vertexCount, "VertexAttributeArray's have different lengths");
 			}
 			return vertexCount;
 		}

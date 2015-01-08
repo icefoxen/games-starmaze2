@@ -53,7 +53,6 @@ namespace Starmaze
 
 		protected override void OnLoad(System.EventArgs e)
 		{
-
 			Actors = new HashSet<Actor>();
 			ActorsToAdd = new HashSet<Actor>();
 			ActorsToRemove = new HashSet<Actor>();
