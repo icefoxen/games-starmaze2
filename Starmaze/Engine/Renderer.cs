@@ -5,6 +5,12 @@ using OpenTK.Graphics.OpenGL;
 
 namespace Starmaze.Engine
 {
+	/// <summary>
+	/// A class to manage drawing a heterogenous set of actors.
+	/// This class keeps track of all Renderers and all Actors, and holds the association
+	/// between one and the other.  It also preloads Renderers and tracks; all an Actor has to do is
+	/// specify a RenderClass string.  It also handles Z ordering in the Renderers.
+	/// </summary>
 	public class RenderManager
 	{
 		// Will be needed eventually for postprocessing...
@@ -55,7 +61,7 @@ namespace Starmaze.Engine
 				var renderer = kv.Key;
 				var actors = kv.Value;
 				//Console.WriteLine("Rendering {0} with {1}?", actors, renderer);
-				renderer.RenderActors(view, actors);
+				renderer.RenderMany(view, actors);
 			}
 		}
 	}
@@ -68,42 +74,49 @@ namespace Starmaze.Engine
 	}
 
 	/// <summary>
-	/// A Renderer is an object that does the drawing for an Actor.  It's not quite a Component, but
-	/// you can treat it a little like one.  But while Component's are attached to Actor's and each
-	/// Actor has its own, there's only one Renderer of each type and Actors just all refer to the
-	/// same one.  This one just draws nothing.
+	/// A Renderer is an object that does the drawing for a specific type of Actor.
+	/// This is an abstract base class; all children from this will be automatically
+	/// added to the list of available Renderer's.  Each Renderer exists precisely once,
+	/// and is instantiated at load time, so any resources it creates (such as loading meshes
+	/// or images) and holds on to are loaded only once and are disposed of properly.
+	/// 
+	/// Note that these should not keep Actor-level state around.  If it needs some data per-Actor,
+	/// the Actors need to be able to provide it.
 	/// </summary>
 	public abstract class Renderer : IComparable<Renderer>
 	{
-		public ZOrder ZOrder = ZOrder.FG;
-		long Serial;
-		protected Shader Shader;
+		ZOrder zOrder = ZOrder.FG;
+		protected long serial;
+		protected GLDiscipline discipline;
+		protected Shader shader;
 
 		public Renderer()
 		{
-			Serial = Util.GetSerial();
+			serial = Util.GetSerial();
 		}
 
 		public virtual void RenderStart()
 		{
+			Graphics.TheGLTracking.SetDiscipline(discipline);
+			Graphics.TheGLTracking.SetShader(shader);
 		}
 
-		public virtual void RenderEnd()
+		/// <summary>
+		/// Must be overriden in subclasses.
+		/// </summary>
+		/// <param name="view">View.</param>
+		/// <param name="act">Act.</param>
+		public virtual void RenderOne(ViewManager view, Actor act)
 		{
-		}
-
-		public virtual void RenderActor(ViewManager view, Actor act)
-		{
 
 		}
 
-		public virtual void RenderActors(ViewManager view, IEnumerable<Actor> actors)
+		public virtual void RenderMany(ViewManager view, IEnumerable<Actor> actors)
 		{
 			RenderStart();
 			foreach (var act in actors) {
-				RenderActor(view, act);
+				RenderOne(view, act);
 			}
-			RenderEnd();
 		}
 
 		/// <Docs>To be added.</Docs>
@@ -118,10 +131,10 @@ namespace Starmaze.Engine
 		// OPT: I feel like it should be possible to do this without the if.
 		public int CompareTo(Renderer other)
 		{
-			if (other.ZOrder != ZOrder) {
-				return ZOrder.CompareTo(other.ZOrder);
+			if (other.zOrder != zOrder) {
+				return zOrder.CompareTo(other.zOrder);
 			} else {
-				return other.Serial.CompareTo(Serial);
+				return other.serial.CompareTo(serial);
 			}
 		}
 	}
@@ -135,41 +148,32 @@ namespace Starmaze.Engine
 	// that do nothing.  Overriding RenderActors makes life a little better though.
 	public class NullRenderer : Renderer
 	{
-		public override void RenderActors(ViewManager view, IEnumerable<Actor> actors)
+		public override void RenderMany(ViewManager view, IEnumerable<Actor> actors)
 		{
 		}
 	}
 
 	public class TestRenderer : Renderer
 	{
-		VertexArray Model;
+		VertexArray model;
 
-		public TestRenderer()
+		public TestRenderer() : base()
 		{
 			//Model = Starmaze.Content.Images.TestModel2();
 			//Model = Resources.TheResources.GetModel("TestModel2");
-			Model = Resources.TheResources.GetModel("TestModel2");
-			Shader = Resources.TheResources.GetShader("default");
+			model = Resources.TheResources.GetModel("TestModel2");
+			shader = Resources.TheResources.GetShader("default");
+			discipline = GLDiscipline.DEFAULT;
 		}
 
-		public override void RenderStart()
-		{
-			Shader.Enable();
-		}
-
-		public override void RenderEnd()
-		{
-			Shader.Disable();
-		}
-
-		public override void RenderActor(ViewManager view, Actor act)
+		public override void RenderOne(ViewManager view, Actor act)
 		{
 			//Console.WriteLine("Drawing actor");
 			var pos = new Vector2((float)act.Position.X, (float)act.Position.Y);
 			var transform = new Transform(pos, 0.0f);
 			var mat = transform.TransformMatrix(view.ProjectionMatrix);
-			Shader.UniformMatrix("projection", mat);
-			Model.Draw();
+			shader.UniformMatrix("projection", mat);
+			model.Draw();
 		}
 	}
 }

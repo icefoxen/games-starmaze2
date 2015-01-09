@@ -57,7 +57,7 @@ namespace Starmaze
 			ActorsToAdd = new HashSet<Actor>();
 			ActorsToRemove = new HashSet<Actor>();
 			View = new ViewManager(Width, Height);
-			Graphics.InitGL();
+			Graphics.Init();
 			// Probably has to be called after the Graphics setup if it's going to be preloading
 			// textures and such...  Bit of a weird dependency inversion there, since the Graphics system
 			// will likely require loading shaders and such.
@@ -98,9 +98,8 @@ namespace Starmaze
 
 		protected override void OnRenderFrame(FrameEventArgs e)
 		{
-			Graphics.StartDraw();
+			Graphics.ClearScreen();
 			RenderManager.Render(View);
-			Graphics.FinishDraw();
 			SwapBuffers();
 		}
 	}

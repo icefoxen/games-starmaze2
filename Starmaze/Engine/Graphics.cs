@@ -214,14 +214,6 @@ namespace Starmaze.Engine
 	/// </summary>
 	// XXX: Making all the shader variables uniform could be done easily by making 
 	// the shaders all include a common header file, buuuuut...
-	// XXX: It might be easier to just have a 'vertex' type for each _sort_ of thing we want
-	// to put together, and make this able to load the things in and interleave them properly
-	// and stuff...  but then one starts worrying about packing and stuff like that.
-	// Some reflection might make it easier.
-	// It might be better to have each Vertex be composed of multiple VertexAttributes, which can
-	// then be fed into this in interleaved order.
-	// TODO: Make this indexed?  Even simply indexed, it would lay the path for properly indexed
-	// stuff in the future.  If we ever want to load meshes from files, for instance.
 	public class VertexArray : IDisposable
 	{
 		IEnumerable<VertexAttributeArray> AttributeLists;
@@ -405,10 +397,89 @@ namespace Starmaze.Engine
 	}
 
 	/// <summary>
+	/// A set of OpenGL parameters.
+	/// </summary>
+	public class GLDiscipline
+	{
+		public static readonly GLDiscipline DEFAULT = new GLDiscipline(
+			new Tuple<BlendingFactorSrc, BlendingFactorDest>(
+			BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha)
+		);
+		// XXX: The tuple here is a little janky.
+		Tuple<BlendingFactorSrc, BlendingFactorDest> blendFunc;
+
+		public GLDiscipline(Tuple<BlendingFactorSrc, BlendingFactorDest> blendfunc = null)
+		{
+			blendFunc = blendfunc;
+		}
+
+		public void ForceApply()
+		{
+			if (blendFunc != null) {
+				Console.WriteLine("Enabling blending");
+				GL.Enable(EnableCap.Blend);
+				GL.BlendFunc(blendFunc.Item1, blendFunc.Item2);
+			} else {
+				Console.WriteLine("Disabling blending");
+				GL.Disable(EnableCap.Blend);
+			}
+		}
+	}
+
+	/// <summary>
+	/// An object that tracks and is used to set the current OpenGL state.
+	/// </summary>
+	public class GLTracking
+	{
+		GLDiscipline discipline;
+		Shader shader;
+
+		public GLTracking()
+		{
+		}
+
+		public void SetDiscipline(GLDiscipline discipline)
+		{
+			if (discipline == this.discipline) {
+				return;
+			} else {
+				discipline.ForceApply();
+				this.discipline = discipline;
+			}
+		}
+
+		public void SetShader(Shader shader)
+		{
+			if (shader == this.shader) {
+				return;
+			} else if (shader == null) {
+				GL.UseProgram(0);
+			} else {
+				shader.Enable();
+				this.shader = shader;
+			}
+		}
+	}
+
+	/// <summary>
 	/// Functions for handily setting up OpenGL state.
 	/// </summary>
 	public static class Graphics
 	{
+		// Singleton pattern here, sigh.
+		static GLTracking _theGLTracking;
+
+		public static void InitGLTracking()
+		{
+			_theGLTracking = new GLTracking();
+		}
+
+		public static GLTracking TheGLTracking {
+			get {
+				return _theGLTracking;
+			}
+		}
+
 		public static string GetGLInfo()
 		{
 			var version = GL.GetString(StringName.Version);
@@ -419,24 +490,16 @@ namespace Starmaze.Engine
 			return String.Format("Using OpenGL version {0} from {1}, renderer {2}, GLSL version {3}", version, vendor, renderer, glslVersion);
 		}
 
-		public static void InitGL()
+		public static void Init()
 		{
-			GL.Enable(EnableCap.DepthTest);
-			GL.DepthMask(true);
-			GL.DepthFunc(DepthFunction.Lequal);
-			GL.DepthRange(0.0f, 1.0f);
-			Console.WriteLine(GetGLInfo());
+			Log.Message(GetGLInfo());
+			Graphics.InitGLTracking();
 		}
 
-		public static void StartDraw()
+		public static void ClearScreen()
 		{
-			var c = Color4.AliceBlue;
-			GL.ClearColor(Color4.Gray);
+			GL.ClearColor(Color4.Black);
 			GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-		}
-
-		public static void FinishDraw()
-		{
 		}
 	}
 }
