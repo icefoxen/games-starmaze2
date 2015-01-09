@@ -39,7 +39,8 @@ namespace Starmaze.Content
 		{
 			var shader = Resources.TheResources.GetShader("default");
 			var mb = new Starmaze.Engine.ModelBuilder();
-			mb.Circle(0, 0, 15, Color4.Green, numSegments: 16);
+			//mb.Circle(0, 0, 15, Color4.Green, numSegments: 16);
+			mb.Line(-10, 0, 10, 0, Color4.Green);
 			var model = mb.Finish();
 			var va = model.ToVertexArray(shader);
 			return va;

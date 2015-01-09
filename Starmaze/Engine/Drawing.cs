@@ -758,6 +758,13 @@ namespace Starmaze.Engine
 			path.Close(segments[segments.Count - 1]);
 			SubmitPath(path);
 		}
+		// XXX: Make sure this works correctly.
+		public void SubmitClosedPath(PathSegment segment)
+		{
+			var path = new Path();
+			path.Close(segment);
+			SubmitPath(path);
+		}
 
 		public void SubmitOpenPath(IList<PathSegment> segments)
 		{
@@ -768,6 +775,13 @@ namespace Starmaze.Engine
 			SubmitPath(path);
 		}
 
+		public void SubmitOpenPath(PathSegment segment)
+		{
+			var path = new Path();
+			path.AddSegment(segment);
+			SubmitPath(path);
+		}
+		// XXX: These don't have a way to specify line thickness...
 		public void Circle(double x, double y, double radius, Color4 color, int? numSegments = null)
 		{
 			var vertex = new LineArtVertex(new Vector2d(x + radius, y), color);
@@ -775,6 +789,44 @@ namespace Starmaze.Engine
 				new ArcSegment(vertex, vertex, new Vector2d(x,y), true, numSegments)
 			};
 			SubmitClosedPath(verts);
+		}
+
+		public void Arc(double cx, double cy, double radius, double sweep, Color4 color, double startAngle = 0.0,
+		                int? numSegments = null)
+		{
+			var pos0 = SMath.Rotate(Vector2d.UnitY, startAngle) * radius;
+			var pos1 = SMath.Rotate(Vector2d.UnitY, startAngle + sweep);
+			var v0 = new LineArtVertex(pos0, color: color);
+			var v1 = new LineArtVertex(pos1, color: color);
+			SubmitOpenPath(new ArcSegment(v0, v1, new Vector2d(cx, cy), true, numSegments));
+		}
+
+		public void Line(double x0, double y0, double x1, double y1, Color4 color)
+		{
+			var v0 = new LineArtVertex(new Vector2d(x0, y0), color: color);
+			var v1 = new LineArtVertex(new Vector2d(x1, y1), color: color);
+			SubmitOpenPath(new LineSegment(v0, v1));
+		}
+
+		public void Polygon(IList<LineArtVertex> verts)
+		{
+			var segments = new List<PathSegment>();
+			for (int i = 0; i < verts.Count - 1; i++) {
+				var segment = new LineSegment(verts[i], verts[i + 1]);
+				segments.Add(segment);
+			}
+			// Close the loop
+			segments.Add(new LineSegment(verts[verts.Count - 1], verts[0]));
+			SubmitClosedPath(segments);
+		}
+
+		public void PolygonUniform(IEnumerable<Vector2d> positions, Color4 color)
+		{
+			var verts = new List<LineArtVertex>();
+			foreach (var pos in positions) {
+				var v = new LineArtVertex(pos, color);
+			}
+			Polygon(verts);
 		}
 	}
 }
