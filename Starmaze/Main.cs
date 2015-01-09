@@ -17,7 +17,6 @@ namespace Starmaze
 		HashSet<Actor> Actors;
 		HashSet<Actor> ActorsToAdd;
 		HashSet<Actor> ActorsToRemove;
-		VertexArray model;
 
 		public World(int w, int h)
 			// Using 32 as the color format and depth causes issues on Linux, see
@@ -43,13 +42,13 @@ namespace Starmaze
 		{
 			Actors.Add(a);
 			a.World = this;
-			RenderManager.AddActorIfPossible(a);
+			RenderManager.Add(a);
 		}
 
 		void ReallyRemoveActor(Actor a)
 		{
 			Actors.Remove(a);
-			RenderManager.RemoveActorIfPossible(a);
+			RenderManager.Remove(a);
 		}
 
 		protected override void OnLoad(System.EventArgs e)
@@ -65,8 +64,8 @@ namespace Starmaze
 			Starmaze.Engine.Resources.InitResources();
 			RenderManager = new RenderManager();
 
-			var testact = new Actor();
-			ReallyAddActor(testact);
+			Player = new Actor();
+			ReallyAddActor(Player);
 
 			// 4/3 aspect ratio...
 			// XXX: This should be different.  We're going to need a resolution-independent coordinate
@@ -92,6 +91,9 @@ namespace Starmaze
 		protected override void OnUpdateFrame(FrameEventArgs e)
 		{
 			//View.Translate(0.001f, 0.0f);
+			foreach (var actor in Actors) {
+				actor.Update(e.Time);
+			}
 		}
 
 		protected override void OnRenderFrame(FrameEventArgs e)

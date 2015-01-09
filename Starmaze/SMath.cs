@@ -16,6 +16,12 @@ namespace Starmaze.Engine
 		{
 			return v0.X * v1.Y - v0.Y * v1.X;
 		}
+		// BUGGO: Verify sign, direction, units (degrees/radians)
+		// XXX: Always rotates around the origin.
+		public static Vector2d Rotate(Vector2d vec, double amount)
+		{
+			return new Vector2d(vec.X * Math.Cos(amount), vec.Y * Math.Sin(amount));
+		}
 		// Handy interpolation functions for types that don't include
 		// their own.
 		public static float Lerp(float a, float b, float alpha)

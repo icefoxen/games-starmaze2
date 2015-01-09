@@ -5,13 +5,11 @@ using OpenTK.Graphics.OpenGL;
 
 namespace Starmaze.Engine
 {
-	using RendererSet = Dictionary<Renderer, SortedSet<Actor>>;
-
 	public class RenderManager
 	{
 		// Will be needed eventually for postprocessing...
 		//int ScreenW, ScreenH;
-		SortedDictionary<Layer, RendererSet> Renderers;
+		SortedDictionary<Renderer, SortedSet<Actor>> Renderers;
 
 		public RenderManager() //int screenw, int screenh)
 		{
@@ -19,54 +17,50 @@ namespace Starmaze.Engine
 			//ScreenH = screenh;
 
 			// Fill out the required data structures.
-			Renderers = new SortedDictionary<Layer, RendererSet>();
-			foreach (Layer layer in Enum.GetValues(typeof(Layer))) {
-				Renderers[layer] = new Dictionary<Renderer, SortedSet<Actor>>();
-			}
+			Renderers = new SortedDictionary<Renderer, SortedSet<Actor>>();
 			foreach (var renderclass in Util.GetSubclassesOf(typeof(Renderer))) {
 				// Remember to get the cached renderer from the resources system here.
 				var renderer = Resources.TheResources.GetRenderer(renderclass.Name);
-				var layer = renderer.Layer;
-				Renderers[layer][renderer] = new SortedSet<Actor>();
+				//Console.WriteLine("Adding renderer {0}", renderer);
+				Renderers[renderer] = new SortedSet<Actor>();
+				//Renderers.Add(renderer, new SortedSet<Actor>());
 			}
+			//foreach (var r in Renderers) {
+			//	Console.WriteLine("Renderer: {0}, total {1}", r, Renderers.Count);
+			//}
 		}
 
-		public void Add(Renderer renderer, Actor act)
+		public void Add(Actor act)
 		{
-			var layer = Renderers[renderer.Layer];
-			layer[renderer].Add(act);
+			// OPT: Not caching the Renderer instance on the Actor feels a little goofy, but,
+			// should work fine if we don't do this too often.
+			var renderer = Resources.TheResources.GetRenderer(act.RenderClass);
+			//Console.WriteLine("Got renderer {0} for actor {1}", renderer, act);
+			Renderers[renderer].Add(act);
+			//foreach (var r in Renderers) {
+			//	Console.WriteLine("Renderer: {0}, total {1}", r, Renderers.Count);
+			//}
 		}
 
-		public void AddActorIfPossible(Actor act)
+		public void Remove(Actor act)
 		{
-			Add(act.Renderer, act);
-		}
-
-		public void Remove(Renderer renderer, Actor act)
-		{
-			var layer = Renderers[renderer.Layer];
-			layer[renderer].Remove(act);
-		}
-
-		public void RemoveActorIfPossible(Actor act)
-		{
-			Remove(act.Renderer, act);
+			// OPT: Same as Add()
+			var renderer = Resources.TheResources.GetRenderer(act.RenderClass);
+			Renderers[renderer].Remove(act);
 		}
 
 		public void Render(ViewManager view)
 		{
-			foreach (var layer in Renderers) {
-				var renderset = layer.Value;
-				foreach (var i in renderset) {
-					var renderer = i.Key;
-					var actors = i.Value;
-					renderer.RenderActors(view, actors);
-				}
+			foreach (var kv in Renderers) {
+				var renderer = kv.Key;
+				var actors = kv.Value;
+				//Console.WriteLine("Rendering {0} with {1}?", actors, renderer);
+				renderer.RenderActors(view, actors);
 			}
 		}
 	}
 
-	public enum Layer
+	public enum ZOrder
 	{
 		BG = 10,
 		FG = 20,
@@ -81,12 +75,13 @@ namespace Starmaze.Engine
 	/// </summary>
 	public abstract class Renderer : IComparable<Renderer>
 	{
-		public Layer Layer = Layer.FG;
+		public ZOrder ZOrder = ZOrder.FG;
+		long Serial;
 		protected Shader Shader;
 
 		public Renderer()
 		{
-
+			Serial = Util.GetSerial();
 		}
 
 		public virtual void RenderStart()
@@ -111,9 +106,23 @@ namespace Starmaze.Engine
 			RenderEnd();
 		}
 
+		/// <Docs>To be added.</Docs>
+		/// <para>Returns the sort order of the current instance compared to the specified object.</para>
+		/// <summary>
+		/// Renderers sort themselves first by their Z order, then in an arbitrary but consistent order.
+		/// This way we can all just put them in a SortedDictionary and have them draw in order without
+		/// an additional data structure to draw one layer at a time.
+		/// </summary>
+		/// <returns>The to.</returns>
+		/// <param name="other">Other.</param>
+		// OPT: I feel like it should be possible to do this without the if.
 		public int CompareTo(Renderer other)
 		{
-			return Layer.CompareTo(other.Layer);
+			if (other.ZOrder != ZOrder) {
+				return ZOrder.CompareTo(other.ZOrder);
+			} else {
+				return other.Serial.CompareTo(Serial);
+			}
 		}
 	}
 
@@ -153,21 +162,13 @@ namespace Starmaze.Engine
 			Shader.Disable();
 		}
 
-		float rot = 0.0f;
-
 		public override void RenderActor(ViewManager view, Actor act)
 		{
-			rot += 0.001f;
-			var transform1 = new Transform(new Vector2(0, (float)Math.Sin(rot)), 0, new Vector2(1.0f, 1.0f));
-			var mat1 = transform1.TransformMatrix(view.ProjectionMatrix);
-			//var transform = Matrix4.CreateTranslation(0, rot, 0);
-			//var mat = view.ProjectionMatrix * transform;
-			Shader.UniformMatrix("projection", mat1);
-			Model.Draw();
-			
-			var transform2 = new Transform(new Vector2((float)Math.Sin(rot), 0), 0, new Vector2(1.0f, 1.0f));
-			var mat2 = transform2.TransformMatrix(view.ProjectionMatrix);
-			Shader.UniformMatrix("projection", mat2);
+			//Console.WriteLine("Drawing actor");
+			var pos = new Vector2((float)act.Position.X, (float)act.Position.Y);
+			var transform = new Transform(pos, 0.0f);
+			var mat = transform.TransformMatrix(view.ProjectionMatrix);
+			Shader.UniformMatrix("projection", mat);
 			Model.Draw();
 		}
 	}

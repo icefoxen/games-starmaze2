@@ -25,7 +25,6 @@ namespace Starmaze.Engine
 		public Vector2d Position;
 		public object PhysicsObj;
 		public string RenderClass;
-		public Renderer Renderer;
 		// Other properties
 		public bool Alive = true;
 		public World World;
@@ -35,13 +34,12 @@ namespace Starmaze.Engine
 		public Actor()
 		{
 			RenderClass = "TestRenderer";
-			var renderer = Resources.TheResources.GetRenderer(RenderClass);
-			Renderer = renderer;
 			OrderingNumber = Util.GetSerial();
 		}
 
 		public virtual void Update(double dt)
 		{
+			Position += new Vector2d(dt, dt);
 		}
 
 		public virtual void OnDeath()
