@@ -1,6 +1,7 @@
 using System;
 using Starmaze;
 using Starmaze.Engine;
+using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
 
@@ -40,7 +41,17 @@ namespace Starmaze.Content
 			var shader = Resources.TheResources.GetShader("default");
 			var mb = new Starmaze.Engine.ModelBuilder();
 			//mb.Circle(0, 0, 15, Color4.Green, numSegments: 16);
-			mb.Line(-10, 0, 10, 0, Color4.Green);
+			mb.Circle(0, 0, 35, Color4.Red);
+			mb.Line(-10, -10, 10, -10, Color4.Green);
+			mb.Arc(-20, 20, 15, 3.0, Color4.Yellow);
+
+			var verts = new Vector2d[] {
+				new Vector2d(0, 0),
+				new Vector2d(30, 0),
+				new Vector2d(30, 30),
+				new Vector2d(0, 30),
+			};
+			mb.PolygonUniform(verts, Color4.BlueViolet);
 			var model = mb.Finish();
 			var va = model.ToVertexArray(shader);
 			return va;

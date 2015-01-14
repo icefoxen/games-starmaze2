@@ -271,9 +271,9 @@ namespace Starmaze.Engine
 			var radius1 = rel1.Length;
 			var angle0 = Math.Atan2(V0.Pos.Y - Center.Y, V0.Pos.X - Center.X);
 			var angle1 = Math.Atan2(V1.Pos.Y - Center.Y, V1.Pos.X - Center.X);
-			if (Clockwise && angle0 < angle1) {
+			if (Clockwise && angle0 <= angle1) {
 				angle1 -= SMath.TAU;
-			} else if (!Clockwise && angle0 >= angle1) {
+			} else if ((!Clockwise) && (angle0 >= angle1)) {
 				angle1 += SMath.TAU;
 			}
 			var nPieces = RequestedSegments ?? Math.Max(3, (int)Math.Ceiling(Math.Abs(angle1 - angle0) / RADIANS_PER_PIECE));
@@ -300,11 +300,11 @@ namespace Starmaze.Engine
 			// We only need to generate nPieces-1 points because the start and end points are both excluded.
 			// This might be more numerically stable than the tan/cos method and still doesn't take a sin/cos
 			// every iteration.  We shouldn't be doing this very often anyway.
-			for (int i = 0; i < nPieces; i++) {
+			for (int i = 1; i < nPieces; i++) {
 				curStrokeHalf += deltaStrokeHalf;
 				curRadius += deltaRadius;
-				unitX = unitX * cosDA - unitY - sinDA;
-				unitY = unitX * sinDA - unitY - cosDA;
+				unitX = unitX * cosDA - unitY * sinDA;
+				unitY = unitX * sinDA - unitY * cosDA;
 				var interiorPos = new Vector2d(Center.X + unitX * curRadius, Center.Y + unitY * curRadius);
 				var interior = LineArtVertex.Lerp(V0, V1, i * deltaAlpha, pos: interiorPos);
 				var sideR = new Vector2d(unitX * curStrokeHalf, unitY * curStrokeHalf);
@@ -343,12 +343,13 @@ namespace Starmaze.Engine
 		public void AddSegment(PathSegment segment)
 		{
 			// BUGGO: Fix this.
-			//Log.Assert(Segments.Count == 0 || segment.V0 == Segments[-1].V1);
+			//Log.Assert(Segments.Count != 0 || segment.V0 == Segments[-1].V1);
 			Log.Assert(!Closed);
 
 			if (Segments.Count != 0) {
-				segment.Before = Segments[-1];
-				Segments[-1].After = segment;
+				var lastSegment = Segments[Segments.Count - 1];
+				segment.Before = lastSegment;
+				lastSegment.After = segment;
 			}
 			Segments.Add(segment);
 		}
@@ -361,11 +362,11 @@ namespace Starmaze.Engine
 		/// end at the beginning of the path.  It closingSegment is null,
 		/// generate an appropriate segment to use.
 		/// </summary>
-		/// <param name="">.</param>
+		/// <param name="closingSegment">The segment to close the path with; generated automatically if null.</param>
 		public void Close(PathSegment closingSegment = null)
 		{
 			if (closingSegment == null) {
-				closingSegment = new LineSegment(Segments[-1].V1, Segments[0].V0);
+				closingSegment = new LineSegment(Segments[Segments.Count - 1].V1, Segments[0].V0);
 			}
 
 			AddSegment(closingSegment);
@@ -385,7 +386,8 @@ namespace Starmaze.Engine
 	}
 
 	/// <summary>
-	/// A model with packed vertex data suitable for uploading to OpenGL.
+	/// A model with vertex data suitable for uploading to OpenGL
+	/// (which means creating a VertexArray).
 	/// </summary>
 	public class VertexModel
 	{
@@ -409,7 +411,7 @@ namespace Starmaze.Engine
 		/// </summary>
 		/// <returns>Index of the first newly-appended index.</returns>
 		/// <param name="vertices">Vertices.</param>
-		public uint AddVertexes(IEnumerable<LineArtVertex> vertices)
+		public uint AddVertices(IEnumerable<LineArtVertex> vertices)
 		{
 			uint vertexCount = 0;
 			foreach (var vertex in vertices) {
@@ -472,7 +474,8 @@ namespace Starmaze.Engine
 	/// </summary>
 	// XXX: For now this is the only Tesselator we have, but in the Python code
 	// it's called the FadeLineTesselator.  If we ever write other tesselators
-	// they should all inherit from a base class.
+	// they should all inherit from a Tesselator base class.
+	// A SolidFillTesselator might be useful for instance.
 	public class Tesselator
 	{
 		readonly Color4 BACKGROUND_COLOR = new Color4(0.0f, 0.0f, 0.0f, 0.0f);
@@ -512,7 +515,7 @@ namespace Starmaze.Engine
 
 		IEnumerable<uint> AddVertices(IList<LineArtVertex> verts)
 		{
-			uint start = (uint)output.AddVertexes(verts);
+			uint start = output.AddVertices(verts);
 			return Util.UnsignedRange(start, (uint)(start + verts.Count));
 		}
 
@@ -576,7 +579,7 @@ namespace Starmaze.Engine
 			} else if (seg.Before.Closing || (lastIndices == null)) {
 				// The RHS of the disjunction is in case we start tessellating in the middle of a
 				// path somehow.  That feels like it might be useful later.
-				var jn = MiterishJoin(seg.Before.RawJoinOut(), seg.Before.RawJoinIn());
+				var jn = MiterishJoin(seg.Before.RawJoinOut(), seg.RawJoinIn());
 				var sideR = jn.Item1;
 				var sideL = jn.Item2;
 				var verts = new LineArtVertex[] {
@@ -614,9 +617,9 @@ namespace Starmaze.Engine
 			} else if (seg.Closing) {
 				CloseRoad();
 			} else {
-				var j = MiterishJoin(seg.RawJoinOut(), seg.RawJoinIn());
-				var sideR = j.Item1;
-				var sideL = j.Item2;
+				var jn = MiterishJoin(seg.RawJoinOut(), seg.After.RawJoinIn());
+				var sideR = jn.Item1;
+				var sideL = jn.Item2;
 				var nextVerts = new LineArtVertex[] {
 					Background(seg.Pos1 + sideR),
 					seg.V1,
@@ -795,7 +798,7 @@ namespace Starmaze.Engine
 		                int? numSegments = null)
 		{
 			var pos0 = SMath.Rotate(Vector2d.UnitY, startAngle) * radius;
-			var pos1 = SMath.Rotate(Vector2d.UnitY, startAngle + sweep);
+			var pos1 = SMath.Rotate(Vector2d.UnitY, startAngle + sweep) * radius;
 			var v0 = new LineArtVertex(pos0, color: color);
 			var v1 = new LineArtVertex(pos1, color: color);
 			SubmitOpenPath(new ArcSegment(v0, v1, new Vector2d(cx, cy), true, numSegments));
@@ -824,9 +827,55 @@ namespace Starmaze.Engine
 		{
 			var verts = new List<LineArtVertex>();
 			foreach (var pos in positions) {
-				var v = new LineArtVertex(pos, color);
+				var v = new LineArtVertex(pos, color: color);
+				verts.Add(v);
 			}
 			Polygon(verts);
+		}
+
+		public void PolyLine(IList<LineArtVertex> verts)
+		{
+			var segments = new List<PathSegment>();
+			for (int i = 0; i < verts.Count - 1; i++) {
+				var segment = new LineSegment(verts[i], verts[i + 1]);
+				segments.Add(segment);
+			}
+			SubmitOpenPath(segments);
+		}
+
+		public void PolyLineUniform(IEnumerable<Vector2d> positions, Color4 color)
+		{
+			var verts = new List<LineArtVertex>();
+			foreach (var pos in positions) {
+				var v = new LineArtVertex(pos, color: color);
+				verts.Add(v);
+			}
+			PolyLine(verts);
+		}
+
+		public void RectCenter(double cx, double cy, double w, double h, Color4 color)
+		{
+			var halfW = w / 2;
+			var halfH = h / 2;
+			var positions = new Vector2d[] {
+				new Vector2d(cx - halfW, cy - halfH),
+				new Vector2d(cx - halfW, cy + halfH),
+				new Vector2d(cx + halfW, cy -+ halfH),
+				new Vector2d(cx + halfW, cy - halfH),
+			};
+
+			PolygonUniform(positions, color);
+		}
+
+		public void RectCorner(double x0, double y0, double w, double h, Color4 color)
+		{
+			var positions = new Vector2d[] {
+				new Vector2d(x0, y0),
+				new Vector2d(x0, y0 + h),
+				new Vector2d(x0 + w, y0 + h),
+				new Vector2d(x0 + w, y0),
+			};
+			PolygonUniform(positions, color);
 		}
 	}
 }
