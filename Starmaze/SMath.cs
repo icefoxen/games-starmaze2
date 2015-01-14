@@ -42,5 +42,22 @@ namespace Starmaze.Engine
 			var a = (float)Math.Round(c1.A + (c2.A - c1.A) * alpha);
 			return new Color4(r, g, b, a);
 		}
+
+		/// <summary>
+		/// Limits the number to within the given bounds.
+		/// </summary>
+		/// <param name="number">Number.</param>
+		/// <param name="low">Low.</param>
+		/// <param name="high">High.</param>
+		public static double Clamp(double number, double low, double high)
+		{
+			if (number < low) {
+				return low;
+			} else if (number > high) {
+				return high;
+			} else {
+				return number;
+			}
+		}
 	}
 }
