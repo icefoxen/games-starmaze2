@@ -56,7 +56,7 @@ namespace Starmaze.Engine
 		public bool IntersectsBBox(BBox other)
 		{
 			return ((Left <= other.Left && other.Left <= Right) || (other.Left <= Left && Left <= other.Right)) &&
-			((Bottom <= other.Bottom && other.Bottom <= Top) || (other.Bottom <= Bottom && Bottom <= other.Top));
+				((Bottom <= other.Bottom && other.Bottom <= Top) || (other.Bottom <= Bottom && Bottom <= other.Top));
 		}
 
 		public BBox Intersection(BBox other)
@@ -75,7 +75,7 @@ namespace Starmaze.Engine
 		public bool ContainsPoint(Vector2d point)
 		{
 			return (Left <= point.X && point.X <= Right) &&
-			(Bottom <= point.Y && point.Y <= Top);
+				(Bottom <= point.Y && point.Y <= Top);
 		}
 
 		public Vector2d Center()
@@ -99,7 +99,6 @@ namespace Starmaze.Engine
 		{
 			return new BBox(Left + delta.X, Right + delta.X, Bottom + delta.Y, Top + delta.Y);
 		}
-
 	}
 
 	public class Line
@@ -132,7 +131,6 @@ namespace Starmaze.Engine
 		{
 			return new Vector2d(X0 + 0.5 * (X1 - X0), Y0 + 0.5 * (Y1 - Y0));
 		}
-
 	}
 
 	public class Intersection
@@ -164,6 +162,7 @@ namespace Starmaze.Engine
 	public abstract class Geom
 	{
 		// XXX: This should return the same type as itself in all children...
+		// Is there some handy way of doing that?
 		public virtual Geom Translate(Vector2d delta)
 		{
 			return null;
@@ -199,13 +198,11 @@ namespace Starmaze.Engine
 		{
 			return other.IntersectLine(this);
 		}
-
 		// TODO: Implement this
 		public override Intersection IntersectLine(Line other)
 		{
 			return null;
 		}
-
 		// TODO: Implement this
 		public override Intersection IntersectBBox(BBox other)
 		{
@@ -236,7 +233,6 @@ namespace Starmaze.Engine
 		{
 			return other.IntersectBBox(this.bbox);
 		}
-
 		// TODO: Implement this.
 		public override Intersection IntersectLine(Line other)
 		{
@@ -249,13 +245,22 @@ namespace Starmaze.Engine
 			if (intersectionBBox == null) {
 				return null;
 			}
-
-
+			var contact = intersectionBBox.Center();
+			// XXX: rather kludgy and approximate; should take into account starting velocity, etc.
+			var dx0 = contact.X - other.Left;
+			var dx1 = other.Right - contact.X;
+			var dx = Math.Min(dx0, dx1);
+			var xside = dx0 < dx1 ? -Vector2d.UnitX : Vector2d.UnitX;
+			var dy0 = contact.Y - other.Bottom;
+			var dy1 = other.Top - contact.Y;
+			var dy = Math.Min(dy0, dy1);
+			var yside = dy0 < dy1 ? Vector2d.UnitY : -Vector2d.UnitY;
+			var ds = Math.Min(dx, dy);
+			var sideNormal = dx < dy ? xside : yside;
+			var flat = dx < dy ? intersectionBBox.Dy : intersectionBBox.Dx;
+			return new Intersection(contact, sideNormal, 0.5 * ds, 0.5 * ds, flat);
 		}
 	}
-
-	// XXX: Should we have a CircleGeom too?  It makes life hard, though.
-
-
+	// XXX: Should we have a CircleGeom too?  It makes life harder, though.
 }
 
