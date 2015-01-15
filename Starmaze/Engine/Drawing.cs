@@ -209,9 +209,9 @@ namespace Starmaze.Engine
 	{
 		Vector2d Center;
 		bool Clockwise;
-		int? RequestedSegments;
+		int RequestedSegments;
 		const int DEFAULT_SEGMENTS = 16;
-		const double RADIANS_PER_PIECE = SMath.TAU / 16.0;
+		const double RADIANS_PER_PIECE = SMath.TAU / DEFAULT_SEGMENTS;
 
 		public ArcSegment(LineArtVertex v0, LineArtVertex v1, Vector2d center,
 		                  bool? clockwise = null, int? requestedSegments = null)
@@ -219,7 +219,9 @@ namespace Starmaze.Engine
 		{
 			Center = center;
 			Clockwise = clockwise ?? SMath.CrossZ(V0.Pos - Center, V1.Pos - Center) < 0;
-			RequestedSegments = requestedSegments;
+			// XXX: Might be better to come up with something based on RADIANS_PER_PIECE
+			// and the angle span of the arc.
+			RequestedSegments = requestedSegments ?? DEFAULT_SEGMENTS;
 		}
 
 		public RawJoin RawJoinAt(LineArtVertex v)
@@ -231,7 +233,7 @@ namespace Starmaze.Engine
 
 			var along = -side.PerpendicularRight;
 			return new RawJoin(side * v.StrokeHalfWidth, along,
-			                   side * -v.StrokeHalfWidth, along);
+				side * -v.StrokeHalfWidth, along);
 		}
 
 		public override RawJoin RawJoinIn()
@@ -265,6 +267,55 @@ namespace Starmaze.Engine
 			// Everything is in radians in this function because converting to degrees and back would
 			// be rather silly.
 
+			var offset0 = V0.Pos - Center;
+			var offset1 = V1.Pos - Center;
+			var angle0 = Math.Atan2(V0.Pos.Y - Center.Y, V0.Pos.X - Center.X);
+			var angle1 = Math.Atan2(V1.Pos.Y - Center.Y, V1.Pos.X - Center.X);
+			if (Clockwise && angle0 <= angle1) {
+				angle1 -= SMath.TAU;
+			} else if ((!Clockwise) && (angle0 >= angle1)) {
+				angle1 += SMath.TAU;
+			}
+			var angleStep = (angle1 - angle0) / RequestedSegments;
+
+			var radius0 = (V0.Pos - Center).Length;
+			var radius1 = (V1.Pos - Center).Length;
+			var radiusStep = (radius1 - radius0) / RequestedSegments;
+
+			var strokeHalfWidth0 = V0.StrokeHalfWidth;
+			var strokeHalfWidth1 = V1.StrokeHalfWidth;
+			var strokeHalfWidthStep = strokeHalfWidth1 - strokeHalfWidth0;
+
+			// This is alpha not in terms of color blending but rather in terms of
+			// how far we are through a lerp.
+			var alphaStep = 1.0 / RequestedSegments;
+
+			var currentAlpha = 0.0;
+			var currentAngle = angle0;
+			var currentRadius = radius0;
+			var currentX = Math.Cos(currentAngle) * radius0;
+			var currentY = Math.Sin(currentAngle) * radius0;
+			var currentStrokeHalfWidth = strokeHalfWidth0;
+			for (int i = 1; i < RequestedSegments; i++) {
+				currentAlpha += alphaStep;
+				currentAngle += angleStep;
+				currentRadius += radiusStep;
+				currentX = Math.Cos(currentAngle) * currentRadius;
+				currentY = Math.Sin(currentAngle) * currentRadius;
+				currentStrokeHalfWidth += strokeHalfWidthStep;
+
+				Console.WriteLine("Generating point at x {0}, y {1}, radius {2}, angle {3}", currentX, currentY, currentRadius, currentAngle);
+
+				var currentOffset = new Vector2d(currentX, currentY);
+				var currentPosition = currentOffset + Center;
+				var currentVertex = LineArtVertex.Lerp(V0, V1, currentAlpha, pos: currentPosition);
+				var currentNormal = currentOffset.Normalized();
+				var inner = currentNormal * currentStrokeHalfWidth;
+				var outer = -inner;
+				yield return new Tuple<LineArtVertex, Vector2d, Vector2d>(currentVertex, outer, inner);
+			}
+
+			/*
 			var rel0 = V0.Pos - Center;
 			var rel1 = V1.Pos - Center;
 			var radius0 = rel0.Length;
@@ -281,10 +332,6 @@ namespace Starmaze.Engine
 			var deltaRadius = (radius1 - radius0) * deltaAlpha;
 			var deltaAngle = (angle1 - angle0) * deltaAlpha;
 			var deltaStrokeHalf = (V1.StrokeHalfWidth - V0.StrokeHalfWidth) * deltaAlpha;
-			if (Clockwise) {
-				// This corresponds to the negation of curStrokeHalf below
-				deltaStrokeHalf = -deltaStrokeHalf;
-			}
 
 			var sinDA = Math.Sin(deltaAngle);
 			var cosDA = Math.Cos(deltaAngle);
@@ -296,6 +343,7 @@ namespace Starmaze.Engine
 			var curStrokeHalf = V0.StrokeHalfWidth;
 			if (Clockwise) {
 				curStrokeHalf = -curStrokeHalf;
+				deltaStrokeHalf = -deltaStrokeHalf;
 			}
 			// We only need to generate nPieces-1 points because the start and end points are both excluded.
 			// This might be more numerically stable than the tan/cos method and still doesn't take a sin/cos
@@ -311,7 +359,7 @@ namespace Starmaze.Engine
 				yield return new Tuple<LineArtVertex, Vector2d, Vector2d>(interior, sideR, -sideR);
 			}
 			yield break;
-
+			*/
 		}
 	}
 
@@ -343,7 +391,8 @@ namespace Starmaze.Engine
 		public void AddSegment(PathSegment segment)
 		{
 			// BUGGO: Fix this.
-			//Log.Assert(Segments.Count != 0 || segment.V0 == Segments[-1].V1);
+			// LineArtVertex needs to be comparable.
+			//Log.Assert(Segments.Count != 0 || segment.V0 == Segments[Segments.Count - 1].V1);
 			Log.Assert(!Closed);
 
 			if (Segments.Count != 0) {
@@ -454,7 +503,7 @@ namespace Starmaze.Engine
 			attrList.Add(thePositions);
 			attrList.Add(theColors);
 			var vertArray = new VertexArray(s, attrList, indices,
-			                                prim: PrimitiveType.Triangles, usage: BufferUsageHint.StaticDraw);
+				                prim: PrimitiveType.Triangles, usage: BufferUsageHint.StaticDraw);
 			return vertArray;
 		}
 	}
@@ -789,7 +838,7 @@ namespace Starmaze.Engine
 		{
 			var vertex = new LineArtVertex(new Vector2d(x + radius, y), color);
 			var verts = new PathSegment[] {
-				new ArcSegment(vertex, vertex, new Vector2d(x,y), true, numSegments)
+				new ArcSegment(vertex, vertex, new Vector2d(x, y), true, numSegments)
 			};
 			SubmitClosedPath(verts);
 		}
@@ -801,7 +850,7 @@ namespace Starmaze.Engine
 			var pos1 = SMath.Rotate(Vector2d.UnitY, startAngle + sweep) * radius;
 			var v0 = new LineArtVertex(pos0, color: color);
 			var v1 = new LineArtVertex(pos1, color: color);
-			SubmitOpenPath(new ArcSegment(v0, v1, new Vector2d(cx, cy), true, numSegments));
+			SubmitOpenPath(new ArcSegment(v1, v0, new Vector2d(cx, cy), true, numSegments));
 		}
 
 		public void Line(double x0, double y0, double x1, double y1, Color4 color)
@@ -860,7 +909,7 @@ namespace Starmaze.Engine
 			var positions = new Vector2d[] {
 				new Vector2d(cx - halfW, cy - halfH),
 				new Vector2d(cx - halfW, cy + halfH),
-				new Vector2d(cx + halfW, cy -+ halfH),
+				new Vector2d(cx + halfW, cy + halfH),
 				new Vector2d(cx + halfW, cy - halfH),
 			};
 

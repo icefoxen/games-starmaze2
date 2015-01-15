@@ -6,6 +6,9 @@ using System.Linq;
 
 namespace Starmaze
 {
+	/// <summary>
+	/// A class containing various handy static values and functions.
+	/// </summary>
 	public static class Util
 	{
 		public const string WindowTitle = "Starmaze";
@@ -21,6 +24,7 @@ namespace Starmaze
 
 		/// <summary>
 		/// Returns a serial number that is never the same twice (to within the accuracy of a long at least).
+		/// Generally used for assigning arbitrary-but-consistent ordering to objects.
 		/// </summary>
 		/// <returns>Serial number</returns>
 		public static long GetSerial()
