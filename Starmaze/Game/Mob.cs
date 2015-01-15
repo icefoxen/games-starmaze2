@@ -9,6 +9,27 @@ namespace Starmaze.Game
 		}
 	}
 
+	public class Timer{
+		float Time { get; set; }
+		float DefaultTime { get; set; }
+
+		public Timer( float time = 0f, float defaultTime = 0f){
+			Time = time;
+			DefaultTime = defaultTime;
+		}
+
+		public void Reset(){
+			Time = DefaultTime;
+		}
+
+		public void Update(float dt){
+			Time-=dt;
+		}
+
+		public bool Expired(){
+			return(Time <= 0f);
+		}
+	}//end Timer
 
 	public class Life : Engine.Component{
 		float CurrentLife { get; set; }
@@ -102,5 +123,7 @@ namespace Starmaze.Game
 			}
 		}
 	} //end TimedLife component
+
+
 }
 
