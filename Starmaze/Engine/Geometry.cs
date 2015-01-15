@@ -56,7 +56,7 @@ namespace Starmaze.Engine
 		public bool IntersectsBBox(BBox other)
 		{
 			return ((Left <= other.Left && other.Left <= Right) || (other.Left <= Left && Left <= other.Right)) &&
-				((Bottom <= other.Bottom && other.Bottom <= Top) || (other.Bottom <= Bottom && Bottom <= other.Top));
+			((Bottom <= other.Bottom && other.Bottom <= Top) || (other.Bottom <= Bottom && Bottom <= other.Top));
 		}
 
 		public BBox Intersection(BBox other)
@@ -75,7 +75,7 @@ namespace Starmaze.Engine
 		public bool ContainsPoint(Vector2d point)
 		{
 			return (Left <= point.X && point.X <= Right) &&
-				(Bottom <= point.Y && point.Y <= Top);
+			(Bottom <= point.Y && point.Y <= Top);
 		}
 
 		public Vector2d Center()
@@ -196,7 +196,8 @@ namespace Starmaze.Engine
 
 		public override Intersection Intersect(Geom other)
 		{
-			return other.IntersectLine(this);
+			//return other.IntersectLine(this);
+			return null;
 		}
 		// TODO: Implement this
 		public override Intersection IntersectLine(Line other)
