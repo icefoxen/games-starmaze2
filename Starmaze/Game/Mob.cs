@@ -73,6 +73,7 @@ namespace Starmaze.Game
 				this.Owner.Alive = false;
 			}
 			string output = "Took " + attenuatedDamage.ToString() + " out of " + damage.ToString() + " damage, life is now " + CurrentLife.ToString();
+			Log.Message(output);
 		}
 	} //end Life component
 		
