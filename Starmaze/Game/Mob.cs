@@ -85,5 +85,22 @@ namespace Starmaze.Game
 		}
 
 	} //end Energy component
+
+	public class TimedLife : Engine.Component {
+		float Time { get; set; }
+		float MaxTime { get; set; }
+
+		public TimedLife(Engine.Actor owner, float time) : base(owner) {
+			Time = time;
+			MaxTime = time;
+		}
+
+		public void Update(float dt) {
+			Time -= dt;
+			if (Time <= 0) {
+				Owner.Alive = false;
+			}
+		}
+	} //end TimedLife component
 }
 
