@@ -19,7 +19,7 @@ namespace Starmaze.Game
 		//Applied BEFORE attenuation
 		float DamageReduction { get; set; } 
 
-		public Life(Engine.Actor owner, float hpsIn, float maxLifeIn = -1.0f, float attenuationIn = 1.0f, float reductionIn = 0.0f) : base(owner){
+		public Life(Engine.Actor owner, float hpsIn, float maxLifeIn = -1.0f, float attenuationIn = 1.0f, float reductionIn = 0.0f) : base(owner) {
 			//this = new Engine.Component(owner); 
 			this.Owner = owner;
 			CurrentLife = hpsIn;
@@ -34,7 +34,7 @@ namespace Starmaze.Game
 			DamageReduction = reductionIn;
 
 		}
-		public void takeDamage(Engine.Actor damager, float damage){
+		public void TakeDamage(Engine.Actor damager, float damage){
 			float reducedDamage = Math.Max(0, damage - DamageReduction);
 			float attenuatedDamage = reducedDamage - DamageReduction;
 			/*TODO: Rewrite sound to fit with OpenTK
@@ -54,5 +54,36 @@ namespace Starmaze.Game
 			string output = "Took " + attenuatedDamage.ToString() + " out of " + damage.ToString() + " damage, life is now " + CurrentLife.ToString();
 		}
 	} //end Life component
+		
+	public class Energy : Engine.Component{
+		float MaxEnergy { get; set; }
+		float CurrentEnergy { get; set; }
+		float RegenRate { get; set; }
+
+		public Energy(Engine.Actor owner, float maxEnergy=100f, float regenRate =10f) : base(owner) {
+			MaxEnergy = maxEnergy;
+			CurrentEnergy = maxEnergy / 2f;
+			RegenRate = RegenRate;
+		}
+
+		public bool Expend(float amount) {
+			if (amount <= CurrentEnergy) {
+				CurrentEnergy -= amount;
+				return true;
+			} else {
+				return false;
+			}
+		}
+
+		public void Update(float dt){
+			if (CurrentEnergy < MaxEnergy) {
+				CurrentEnergy += RegenRate * dt;
+			}
+			if (CurrentEnergy > MaxEnergy) {
+				CurrentEnergy = MaxEnergy;
+			}
+		}
+
+	} //end Energy component
 }
 
