@@ -1,5 +1,6 @@
 syntax: glob
 Starmaze/bin
+Starmaze/obj
 Starmaze/Starmaze.userprefs
 \#*\#
 *~

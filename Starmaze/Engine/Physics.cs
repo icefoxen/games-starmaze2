@@ -32,7 +32,7 @@ namespace Starmaze.Engine
 	/// </summary>
 	public class Space
 	{
-		HashSet<Body> Things;
+		//HashSet<Body> Things;
 	}
 }
 

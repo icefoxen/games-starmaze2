@@ -45,8 +45,8 @@ namespace Starmaze.Engine
 			var halfWidth = VisibleSize.X / 2;
 			var halfHeight = VisibleSize.Y / 2;
 			ProjectionMatrix = Matrix4.CreateOrthographicOffCenter(x - halfWidth, x + halfWidth,
-			                                                       y - halfHeight, y + halfHeight,
-			                                                       ZNear, ZFar);
+				y - halfHeight, y + halfHeight,
+				ZNear, ZFar);
 		}
 	}
 
@@ -124,9 +124,9 @@ namespace Starmaze.Engine
 			GL.BindTexture(TextureTarget.Texture2D, Handle);
 
 			BitmapData data = bitmap.LockBits(new System.Drawing.Rectangle(0, 0, bitmap.Width, bitmap.Height),
-			                                  ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+				                  ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
 			GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, data.Width, data.Height, 0,
-			              OpenTK.Graphics.OpenGL.PixelFormat.Bgra, PixelType.UnsignedByte, data.Scan0);
+				OpenTK.Graphics.OpenGL.PixelFormat.Bgra, PixelType.UnsignedByte, data.Scan0);
 			bitmap.UnlockBits(data);
 
 			GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
@@ -349,7 +349,7 @@ namespace Starmaze.Engine
 			}
 			var allAttrs = accm.ToArray();
 			GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(allAttrs.Length * VertexAttributeArray.SizeOfElement),
-			              allAttrs, usageHint);
+				allAttrs, usageHint);
 		}
 
 		void AddIndicesToBuffer(IList<uint> indices)
@@ -359,7 +359,7 @@ namespace Starmaze.Engine
 			// OPT: If we were stricter we might be able to get rid of this copy
 			indices.CopyTo(indexArray, 0);
 			GL.BufferData(BufferTarget.ElementArrayBuffer, (IntPtr)(indexArray.Length * sizeof(int)),
-			              indexArray, BufferUsageHint.StaticRead);
+				indexArray, BufferUsageHint.StaticRead);
 		}
 
 		void SetupVertexPointers(Shader shader, IEnumerable<VertexAttributeArray> attrs)
@@ -371,7 +371,7 @@ namespace Starmaze.Engine
 				var location = shader.VertexAttributeLocation(attr.Name);
 				GL.EnableVertexAttribArray(location);
 				GL.VertexAttribPointer(location, attr.ElementsPerVertex, VertexAttribPointerType.Float,
-				                       false, 0, byteOffset);
+					false, 0, byteOffset);
 				byteOffset += attr.LengthInElements() * VertexAttributeArray.SizeOfElement;
 
 			}
@@ -402,9 +402,9 @@ namespace Starmaze.Engine
 	public class GLDiscipline
 	{
 		public static readonly GLDiscipline DEFAULT = new GLDiscipline(
-			new Tuple<BlendingFactorSrc, BlendingFactorDest>(
-			BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha)
-		);
+			                                              new Tuple<BlendingFactorSrc, BlendingFactorDest>(
+				                                              BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha)
+		                                              );
 		// XXX: The tuple here is a little janky.
 		Tuple<BlendingFactorSrc, BlendingFactorDest> blendFunc;
 

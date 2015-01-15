@@ -23,12 +23,12 @@ If you don't have anything else to do, try these!
 
 # C# version
 
-This is going to be the main version, but for the moment doesn't really exist.
+This is the main branch.
 
 ## Dependencies
 
 * OpenTK (DLL included in repo)
-* Should work both on MS .NET and Mono, .NET version 4.5
+* Should work both on MS .NET and Mono, C# version >= 4.0, .NET version 4.5
 
 ## Setting up a new dev environment
 
