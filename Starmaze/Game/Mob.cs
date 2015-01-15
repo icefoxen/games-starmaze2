@@ -124,6 +124,11 @@ namespace Starmaze.Game
 		}
 	} //end TimedLife component
 
-
+	//TODO: ParticleSystem reimplementation seems to depend on implementation of graphics
+	//Might belong in Engine.Component instead?
+	//public class ParticleSystem : Engine.Component {
+		//texture Tex
+		//particleGroup
+	//}//end ParticleSystem component
 }
 
