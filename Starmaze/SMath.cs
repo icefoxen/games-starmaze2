@@ -2,7 +2,7 @@ using System;
 using OpenTK;
 using OpenTK.Graphics;
 
-namespace Starmaze.Engine
+namespace Starmaze
 {
 	/// <summary>
 	/// random math stuff.

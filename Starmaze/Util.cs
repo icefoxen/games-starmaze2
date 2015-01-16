@@ -66,26 +66,25 @@ namespace Starmaze
 			Debug.Assert(assertion);
 		}
 
+		public static void Assert(bool assertion, string message, params object[] args)
+		{
+			Debug.Assert(assertion, String.Format(message, args));
+		}
+
+
 		[Conditional("DEBUG")]
-		public static void Warn(bool assertion, string message)
+		public static void Warn(bool assertion, string message, params object[] args)
 		{
 			// TODO: Implement this for cases where an assertion is too strong;
 			// ie, recoverable errors that nonetheless should never happen.
 			Debug.Assert(assertion, message);
 		}
 
-		[Conditional("DEBUG")]
-		public static void Message(string message)
+		public static void Message(string message, params object[] args)
 		{
 			// TODO: Implement this for messages (like OpenGL version) that are useful to have
 			// but which the user shouldn't confront unless they look for it.
-			Console.WriteLine(message);
-		}
-
-		[Conditional("DEBUG")]
-		public static void Message(string message, params object[] args)
-		{
-			Message(String.Format(message, args));
+			Console.WriteLine(String.Format(message, args));
 		}
 	}
 }
