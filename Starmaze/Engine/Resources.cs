@@ -74,6 +74,7 @@ namespace Starmaze.Engine
 			// We don't use the ResourceLoader.Get function here 'cause all renderers
 			// are preloaded and associating a string to a renderer is a little squirrelly.
 			// So we don't actually have a LoadRenderer function.
+			Log.Assert(RendererCache.ContainsKey(r), "Renderer cache does not contain key {0}", r);
 			return RendererCache[r];
 		}
 

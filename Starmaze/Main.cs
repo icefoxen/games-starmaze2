@@ -11,8 +11,9 @@ namespace Starmaze
 	public class World : GameWindow
 	{
 		RenderManager RenderManager;
-		Actor Player;
-		Actor Gui;
+		Space Space;
+		Starmaze.Game.Player Player;
+		//Actor Gui;
 		ViewManager View;
 		HashSet<Actor> Actors;
 		HashSet<Actor> ActorsToAdd;
@@ -24,8 +25,9 @@ namespace Starmaze
 			: base(w, h, new GraphicsMode(24, 24, 0, 0), Util.WindowTitle, GameWindowFlags.Default, DisplayDevice.Default,
 			       Util.GlMajorVersion, Util.GlMinorVersion, GraphicsContextFlags.Default)
 		{
-			// All of this is basically done in OnLoad() because that guarentees the OpenGL context has been
+			// All 'construction' is basically done in OnLoad() because that guarentees the OpenGL context has been
 			// set up.
+			Log.Message("Context: {0}", this.Context);
 		}
 
 		public void AddActor(Actor a)
@@ -43,12 +45,14 @@ namespace Starmaze
 			Actors.Add(a);
 			a.World = this;
 			RenderManager.Add(a);
+			Space.Add(a.Body);
 		}
 
 		void ReallyRemoveActor(Actor a)
 		{
 			Actors.Remove(a);
 			RenderManager.Remove(a);
+			Space.Remove(a.Body);
 		}
 
 		protected override void OnLoad(System.EventArgs e)
@@ -63,8 +67,9 @@ namespace Starmaze
 			// will likely require loading shaders and such.
 			Starmaze.Engine.Resources.InitResources();
 			RenderManager = new RenderManager();
+			Space = new Space();
 
-			Player = new Actor();
+			Player = new Starmaze.Game.Player();
 			ReallyAddActor(Player);
 
 			// 4/3 aspect ratio...
@@ -75,6 +80,7 @@ namespace Starmaze
 
 		protected override void OnUnload(EventArgs e)
 		{
+			Log.Message("Context: {0}", this.Context);
 			Resources.CleanupResources();
 		}
 
@@ -94,6 +100,7 @@ namespace Starmaze
 			foreach (var actor in Actors) {
 				actor.Update(e.Time);
 			}
+			Space.Update(e.Time);
 		}
 
 		protected override void OnRenderFrame(FrameEventArgs e)
@@ -111,7 +118,7 @@ namespace Starmaze
 		{
 			const int width = 1024;
 			const int height = 768;
-			const int physicsRate = 30;
+			var physicsRate = Physics.PHYSICS_HZ;
 			using (var g = new World(width, height)) {
 				Console.WriteLine("Game started...");
 				// If no graphics frame rate is entered, it will just run as fast as it can.

@@ -304,7 +304,7 @@ namespace Starmaze.Engine
 				currentY = Math.Sin(currentAngle) * currentRadius;
 				currentStrokeHalfWidth += strokeHalfWidthStep;
 
-				Console.WriteLine("Generating point at x {0}, y {1}, radius {2}, angle {3}", currentX, currentY, currentRadius, currentAngle);
+				//Console.WriteLine("Generating point at x {0}, y {1}, radius {2}, angle {3}", currentX, currentY, currentRadius, currentAngle);
 
 				var currentOffset = new Vector2d(currentX, currentY);
 				var currentPosition = currentOffset + Center;

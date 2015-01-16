@@ -169,7 +169,31 @@ namespace Starmaze.Engine
 		public override void RenderOne(ViewManager view, Actor act)
 		{
 			//Console.WriteLine("Drawing actor");
-			var pos = new Vector2((float)act.Position.X, (float)act.Position.Y);
+			var pos = new Vector2((float)act.Body.Position.X, (float)act.Body.Position.Y);
+			var transform = new Transform(pos, 0.0f);
+			var mat = transform.TransformMatrix(view.ProjectionMatrix);
+			shader.UniformMatrix("projection", mat);
+			model.Draw();
+		}
+	}
+
+	public class PlayerRenderer : Renderer
+	{
+		VertexArray model;
+
+		public PlayerRenderer() : base()
+		{
+			//Model = Starmaze.Content.Images.TestModel2();
+			//Model = Resources.TheResources.GetModel("TestModel2");
+			model = Resources.TheResources.GetModel("Player");
+			shader = Resources.TheResources.GetShader("default");
+			discipline = GLDiscipline.DEFAULT;
+		}
+
+		public override void RenderOne(ViewManager view, Actor act)
+		{
+			//Console.WriteLine("Drawing actor");
+			var pos = new Vector2((float)act.Body.Position.X, (float)act.Body.Position.Y);
 			var transform = new Transform(pos, 0.0f);
 			var mat = transform.TransformMatrix(view.ProjectionMatrix);
 			shader.UniformMatrix("projection", mat);

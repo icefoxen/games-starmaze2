@@ -50,6 +50,22 @@ namespace Starmaze.Content
 			var va = model.ToVertexArray(shader);
 			return va;
 		}
+
+		public static VertexArray Player()
+		{
+			var shader = Resources.TheResources.GetShader("default");
+			var mb = new Starmaze.Engine.ModelBuilder();
+			var pcol = Color4.Green;
+			var radius = 5;
+			var spokeLength = 9;
+			mb.Circle(0, 0, radius, pcol);
+			mb.Line(0, 0, spokeLength, 0, pcol);
+			mb.Line(0, 0, -spokeLength, 0, pcol);
+			mb.Line(0, 0, 0, spokeLength, pcol);
+			mb.Line(0, 0, 0, -spokeLength, pcol);
+			var model = mb.Finish();
+			return model.ToVertexArray(shader);
+		}
 	}
 }
 

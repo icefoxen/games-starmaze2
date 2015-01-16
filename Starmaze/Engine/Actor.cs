@@ -21,15 +21,15 @@ namespace Starmaze.Engine
 	/// </summary>
 	public class Actor : IComparable<Actor>
 	{
-		// Default components.
-		public Vector2d Position;
-		public object PhysicsObj;
-		public string RenderClass;
+		// Components.
+		public Body Body;
+		public Component Controller;
+
 		// Other properties
+		public readonly long OrderingNumber;
+		public string RenderClass;
 		public bool Alive = true;
 		public World World;
-		public bool OnGround = false;
-		public readonly long OrderingNumber;
 
 		public Actor()
 		{
@@ -39,7 +39,6 @@ namespace Starmaze.Engine
 
 		public virtual void Update(double dt)
 		{
-			Position += new Vector2d(dt, dt);
 		}
 
 		public virtual void OnDeath()
