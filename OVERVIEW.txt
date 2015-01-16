@@ -21,12 +21,12 @@ Game/                         | General-purpose gameplay systems
     
 Content/                      | Level-specific objects and features
    Enemies.cs                 | Concrete, non-zone-specific enemy types
-   Images.cs                  | All The Programmatic Vector Images
+   Images.cs                  | All The Programmatic Vector Images (break this down more if necessary)
 
    {Air,Beginnings}/          | Zone-specific game content.  Some files may not be present.
       Enemies.cs              | Zone-specific enemy implementations
       Powers.cs               | Powers associated with this zone
-      Zone.cs                 | Level features and generation code
+      Zone.cs                 | Zone-specific level features and generation code
 
 Main.cs                       | Main game window code
 SMath.cs                      | Useful math functions
@@ -34,9 +34,12 @@ Util.cs                       | Useful misc. functions
 
 Note that this layout is fluid and may change!  Game/Enemies.cs may not be necessary after all, for instance.  Or we might need to add Game/Powers.cs 
 
-Dependencies should flow downward only within the starmaze package:
+Dependencies should flow downward only within the Starmaze namespace:
 
-  Util -> Engine -> Game -> Content -> Main
+  Starmaze -> Starmaze.Engine -> Starmaze.Game -> Starmaze.Content -> Starmaze.Main
 
 Within any of those packages, modules may depend on each other more or
 less freely, but preferably not circularly.
+
+Essentially, Engine should be low-level systems: drawing, resource loading, physics, etc.  Game should be higher-level tools to make it possible to actually put a game together: components, actors, life meters, terrain generation code, etc.  Content should be all the final actual things that go into making each zone.  This modularity should hopefully make it easier to not have everything degenerate into a pile of spaghetti (by making the dependency ordering a bit more explicit), as well as letting people find and work on things in a more compartmentalized manner (seeing someone changed Content/Air/Powers.cs tells you a lot more than seeing they changed Components.cs)
+
