@@ -110,6 +110,7 @@ namespace Starmaze.Engine
 			return Get(ModelCache, LoadModel, name);
 		}
 
+		// XXX: Dependency inversion here; should Content/Images.cs be elsewhere, or defined differently?
 		VertexArray LoadModel(string name)
 		{
 			var t = typeof(Starmaze.Content.Images);

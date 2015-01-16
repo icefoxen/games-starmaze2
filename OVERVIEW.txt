@@ -1,0 +1,42 @@
+Overview of general file layout.
+
+Engine/                       | Low-level engine code
+   Actor.cs                   | Actor/Component structure
+   Drawing.cs                 | Vector graphics drawing and rendering
+   Geometry.cs                | Low-level physics shapes and pprimitives
+   Particle.cs                | Particle systems
+   Physics.cs                 | Physics and collision processing
+   Renderer.cs                | Graphics state juggling and drawing specifics
+   Resources.cs               | Resource loading, caching and transformation
+   Shader.cs                  | OpenGL shader loading
+    
+Game/                         | General-purpose gameplay systems
+   Enemies.cs                 | Base enemy behavior
+   Items.cs                   | Base item/pickup behavior
+   Mob.cs                     | Base moving-actor/mob behavior
+   Player.cs                  | Player controls and interactions
+   Powers.cs                  | Base classes for powers and powerups
+   Terrain.cs                 | Elements for constructing levels
+   UI.cs                      | GUI drawing and interface elements
+    
+Content/                      | Level-specific objects and features
+   Enemies.cs                 | Concrete, non-zone-specific enemy types
+   Images.cs                  | All The Programmatic Vector Images
+
+   {Air,Beginnings}/          | Zone-specific game content.  Some files may not be present.
+      Enemies.cs              | Zone-specific enemy implementations
+      Powers.cs               | Powers associated with this zone
+      Zone.cs                 | Level features and generation code
+
+Main.cs                       | Main game window code
+SMath.cs                      | Useful math functions
+Util.cs                       | Useful misc. functions
+
+Note that this layout is fluid and may change!  Game/Enemies.cs may not be necessary after all, for instance.  Or we might need to add Game/Powers.cs 
+
+Dependencies should flow downward only within the starmaze package:
+
+  Util -> Engine -> Game -> Content -> Main
+
+Within any of those packages, modules may depend on each other more or
+less freely, but preferably not circularly.
