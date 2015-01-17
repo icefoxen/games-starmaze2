@@ -85,7 +85,8 @@ namespace Starmaze.Game
 			if (CurrentLife <= 0) {
 				this.Owner.Alive = false;
 			}
-			string output = "Took " + attenuatedDamage.ToString() + " out of " + damage.ToString() + " damage, life is now " + CurrentLife.ToString();
+			//string output = "Took " + attenuatedDamage.ToString() + " out of " + damage.ToString() + " damage, life is now " + CurrentLife.ToString();
+			string output = String.Format("Took {0} out of {1} damage, life is now {2}.", attenuatedDamage, damage, CurrentLife);
 			Log.Message(output);
 		}
 	}
