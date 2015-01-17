@@ -1,8 +1,9 @@
 using System;
+using Starmaze.Engine;
 
 namespace Starmaze.Content
 {
-	class CrawlerEnemy : Engine.Actor {
+	class CrawlerEnemy : Actor {
 		//TODO: Incomplete port of python CrawlerEnemy
 
 		//Controller = new RoamAIController;
@@ -30,7 +31,7 @@ namespace Starmaze.Content
 		}
 	} //end CralwerEnemy
 
-	class TrooperEnemy : Engine.Actor {
+	class TrooperEnemy : Actor {
 		//TODO: Incomplete port of python TrooperEnemy
 		Game.Life life;
 
@@ -40,7 +41,7 @@ namespace Starmaze.Content
 		}
 	} //end TrooperEnemy
 
-	class ArcherEnemy : Engine.Actor {
+	class ArcherEnemy : Actor {
 		//TODO: Incomplete port of python ArcherEnemy
 		Game.Life life;
 
@@ -50,7 +51,7 @@ namespace Starmaze.Content
 		}
 	}//end ArcherEnemy
 
-	class FloaterEnemy : Engine.Actor {
+	class FloaterEnemy : Actor {
 		//TODO: Incomplete port of python FloaterEnemy
 		Game.Life life;
 
@@ -59,7 +60,7 @@ namespace Starmaze.Content
 		}
 	} // end FloaterEnemy
 
-	class EliteEnemy : Engine.Actor {
+	class EliteEnemy : Actor {
 		//TODO: Incompelte port of python EliteEnemy
 		Game.Life life;
 
