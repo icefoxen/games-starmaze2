@@ -581,14 +581,47 @@ namespace Starmaze.Engine
 			lastIndices = new List<uint>(indices);
 		}
 		// Might be nicer with a params argument?  I dunno...
-		void AdvanceTo(IList<LineArtVertex> verts)
+		void AdvanceTo(IList<LineArtVertex> verts, bool swapTriangleFacing = false)
 		{
 			var indices = new List<uint>(AddVertices(verts));
 			//Console.WriteLine("Verts length: {0}, indices length: {1}", verts.Count, indices.Count);
-			for (int i = 0; i < ROAD_LANES; i++) {
-				//Console.WriteLine("lastIndices: {0}, i: {1}, indices: {2}", lastIndices.Count, i, indices.Count);
-				AddQuad(lastIndices[i], lastIndices[i + 1], indices[i + 1], indices[i]);
+
+
+			// This is the same as the for loop below EXCEPT what order we put the verts in in matters because we want
+			// the triangles to be mirrored on both 'sides' of the line, otherwise the end-caps become lopsided.
+			// Then if we want to switch the division of the triangles, we have swapTriangleFacing.
+			// Essentially, if swapTriangleFacing is false, we create triangles in a line segment like this:
+			// ---+-+---
+			//    |\|
+			// ---+-+---
+			//    |/|
+			// ---+-+---
+			// If it's true, we do this:
+			// ---+-+---
+			//    |/|
+			// ---+-+---
+			//    |\|
+			// ---+-+---
+			// Were we to do the naive for-loop implementation below, we get this:
+			// ---+-+---
+			//    |\|
+			// ---+-+---
+			//    |\|
+			// ---+-+---
+			// Which screws up and looks funny when we try to make an end cap for a line.
+
+			if (swapTriangleFacing) {
+				AddQuad(lastIndices[1], lastIndices[1 + 1], indices[1 + 1], indices[1]);
+				AddQuad(lastIndices[0 + 1], lastIndices[0], indices[0], indices[0 + 1]);
+			} else {
+				AddQuad(lastIndices[0], lastIndices[0 + 1], indices[0 + 1], indices[0]);
+				AddQuad(lastIndices[1 + 1], lastIndices[1], indices[1], indices[1 + 1]);
 			}
+
+			//for (int i = 0; i < ROAD_LANES; i++) {
+			//Console.WriteLine("lastIndices: {0}, i: {1}, indices: {2}", lastIndices.Count, i, indices.Count);
+			//AddQuad(lastIndices[i], lastIndices[i + 1], indices[i + 1], indices[i]);
+			//}
 			lastIndices = indices;
 		}
 
@@ -659,7 +692,7 @@ namespace Starmaze.Engine
 						Background(seg.Pos1 + cap1)
 					};
 					AdvanceTo(nextVerts);
-					AdvanceTo(endVerts);
+					AdvanceTo(endVerts, swapTriangleFacing: true);
 				} else {
 					AdvanceTo(nextVerts);
 				}
