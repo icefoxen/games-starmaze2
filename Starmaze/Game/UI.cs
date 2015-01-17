@@ -2,10 +2,15 @@ using System;
 
 namespace Starmaze.Game
 {
-	public class UI
+	public class GUI
 	{
-		public UI()
+		public GUI()
 		{
+		}
+
+		public void Draw()
+		{
+
 		}
 	}
 }

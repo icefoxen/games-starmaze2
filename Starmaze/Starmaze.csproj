@@ -69,6 +69,7 @@
     <Compile Include="Content\Enemies.cs" />
     <Compile Include="SMath.cs" />
     <Compile Include="Engine\Drawing.cs" />
+    <Compile Include="Game\World.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

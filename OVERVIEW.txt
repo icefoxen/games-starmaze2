@@ -16,8 +16,9 @@ Game/                         | General-purpose gameplay systems
    Mob.cs                     | Base moving-actor/mob behavior
    Player.cs                  | Player controls and interactions
    Powers.cs                  | Base classes for powers and powerups
-   Terrain.cs                 | Elements for constructing levels
+   Terrain.cs                 | Elements for constructing and managing levels
    UI.cs                      | GUI drawing and interface elements
+   World.cs                   | Main loop and actual game operations
     
 Content/                      | Level-specific objects and features
    Enemies.cs                 | Concrete, non-zone-specific enemy types
@@ -28,7 +29,7 @@ Content/                      | Level-specific objects and features
       Powers.cs               | Powers associated with this zone
       Zone.cs                 | Zone-specific level features and generation code
 
-Main.cs                       | Main game window code
+Main.cs                       | Main game window, config and command line handling.
 SMath.cs                      | Useful math functions
 Util.cs                       | Useful misc. functions
 
