@@ -19,7 +19,7 @@ namespace Starmaze.Content
 		public void Update(float dt){
 			//controller.update(dt)
 		}
-		public void OnDeath(){
+		public override void OnDeath(){
 			/*
 			 *	c = Collectable()
         	 *	c.physicsObj.position = s.physicsObj.position
