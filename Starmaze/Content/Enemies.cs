@@ -78,5 +78,40 @@ namespace Starmaze.Content
 			life = new Starmaze.Game.Life(this, 10);
 		}
 	} //end EliteEnemy
+
+	class HeavyEnemy : Actor {
+		//TODO: Incomplete port of the python HeavyEnemy
+		Game.Life life;
+		Facing facing;
+
+		HeavyEnemy() {
+			facing = Facing.Left;
+			life = new Starmaze.Game.Life(this, 10);
+		}
+	} //end HeavyEnemy
+
+	class DragonEnemy : Actor {
+		//TODO: Incomplete port of the python DragonEnemy
+		Game.Life life;
+		Facing facing;
+
+		DragonEnemy() {
+			facing = Facing.Left;
+			life = new Starmaze.Game.Life(this, 10);
+		}
+	} //end DragonEnemy
+
+	class AnnihilatorEnemy : Actor {
+		//TODO: Incomplete port of the python Enemy
+		Game.Life life;
+		Facing facing;
+
+		AnnihilatorEnemy() {
+			facing = Facing.Left;
+			life = new Starmaze.Game.Life(this, 10);
+		}
+	} //end AnnihilatorEnemy
+
 }
+
 
