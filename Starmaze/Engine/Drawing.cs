@@ -233,7 +233,7 @@ namespace Starmaze.Engine
 
 			var along = -side.PerpendicularRight;
 			return new RawJoin(side * v.StrokeHalfWidth, along,
-				side * -v.StrokeHalfWidth, along);
+			                   side * -v.StrokeHalfWidth, along);
 		}
 
 		public override RawJoin RawJoinIn()
@@ -267,8 +267,8 @@ namespace Starmaze.Engine
 			// Everything is in radians in this function because converting to degrees and back would
 			// be rather silly.
 
-			var offset0 = V0.Pos - Center;
-			var offset1 = V1.Pos - Center;
+			//var offset0 = V0.Pos - Center;
+			//var offset1 = V1.Pos - Center;
 			var angle0 = Math.Atan2(V0.Pos.Y - Center.Y, V0.Pos.X - Center.X);
 			var angle1 = Math.Atan2(V1.Pos.Y - Center.Y, V1.Pos.X - Center.X);
 			if (Clockwise && angle0 <= angle1) {
@@ -503,7 +503,7 @@ namespace Starmaze.Engine
 			attrList.Add(thePositions);
 			attrList.Add(theColors);
 			var vertArray = new VertexArray(s, attrList, indices,
-				                prim: PrimitiveType.Triangles, usage: BufferUsageHint.StaticDraw);
+			                                prim: PrimitiveType.Triangles, usage: BufferUsageHint.StaticDraw);
 			return vertArray;
 		}
 	}

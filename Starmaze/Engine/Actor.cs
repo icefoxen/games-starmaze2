@@ -16,13 +16,6 @@ namespace Starmaze.Engine
 		}
 	}
 
-	public enum Facing
-	{
-		Left = -1,
-		Right = 1,
-		None = 0
-	}
-
 	/// <summary>
 	/// An Actor is any object that exists in the game world.
 	/// </summary>
@@ -31,7 +24,6 @@ namespace Starmaze.Engine
 		// Components.
 		public Body Body;
 		public Component Controller;
-
 		// Other properties
 		public readonly long OrderingNumber;
 		public string RenderClass;
@@ -55,7 +47,6 @@ namespace Starmaze.Engine
 		{
 
 		}
-
 		// XXX: Dependency inversion.
 		public virtual void ChangeRoom(Starmaze.Game.Room oldRoom, Starmaze.Game.Room newRoom)
 		{

@@ -13,12 +13,19 @@ namespace Starmaze.Engine
 		public const double PHYSICS_FRAME_TIME = 1.0 / PHYSICS_HZ;
 	}
 
+	public enum Facing
+	{
+		Left = -1,
+		Right = 1,
+		None = 0
+	}
+
 	public class Body : Component
 	{
 		public Geom Geometry;
-
 		public Vector2d Position;
 		public Vector2d Velocity;
+		public Facing Facing;
 		public double Rotation;
 		public double Mass;
 		public bool IsOnGround;
@@ -65,7 +72,6 @@ namespace Starmaze.Engine
 		{
 			Position += pos;
 		}
-
 		// XXX: Do we translate the geometry around each time the object moves,
 		// or do we
 	}

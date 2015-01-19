@@ -1,22 +1,23 @@
 ﻿using System;
 using Starmaze.Engine;
+using Starmaze.Game;
 
 namespace Starmaze.Content
 {
 	public class TrooperBullet : Actor
 	{
 		Actor firer;
-		Game.TimedLife life;
-		float damage;
-		float rotationSpeed;
+		TimedLife life;
+		double damage;
+		double rotationSpeed;
 
 		public TrooperBullet(Actor firerIn) : base()
 		{
 			firer = firerIn;
-			life = new Starmaze.Game.TimedLife(this, 1f);
+			life = new TimedLife(this, 1f);
 
-			float xImpulse = 300f * (float) Facing;
-			float yImpulse = 0f;
+			double xImpulse = 300 * (int)Facing;
+			double yImpulse = 0f;
 
 			damage = 6f;
 			rotationSpeed = 10f;

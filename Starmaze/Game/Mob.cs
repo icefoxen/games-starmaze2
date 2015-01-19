@@ -1,22 +1,16 @@
 using System;
 using Starmaze.Engine;
+using OpenTK;
 
 namespace Starmaze.Game
 {
-	public class Mob
-	{
-		public Mob()
-		{
-		}
-	}
-
 	public class Timer
 	{
-		float Time { get; set; }
+		double Time { get; set; }
 
-		float DefaultTime { get; set; }
+		double DefaultTime { get; set; }
 
-		public Timer(float time = 0f, float defaultTime = 0f)
+		public Timer(double time = 0f, double defaultTime = 0f)
 		{
 			Time = time;
 			DefaultTime = defaultTime;
@@ -27,7 +21,7 @@ namespace Starmaze.Game
 			Time = DefaultTime;
 		}
 
-		public void Update(float dt)
+		public void Update(double dt)
 		{
 			Time -= dt;
 		}
@@ -38,19 +32,18 @@ namespace Starmaze.Game
 		}
 	}
 	//end Timer
-
 	public class Life : Engine.Component
 	{
-		float CurrentLife { get; set; }
+		double CurrentLife { get; set; }
 
-		float MaxLife { get; set; }
+		double MaxLife { get; set; }
 		//Multiplier to damage taken
-		float DamageAttenuation { get; set; }
+		double DamageAttenuation { get; set; }
 		//subtractive damage reduction
 		//Applied BEFORE attenuation
-		float DamageReduction { get; set; }
+		double DamageReduction { get; set; }
 
-		public Life(Engine.Actor owner, float hpsIn, float maxLifeIn = -1.0f, float attenuationIn = 1.0f, float reductionIn = 0.0f) : base(owner)
+		public Life(Engine.Actor owner, double hpsIn, double maxLifeIn = -1.0f, double attenuationIn = 1.0f, double reductionIn = 0.0f) : base(owner)
 		{
 			//this = new Engine.Component(owner); 
 			this.Owner = owner;
@@ -67,10 +60,10 @@ namespace Starmaze.Game
 
 		}
 
-		public void TakeDamage(Engine.Actor damager, float damage)
+		public void TakeDamage(Engine.Actor damager, double damage)
 		{
-			float reducedDamage = Math.Max(0, damage - DamageReduction);
-			float attenuatedDamage = reducedDamage - DamageReduction;
+			double reducedDamage = Math.Max(0, damage - DamageReduction);
+			double attenuatedDamage = reducedDamage - DamageReduction;
 			/*TODO: Rewrite sound to fit with OpenTK
 			 * 	if attenuatedDamage >=4:
              * 		rcache.get_sound("damage_4").play()
@@ -91,23 +84,22 @@ namespace Starmaze.Game
 		}
 	}
 	//end Life component
-		
 	public class Energy : Engine.Component
 	{
-		float MaxEnergy { get; set; }
+		double MaxEnergy { get; set; }
 
-		float CurrentEnergy { get; set; }
+		double CurrentEnergy { get; set; }
 
-		float RegenRate { get; set; }
+		double RegenRate { get; set; }
 
-		public Energy(Engine.Actor owner, float maxEnergy = 100f, float regenRate = 10f) : base(owner)
+		public Energy(Engine.Actor owner, double maxEnergy = 100f, double regenRate = 10f) : base(owner)
 		{
 			MaxEnergy = maxEnergy;
 			CurrentEnergy = maxEnergy / 2f;
 			RegenRate = RegenRate;
 		}
 
-		public bool Expend(float amount)
+		public bool Expend(double amount)
 		{
 			if (amount <= CurrentEnergy) {
 				CurrentEnergy -= amount;
@@ -117,7 +109,7 @@ namespace Starmaze.Game
 			}
 		}
 
-		public void Update(float dt)
+		public void Update(double dt)
 		{
 			if (CurrentEnergy < MaxEnergy) {
 				CurrentEnergy += RegenRate * dt;
@@ -126,23 +118,21 @@ namespace Starmaze.Game
 				CurrentEnergy = MaxEnergy;
 			}
 		}
-
 	}
 	//end Energy component
-
-	public class TimedLife : Engine.Component
+	public class TimedLife : Component
 	{
-		float Time { get; set; }
+		double Time { get; set; }
 
-		float MaxTime { get; set; }
+		double MaxTime { get; set; }
 
-		public TimedLife(Engine.Actor owner, float time) : base(owner)
+		public TimedLife(Engine.Actor owner, double time) : base(owner)
 		{
 			Time = time;
 			MaxTime = time;
 		}
 
-		public void Update(float dt)
+		public void Update(double dt)
 		{
 			Time -= dt;
 			if (Time <= 0) {
@@ -151,18 +141,18 @@ namespace Starmaze.Game
 		}
 	}
 	//end TimedLife component
-
 	/// <summary>
 	/// A Component that fires bullets of various types.
 	/// </summary>
 	public class Gun : Component
 	{
+		public Vector2d fireOffset;
+
 		public Gun(Actor owner) : base(owner)
 		{
-
+			fireOffset = Vector2d.Zero;
 		}
 	}
-
 	//TODO: ParticleSystem reimplementation seems to depend on implementation of graphics
 	//Might belong in Engine.Component instead?
 	//public class ParticleSystem : Engine.Component {
