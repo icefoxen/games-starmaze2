@@ -7,8 +7,9 @@ namespace Starmaze.Game
 	{
 		public Player()
 		{
-			RenderClass = "PlayerRenderer";
+			RenderClass = "StaticRenderer";
 			Body = new Body(this);
+			Model = Resources.TheResources.GetModel("Player");
 		}
 	}
 }

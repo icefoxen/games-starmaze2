@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using Starmaze.Engine;
+using OpenTK;
+using OpenTK.Graphics;
 
 namespace Starmaze.Game
 {
@@ -11,8 +13,8 @@ namespace Starmaze.Game
 	public class World
 	{
 		WorldMap Map;
+		Room CurrentRoom;
 		Player Player;
-
 		RenderManager RenderManager;
 		Space Space;
 		HashSet<Actor> Actors;
@@ -32,6 +34,10 @@ namespace Starmaze.Game
 
 			Player = new Player();
 			ImmediateAddActor(Player);
+
+			var testTerrain = new BoxBlock(CurrentRoom, new BBox(-10, 10, -30, -20), Color4.Blue);
+			ImmediateAddActor(testTerrain);
+
 		}
 
 		public void StartGame(object initialRoom)
@@ -59,7 +65,6 @@ namespace Starmaze.Game
 
 		}
 
-
 		public void AddActor(Actor a)
 		{
 			ActorsToAdd.Add(a);
@@ -84,7 +89,6 @@ namespace Starmaze.Game
 			RenderManager.Remove(a);
 			Space.Remove(a.Body);
 		}
-
 		/*
 		void RawAddActor(Actor a)
 		{
@@ -96,7 +100,6 @@ namespace Starmaze.Game
 
 		}
 		*/
-
 		public void Update(double dt)
 		{
 			Space.Update(dt);

@@ -30,6 +30,8 @@ namespace Starmaze.Engine
 		public bool Alive = true;
 		public Facing Facing;
 		public bool KeepOnRoomChange = false;
+		// Used for StaticRenderer
+		public VertexArray Model;
 		// XXX: Dependency inversion
 		public Starmaze.Game.World World;
 
@@ -37,6 +39,7 @@ namespace Starmaze.Engine
 		{
 			RenderClass = "TestRenderer";
 			OrderingNumber = Util.GetSerial();
+			Model = null;
 		}
 
 		public virtual void Update(double dt)

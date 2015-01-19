@@ -5,7 +5,6 @@ using OpenTK.Graphics;
 
 namespace Starmaze.Game
 {
-
 	/// <summary>
 	/// An area of the game world consisting of a set of rooms all sharing a theme, music, color scheme,
 	/// and other characteristics.
@@ -25,11 +24,9 @@ namespace Starmaze.Game
 	{
 		public Zone Zone;
 		public string Name;
-
 		//IEnumerable<Actor> StaticFrozen;
 		//IEnumerable<Actor> DynamicFrozen;
 		//IEnumerable<Actor> DynamicLive;
-
 		/// <summary>
 		/// Creates all the Actors actually in the room.
 		/// </summary>
@@ -74,13 +71,20 @@ namespace Starmaze.Game
 	/// </summary>
 	public class BoxBlock : Terrain
 	{
-		BBox boundingBox;
-		Color4 color;
-
 		public BoxBlock(Room room, BBox bbox, Color4 color) : base(room)
 		{
-			boundingBox = bbox;
-			this.color = color;
+			Body = new Body(this, immobile: true);
+			Body.AddGeom(new BoxGeom(bbox));
+			
+			RenderClass = "StaticRenderer";
+			var mb = new ModelBuilder();
+			var width = bbox.Right - bbox.Left;
+			var height = bbox.Top - bbox.Bottom;
+			mb.RectCorner(bbox.Bottom, bbox.Left, width, height, color);
+			var vertModel = mb.Finish();
+			// XXX: Should we need to get a shader here?  We probably shouldn't.
+			var shader = Resources.TheResources.GetShader("default");
+			Model = vertModel.ToVertexArray(shader);
 		}
 	}
 }

@@ -177,27 +177,24 @@ namespace Starmaze.Engine
 		}
 	}
 
-	public class PlayerRenderer : Renderer
+	public class StaticRenderer : Renderer
 	{
-		VertexArray model;
-
-		public PlayerRenderer() : base()
+		public StaticRenderer() : base()
 		{
-			//Model = Starmaze.Content.Images.TestModel2();
-			//Model = Resources.TheResources.GetModel("TestModel2");
-			model = Resources.TheResources.GetModel("Player");
 			shader = Resources.TheResources.GetShader("default");
 			discipline = GLDiscipline.DEFAULT;
 		}
-
+		// XXX: This loads more optional properties onto Actors, in terms of the 
+		// Model property.  Not sure if it's a good idea.
 		public override void RenderOne(ViewManager view, Actor act)
 		{
-			//Console.WriteLine("Drawing actor");
 			var pos = new Vector2((float)act.Body.Position.X, (float)act.Body.Position.Y);
 			var transform = new Transform(pos, 0.0f);
 			var mat = transform.TransformMatrix(view.ProjectionMatrix);
 			shader.UniformMatrix("projection", mat);
-			model.Draw();
+			if (act.Model != null) {
+				act.Model.Draw();
+			}
 		}
 	}
 }

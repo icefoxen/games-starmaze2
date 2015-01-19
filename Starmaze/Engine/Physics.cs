@@ -22,17 +22,35 @@ namespace Starmaze.Engine
 
 	public class Body : Component
 	{
-		public Geom Geometry;
+		HashSet<Geom> Geometry;
 		public Vector2d Position;
 		public Vector2d Velocity;
 		public Facing Facing;
 		public double Rotation;
 		public double Mass;
+		/// <summary>
+		/// Whether or not the body is on the ground.
+		/// </summary>
 		public bool IsOnGround;
+		/// <summary>
+		/// Whether or not the body is currently moving.
+		/// </summary>
 		public bool IsStationary;
+		/// <summary>
+		/// Whether or not gravity affects the body
+		/// </summary>
 		public bool IsGravitating;
+		/// <summary>
+		/// Whether or not the body is immobile.
+		/// Immobile things _never_ move, and the immobile state never changes(?).
+		/// </summary>
+		public bool IsImmobile;
+		/// <summary>
+		/// Force that has accumulated on the body each tick, potentially from multiple sources.
+		/// </summary>
+		Vector2d impulse;
 
-		public Body(Actor owner) : base(owner)
+		public Body(Actor owner, bool gravitating = true, bool immobile = false) : base(owner)
 		{
 			Position = Vector2d.Zero;
 			Velocity = Vector2d.Zero;
@@ -41,30 +59,60 @@ namespace Starmaze.Engine
 
 			IsOnGround = false;
 			IsStationary = false;
-			IsGravitating = true;
+			IsGravitating = gravitating;
+			IsImmobile = immobile;
 
-			Geometry = new BoxGeom(new BBox(-5, 5, -5, 5));
+			Geometry = new HashSet<Geom>();
+		}
+
+		public void AddGeom(Geom geom)
+		{
+			Geometry.Add(geom);
 		}
 
 		public void Update(Space s, double dt)
 		{
-			//Console.WriteLine("Updating, {0}", dt);
-			if (!IsStationary) {
-				if (IsGravitating) {
-					Velocity += s.Gravity * dt;
-				}
-				Position += Velocity * dt;
-			}
+
+			var acceleration = impulse / Mass;
+			Velocity += acceleration;
+			Position += Velocity * dt;
+			impulse = Vector2d.Zero;
+		}
+
+		/// <summary>
+		/// Accumulates a force on the object.
+		/// </summary>
+		/// <param name="impulse">Impulse.</param>
+		public void AddImpulse(Vector2d impulse)
+		{
+			this.impulse += impulse;
+		}
+
+		/// <summary>
+		/// Adds velocity to the body regardless of mass.
+		/// </summary>
+		/// <param name="velocity">Velocity.</param>
+		public void AddVelocity(Vector2d velocity)
+		{
+			Velocity += velocity;
 		}
 
 		public Intersection CheckCollision(Body other)
 		{
-			return Geometry.Intersect(other.Geometry);
+
+			foreach (var geom1 in Geometry) {
+				foreach (var geom2 in other.Geometry) {
+					var intersection = geom1.Intersect(geom2);
+					if (intersection != null) {
+						return intersection;
+					}
+				}
+			}
+			return null;
 		}
 
 		public void MoveTo(Vector2d pos)
 		{
-
 			Position = pos;
 		}
 
@@ -73,7 +121,7 @@ namespace Starmaze.Engine
 			Position += pos;
 		}
 		// XXX: Do we translate the geometry around each time the object moves,
-		// or do we
+		// or do we add an offset every time we need to?
 	}
 
 	/// <summary>
@@ -81,19 +129,37 @@ namespace Starmaze.Engine
 	/// </summary>
 	public class Space
 	{
+		public readonly Vector2d DEFAULT_GRAVITY = new Vector2d(0.0, -5.0);
 		public Vector2d Gravity;
 		HashSet<Body> Bodies;
+		HashSet<Body> MovingBodies;
+		HashSet<Body> StationaryBodies;
+		HashSet<Body> ImmobileBodies;
+		HashSet<Body> GravitatingBodies;
 
 		public Space()
 		{
-			Gravity = -Vector2d.UnitY;
+			Gravity = DEFAULT_GRAVITY;
 			Bodies = new HashSet<Body>();
+			MovingBodies = new HashSet<Body>();
+			StationaryBodies = new HashSet<Body>();
+			ImmobileBodies = new HashSet<Body>();
+			GravitatingBodies = new HashSet<Body>();
 		}
 
 		public void Add(Body b)
 		{
 			Log.Assert(!Bodies.Contains(b));
 			Bodies.Add(b);
+			if (b.IsImmobile) {
+				ImmobileBodies.Add(b);
+			} else {
+				if (b.IsGravitating) {
+					GravitatingBodies.Add(b);
+				}
+				// All bodies start off as moving, are moved to the stationary list if necessary.
+				MovingBodies.Add(b);
+			}
 		}
 
 		public void Remove(Body b)
@@ -102,11 +168,24 @@ namespace Starmaze.Engine
 			Bodies.Remove(b);
 		}
 
-		public void Update(double dt)
+		public void UpdateMovingBodies(double dt)
 		{
-			foreach (var body in Bodies) {
+			foreach (var body in MovingBodies) {
 				body.Update(this, dt);
 			}
+		}
+
+		public void ApplyGravity(double dt)
+		{
+			foreach (var body in GravitatingBodies) {
+				body.AddVelocity(DEFAULT_GRAVITY * dt);
+			}
+		}
+
+		public void Update(double dt)
+		{
+			ApplyGravity(dt);
+			UpdateMovingBodies(dt);
 		}
 	}
 }
