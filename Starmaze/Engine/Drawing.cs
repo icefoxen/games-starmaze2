@@ -19,7 +19,7 @@ namespace Starmaze.Engine
 	{
 
 		public static readonly Color4 DEFAULT_COLOR = new Color4(1.0f, 1.0f, 1.0f, 1.0f);
-		public const double DEFAULT_STROKE_WIDTH = 2.0;
+		public const double DEFAULT_STROKE_WIDTH = 1.0;
 		public Vector2d Pos;
 		public Color4 Color;
 		public double StrokeHalfWidth;
@@ -509,6 +509,26 @@ namespace Starmaze.Engine
 	}
 
 	/// <summary>
+	/// Base class for all tesselators, which are objects that take a Path
+	/// and turn it into actual verts in a VertexModel
+	/// </summary>
+	public abstract class Tesselator
+	{
+		protected VertexModel output;
+
+		public Tesselator(VertexModel output)
+		{
+			this.output = output;
+		}
+
+		public abstract void TesselatePath(Path path);
+
+		public abstract void TesselateLine(LineSegment line);
+
+		public abstract void TesselateArc(ArcSegment arc);
+	}
+
+	/// <summary>
 	/// Tessellate lines and arcs using a two-lane road of quads.
 	/// 
 	/// Each base vertex encountered along a path is converted into a
@@ -521,22 +541,16 @@ namespace Starmaze.Engine
 	/// `beginPath`() and `endPath`() are called properly.  If you use the main
 	/// entrypoint `tessellatePath`(), this is done automatically.
 	/// </summary>
-	// XXX: For now this is the only Tesselator we have, but in the Python code
-	// it's called the FadeLineTesselator.  If we ever write other tesselators
-	// they should all inherit from a Tesselator base class.
-	// A SolidFillTesselator might be useful for instance.
-	public class Tesselator
+	public class FadeLineTesselator : Tesselator
 	{
 		readonly Color4 BACKGROUND_COLOR = new Color4(0.0f, 0.0f, 0.0f, 0.0f);
 		// Number of quad strips across the roaad
 		const int ROAD_LANES = 2;
-		VertexModel output;
 		List<uint> firstIndices;
 		List<uint> lastIndices;
 
-		public Tesselator(VertexModel output)
+		public FadeLineTesselator(VertexModel output) : base(output)
 		{
-			this.output = output;
 			firstIndices = null;
 			lastIndices = null;
 		}
@@ -711,13 +725,13 @@ namespace Starmaze.Engine
 			}
 		}
 
-		public void TesselateLine(LineSegment line)
+		public override void TesselateLine(LineSegment line)
 		{
 			AdvanceToSegmentIn(line);
 			AdvanceToSegmentOut(line);
 		}
 
-		public void TesselateArc(ArcSegment arc)
+		public override void TesselateArc(ArcSegment arc)
 		{
 			AdvanceToSegmentIn(arc);
 			foreach (var pt in arc.GenerateInteriorPoints()) {
@@ -736,7 +750,7 @@ namespace Starmaze.Engine
 			AdvanceToSegmentOut(arc);
 		}
 
-		public void TesselatePath(Path path)
+		public override void TesselatePath(Path path)
 		{
 			if (path.Empty) {
 				return;
@@ -806,6 +820,60 @@ namespace Starmaze.Engine
 	}
 
 	/// <summary>
+	/// A tesselator that turns a Path into a filled shape.
+	/// (Probably convex shapes only; possibly rename this to reflect that?)
+	/// </summary>
+	public class FilledShapeTesselator : Tesselator
+	{
+		public FilledShapeTesselator(VertexModel output) : base(output)
+		{
+
+		}
+
+		public override void TesselatePath(Path path)
+		{
+
+		}
+
+		public override void TesselateLine(LineSegment line)
+		{
+
+		}
+
+		public override void TesselateArc(ArcSegment arc)
+		{
+
+		}
+	}
+
+	/// <summary>
+	/// A combination of a FilledShapeTesselator and a FadeLineTesselator;
+	/// draws a filled shape with a boundary line around it.
+	/// </summary>
+	public class OutlinedShapeTesselator : Tesselator
+	{
+		public OutlinedShapeTesselator(VertexModel output) : base(output)
+		{
+
+		}
+
+		public override void TesselatePath(Path path)
+		{
+
+		}
+
+		public override void TesselateLine(LineSegment line)
+		{
+
+		}
+
+		public override void TesselateArc(ArcSegment arc)
+		{
+
+		}
+	}
+
+	/// <summary>
 	/// A convenient way to construct `VertexModel`s.
 	///
 	/// Create one of these, then call methods on it to add geometry.
@@ -821,7 +889,7 @@ namespace Starmaze.Engine
 		public ModelBuilder()
 		{
 			model = new VertexModel();
-			tesselator = new Tesselator(model);
+			tesselator = new FadeLineTesselator(model);
 		}
 
 		public VertexModel Finish()
@@ -843,7 +911,7 @@ namespace Starmaze.Engine
 			path.Close(segments[segments.Count - 1]);
 			SubmitPath(path);
 		}
-		// XXX: Make sure this works correctly.
+		// BUGGO: Make sure this works correctly.
 		public void SubmitClosedPath(PathSegment segment)
 		{
 			var path = new Path();
@@ -866,7 +934,7 @@ namespace Starmaze.Engine
 			path.AddSegment(segment);
 			SubmitPath(path);
 		}
-		// XXX: These don't have a way to specify line thickness...
+		// TODO: These don't have a way to specify line thickness...
 		public void Circle(double x, double y, double radius, Color4 color, int? numSegments = null)
 		{
 			var vertex = new LineArtVertex(new Vector2d(x + radius, y), color);
