@@ -25,10 +25,9 @@ namespace Starmaze.Engine
 		public Body Body;
 		public Component Controller;
 		// Other properties
-		public readonly long OrderingNumber;
+		readonly long OrderingNumber;
 		public string RenderClass;
 		public bool Alive = true;
-		public Facing Facing;
 		public bool KeepOnRoomChange = false;
 		// Used for StaticRenderer
 		public VertexArray Model;
