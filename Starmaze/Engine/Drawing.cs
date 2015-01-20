@@ -111,30 +111,19 @@ namespace Starmaze.Engine
 		/// handling this segment using double-dispatch
 		/// </summary>
 		/// <param name="t">T.</param>
-		public virtual void TesselateWith(Tesselator t)
-		{
-			Log.Assert(false);
-		}
+		public abstract void TesselateWith(Tesselator t);
 
 		/// <summary>
 		/// Return the RawJoin for entering this segment at V0.
 		/// </summary>
 		/// <returns>The join in.</returns>
-		public virtual RawJoin RawJoinIn()
-		{
-			Log.Assert(false);
-			return new RawJoin();
-		}
+		public abstract RawJoin RawJoinIn();
 
 		/// <summary>
 		/// Return the RawJoin for leaving this segment at V1.
 		/// </summary>
 		/// <returns>The join out.</returns>
-		public virtual RawJoin RawJoinOut()
-		{
-			Log.Assert(false);
-			return new RawJoin();
-		}
+		public abstract RawJoin RawJoinOut();
 	}
 
 	/// <summary>
@@ -233,7 +222,7 @@ namespace Starmaze.Engine
 
 			var along = -side.PerpendicularRight;
 			return new RawJoin(side * v.StrokeHalfWidth, along,
-			                   side * -v.StrokeHalfWidth, along);
+				side * -v.StrokeHalfWidth, along);
 		}
 
 		public override RawJoin RawJoinIn()
@@ -503,7 +492,7 @@ namespace Starmaze.Engine
 			attrList.Add(thePositions);
 			attrList.Add(theColors);
 			var vertArray = new VertexArray(s, attrList, indices,
-			                                prim: PrimitiveType.Triangles, usage: BufferUsageHint.StaticDraw);
+				                prim: PrimitiveType.Triangles, usage: BufferUsageHint.StaticDraw);
 			return vertArray;
 		}
 	}

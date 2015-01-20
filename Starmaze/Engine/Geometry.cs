@@ -56,7 +56,7 @@ namespace Starmaze.Engine
 		public bool IntersectsBBox(BBox other)
 		{
 			return ((Left <= other.Left && other.Left <= Right) || (other.Left <= Left && Left <= other.Right)) &&
-				((Bottom <= other.Bottom && other.Bottom <= Top) || (other.Bottom <= Bottom && Bottom <= other.Top));
+			((Bottom <= other.Bottom && other.Bottom <= Top) || (other.Bottom <= Bottom && Bottom <= other.Top));
 		}
 
 		public BBox Intersection(BBox other)
@@ -75,7 +75,7 @@ namespace Starmaze.Engine
 		public bool ContainsPoint(Vector2d point)
 		{
 			return (Left <= point.X && point.X <= Right) &&
-				(Bottom <= point.Y && point.Y <= Top);
+			(Bottom <= point.Y && point.Y <= Top);
 		}
 
 		public Vector2d Center()
@@ -95,9 +95,22 @@ namespace Starmaze.Engine
 			return new Vector2d(SMath.Clamp(vec.X, Left, Right), SMath.Clamp(vec.Y, Bottom, Top));
 		}
 
-		public BBox Translate(Vector2d delta)
+		public BBox Translated(Vector2d delta)
 		{
 			return new BBox(Left + delta.X, Right + delta.X, Bottom + delta.Y, Top + delta.Y);
+		}
+
+		public void Translate(Vector2d delta)
+		{
+			Left = Left + delta.X;
+			Right = Right + delta.X;
+			Bottom = Bottom + delta.Y;
+			Top = Top + delta.Y;
+		}
+
+		public override string ToString()
+		{
+			return string.Format("BBox({0}, {1}, {2}, {3})", Left, Right, Bottom, Top);
 		}
 	}
 
@@ -157,41 +170,40 @@ namespace Starmaze.Engine
 		{
 			return new Intersection(Contact, -Normal, Intrusion, Protrusion, FlatCCW, FlatCW);
 		}
+
+		public override string ToString()
+		{
+			return string.Format("Intersection(contact {0}, normal {1}, protrusion {2}, intrusion {3}, flatCW {4}, flatCCW {5})",
+				Contact, Normal, Protrusion, Intrusion, FlatCW, FlatCCW);
+		}
 	}
 
 	public abstract class Geom
 	{
 		// XXX: This should return the same type as itself in all children...
 		// Is there some handy way of doing that?
-		public virtual Geom Translate(Vector2d delta)
-		{
-			return null;
-		}
+		public abstract Geom Translated(Vector2d delta);
 
-		public virtual Intersection Intersect(Geom other)
-		{
-			Log.Assert(false);
-			return null;
-		}
+		public abstract void Translate(Vector2d delta);
 
-		public virtual Intersection IntersectLine(Line other)
-		{
-			Log.Assert(false);
-			return null;
-		}
 
-		public virtual Intersection IntersectBBox(BBox other)
-		{
-			Log.Assert(false);
-			return null;
-		}
+		public abstract Intersection Intersect(Geom other);
+
+		public abstract Intersection IntersectLine(Line other);
+
+		public abstract Intersection IntersectBBox(BBox other);
 	}
 	// TODO: Implement this
 	public class LineGeom : Geom
 	{
-		public override Geom Translate(Vector2d delta)
+		public override Geom Translated(Vector2d delta)
 		{
 			return null;
+		}
+
+		public override void Translate(Vector2d delta)
+		{
+			return;
 		}
 
 		public override Intersection Intersect(Geom other)
@@ -225,10 +237,14 @@ namespace Starmaze.Engine
 			this.bbox = bbox;
 		}
 
-		public override Geom Translate(Vector2d delta)
+		public override Geom Translated(Vector2d delta)
 		{
-			// BUGGO: The extra new here is possibly redundant?
-			return new BoxGeom(bbox.Translate(delta));
+			return new BoxGeom(bbox.Translated(delta));
+		}
+
+		public override void Translate(Vector2d delta)
+		{
+			this.bbox = bbox.Translated(delta);
 		}
 
 		public override Intersection Intersect(Geom other)
@@ -261,6 +277,11 @@ namespace Starmaze.Engine
 			var sideNormal = dx < dy ? xside : yside;
 			var flat = dx < dy ? intersectionBBox.Dy : intersectionBBox.Dx;
 			return new Intersection(contact, sideNormal, 0.5 * ds, 0.5 * ds, flat);
+		}
+
+		public override string ToString()
+		{
+			return string.Format("BoxGeom({0})", bbox);
 		}
 	}
 	// XXX: Should we have a CircleGeom too?  It makes life harder, though.

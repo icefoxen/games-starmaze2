@@ -62,11 +62,17 @@ namespace Starmaze
 			World = new World();
 			Gui = new GUI();
 			SetupEvents();
-			// TODO: Generate world, set up initial room and camera if needed.
+		}
+
+		protected override void Dispose(bool manual)
+		{
+			Log.Message("Disposing of window with: {0}", manual);
+			base.Dispose(manual);
 		}
 
 		protected override void OnUnload(EventArgs e)
 		{
+			Log.Message("Unloading window");
 			Resources.CleanupResources();
 		}
 
