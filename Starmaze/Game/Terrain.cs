@@ -80,7 +80,7 @@ namespace Starmaze.Game
 			var mb = new ModelBuilder();
 			var width = bbox.Right - bbox.Left;
 			var height = bbox.Top - bbox.Bottom;
-			mb.RectCorner(bbox.Bottom, bbox.Left, width, height, color);
+			mb.RectCorner(bbox.Left, bbox.Bottom, width, height, Color4.Blue);
 			var vertModel = mb.Finish();
 			// XXX: Should we need to get a shader here?  We probably shouldn't.
 			var shader = Resources.TheResources.GetShader("default");
