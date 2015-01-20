@@ -33,10 +33,6 @@ namespace Starmaze.Engine
 		/// </summary>
 		public bool IsOnGround;
 		/// <summary>
-		/// Whether or not the body is currently moving.
-		/// </summary>
-		public bool IsStationary;
-		/// <summary>
 		/// Whether or not gravity affects the body
 		/// </summary>
 		public bool IsGravitating;
@@ -58,7 +54,6 @@ namespace Starmaze.Engine
 			Mass = 1.0;
 
 			IsOnGround = false;
-			IsStationary = false;
 			IsGravitating = gravitating;
 			IsImmobile = immobile;
 
@@ -75,7 +70,7 @@ namespace Starmaze.Engine
 
 			var acceleration = impulse / Mass;
 			Velocity += acceleration;
-			Position += Velocity * dt;
+			MoveBy(Velocity * dt);
 			impulse = Vector2d.Zero;
 		}
 
@@ -99,9 +94,9 @@ namespace Starmaze.Engine
 
 		public Intersection CheckCollision(Body other)
 		{
-
 			foreach (var geom1 in Geometry) {
 				foreach (var geom2 in other.Geometry) {
+					//Log.Message("Checking collision between {0} and {1}", geom1, geom2);
 					var intersection = geom1.Intersect(geom2);
 					if (intersection != null) {
 						return intersection;
@@ -113,12 +108,19 @@ namespace Starmaze.Engine
 
 		public void MoveTo(Vector2d pos)
 		{
+			var offset = Position - pos;
 			Position = pos;
+			foreach (var geom in Geometry) {
+				geom.Translate(offset);
+			}
 		}
 
-		public void MoveBy(Vector2d pos)
+		public void MoveBy(Vector2d offset)
 		{
-			Position += pos;
+			Position += offset;
+			foreach (var geom in Geometry) {
+				geom.Translate(offset);
+			}
 		}
 		// XXX: Do we translate the geometry around each time the object moves,
 		// or do we add an offset every time we need to?
@@ -133,7 +135,6 @@ namespace Starmaze.Engine
 		public Vector2d Gravity;
 		HashSet<Body> Bodies;
 		HashSet<Body> MovingBodies;
-		HashSet<Body> StationaryBodies;
 		HashSet<Body> ImmobileBodies;
 		HashSet<Body> GravitatingBodies;
 
@@ -142,7 +143,6 @@ namespace Starmaze.Engine
 			Gravity = DEFAULT_GRAVITY;
 			Bodies = new HashSet<Body>();
 			MovingBodies = new HashSet<Body>();
-			StationaryBodies = new HashSet<Body>();
 			ImmobileBodies = new HashSet<Body>();
 			GravitatingBodies = new HashSet<Body>();
 		}
@@ -157,7 +157,6 @@ namespace Starmaze.Engine
 				if (b.IsGravitating) {
 					GravitatingBodies.Add(b);
 				}
-				// All bodies start off as moving, are moved to the stationary list if necessary.
 				MovingBodies.Add(b);
 			}
 		}
@@ -166,6 +165,15 @@ namespace Starmaze.Engine
 		{
 			Log.Assert(Bodies.Contains(b));
 			Bodies.Remove(b);
+			if (b.IsImmobile) {
+				Log.Assert(ImmobileBodies.Contains(b));
+				ImmobileBodies.Remove(b);
+			} else {
+				if (b.IsGravitating) {
+					Log.Assert(GravitatingBodies.Contains(b));
+					GravitatingBodies.Remove(b);
+				}
+			}
 		}
 
 		public void UpdateMovingBodies(double dt)
@@ -182,10 +190,30 @@ namespace Starmaze.Engine
 			}
 		}
 
+		public void CheckForCollision()
+		{
+			// TODO:
+			// Not really the most efficient way;
+			// this should eventually be rewritten to use a spatial data structure or such.
+			foreach (var body1 in Bodies) {
+				foreach (var body2 in Bodies) {
+					// Don't collide withourselves
+					if (body1 == body2) {
+						continue;
+					}
+					var intersection = body1.CheckCollision(body2);
+					if (intersection != null) {
+						Log.Message("Body {0} collided with body {1} with intersection {2}!", body1, body2, intersection);
+					}
+				}
+			}
+		}
+
 		public void Update(double dt)
 		{
 			ApplyGravity(dt);
 			UpdateMovingBodies(dt);
+			CheckForCollision();
 		}
 	}
 }

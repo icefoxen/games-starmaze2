@@ -31,11 +31,12 @@ namespace Starmaze.Game
 
 			RenderManager = new RenderManager();
 			Map = new WorldMap();
+			CurrentRoom = new Room();
 
 			Player = new Player();
 			ImmediateAddActor(Player);
 
-			var testTerrain = new BoxBlock(CurrentRoom, new BBox(-10, 10, -30, -20), Color4.Blue);
+			var testTerrain = new BoxBlock(CurrentRoom, new BBox(-30, 30, -30, -25), Color4.Blue);
 			ImmediateAddActor(testTerrain);
 
 		}

@@ -284,9 +284,6 @@ namespace Starmaze.Engine
 				// recommended idiom in this.
 			}
 			// Clean up unmanaged resources
-			// BUGGO: On the other hand, these calls crash the program whenever they happen, so.
-			// We just need to take out the test code in TestRenderer and only ever create these through
-			// the ResourceLoader, so.
 			GL.DeleteVertexArray(vao);
 			GL.DeleteBuffer(buffer);
 		}
