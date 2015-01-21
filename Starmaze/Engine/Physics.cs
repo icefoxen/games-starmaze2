@@ -99,6 +99,7 @@ namespace Starmaze.Engine
 					//Log.Message("Checking collision between {0} and {1}", geom1, geom2);
 					var intersection = geom1.Intersect(geom2);
 					if (intersection != null) {
+						//Log.Message("Collision detected");
 						return intersection;
 					}
 				}
@@ -127,8 +128,19 @@ namespace Starmaze.Engine
 		public void HandleCollision(Body other, Intersection intersection)
 		{
 			Velocity = Vector2d.Zero;
-			var intrusionVec = intersection.Normal * intersection.Intrusion * 2;
-			Position -= intrusionVec;
+			if (!IsImmobile) {
+				/*
+				Console.WriteLine(intersection);
+				if (intersection.Normal.X != 0.0) {
+					Velocity.X *= -1;
+				} 
+				if (intersection.Normal.Y != 0.0) {
+					Velocity.Y *= -1;
+				}
+				var intrusionVec = intersection.Normal * intersection.Intrusion * 2;
+				Position -= intrusionVec;
+				*/
+			}
 		}
 
 	}

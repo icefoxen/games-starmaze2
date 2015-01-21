@@ -9,9 +9,14 @@ namespace Starmaze.Game
 		{
 			RenderClass = "StaticRenderer";
 			Body = new Body(this);
-			Body.AddGeom(new BoxGeom(new BBox(-5, 5, -5, 5)));
+			Body.AddGeom(new BoxGeom(new BBox(-5, -5, 5, 5)));
 			Model = Resources.TheResources.GetModel("Player");
 			Controller = new KeyboardController(this);
+		}
+
+		public override void Update(double dt)
+		{
+			//Console.WriteLine("Player at {0}", Body.Position);
 		}
 	}
 }

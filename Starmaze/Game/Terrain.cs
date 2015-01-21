@@ -80,9 +80,9 @@ namespace Starmaze.Game
 			// BUGGO: Since the Actor gets the model and such themselves, instead of
 			// it being handled by the Resources system, they aren't freed properly on game end.
 			var mb = new ModelBuilder();
-			var width = bbox.Right - bbox.Left;
-			var height = bbox.Top - bbox.Bottom;
-			mb.RectCorner(bbox.Left, bbox.Bottom, width, height, Color4.Blue);
+			var width = bbox.Dx;
+			var height = bbox.Dy;
+			mb.RectCorner(bbox.X0, bbox.Y0, width, height, Color4.Blue);
 			var vertModel = mb.Finish();
 			// XXX: Should we need to get a shader here?  We probably shouldn't.
 			var shader = Resources.TheResources.GetShader("default");
