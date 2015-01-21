@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using OpenTK;
+using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
 
 namespace Starmaze.Engine
@@ -47,10 +48,12 @@ namespace Starmaze.Engine
 				// recommended idiom in this.
 			}
 			// Clean up unmanaged resources
-			foreach (var shaderhandle in ShaderHandles) {
-				GL.DeleteShader(shaderhandle);
+			if (GraphicsContext.CurrentContext != null) {
+				foreach (var shaderhandle in ShaderHandles) {
+					GL.DeleteShader(shaderhandle);
+				}
+				GL.DeleteProgram(ProgramHandle);
 			}
-			GL.DeleteProgram(ProgramHandle);
 		}
 
 		void createShader(string program, ShaderType type)

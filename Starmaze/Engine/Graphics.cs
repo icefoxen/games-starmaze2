@@ -169,7 +169,9 @@ namespace Starmaze.Engine
 				// Clean up managed resources
 			}
 			// Clean up unmanaged resources
-			GL.DeleteTexture(Handle);
+			if (GraphicsContext.CurrentContext != null) {
+				GL.DeleteTexture(Handle);
+			}
 		}
 	}
 
@@ -284,8 +286,10 @@ namespace Starmaze.Engine
 				// recommended idiom in this.
 			}
 			// Clean up unmanaged resources
-			GL.DeleteVertexArray(vao);
-			GL.DeleteBuffer(buffer);
+			if (GraphicsContext.CurrentContext != null) {
+				GL.DeleteVertexArray(vao);
+				GL.DeleteBuffer(buffer);
+			}
 		}
 
 		public void Dispose()

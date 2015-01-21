@@ -6,6 +6,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Reflection;
+using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
 
 namespace Starmaze.Engine
@@ -156,34 +157,36 @@ namespace Starmaze.Engine
 				// Clean up managed resources
 			}
 			// Clean up unmanaged resources
-			foreach (var kv in ShaderCache) {
-				var shader = kv.Value;
-				Log.Message("Freeing shader {0}", kv.Key);
-				shader.Dispose();
-			}
+			if (GraphicsContext.CurrentContext != null) {
+				foreach (var kv in ShaderCache) {
+					var shader = kv.Value;
+					Log.Message("Freeing shader {0}", kv.Key);
+					shader.Dispose();
+				}
 
-			foreach (var kv in TextureCache) {
-				var texture = kv.Value;
-				Log.Message("Freeing texture {0}", kv.Key);
-				texture.Dispose();
-			}
+				foreach (var kv in TextureCache) {
+					var texture = kv.Value;
+					Log.Message("Freeing texture {0}", kv.Key);
+					texture.Dispose();
+				}
 
-			foreach (var kv in ModelCache) {
-				var model = kv.Value;
-				Log.Message("Freeing model {0}", kv.Key);
-				model.Dispose();
-			}
+				foreach (var kv in ModelCache) {
+					var model = kv.Value;
+					Log.Message("Freeing model {0}", kv.Key);
+					model.Dispose();
+				}
 
-			// XXX:
-			// Disposing of Renderer's is a little sticky;
-			// in a perfect world they would get all their stuff
-			// from the ResourceLoader and thus all of it would be
-			// managed already
-			// But we have yet to see whether or not the world is that perfect.
-			//foreach (var kv in RendererCache) {
-			//var renderer = kv.Value;
-			//renderer.Dispose();
-			//}
+				// XXX:
+				// Disposing of Renderer's is a little sticky;
+				// in a perfect world they would get all their stuff
+				// from the ResourceLoader and thus all of it would be
+				// managed already
+				// But we have yet to see whether or not the world is that perfect.
+				//foreach (var kv in RendererCache) {
+				//var renderer = kv.Value;
+				//renderer.Dispose();
+				//}
+			}
 		}
 	}
 
