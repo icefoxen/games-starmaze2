@@ -122,8 +122,15 @@ namespace Starmaze.Engine
 				geom.Translate(offset);
 			}
 		}
-		// XXX: Do we translate the geometry around each time the object moves,
-		// or do we add an offset every time we need to?
+
+		// XXX: Placeholder.
+		public void HandleCollision(Body other, Intersection intersection)
+		{
+			Velocity = Vector2d.Zero;
+			var intrusionVec = intersection.Normal * intersection.Intrusion * 2;
+			Position -= intrusionVec;
+		}
+
 	}
 
 	/// <summary>
@@ -197,13 +204,14 @@ namespace Starmaze.Engine
 			// this should eventually be rewritten to use a spatial data structure or such.
 			foreach (var body1 in Bodies) {
 				foreach (var body2 in Bodies) {
-					// Don't collide withourselves
+					// Don't collide with ourselves
 					if (body1 == body2) {
 						continue;
 					}
 					var intersection = body1.CheckCollision(body2);
 					if (intersection != null) {
-						Log.Message("Body {0} collided with body {1} with intersection {2}!", body1, body2, intersection);
+						body1.HandleCollision(body2, intersection);
+						body2.HandleCollision(body1, intersection);
 					}
 				}
 			}
@@ -212,8 +220,8 @@ namespace Starmaze.Engine
 		public void Update(double dt)
 		{
 			ApplyGravity(dt);
-			UpdateMovingBodies(dt);
 			CheckForCollision();
+			UpdateMovingBodies(dt);
 		}
 	}
 }
