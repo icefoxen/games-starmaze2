@@ -23,7 +23,6 @@ namespace Starmaze.Game
 
 		public World()
 		{
-
 			Actors = new HashSet<Actor>();
 			ActorsToAdd = new HashSet<Actor>();
 			ActorsToRemove = new HashSet<Actor>();
@@ -36,13 +35,13 @@ namespace Starmaze.Game
 			Player = new Player();
 			ImmediateAddActor(Player);
 
-			var testTerrain1 = new BoxBlock(CurrentRoom, new BBox(-50, 50, -35, -30), Color4.Blue);
+			var testTerrain1 = new BoxBlock(CurrentRoom, new BBox(-40, -35, 40, -30), Color4.Blue);
 			ImmediateAddActor(testTerrain1);
-			var testTerrain2 = new BoxBlock(CurrentRoom, new BBox(-50, 50, 35, 30), Color4.Blue);
+			var testTerrain2 = new BoxBlock(CurrentRoom, new BBox(-40, 30, 40, 35), Color4.Blue);
 			ImmediateAddActor(testTerrain2);
-			var testTerrain3 = new BoxBlock(CurrentRoom, new BBox(-50, -45, -35, 35), Color4.Blue);
+			var testTerrain3 = new BoxBlock(CurrentRoom, new BBox(-45, -35, -40, 35), Color4.Blue);
 			ImmediateAddActor(testTerrain3);
-			var testTerrain4 = new BoxBlock(CurrentRoom, new BBox(45, 50, -35, 35), Color4.Blue);
+			var testTerrain4 = new BoxBlock(CurrentRoom, new BBox(40, -35, 45, 35), Color4.Blue);
 			ImmediateAddActor(testTerrain4);
 		}
 
