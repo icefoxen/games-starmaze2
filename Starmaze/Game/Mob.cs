@@ -1,6 +1,7 @@
 using System;
 using Starmaze.Engine;
 using OpenTK;
+using OpenTK.Input;
 
 namespace Starmaze.Game
 {
@@ -32,7 +33,7 @@ namespace Starmaze.Game
 		}
 	}
 	//end Timer
-	public class Life : Engine.Component
+	public class Life : Component
 	{
 		double CurrentLife { get; set; }
 
@@ -43,9 +44,9 @@ namespace Starmaze.Game
 		//Applied BEFORE attenuation
 		double DamageReduction { get; set; }
 
-		public Life(Engine.Actor owner, double hpsIn, double maxLifeIn = -1.0f, double attenuationIn = 1.0f, double reductionIn = 0.0f) : base(owner)
+		public Life(Actor owner, double hpsIn, double maxLifeIn = -1.0f, double attenuationIn = 1.0f, double reductionIn = 0.0f) : base(owner)
 		{
-			//this = new Engine.Component(owner); 
+			//this = new Component(owner); 
 			this.Owner = owner;
 			CurrentLife = hpsIn;
 
@@ -60,7 +61,7 @@ namespace Starmaze.Game
 
 		}
 
-		public void TakeDamage(Engine.Actor damager, double damage)
+		public void TakeDamage(Actor damager, double damage)
 		{
 			double reducedDamage = Math.Max(0, damage - DamageReduction);
 			double attenuatedDamage = reducedDamage - DamageReduction;
@@ -84,7 +85,7 @@ namespace Starmaze.Game
 		}
 	}
 	//end Life component
-	public class Energy : Engine.Component
+	public class Energy : Component
 	{
 		double MaxEnergy { get; set; }
 
@@ -92,7 +93,7 @@ namespace Starmaze.Game
 
 		double RegenRate { get; set; }
 
-		public Energy(Engine.Actor owner, double maxEnergy = 100f, double regenRate = 10f) : base(owner)
+		public Energy(Actor owner, double maxEnergy = 100f, double regenRate = 10f) : base(owner)
 		{
 			MaxEnergy = maxEnergy;
 			CurrentEnergy = maxEnergy / 2f;
@@ -126,7 +127,7 @@ namespace Starmaze.Game
 
 		double MaxTime { get; set; }
 
-		public TimedLife(Engine.Actor owner, double time) : base(owner)
+		public TimedLife(Actor owner, double time) : base(owner)
 		{
 			Time = time;
 			MaxTime = time;
@@ -153,9 +154,57 @@ namespace Starmaze.Game
 			fireOffset = Vector2d.Zero;
 		}
 	}
+
+	/// <summary>
+	/// A Component that moves an Actor around and such based on key inputs.
+	/// </summary>
+	public class KeyboardController : Component
+	{
+		public KeyboardController(Actor owner) : base(owner)
+		{
+		}
+
+		public void KeyDown(KeyboardKeyEventArgs e)
+		{
+			//Log.Message("Key down: {0}", e.Key);
+			switch (e.Key) {
+				case Key.Left:
+					Owner.Body.AddImpulse(Vector2d.UnitX * -5);
+					break;
+				case Key.Right:
+					Owner.Body.AddImpulse(Vector2d.UnitX * 5);
+					break;
+				case Key.Up:
+					Owner.Body.AddImpulse(Vector2d.UnitY * 5);
+					break;
+				case Key.Down:
+					Owner.Body.AddImpulse(Vector2d.UnitY * -5);
+					break;
+				case Key.Z:
+					break;
+				case Key.X:
+					break;
+				case Key.C:
+					break;
+				case Key.D:
+					break;
+				case Key.S:
+					break;
+				default:
+					break;
+			}
+		}
+
+		public void KeyUp(KeyboardKeyEventArgs e)
+		{
+
+		}
+
+
+	}
 	//TODO: ParticleSystem reimplementation seems to depend on implementation of graphics
-	//Might belong in Engine.Component instead?
-	//public class ParticleSystem : Engine.Component {
+	//Might belong in Component instead?
+	//public class ParticleSystem : Component {
 	//texture Tex
 	//particleGroup
 	//}//end ParticleSystem component

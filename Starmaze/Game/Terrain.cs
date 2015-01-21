@@ -77,6 +77,8 @@ namespace Starmaze.Game
 			Body.AddGeom(new BoxGeom(bbox));
 			
 			RenderClass = "StaticRenderer";
+			// BUGGO: Since the Actor gets the model and such themselves, instead of
+			// it being handled by the Resources system, they aren't freed properly on game end.
 			var mb = new ModelBuilder();
 			var width = bbox.Right - bbox.Left;
 			var height = bbox.Top - bbox.Bottom;

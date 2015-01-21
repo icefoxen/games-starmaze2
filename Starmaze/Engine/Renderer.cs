@@ -184,7 +184,7 @@ namespace Starmaze.Engine
 			shader = Resources.TheResources.GetShader("default");
 			discipline = GLDiscipline.DEFAULT;
 		}
-		// XXX: This loads more optional properties onto Actors, in terms of the 
+		// XXX: This loads more optional properties onto Actors, in terms of the
 		// Model property.  Not sure if it's a good idea.
 		public override void RenderOne(ViewManager view, Actor act)
 		{

@@ -95,12 +95,16 @@ namespace Starmaze
 
 		void HandleKeyDown(object sender, OpenTK.Input.KeyboardKeyEventArgs e)
 		{
-			World.HandleKeyPress(e);
+			if (e.Key == OpenTK.Input.Key.Escape) {
+				Exit();
+			} else {
+				World.HandleKeyDown(e);
+			}
 		}
 
 		void HandleKeyUp(object sender, OpenTK.Input.KeyboardKeyEventArgs e)
 		{
-			World.HandleKeyRelease(e);
+			World.HandleKeyUp(e);
 		}
 
 		void HandleUpdate(object sender, FrameEventArgs e)

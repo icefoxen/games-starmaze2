@@ -36,9 +36,14 @@ namespace Starmaze.Game
 			Player = new Player();
 			ImmediateAddActor(Player);
 
-			var testTerrain = new BoxBlock(CurrentRoom, new BBox(-30, 30, -30, -25), Color4.Blue);
-			ImmediateAddActor(testTerrain);
-
+			var testTerrain1 = new BoxBlock(CurrentRoom, new BBox(-50, 50, -35, -30), Color4.Blue);
+			ImmediateAddActor(testTerrain1);
+			var testTerrain2 = new BoxBlock(CurrentRoom, new BBox(-50, 50, 35, 30), Color4.Blue);
+			ImmediateAddActor(testTerrain2);
+			var testTerrain3 = new BoxBlock(CurrentRoom, new BBox(-50, -45, -35, 35), Color4.Blue);
+			ImmediateAddActor(testTerrain3);
+			var testTerrain4 = new BoxBlock(CurrentRoom, new BBox(45, 50, -35, 35), Color4.Blue);
+			ImmediateAddActor(testTerrain4);
 		}
 
 		public void StartGame(object initialRoom)
@@ -123,14 +128,17 @@ namespace Starmaze.Game
 			RenderManager.Render(view);
 		}
 
-		public void HandleKeyPress(OpenTK.Input.KeyboardKeyEventArgs e)
+		public void HandleKeyDown(OpenTK.Input.KeyboardKeyEventArgs e)
 		{
-
+			// XXX: This cast makes me suspicious.
+			var controller = (KeyboardController)Player.Controller;
+			controller.KeyDown(e);
 		}
 
-		public void HandleKeyRelease(OpenTK.Input.KeyboardKeyEventArgs e)
+		public void HandleKeyUp(OpenTK.Input.KeyboardKeyEventArgs e)
 		{
-
+			var controller = (KeyboardController)Player.Controller;
+			controller.KeyUp(e);
 		}
 	}
 }
