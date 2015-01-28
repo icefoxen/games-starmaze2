@@ -165,6 +165,14 @@ namespace Starmaze.Game
 				OnKeyRelease(this, e);
 			}
 		}
+
+		// Hrmbl grmbl C# blrgl not letting random classes invoke events
+		public void TriggerOnDeath(object sender, EventArgs e)
+		{
+			if (OnDeath != null) {
+				OnDeath(sender, e);
+			}
+		}
 	}
 }
 

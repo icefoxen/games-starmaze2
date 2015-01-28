@@ -75,7 +75,7 @@ namespace Starmaze.Game
 			CurrentLife -= attenuatedDamage;
 			if (CurrentLife <= 0) {
 				Owner.Alive = false;
-				Owner.World.OnDeath(this, EventArgs.Empty);
+				Owner.World.TriggerOnDeath(this, EventArgs.Empty);
 			}
 			//string output = "Took " + attenuatedDamage.ToString() + " out of " + damage.ToString() + " damage, life is now " + CurrentLife.ToString();
 			string output = String.Format("Took {0} out of {1} damage, life is now {2}.", attenuatedDamage, damage, CurrentLife);

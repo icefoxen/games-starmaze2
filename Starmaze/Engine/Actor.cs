@@ -91,8 +91,20 @@ namespace Starmaze.Engine
 	{
 		// Components.
 		public HashSet<Component> Components;
-		public Body Body;
-		public Component Controller;
+		// We handle the Body specially since it's common to want to get it directly
+		// But in the end it has to go in the Components set as well(?)
+		Body _body;
+
+		public Body Body {
+			get {
+				return _body;
+			}
+			set {
+				Components.Remove(_body);
+				_body = value;
+				Components.Add(_body);
+			}
+		}
 		// Other properties
 		readonly long OrderingNumber;
 		public string RenderClass;
