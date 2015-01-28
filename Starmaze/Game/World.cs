@@ -21,6 +21,12 @@ namespace Starmaze.Game
 		HashSet<Actor> ActorsToAdd;
 		HashSet<Actor> ActorsToRemove;
 
+		// Events...
+		public event EventHandler<EventArgs> OnUpdate;
+		public event EventHandler<OpenTK.Input.KeyboardKeyEventArgs> OnKeyPress;
+		public event EventHandler<OpenTK.Input.KeyboardKeyEventArgs> OnKeyRelease;
+		public event EventHandler<EventArgs> OnDeath;
+
 		public World()
 		{
 			Actors = new HashSet<Actor>();
@@ -86,6 +92,7 @@ namespace Starmaze.Game
 			a.World = this;
 			RenderManager.Add(a);
 			Space.Add(a.Body);
+			a.RegisterEvents(this);
 		}
 
 		void ImmediateRemoveActor(Actor a)
@@ -93,6 +100,7 @@ namespace Starmaze.Game
 			Actors.Remove(a);
 			RenderManager.Remove(a);
 			Space.Remove(a.Body);
+			a.UnregisterEvents(this);
 		}
 		/*
 		void RawAddActor(Actor a)
@@ -108,8 +116,9 @@ namespace Starmaze.Game
 		public void Update(double dt)
 		{
 			Space.Update(dt);
-			foreach (var act in Actors) {
-				act.Update(dt);
+			// If nothing is listening for an event it will be null
+			if (OnUpdate != null) {
+				OnUpdate(this, EventArgs.Empty);
 			}
 			foreach (var act in ActorsToAdd) {
 				ImmediateAddActor(act);
@@ -117,6 +126,7 @@ namespace Starmaze.Game
 			foreach (var act in ActorsToRemove) {
 				ImmediateRemoveActor(act);
 			}
+
 
 			ActorsToAdd.Clear();
 			ActorsToRemove.Clear();
@@ -129,15 +139,19 @@ namespace Starmaze.Game
 
 		public void HandleKeyDown(OpenTK.Input.KeyboardKeyEventArgs e)
 		{
-			// XXX: This cast makes me suspicious.
-			var controller = (KeyboardController)Player.Controller;
-			controller.KeyDown(e);
+			// Okay, the 'event handler with nothing attached == null' idiom is a pain in the ass
+			if (OnKeyPress != null) {
+				OnKeyPress(this, e);
+			} else {
+				Log.Message("Thing?");
+			}
 		}
 
 		public void HandleKeyUp(OpenTK.Input.KeyboardKeyEventArgs e)
 		{
-			var controller = (KeyboardController)Player.Controller;
-			controller.KeyUp(e);
+			if (OnKeyRelease != null) {
+				OnKeyRelease(this, e);
+			}
 		}
 	}
 }

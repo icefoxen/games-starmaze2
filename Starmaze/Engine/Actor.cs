@@ -1,18 +1,86 @@
 using System;
+using System.Collections.Generic;
 using OpenTK;
 
 namespace Starmaze.Engine
 {
+	[Flags]
+	public enum EventType
+	{
+		None = 0,
+		OnUpdate = 1 << 0,
+		OnKeyPress = 1 << 1,
+		OnKeyRelease = 1 << 2,
+		OnDeath = 1 << 3,
+	}
+
 	/// <summary>
 	/// Base class for all Components.  Actors are made of Components.
 	/// </summary>
 	public class Component
 	{
 		public Actor Owner;
+		public EventType HandledEvents;
 
 		public Component(Actor owner)
 		{
 			Owner = owner;
+			HandledEvents = EventType.None;
+		}
+
+		// It would be nice if these were unnecessary; we could just provide a list of events somehow
+		// that each component cares about and the system would be smart enough to add/remove them itself.
+		public void RegisterEvents(Starmaze.Game.World w)
+		{
+			Console.WriteLine("{0} registering events", this);
+			if (HandledEvents.HasFlag(EventType.OnUpdate)) {
+				w.OnUpdate += OnUpdate;
+			}
+			if (HandledEvents.HasFlag(EventType.OnKeyPress)) {
+				w.OnKeyPress += OnKeyPress;
+			}
+			if (HandledEvents.HasFlag(EventType.OnKeyRelease)) {
+				w.OnKeyRelease += OnKeyRelease;
+			}
+			if (HandledEvents.HasFlag(EventType.OnDeath)) {
+				w.OnDeath += OnDeath;
+			}
+		}
+
+		public void UnregisterEvents(Starmaze.Game.World w)
+		{
+			if (HandledEvents.HasFlag(EventType.OnUpdate)) {
+				w.OnUpdate -= OnUpdate;
+			}
+			if (HandledEvents.HasFlag(EventType.OnKeyPress)) {
+				w.OnKeyPress -= OnKeyPress;
+			}
+			if (HandledEvents.HasFlag(EventType.OnKeyRelease)) {
+				w.OnKeyRelease -= OnKeyRelease;
+			}
+			if (HandledEvents.HasFlag(EventType.OnDeath)) {
+				w.OnDeath -= OnDeath;
+			}
+		}
+
+		public virtual void OnUpdate(object sender, EventArgs args)
+		{
+
+		}
+
+		public virtual void OnKeyPress(object sender, OpenTK.Input.KeyboardKeyEventArgs args)
+		{
+
+		}
+
+		public virtual void OnKeyRelease(object sender, OpenTK.Input.KeyboardKeyEventArgs args)
+		{
+
+		}
+
+		public virtual void OnDeath(object sender, EventArgs args)
+		{
+
 		}
 	}
 
@@ -22,6 +90,7 @@ namespace Starmaze.Engine
 	public class Actor : IComparable<Actor>
 	{
 		// Components.
+		public HashSet<Component> Components;
 		public Body Body;
 		public Component Controller;
 		// Other properties
@@ -39,6 +108,7 @@ namespace Starmaze.Engine
 			RenderClass = "TestRenderer";
 			OrderingNumber = Util.GetSerial();
 			Model = null;
+			Components = new HashSet<Component>();
 		}
 
 		public virtual void Update(double dt)
@@ -64,6 +134,26 @@ namespace Starmaze.Engine
 		public int CompareTo(Actor other)
 		{
 			return OrderingNumber.CompareTo(other.OrderingNumber);
+		}
+
+		public virtual void OnUpdate(object sender, EventArgs e)
+		{
+
+		}
+
+		public void RegisterEvents(Starmaze.Game.World w)
+		{
+			Console.WriteLine("{0} registering events", this);
+			foreach (var c in Components) {
+				c.RegisterEvents(w);
+			}
+		}
+
+		public void UnregisterEvents(Starmaze.Game.World w)
+		{
+			foreach (var c in Components) {
+				c.UnregisterEvents(w);
+			}
 		}
 	}
 }

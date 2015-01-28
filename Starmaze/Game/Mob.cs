@@ -46,8 +46,6 @@ namespace Starmaze.Game
 
 		public Life(Actor owner, double hpsIn, double maxLifeIn = -1.0f, double attenuationIn = 1.0f, double reductionIn = 0.0f) : base(owner)
 		{
-			//this = new Component(owner); 
-			this.Owner = owner;
 			CurrentLife = hpsIn;
 
 			if (maxLifeIn < 0.0f) {
@@ -58,7 +56,6 @@ namespace Starmaze.Game
 
 			DamageAttenuation = attenuationIn;
 			DamageReduction = reductionIn;
-
 		}
 
 		public void TakeDamage(Actor damager, double damage)
@@ -77,7 +74,8 @@ namespace Starmaze.Game
 			 */
 			CurrentLife -= attenuatedDamage;
 			if (CurrentLife <= 0) {
-				this.Owner.Alive = false;
+				Owner.Alive = false;
+				Owner.World.OnDeath(this, EventArgs.Empty);
 			}
 			//string output = "Took " + attenuatedDamage.ToString() + " out of " + damage.ToString() + " damage, life is now " + CurrentLife.ToString();
 			string output = String.Format("Took {0} out of {1} damage, life is now {2}.", attenuatedDamage, damage, CurrentLife);
@@ -162,11 +160,12 @@ namespace Starmaze.Game
 	{
 		public KeyboardController(Actor owner) : base(owner)
 		{
+			HandledEvents = EventType.OnKeyPress | EventType.OnKeyRelease;
 		}
 
-		public void KeyDown(KeyboardKeyEventArgs e)
+		public override void OnKeyPress(object sender, KeyboardKeyEventArgs e)
 		{
-			//Log.Message("Key down: {0}", e.Key);
+			Log.Message("Key down: {0}", e.Key);
 			switch (e.Key) {
 				case Key.Left:
 					Owner.Body.AddImpulse(Vector2d.UnitX * -5);
@@ -195,7 +194,7 @@ namespace Starmaze.Game
 			}
 		}
 
-		public void KeyUp(KeyboardKeyEventArgs e)
+		public override void OnKeyRelease(object sender, KeyboardKeyEventArgs e)
 		{
 
 		}

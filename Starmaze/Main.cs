@@ -64,15 +64,8 @@ namespace Starmaze
 			SetupEvents();
 		}
 
-		protected override void Dispose(bool manual)
-		{
-			Log.Message("Disposing of window with: {0}", manual);
-			base.Dispose(manual);
-		}
-
 		protected override void OnUnload(EventArgs e)
 		{
-			Log.Message("Unloading window");
 			Resources.CleanupResources();
 		}
 
