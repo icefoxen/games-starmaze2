@@ -66,6 +66,15 @@ namespace Starmaze.Content
 			var model = mb.Finish();
 			return model.ToVertexArray(shader);
 		}
+
+		public static VertexArray Particle()
+		{
+			var shader = Resources.TheResources.GetShader("particle-default");
+			var mb = new Starmaze.Engine.ModelBuilder();
+			mb.Circle(0, 0, 1, Color4.White, numSegments: 8);
+			var model = mb.Finish();
+			return model.ToVertexArray(shader);
+		}
 	}
 }
 

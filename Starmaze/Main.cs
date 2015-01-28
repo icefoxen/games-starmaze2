@@ -14,7 +14,6 @@ namespace Starmaze
 		public int ResolutionW;
 		public int ResolutionH;
 		public VSyncMode Vsync;
-		public double? FpsLimit;
 		// public string Logfile;
 
 		public GameOptions()
@@ -22,7 +21,6 @@ namespace Starmaze
 			ResolutionW = 1024;
 			ResolutionH = 768;
 			Vsync = VSyncMode.On;
-			FpsLimit = null;
 		}
 	}
 
@@ -80,10 +78,10 @@ namespace Starmaze
 			// We can just override methods and have the same effect, but doing it like this allows us
 			// a layer of indirection that will eventually let us do things like have a 
 			// menu screen more easily.
-			RenderFrame += new EventHandler<FrameEventArgs>(this.HandleRender);
-			UpdateFrame += new EventHandler<FrameEventArgs>(this.HandleUpdate);
-			KeyDown += new EventHandler<OpenTK.Input.KeyboardKeyEventArgs>(HandleKeyDown);
-			KeyUp += new EventHandler<OpenTK.Input.KeyboardKeyEventArgs>(HandleKeyUp);
+			RenderFrame += HandleRender;
+			UpdateFrame += HandleUpdate;
+			KeyDown += HandleKeyDown;
+			KeyUp += HandleKeyUp;
 		}
 
 		void HandleKeyDown(object sender, OpenTK.Input.KeyboardKeyEventArgs e)
@@ -111,6 +109,7 @@ namespace Starmaze
 			World.Draw(View);
 			Gui.Draw();
 			SwapBuffers();
+			Console.WriteLine("FPS: {0}, num particles {1}/{2}", RenderFrequency, World.group.Particles.Count, World.group.Particles.Capacity);
 		}
 	}
 
