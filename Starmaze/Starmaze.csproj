@@ -71,6 +71,7 @@
     <Compile Include="Engine\Drawing.cs" />
     <Compile Include="Game\World.cs" />
     <Compile Include="Content\Bullet.cs" />
+    <Compile Include="Game\WorldGen.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

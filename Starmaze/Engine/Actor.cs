@@ -32,7 +32,7 @@ namespace Starmaze.Engine
 		// that each component cares about and the system would be smart enough to add/remove them itself.
 		public void RegisterEvents(Starmaze.Game.World w)
 		{
-			Console.WriteLine("{0} registering events", this);
+			//Console.WriteLine("{0} registering events", this);
 			if (HandledEvents.HasFlag(EventType.OnUpdate)) {
 				w.OnUpdate += OnUpdate;
 			}

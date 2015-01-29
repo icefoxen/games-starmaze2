@@ -22,7 +22,6 @@ namespace Starmaze.Game
 		HashSet<Actor> ActorsToRemove;
 
 
-		// Events...
 		public event EventHandler<FrameEventArgs> OnUpdate;
 		public event EventHandler<OpenTK.Input.KeyboardKeyEventArgs> OnKeyPress;
 		public event EventHandler<OpenTK.Input.KeyboardKeyEventArgs> OnKeyRelease;
@@ -37,25 +36,34 @@ namespace Starmaze.Game
 
 			RenderManager = new RenderManager();
 			Map = new WorldMap();
-			CurrentRoom = new Room();
+			CurrentRoom = null;
 
 			Player = new Player();
-			ImmediateAddActor(Player);
 
-			var testTerrain1 = new BoxBlock(CurrentRoom, new BBox(-40, -35, 40, -30), Color4.Blue);
-			ImmediateAddActor(testTerrain1);
-			var testTerrain2 = new BoxBlock(CurrentRoom, new BBox(-40, 30, 40, 35), Color4.Blue);
-			ImmediateAddActor(testTerrain2);
-			var testTerrain3 = new BoxBlock(CurrentRoom, new BBox(-45, -35, -40, 35), Color4.Blue);
-			ImmediateAddActor(testTerrain3);
-			var testTerrain4 = new BoxBlock(CurrentRoom, new BBox(40, -35, 45, 35), Color4.Blue);
-			ImmediateAddActor(testTerrain4);
-
+			BuildTestLevel();
+			ChangeRoom(Map["TestZone"]["TestRoom1"]);
 		}
 
-		public void StartGame(object initialRoom)
+		void BuildTestLevel()
 		{
-
+			var zone = new Zone("TestZone");
+			var actors1 = new Actor[] {
+				new BoxBlock(new BBox(-40, -35, 40, -30), Color4.Blue),
+				new BoxBlock(new BBox(-40, 30, 40, 35), Color4.Blue),
+				new BoxBlock(new BBox(-45, -35, -40, 35), Color4.Blue),
+				new BoxBlock(new BBox(40, -35, 45, 35), Color4.Blue),
+			};
+			var actors2 = new Actor[] {
+				new BoxBlock(new BBox(-40, -35, 40, -30), Color4.Yellow),
+				new BoxBlock(new BBox(-40, 30, 40, 35), Color4.Yellow),
+				new BoxBlock(new BBox(-45, -35, -40, 35), Color4.Yellow),
+				new BoxBlock(new BBox(40, -35, 45, 35), Color4.Yellow),
+			};
+			var room1 = new Room("TestRoom1", zone, actors1);
+			var room2 = new Room("TestRoom2", zone, actors2);
+			zone.AddRoom(room1);
+			zone.AddRoom(room2);
+			Map.AddZone(zone);
 		}
 
 		/// <summary>
@@ -73,9 +81,14 @@ namespace Starmaze.Game
 			ActorsToRemove = new HashSet<Actor>();
 		}
 
-		public void ChangeRoom(object newRoom)
+		public void ChangeRoom(Room newRoom)
 		{
-
+			ClearWorld();
+			foreach (var act in newRoom.ReifyActorsForEntry()) {
+				AddActor(act);
+			}
+			AddActor(Player);
+			CurrentRoom = newRoom;
 		}
 
 		public void AddActor(Actor a)
@@ -144,9 +157,15 @@ namespace Starmaze.Game
 			// Okay, the 'event handler with nothing attached == null' idiom is a pain in the ass
 			if (OnKeyPress != null) {
 				OnKeyPress(this, e);
-			} else {
-				Log.Message("Thing?");
 			}
+			/*
+			 * Test code to make sure ChangeRoom() works; it does.
+			if (e.Key == OpenTK.Input.Key.Number1) {
+				ChangeRoom(Map["TestZone"]["TestRoom1"]);
+			} else if (e.Key == OpenTK.Input.Key.Number2) {
+				ChangeRoom(Map["TestZone"]["TestRoom2"]);
+			}
+			*/
 		}
 
 		public void HandleKeyUp(OpenTK.Input.KeyboardKeyEventArgs e)
@@ -157,6 +176,8 @@ namespace Starmaze.Game
 		}
 
 		// Hrmbl grmbl C# blrgl not letting random classes invoke events
+		// Which is to say, if any event needs to be triggered by something other than the World
+		// itself, it needs a method like this to make it accessible.
 		public void TriggerOnDeath(object sender, EventArgs e)
 		{
 			if (OnDeath != null) {

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Starmaze.Engine;
+using OpenTK;
 using OpenTK.Graphics;
 
 namespace Starmaze.Game
@@ -12,28 +13,77 @@ namespace Starmaze.Game
 	public class Zone
 	{
 		public string Name;
+		public Dictionary<string, Room> Rooms;
+
+		/// <summary>
+		/// An indexer to make it easier to retrieve rooms.  Just go Zone[roomname].
+		/// </summary>
+		/// <param name="room">Room name.</param>
+		public Room this [string room] {
+			get {
+				Log.Assert(Rooms.ContainsKey(room), "Zone {0} does not contain room {1}!", Name, room);
+				return Rooms[room];
+			}
+		}
+
+		public Zone(string name)
+		{
+			Name = name;
+			Rooms = new Dictionary<string, Room>();
+		}
+
+		public Zone(string name, IEnumerable<Room> rooms) : this(name)
+		{
+			foreach (var room in rooms) {
+				AddRoom(room);
+			}
+		}
+
+		public void AddRoom(Room room)
+		{
+			Rooms.Add(room.Name, room);
+		}
 	}
 
 	/// <summary>
-	/// A named area that connects to other Areas.
+	/// A named area that connects to other Rooms.
 	/// 
 	/// Static actors are reloaded from a frozen description every time the room is re-entered,
 	/// and discarded when the room is left.  Dynamic actors preserve their state.
+	/// 
+	/// TODO: For now none of that is implemented, we just keep a list of actors.
 	/// </summary>
 	public class Room
 	{
 		public Zone Zone;
 		public string Name;
+		IEnumerable<Actor> Actors;
 		//IEnumerable<Actor> StaticFrozen;
 		//IEnumerable<Actor> DynamicFrozen;
 		//IEnumerable<Actor> DynamicLive;
+
+		public Room(string name, Zone zone, IEnumerable<Actor> actors)
+		{
+			Name = name;
+			Zone = zone;
+			Actors = actors;
+		}
+
 		/// <summary>
-		/// Creates all the Actors actually in the room.
+		/// Returns all the Actors actually in the room.
 		/// </summary>
 		/// <returns>The actors in the room.</returns>
 		public IEnumerable<Actor> ReifyActorsForEntry()
 		{
-			return new List<Actor>();
+			return Actors;
+		}
+
+		/// <summary>
+		/// Saves the state of any actor that persists when you leave and re-enter the Room.
+		/// </summary>
+		public void SaveActorsOnExit()
+		{
+
 		}
 	}
 
@@ -43,13 +93,27 @@ namespace Starmaze.Game
 	/// </summary>
 	public class WorldMap
 	{
-		Dictionary<string, Zone> zones;
-		Dictionary<string, Room> rooms;
+		Dictionary<string, Zone> Zones;
+
+		/// <summary>
+		/// An indexer to make it easier to retrieve zones.  Just go WorldMap[zonename]
+		/// </summary>
+		/// <param name="zone">Zone name.</param>
+		public Zone this [string zone] {
+			get {
+				Log.Assert(Zones.ContainsKey(zone), "Zone {0} does not exist!", zone);
+				return Zones[zone];
+			}
+		}
 
 		public WorldMap()
 		{
-			zones = new Dictionary<string,Zone>();
-			rooms = new Dictionary<string,Room>();
+			Zones = new Dictionary<string,Zone>();
+		}
+
+		public void AddZone(Zone zone)
+		{
+			Zones.Add(zone.Name, zone);
 		}
 	}
 
@@ -58,11 +122,27 @@ namespace Starmaze.Game
 	/// </summary>
 	public class Terrain : Actor
 	{
-		Room room;
-
-		public Terrain(Room room)
+		public Terrain()
 		{
-			this.room = room;
+		}
+	}
+
+	/// <summary>
+	/// A standalone feature that warps you somewhere else when you near it and
+	/// activate it.  Essentially a portal.  Each one is one-way, but they are generally
+	/// generated in pairs.
+	/// </summary>
+	public class Gate : Terrain
+	{
+		public string DestinationZone;
+		public string DestinationRoom;
+		public Vector2d DestinationLocation;
+
+		public Gate(string destZone, string destRoom, Vector2d destLocation)
+		{
+			DestinationZone = destZone;
+			DestinationRoom = destRoom;
+			DestinationLocation = destLocation;
 		}
 	}
 
@@ -71,7 +151,7 @@ namespace Starmaze.Game
 	/// </summary>
 	public class BoxBlock : Terrain
 	{
-		public BoxBlock(Room room, BBox bbox, Color4 color) : base(room)
+		public BoxBlock(BBox bbox, Color4 color)
 		{
 			Body = new Body(this, immobile: true);
 			Body.AddGeom(new BoxGeom(bbox));
@@ -82,7 +162,7 @@ namespace Starmaze.Game
 			var mb = new ModelBuilder();
 			var width = bbox.Dx;
 			var height = bbox.Dy;
-			mb.RectCorner(bbox.X0, bbox.Y0, width, height, Color4.Blue);
+			mb.RectCorner(bbox.X0, bbox.Y0, width, height, color);
 			var vertModel = mb.Finish();
 			// XXX: Should we need to get a shader here?  We probably shouldn't.
 			var shader = Resources.TheResources.GetShader("default");
