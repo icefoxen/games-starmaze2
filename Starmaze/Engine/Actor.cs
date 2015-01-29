@@ -63,7 +63,7 @@ namespace Starmaze.Engine
 			}
 		}
 
-		public virtual void OnUpdate(object sender, EventArgs args)
+		public virtual void OnUpdate(object sender, FrameEventArgs args)
 		{
 
 		}

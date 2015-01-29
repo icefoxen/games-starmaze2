@@ -21,13 +21,9 @@ namespace Starmaze.Game
 		HashSet<Actor> ActorsToAdd;
 		HashSet<Actor> ActorsToRemove;
 
-		public ParticleGroup group;
-		ParticleRenderer renderer;
-		ParticleEmitter emitter;
-		ParticleController controller;
 
 		// Events...
-		public event EventHandler<EventArgs> OnUpdate;
+		public event EventHandler<FrameEventArgs> OnUpdate;
 		public event EventHandler<OpenTK.Input.KeyboardKeyEventArgs> OnKeyPress;
 		public event EventHandler<OpenTK.Input.KeyboardKeyEventArgs> OnKeyRelease;
 		public event EventHandler<EventArgs> OnDeath;
@@ -55,10 +51,6 @@ namespace Starmaze.Game
 			var testTerrain4 = new BoxBlock(CurrentRoom, new BBox(40, -35, 45, 35), Color4.Blue);
 			ImmediateAddActor(testTerrain4);
 
-			group = new ParticleGroup();
-			renderer = new ParticleRenderer();
-			emitter = new ParticleEmitter();
-			controller = new ParticleController();
 		}
 
 		public void StartGame(object initialRoom)
@@ -123,12 +115,13 @@ namespace Starmaze.Game
 
 		}
 		*/
-		public void Update(double dt)
+		public void Update(FrameEventArgs e)
 		{
+			var dt = e.Time;
 			Space.Update(dt);
 			// If nothing is listening for an event it will be null
 			if (OnUpdate != null) {
-				OnUpdate(this, EventArgs.Empty);
+				OnUpdate(this, e);
 			}
 			foreach (var act in ActorsToAdd) {
 				ImmediateAddActor(act);
@@ -137,8 +130,6 @@ namespace Starmaze.Game
 				ImmediateRemoveActor(act);
 			}
 
-			controller.Update(dt, group);
-			emitter.Update(dt, group);
 			ActorsToAdd.Clear();
 			ActorsToRemove.Clear();
 		}
@@ -146,7 +137,6 @@ namespace Starmaze.Game
 		public void Draw(ViewManager view)
 		{
 			RenderManager.Render(view);
-			renderer.Draw(view, group);
 		}
 
 		public void HandleKeyDown(OpenTK.Input.KeyboardKeyEventArgs e)

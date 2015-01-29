@@ -50,3 +50,7 @@ Acquiring the CodeXL OpenGL debugger might also help.
 * All Intel graphics cards >= HD 3000 support OpenGL 3.1, HD 4000 supports OpenGL 4.0 on Windows, but on Linux it uses Mesa which only supports up to 3.2.  3.3 support in Mesa sort of exists, but is disabled by default because not all backend drivers actually support it. - https://en.wikipedia.org/wiki/Intel_HD_and_Iris_Graphics#Capabilities , http://mesa3d.org/
 
 Conclusion: Target OpenGL 3.1 if we care about Intel graphics cards, 3.3 otherwise.  And we DO care about Intel graphics cards because pretty much every non-gaming laptop has one.  In the end though, we're targetting OpenGL 3.3, because it has features we want.
+
+Targetting OpenGL ES 2.0 is necessary if we want to release on OUYA or be able to play it on Raspberry Pi (such as to put in an arcade box maybe), but apparently ES 2.0 is based vaguely off of OpenGL 2.0, so Eris only knows if that will be remotely feasible.
+
+OpenGL ES 3.0 exists and is based off of OpenGL 4.3 which is awesome except nothing fucking supports it yet because graphics card/chip makers are the spawn of satan.

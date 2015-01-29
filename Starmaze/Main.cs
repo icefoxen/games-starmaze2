@@ -41,6 +41,8 @@ namespace Starmaze
 			: base(options.ResolutionW, options.ResolutionH, new GraphicsMode(24, 24, 0, 0), Util.WindowTitle, 
 			       GameWindowFlags.Default, DisplayDevice.Default,
 			       Util.GlMajorVersion, Util.GlMinorVersion, GraphicsContextFlags.Default)
+				// Comment out previous and uncomment below to test with OpenGL ES 2.0
+			       // 2, 0, GraphicsContextFlags.Embedded)
 		{
 			// All 'construction' is basically done in OnLoad() because that guarentees the OpenGL context has been
 			// set up.
@@ -100,7 +102,7 @@ namespace Starmaze
 
 		void HandleUpdate(object sender, FrameEventArgs e)
 		{
-			World.Update(e.Time);
+			World.Update(e);
 		}
 
 		void HandleRender(object sender, FrameEventArgs e)
@@ -109,7 +111,6 @@ namespace Starmaze
 			World.Draw(View);
 			Gui.Draw();
 			SwapBuffers();
-			Console.WriteLine("FPS: {0}, num particles {1}/{2}", RenderFrequency, World.group.Particles.Count, World.group.Particles.Capacity);
 		}
 	}
 

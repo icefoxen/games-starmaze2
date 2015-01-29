@@ -105,20 +105,21 @@ namespace Starmaze.Engine
 	{
 		double lastTime = 0.0;
 		double nextTime = 0.0;
-		double increment = 0.1;
+		double emitDelay;
 
 		Random rand;
 
-		public ParticleEmitter()
+		public ParticleEmitter(double emitDelay = 0.1)
 		{
 			rand = new Random();
+			this.emitDelay = emitDelay;
 		}
 
 		public void Update(double dt, ParticleGroup group)
 		{
 			lastTime += dt;
 			while (lastTime >= nextTime) {
-				nextTime += increment;
+				nextTime += emitDelay;
 				var xOffset = rand.NextDouble() * 0.02;
 				var yOffset = rand.NextDouble() * 0.02;
 
@@ -130,9 +131,32 @@ namespace Starmaze.Engine
 	/// <summary>
 	/// A test component that emits particles.
 	/// </summary>
-	//class ParticleSystem : Component
-	//{
+	// XXX: Doesn't draw anything yet...  How exactly to integrate the ParticleRenderer
+	// with the Renderer pipeline is something I need to think about.
+	class ParticleComponent : Component
+	{
 
-	//}
+		ParticleGroup group;
+		ParticleRenderer renderer;
+		ParticleEmitter emitter;
+		ParticleController controller;
+
+		public ParticleComponent(Actor owner, double emitDelay = 0.1) : base(owner)
+		{
+			HandledEvents = EventType.OnUpdate;
+
+			group = new ParticleGroup();
+			renderer = new ParticleRenderer();
+			emitter = new ParticleEmitter(emitDelay: emitDelay);
+			controller = new ParticleController();
+		}
+
+		public override void OnUpdate(object sender, FrameEventArgs e)
+		{
+			var dt = e.Time;
+			emitter.Update(dt, group);
+			controller.Update(dt, group);
+		}
+	}
 }
 
