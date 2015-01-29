@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Newtonsoft.Json;
 using OpenTK;
 
 namespace Starmaze.Engine
@@ -89,12 +90,16 @@ namespace Starmaze.Engine
 	/// </summary>
 	public class Actor : IComparable<Actor>
 	{
+		//XXX FIX
+		[JsonIgnore]
 		// Components.
 		public HashSet<Component> Components;
 		// We handle the Body specially since it's common to want to get it directly
 		// But in the end it has to go in the Components set as well(?)
 		Body _body;
 
+		//XXX FIX
+		[JsonIgnore]
 		public Body Body {
 			get {
 				return _body;
