@@ -46,11 +46,11 @@ namespace Starmaze.Game
 			Player = new Player();
 			ImmediateAddActor(Player);
 			string playerJSON = Newtonsoft.Json.JsonConvert.SerializeObject(Player);
-			Log.Message(playerJSON.ToString());
+			Log.Message("{0}",playerJSON);
 
 			var testTerrain1 = new BoxBlock(CurrentRoom, new BBox(-40, -35, 40, -30), Color4.Blue);
 			string terrainJson = Newtonsoft.Json.JsonConvert.SerializeObject(testTerrain1);
-			Log.Message(terrainJson);
+			Log.Message("{0}",terrainJson);
 			ImmediateAddActor(testTerrain1);
 			var testTerrain2 = new BoxBlock(CurrentRoom, new BBox(-40, 30, 40, 35), Color4.Blue);
 			ImmediateAddActor(testTerrain2);
