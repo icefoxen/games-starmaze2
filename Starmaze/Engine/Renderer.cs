@@ -17,6 +17,8 @@ namespace Starmaze.Engine
 		//int ScreenW, ScreenH;
 		SortedDictionary<Renderer, SortedSet<Actor>> Renderers;
 
+		PostprocPipeline postproc;
+
 		public RenderManager() //int screenw, int screenh)
 		{
 			//ScreenW = screenw;
@@ -31,6 +33,10 @@ namespace Starmaze.Engine
 				Renderers[renderer] = new SortedSet<Actor>();
 				//Renderers.Add(renderer, new SortedSet<Actor>());
 			}
+
+			postproc = new PostprocPipeline();
+			var ppShader = Resources.TheResources.GetShader("postproc");
+			postproc.AddStep(ppShader);
 			//foreach (var r in Renderers) {
 			//	Console.WriteLine("Renderer: {0}, total {1}", r, Renderers.Count);
 			//}
@@ -57,12 +63,17 @@ namespace Starmaze.Engine
 
 		public void Render(ViewManager view)
 		{
-			foreach (var kv in Renderers) {
-				var renderer = kv.Key;
-				var actors = kv.Value;
-				//Console.WriteLine("Rendering {0} with {1}?", actors, renderer);
-				renderer.RenderMany(view, actors);
-			}
+			Action thunk = () => {
+				foreach (var kv in Renderers) {
+					var renderer = kv.Key;
+					var actors = kv.Value;
+					//Console.WriteLine("Rendering {0} with {1}?", actors, renderer);
+					renderer.RenderMany(view, actors);
+				}
+			};
+
+			//thunk();
+			postproc.RenderWith(thunk);
 		}
 	}
 
