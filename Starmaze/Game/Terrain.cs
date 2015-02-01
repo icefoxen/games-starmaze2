@@ -156,7 +156,7 @@ namespace Starmaze.Game
 			Body = new Body(this, immobile: true);
 			Body.AddGeom(new BoxGeom(bbox));
 			
-			RenderClass = "StaticRenderer";
+
 			// BUGGO: Since the Actor gets the model and such themselves, instead of
 			// it being handled by the Resources system, they aren't freed properly on game end.
 			var mb = new ModelBuilder();
@@ -166,7 +166,8 @@ namespace Starmaze.Game
 			var vertModel = mb.Finish();
 			// XXX: Should we need to get a shader here?  We probably shouldn't.
 			var shader = Resources.TheResources.GetShader("default");
-			Model = vertModel.ToVertexArray(shader);
+			var model = vertModel.ToVertexArray(shader);
+			RenderSpecification = new StaticRenderSpec(model);
 		}
 	}
 }

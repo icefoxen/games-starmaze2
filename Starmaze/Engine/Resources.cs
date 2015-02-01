@@ -15,7 +15,7 @@ namespace Starmaze.Engine
 	{
 
 		string ResourceRoot;
-		Dictionary<string, Renderer> RendererCache;
+		Dictionary<RenderSpec, IRenderer> RendererCache;
 		Dictionary<string, Texture> TextureCache;
 		Dictionary<string, Shader> ShaderCache;
 		Dictionary<string, VertexArray> ModelCache;
@@ -31,7 +31,7 @@ namespace Starmaze.Engine
 			// in the resource path root.
 			basePath = System.IO.Path.Combine(basePath, "..");
 			ResourceRoot = basePath;
-			RendererCache = new Dictionary<string, Renderer>();
+			RendererCache = new Dictionary<RenderSpec, IRenderer>();
 			TextureCache = new Dictionary<string, Texture>();
 			ShaderCache = new Dictionary<string, Shader>();
 			ModelCache = new Dictionary<string, VertexArray>();
@@ -59,24 +59,24 @@ namespace Starmaze.Engine
 		/// name.  Using strings to refer to them is a _little_ grotty but reflects nicely.
 		/// </summary>
 		/// <returns>The render map.</returns>
-		static void PreloadRenderers(Dictionary<string, Renderer> rendererMap)
+		static void PreloadRenderers(Dictionary<string, IRenderer> rendererMap)
 		{
-			var subclasses = Util.GetSubclassesOf(typeof(Renderer));
+			var subclasses = Util.GetSubclassesOf(typeof(IRenderer));
 			// We go through all subclasses of Renderer, instantiate one of each, and 
 			// associate each with its name, and that gets us the string -> Renderer mapping.
 			foreach (Type subclass in subclasses) {
-				var renderer = (Renderer)Activator.CreateInstance(subclass);
+				var renderer = (IRenderer)Activator.CreateInstance(subclass);
 				rendererMap.Add(subclass.Name, renderer);
 			}
 		}
 
-		public Renderer GetRenderer(string r)
+		public IRenderer GetRenderer(RenderSpec spec)
 		{
 			// We don't use the ResourceLoader.Get function here 'cause all renderers
 			// are preloaded and associating a string to a renderer is a little squirrelly.
 			// So we don't actually have a LoadRenderer function.
-			Log.Assert(RendererCache.ContainsKey(r), "Renderer cache does not contain key {0}", r);
-			return RendererCache[r];
+			Log.Assert(RendererCache.ContainsKey(spec), "Renderer cache does not contain key {0}", spec);
+			return RendererCache[spec];
 		}
 
 		public Texture GetImage(string r)

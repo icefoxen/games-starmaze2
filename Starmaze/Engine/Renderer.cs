@@ -6,6 +6,39 @@ using OpenTK.Graphics.OpenGL;
 namespace Starmaze.Engine
 {
 	/// <summary>
+	/// A class that specifies which renderer to use, and all the arguments it needs.
+	/// </summary>
+	public class RenderSpec
+	{
+		public string RendererName;
+
+		public RenderSpec(string name)
+		{
+			RendererName = name;
+		}
+	}
+
+	public class StaticRenderSpec : RenderSpec
+	{
+		public VertexArray Model;
+
+		public StaticRenderSpec(VertexArray model) : base("StaticRenderer")
+		{
+			Model = model;
+		}
+	}
+
+	public class SpriteRenderSpec : RenderSpec
+	{
+		public VertexArray Model;
+
+		public SpriteRenderSpec(VertexArray model) : base("SpriteRenderer")
+		{
+			Model = model;
+		}
+	}
+
+	/// <summary>
 	/// A class to manage drawing a heterogenous set of actors.
 	/// This class keeps track of all Renderers and all Actors, and holds the association
 	/// between one and the other.  It also preloads Renderers and tracks; all an Actor has to do is
@@ -15,7 +48,7 @@ namespace Starmaze.Engine
 	{
 		// Will be needed eventually for postprocessing...
 		//int ScreenW, ScreenH;
-		SortedDictionary<Renderer, SortedSet<Actor>> Renderers;
+		SortedDictionary<IRenderer, SortedSet<Actor>> Renderers;
 
 		PostprocPipeline postproc;
 
@@ -25,8 +58,8 @@ namespace Starmaze.Engine
 			//ScreenH = screenh;
 
 			// Fill out the required data structures.
-			Renderers = new SortedDictionary<Renderer, SortedSet<Actor>>();
-			foreach (var renderclass in Util.GetSubclassesOf(typeof(Renderer))) {
+			Renderers = new SortedDictionary<IRenderer, SortedSet<Actor>>();
+			foreach (var renderclass in Util.GetSubclassesOf(typeof(IRenderer))) {
 				// Remember to get the cached renderer from the resources system here.
 				var renderer = Resources.TheResources.GetRenderer(renderclass.Name);
 				//Console.WriteLine("Adding renderer {0}", renderer);
@@ -72,8 +105,8 @@ namespace Starmaze.Engine
 				}
 			};
 
-			//thunk();
-			postproc.RenderWith(thunk);
+			thunk();
+			//postproc.RenderWith(thunk);
 		}
 	}
 
@@ -82,6 +115,19 @@ namespace Starmaze.Engine
 		BG = 10,
 		FG = 20,
 		GUI = 30,
+	}
+
+	public interface IRenderer : IComparable<IRenderer>
+	{
+
+		ZOrder zOrder { get; set; }
+
+		long serial { get; set; }
+
+		void RenderStart();
+
+		void RenderMany(ViewManager view, IEnumerable<Actor> actors);
+
 	}
 
 	/// <summary>
@@ -94,16 +140,21 @@ namespace Starmaze.Engine
 	/// Note that these should not keep Actor-level state around.  If it needs some data per-Actor,
 	/// the Actors need to be able to provide it.
 	/// </summary>
-	public abstract class Renderer : IComparable<Renderer>
+	public abstract class Renderer<T> : IRenderer where T : RenderSpec
 	{
-		ZOrder zOrder = ZOrder.FG;
-		protected long serial;
+		public ZOrder zOrder { get; set; }
+
+		public long serial { get; set; }
+
 		protected GLDiscipline discipline;
 		protected Shader shader;
+		protected T Spec;
 
-		public Renderer()
+		public Renderer(T spec)
 		{
+			zOrder = ZOrder.FG;
 			serial = Util.GetSerial();
+			Spec = spec;
 		}
 
 		public virtual void RenderStart()
@@ -140,7 +191,7 @@ namespace Starmaze.Engine
 		/// <returns>The to.</returns>
 		/// <param name="other">Other.</param>
 		// OPT: I feel like it should be possible to do this without the if.
-		public int CompareTo(Renderer other)
+		public int CompareTo(IRenderer other)
 		{
 			if (other.zOrder != zOrder) {
 				return zOrder.CompareTo(other.zOrder);
@@ -157,18 +208,23 @@ namespace Starmaze.Engine
 	// we still go through all the mechanics of adding and removing Actors to it, calling the code to draw
 	// them, and so on.  BUT, for now, it is also simpler, because we don't have to special-case out Renderers
 	// that do nothing.  Overriding RenderActors makes life a little better though.
-	public class NullRenderer : Renderer
+	public class NullRenderer : Renderer<RenderSpec>
 	{
+		public NullRenderer(RenderSpec spec) : base(spec)
+		{
+
+		}
+
 		public override void RenderMany(ViewManager view, IEnumerable<Actor> actors)
 		{
 		}
 	}
 
-	public class TestRenderer : Renderer
+	public class TestRenderer : Renderer<RenderSpec>
 	{
 		VertexArray model;
 
-		public TestRenderer() : base()
+		public TestRenderer(RenderSpec spec) : base(spec)
 		{
 			//Model = Starmaze.Content.Images.TestModel2();
 			//Model = Resources.TheResources.GetModel("TestModel2");
@@ -188,9 +244,9 @@ namespace Starmaze.Engine
 		}
 	}
 
-	public class StaticRenderer : Renderer
+	public class StaticRenderer : Renderer<StaticRenderSpec>
 	{
-		public StaticRenderer() : base()
+		public StaticRenderer(StaticRenderSpec spec) : base(spec)
 		{
 			shader = Resources.TheResources.GetShader("default");
 			discipline = GLDiscipline.DEFAULT;
@@ -203,9 +259,29 @@ namespace Starmaze.Engine
 			var transform = new Transform(pos, 0.0f);
 			var mat = transform.TransformMatrix(view.ProjectionMatrix);
 			shader.UniformMatrix("projection", mat);
-			if (act.Model != null) {
-				act.Model.Draw();
-			}
+			Spec.Model.Draw();
+		}
+	}
+
+	/// <summary>
+	/// Renders a textured sprite object.
+	/// </summary>
+	public class SpriteRenderer : Renderer<SpriteRenderSpec>
+	{
+		public SpriteRenderer(SpriteRenderSpec spec) : base(spec)
+		{
+			shader = Resources.TheResources.GetShader("default");
+			discipline = GLDiscipline.DEFAULT;
+		}
+		// XXX: This loads more optional properties onto Actors, in terms of the
+		// Model property.  Not sure if it's a good idea.
+		public override void RenderOne(ViewManager view, Actor act)
+		{
+			var pos = new Vector2((float)act.Body.Position.X, (float)act.Body.Position.Y);
+			var transform = new Transform(pos, 0.0f);
+			var mat = transform.TransformMatrix(view.ProjectionMatrix);
+			shader.UniformMatrix("projection", mat);
+			Spec.Model.Draw();
 		}
 	}
 }
