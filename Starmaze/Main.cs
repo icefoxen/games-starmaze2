@@ -49,6 +49,32 @@ namespace Starmaze
 			Options = options;
 		}
 
+
+
+		WorldMap BuildTestLevel()
+		{
+			var zone = new Zone("TestZone");
+			var actors1 = new Actor[] {
+				new BoxBlock(new BBox(-40, -35, 40, -30), Color4.Blue),
+				new BoxBlock(new BBox(-40, 30, 40, 35), Color4.Blue),
+				new BoxBlock(new BBox(-45, -35, -40, 35), Color4.Blue),
+				new BoxBlock(new BBox(40, -35, 45, 35), Color4.Blue),
+			};
+			var actors2 = new Actor[] {
+				new BoxBlock(new BBox(-40, -35, 40, -30), Color4.Yellow),
+				new BoxBlock(new BBox(-40, 30, 40, 35), Color4.Yellow),
+				new BoxBlock(new BBox(-45, -35, -40, 35), Color4.Yellow),
+				new BoxBlock(new BBox(40, -35, 45, 35), Color4.Yellow),
+			};
+			var room1 = new Room("TestRoom1", zone, actors1);
+			var room2 = new Room("TestRoom2", zone, actors2);
+			zone.AddRoom(room1);
+			zone.AddRoom(room2);
+			var map = new WorldMap();
+			map.AddZone(zone);
+			return map;
+		}
+
 		protected override void OnLoad(System.EventArgs e)
 		{
 			VSync = Options.Vsync;
@@ -59,7 +85,8 @@ namespace Starmaze
 			// Has to be called after the Graphics setup if it's going to be preloading
 			// textures and shaders and such...
 			Resources.InitResources();
-			World = new World();
+			var map = BuildTestLevel();
+			World = new World(new Player(), map, "TestZone", "TestRoom1");
 			Gui = new GUI();
 			SetupEvents();
 		}

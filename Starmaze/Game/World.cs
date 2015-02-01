@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Starmaze.Engine;
 using OpenTK;
 using OpenTK.Graphics;
@@ -14,7 +15,6 @@ namespace Starmaze.Game
 	{
 		WorldMap Map;
 		Room CurrentRoom;
-		Player Player;
 		RenderManager RenderManager;
 		Space Space;
 		HashSet<Actor> Actors;
@@ -27,7 +27,7 @@ namespace Starmaze.Game
 		public event EventHandler<OpenTK.Input.KeyboardKeyEventArgs> OnKeyRelease;
 		public event EventHandler<EventArgs> OnDeath;
 
-		public World()
+		public World(Actor player, WorldMap map, string initialZone, string initialRoom)
 		{
 			Actors = new HashSet<Actor>();
 			ActorsToAdd = new HashSet<Actor>();
@@ -35,35 +35,10 @@ namespace Starmaze.Game
 			Space = new Space();
 
 			RenderManager = new RenderManager();
-			Map = new WorldMap();
-			CurrentRoom = null;
 
-			Player = new Player();
-
-			BuildTestLevel();
-			ChangeRoom(Map["TestZone"]["TestRoom1"]);
-		}
-
-		void BuildTestLevel()
-		{
-			var zone = new Zone("TestZone");
-			var actors1 = new Actor[] {
-				new BoxBlock(new BBox(-40, -35, 40, -30), Color4.Blue),
-				new BoxBlock(new BBox(-40, 30, 40, 35), Color4.Blue),
-				new BoxBlock(new BBox(-45, -35, -40, 35), Color4.Blue),
-				new BoxBlock(new BBox(40, -35, 45, 35), Color4.Blue),
-			};
-			var actors2 = new Actor[] {
-				new BoxBlock(new BBox(-40, -35, 40, -30), Color4.Yellow),
-				new BoxBlock(new BBox(-40, 30, 40, 35), Color4.Yellow),
-				new BoxBlock(new BBox(-45, -35, -40, 35), Color4.Yellow),
-				new BoxBlock(new BBox(40, -35, 45, 35), Color4.Yellow),
-			};
-			var room1 = new Room("TestRoom1", zone, actors1);
-			var room2 = new Room("TestRoom2", zone, actors2);
-			zone.AddRoom(room1);
-			zone.AddRoom(room2);
-			Map.AddZone(zone);
+			Map = map;
+			ChangeRoom(Map[initialZone][initialRoom]);
+			AddActor(player);
 		}
 
 		/// <summary>
@@ -83,11 +58,14 @@ namespace Starmaze.Game
 
 		public void ChangeRoom(Room newRoom)
 		{
+			var preservedActors = Actors.Where(act => act.KeepOnRoomChange);
 			ClearWorld();
 			foreach (var act in newRoom.ReifyActorsForEntry()) {
 				AddActor(act);
 			}
-			AddActor(Player);
+			foreach (var act in preservedActors) {
+				AddActor(act);
+			}
 			CurrentRoom = newRoom;
 		}
 

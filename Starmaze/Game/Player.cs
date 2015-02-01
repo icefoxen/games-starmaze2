@@ -12,6 +12,7 @@ namespace Starmaze.Game
 			Body.AddGeom(new BoxGeom(new BBox(-5, -5, 5, 5)));
 			Model = Resources.TheResources.GetModel("Player");
 			Components.Add(new KeyboardController(this));
+			KeepOnRoomChange = true;
 		}
 
 		public override void Update(double dt)
