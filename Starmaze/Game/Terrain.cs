@@ -56,9 +56,11 @@ namespace Starmaze.Game
 	/// <summary>
 	/// Base class for any terrain features.
 	/// </summary>
-	public class Terrain : Actor
+	public class Terrain : Actor, IStaticRenderable
 	{
 		Room room;
+		// Used for StaticRenderer
+		public VertexArray Model { get; set; }
 
 		public Terrain(Room room)
 		{
