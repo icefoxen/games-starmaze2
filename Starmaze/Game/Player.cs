@@ -3,9 +3,8 @@ using Starmaze.Engine;
 
 namespace Starmaze.Game
 {
-	public class Player : Actor, IStaticRenderable
+	public class Player : Actor
 	{
-		public VertexArray Model { get; set; }
 		public Player()
 		{
 			RenderClass = "StaticRenderer";

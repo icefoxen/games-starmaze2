@@ -177,12 +177,6 @@ namespace Starmaze.Engine
 		}
 	}
 
-	public interface IStaticRenderable
-	{
-		Body Body {get;set;}
-		VertexArray Model {get;set;}
-	}
-
 	public class StaticRenderer : Renderer
 	{
 		public StaticRenderer() : base()
@@ -193,14 +187,6 @@ namespace Starmaze.Engine
 		// XXX: This loads more optional properties onto Actors, in terms of the
 		// Model property.  Not sure if it's a good idea.
 		public override void RenderOne(ViewManager view, Actor act)
-		{
-			var renderable = act as IStaticRenderable;
-			if (renderable != null) {
-				RenderOne(view, renderable);
-			}
-		}
-
-		public void RenderOne(ViewManager view, IStaticRenderable act)
 		{
 			var pos = new Vector2((float)act.Body.Position.X, (float)act.Body.Position.Y);
 			var transform = new Transform(pos, 0.0f);
