@@ -55,7 +55,8 @@ namespace Starmaze.Game
 			var vertModel = mb.Finish();
 			// XXX: Should we need to get a shader here?  We probably shouldn't.
 			var shader = Resources.TheResources.GetShader("default");
-			Model = vertModel.ToVertexArray(shader);
+			var model = vertModel.ToVertexArray(shader);
+			RenderParams = new StaticRendererParams(model);
 		}
 	}
 }
