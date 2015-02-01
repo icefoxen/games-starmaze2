@@ -107,16 +107,19 @@ namespace Starmaze.Engine
 		}
 		// Other properties
 		readonly long OrderingNumber;
+		public string RenderClass;
 		public bool Alive = true;
 		public bool KeepOnRoomChange = false;
-		public  RenderSpec RenderSpecification;
+		// Used for StaticRenderer
+		public VertexArray Model;
 		// XXX: Dependency inversion
 		public Starmaze.Game.World World;
 
 		public Actor()
 		{
-			RenderSpecification = new RenderSpec("TestRenderer");
+			RenderClass = "TestRenderer";
 			OrderingNumber = Util.GetSerial();
+			Model = null;
 			Components = new HashSet<Component>();
 		}
 
