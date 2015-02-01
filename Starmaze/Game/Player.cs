@@ -14,16 +14,6 @@ namespace Starmaze.Game
 			Components.Add(new KeyboardController(this));
 			KeepOnRoomChange = true;
 		}
-
-		public override void Update(double dt)
-		{
-			//Console.WriteLine("Player at {0}", Body.Position);
-		}
-
-		public override void OnUpdate(object sender, EventArgs e)
-		{
-			Log.Message("Player updated: {0}, {1}", sender, e);
-		}
 	}
 }
 

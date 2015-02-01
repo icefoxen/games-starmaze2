@@ -96,6 +96,8 @@ namespace Starmaze.Game
 			MaxEnergy = maxEnergy;
 			CurrentEnergy = maxEnergy / 2f;
 			RegenRate = RegenRate;
+
+			HandledEvents = EventType.OnUpdate;
 		}
 
 		public bool Expend(double amount)
@@ -108,10 +110,10 @@ namespace Starmaze.Game
 			}
 		}
 
-		public void Update(double dt)
+		public void OnUpdate(FrameEventArgs e)
 		{
 			if (CurrentEnergy < MaxEnergy) {
-				CurrentEnergy += RegenRate * dt;
+				CurrentEnergy += RegenRate * e.Time;
 			}
 			if (CurrentEnergy > MaxEnergy) {
 				CurrentEnergy = MaxEnergy;
@@ -129,10 +131,13 @@ namespace Starmaze.Game
 		{
 			Time = time;
 			MaxTime = time;
+
+			HandledEvents = EventType.OnUpdate;
 		}
 
-		public void Update(double dt)
+		public void OnUpdate(FrameEventArgs e)
 		{
+			var dt = e.Time;
 			Time -= dt;
 			if (Time <= 0) {
 				Owner.Alive = false;

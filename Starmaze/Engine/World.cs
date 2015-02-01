@@ -4,8 +4,9 @@ using System.Linq;
 using Starmaze.Engine;
 using OpenTK;
 using OpenTK.Graphics;
+using OpenTK.Input;
 
-namespace Starmaze.Game
+namespace Starmaze.Engine
 {
 	/// <summary>
 	/// This is the object that actually *runs* the game, holds on to all the Actors,
@@ -23,8 +24,8 @@ namespace Starmaze.Game
 
 
 		public event EventHandler<FrameEventArgs> OnUpdate;
-		public event EventHandler<OpenTK.Input.KeyboardKeyEventArgs> OnKeyPress;
-		public event EventHandler<OpenTK.Input.KeyboardKeyEventArgs> OnKeyRelease;
+		public event EventHandler<KeyboardKeyEventArgs> OnKeyPress;
+		public event EventHandler<KeyboardKeyEventArgs> OnKeyRelease;
 		public event EventHandler<EventArgs> OnDeath;
 
 		public World(Actor player, WorldMap map, string initialZone, string initialRoom)
@@ -95,17 +96,7 @@ namespace Starmaze.Game
 			Space.Remove(a.Body);
 			a.UnregisterEvents(this);
 		}
-		/*
-		void RawAddActor(Actor a)
-		{
 
-		}
-
-		void RawRemoveActor(Actor a)
-		{
-
-		}
-		*/
 		public void Update(FrameEventArgs e)
 		{
 			var dt = e.Time;

@@ -24,12 +24,6 @@ namespace Starmaze.Content
 			damage = 6f;
 			rotationSpeed = 10f;
 		}
-
-		public override void Update(double dt)
-		{
-			this.life.Update(dt);
-			//s.physicsObj.angle += dt * s.rotateSpeed
-		}
 	}
 }
 
