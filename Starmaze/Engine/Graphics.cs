@@ -452,7 +452,7 @@ namespace Starmaze.Engine
 		// XXX: The tuple here is a little janky.
 		Tuple<BlendingFactorSrc, BlendingFactorDest> blendFunc;
 
-		public GLDiscipline(Tuple<BlendingFactorSrc, BlendingFactorDest> blendfunc = null)
+		public GLDiscipline(Tuple<BlendingFactorSrc, BlendingFactorDest> blendfunc = null, HintMode PerspectiveCorrectionHint = HintMode.Nicest)
 		{
 			blendFunc = blendfunc;
 		}
@@ -467,9 +467,36 @@ namespace Starmaze.Engine
 				Console.WriteLine("Disabling blending");
 				GL.Disable(EnableCap.Blend);
 			}
+		}
+	}
 
-			// XXX: This shouldn't be hardcoded but for now I'm not sure how else to do it.
-			GL.Hint(HintTarget.PerspectiveCorrectionHint, HintMode.Nicest);
+	public class GLHint
+	{
+		public static readonly GLHint DEFAULT = new GLHint(HintTarget.PerspectiveCorrectionHint, HintMode.Nicest);
+		List<Tuple<HintTarget, HintMode>> hints;
+
+		public GLHint(IEnumerable<Tuple<HintTarget, HintMode>> hints)
+		{
+			hints = new List<Tuple<HintTarget, HintMode>>(hints);
+		}
+
+		public GLHint(HintTarget target, HintMode hint)
+		{
+			hints = new List<Tuple<HintTarget, HintMode>>();
+			AddHint(target, hint);
+		}
+
+		public void AddHint(HintTarget target, HintMode hint) {
+			hints.Add(new Tuple<HintTarget, HintMode>(target, hint));
+		}
+
+		public void Apply()
+		{
+			foreach (var h in hints) {
+				var target = h.Item1;
+				var hint = h.Item2;
+				GL.Hint(target, hint);
+			}
 		}
 	}
 
@@ -479,10 +506,21 @@ namespace Starmaze.Engine
 	public class GLTracking
 	{
 		GLDiscipline discipline;
+		GLHint hint;
 		Shader shader;
 
 		public GLTracking()
 		{
+		}
+
+		public void SetHint(GLHint hint)
+		{
+			if (this.hint == hint) {
+				return;
+			} else {
+				hint.Apply();
+				this.hint = hint;
+			}
 		}
 
 		public void SetDiscipline(GLDiscipline discipline)
