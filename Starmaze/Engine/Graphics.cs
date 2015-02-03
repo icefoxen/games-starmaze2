@@ -218,6 +218,122 @@ namespace Starmaze.Engine
 		}
 	}
 
+	public class VertexMember
+	{
+		public readonly string Name;
+		public readonly int Count;
+		public const int ElementBytes = sizeof(float);
+
+		public VertexMember(string name, int count)
+		{
+			Name = name;
+			Count = count;
+		}
+	}
+
+
+	public class VertexLayout
+	{
+		public readonly VertexMember[] Members;
+		public readonly int ElementCount;
+		public readonly int VertexBytes;
+
+		public static readonly VertexLayout ColorVertex = 
+			new VertexLayout(new VertexMember[] {
+				new VertexMember("position", 2),
+				new VertexMember("color", 4)
+			});
+
+		public static readonly VertexLayout TextureVertex = 
+			new VertexLayout(new VertexMember[] {
+				new VertexMember("position", 2),
+				new VertexMember("color", 4),
+				new VertexMember("texcoords", 2),
+			});
+
+		public VertexLayout(VertexMember[] members)
+		{
+			Members = members;
+			ElementCount = 0;
+			foreach (var m in members) {
+				ElementCount += m.Count;
+			}
+			VertexBytes = ElementCount * VertexMember.ElementBytes;
+		}
+
+		int GetElementOffset(string name)
+		{
+			int byteOffset = 0;
+			for (int i = 0; i < Members.Length; i++) {
+				if (Members[i].Name == name) {
+					return byteOffset;
+				}
+				byteOffset += Members[i].Count * VertexMember.ElementBytes;
+			}
+			var msg = String.Format("Tried to get vertex member offset of {0} which isn't here", name);
+			throw new KeyNotFoundException(msg);
+		}
+	}
+
+	public class VertexList
+	{
+		readonly VertexLayout Layout;
+		List<float> Vertexes;
+
+		public int LengthInVertices {
+			get {
+				// Sanity check.
+				Log.Assert(Vertexes.Count % Layout.ElementCount == 0, 
+					"Failed sanity check for number of vertex elements, have {0} extra",
+					Vertexes.Count % Layout.ElementCount
+				);
+				return Vertexes.Count / Layout.ElementCount;
+			}
+		}
+
+		public int LengthInElements {
+			get {
+				return Vertexes.Count;
+			}
+		}
+
+		public int LengthInBytes {
+			get {
+				return Vertexes.Count * VertexMember.ElementBytes;
+			}
+		}
+
+		public VertexList(VertexLayout layout)
+		{
+			Layout = layout;
+			Vertexes = new List<float>();
+		}
+
+		public void AddVertex(float[] vert)
+		{
+			Log.Assert(vert.Length == Layout.ElementCount, 
+				"Got {0} elements for vertex, expected {2}", vert.Length, Layout.ElementCount);
+			Vertexes.AddRange(vert);
+		}
+
+		public void AddVertexes(float[] verts)
+		{
+			var numVerts = verts.Length / Layout.ElementCount;
+			var leftoverVerts = verts.Length % Layout.ElementCount;
+			Log.Assert(leftoverVerts == 0,
+				"Got {0} elements, that makes {1} vertexes, but has {2} elements left over",
+				verts.Length, numVerts, leftoverVerts
+			);
+
+			Vertexes.AddRange(verts);
+		}
+
+		public float[] ToArray()
+		{
+			return Vertexes.ToArray();
+		}
+	}
+
 	/// <summary>
 	/// Represents an array of a single vertex attribute type.
 	/// On its own, does nothing apart from hold data.
@@ -400,7 +516,7 @@ namespace Starmaze.Engine
 		{
 			Log.Assert(indices != null);
 			var indexArray = new uint[indices.Count];
-			// OPT: If we were stricter we might be able to get rid of this copy
+			// OPT: If we were stricter with types we might be able to get rid of this copy
 			indices.CopyTo(indexArray, 0);
 			GL.BufferData(BufferTarget.ElementArrayBuffer, (IntPtr)(indexArray.Length * sizeof(int)),
 				indexArray, BufferUsageHint.StaticRead);
@@ -486,7 +602,8 @@ namespace Starmaze.Engine
 			AddHint(target, hint);
 		}
 
-		public void AddHint(HintTarget target, HintMode hint) {
+		public void AddHint(HintTarget target, HintMode hint)
+		{
 			hints.Add(new Tuple<HintTarget, HintMode>(target, hint));
 		}
 
