@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using OpenTK;
+using Newtonsoft.Json;
 
 namespace Starmaze.Engine
 {
@@ -23,7 +24,11 @@ namespace Starmaze.Engine
 	public class Body : Component
 	{
 		HashSet<Geom> Geometry;
+		//TODO: XXX seralization bandaid must fix XXX
+		[JsonIgnore]
 		public Vector2d Position;
+		//TODO: XXX seralization bandaid must fix XXX
+		[JsonIgnore]
 		public Vector2d Velocity;
 		public Facing Facing;
 		public double Rotation;

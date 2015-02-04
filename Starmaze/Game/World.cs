@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Starmaze.Engine;
 using OpenTK;
 using OpenTK.Graphics;
+using Newtonsoft.Json;
 
 namespace Starmaze.Game
 {
@@ -45,13 +46,24 @@ namespace Starmaze.Game
 
 			Player = new Player();
 			ImmediateAddActor(Player);
+
+			string json = "";
+			foreach (Component c in Player.Components) {
+				Log.Message( " Component: {0}",c.ToString());
+				json = JsonConvert.SerializeObject(Player,  new JsonSerializerSettings { PreserveReferencesHandling = PreserveReferencesHandling.Objects });
+				Log.Message("{0}\n",json);
+			}
+			Log.Message("Compontents done",json);
+
 			string playerJSON = Newtonsoft.Json.JsonConvert.SerializeObject(Player);
 			Log.Message("{0}",playerJSON);
 
 			var testTerrain1 = new BoxBlock(CurrentRoom, new BBox(-40, -35, 40, -30), Color4.Blue);
 			string terrainJson = Newtonsoft.Json.JsonConvert.SerializeObject(testTerrain1);
 			Log.Message("{0}",terrainJson);
+			//var test1b = Newtonsoft.Json.JsonConvert.DeserializeObject<Actor>(terrainJson);
 			ImmediateAddActor(testTerrain1);
+			//ImmediateAddActor(test1b);
 			var testTerrain2 = new BoxBlock(CurrentRoom, new BBox(-40, 30, 40, 35), Color4.Blue);
 			ImmediateAddActor(testTerrain2);
 			var testTerrain3 = new BoxBlock(CurrentRoom, new BBox(-45, -35, -40, 35), Color4.Blue);
