@@ -50,17 +50,18 @@ namespace Starmaze.Game
 			string json = "";
 			foreach (Component c in Player.Components) {
 				Log.Message( " Component: {0}",c.ToString());
-				json = JsonConvert.SerializeObject(Player,  new JsonSerializerSettings { PreserveReferencesHandling = PreserveReferencesHandling.Objects });
+				json = JsonConvert.SerializeObject(Player);
+				//json = JsonConvert.SerializeObject(Player,  new JsonSerializerSettings { PreserveReferencesHandling = PreserveReferencesHandling.Objects });
 				Log.Message("{0}\n",json);
 			}
-			Log.Message("Compontents done",json);
+			Log.Message("Compontents done\n",json);
 
 			string playerJSON = Newtonsoft.Json.JsonConvert.SerializeObject(Player);
-			Log.Message("{0}",playerJSON);
+			Log.Message("playerJSON: {0}",playerJSON);
 
 			var testTerrain1 = new BoxBlock(CurrentRoom, new BBox(-40, -35, 40, -30), Color4.Blue);
 			string terrainJson = Newtonsoft.Json.JsonConvert.SerializeObject(testTerrain1);
-			Log.Message("{0}",terrainJson);
+			Log.Message("terrainJSON: {0}",terrainJson);
 			//var test1b = Newtonsoft.Json.JsonConvert.DeserializeObject<Actor>(terrainJson);
 			ImmediateAddActor(testTerrain1);
 			//ImmediateAddActor(test1b);

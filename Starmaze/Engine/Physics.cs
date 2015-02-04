@@ -24,11 +24,10 @@ namespace Starmaze.Engine
 	public class Body : Component
 	{
 		HashSet<Geom> Geometry;
-		//TODO: XXX seralization bandaid must fix XXX
-		[JsonIgnore]
+		//Custom converters are used for vector2d because otherwise circular references happen.
+		[JsonConverter(typeof(OTKVector2dConverter))]
 		public Vector2d Position;
-		//TODO: XXX seralization bandaid must fix XXX
-		[JsonIgnore]
+		[JsonConverter(typeof(OTKVector2dConverter))]
 		public Vector2d Velocity;
 		public Facing Facing;
 		public double Rotation;
