@@ -230,9 +230,7 @@ namespace Starmaze.Engine
 
 		public TestRenderer() : base()
 		{
-			//Model = Starmaze.Content.Images.TestModel2();
-			//Model = Resources.TheResources.GetModel("TestModel2");
-			model = Resources.TheResources.GetModel("TestModel2");
+			model = Resources.TheResources.GetModel("TestModel");
 			shader = Resources.TheResources.GetShader("default");
 			discipline = GLDiscipline.DEFAULT;
 		}

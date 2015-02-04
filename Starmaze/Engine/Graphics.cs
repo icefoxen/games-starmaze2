@@ -276,6 +276,49 @@ namespace Starmaze.Engine
 		}
 	}
 
+	/* Honestly something like this is how I imagined VertexList's working in the first place.
+	 * But I'm sick of messing with things that work, and I'm not entirely sure how the type effects
+	 * would propegate out to shaders and such, so I'm just gonna leave this here and 
+	 * move on.
+	public struct Vertex1
+	{
+		public Vector2 Pos;
+		public Color4 Color;
+	}
+
+	public struct Vertex2
+	{
+		public Vector2 Pos;
+		public Color4 Color;
+		public Vector2 Texcoord;
+	}
+
+	public class VertexList2<T>
+	{
+		public List<T> Verts;
+		public readonly VertexLayout Layout;
+
+		public VertexList2(VertexLayout l)
+		{
+			Layout = l;
+		}
+	}
+
+	public class VertexList3 : VertexList2<Vertex1>
+	{
+		public VertexList3() : base(VertexLayout.ColorVertex)
+		{
+		}
+
+	}
+	*/
+
+
+	/// <summary>
+	/// Represents a collection of vertices of a particular type.
+	/// On its own, does nothing, just had a bunch of floats and a layout description for a VertexArray
+	/// to read in.
+	/// </summary>
 	public class VertexList
 	{
 		public readonly VertexLayout Layout;
@@ -369,33 +412,6 @@ namespace Starmaze.Engine
 	}
 
 	/// <summary>
-	/// Represents an array of a single vertex attribute type.
-	/// On its own, does nothing apart from hold data.
-	/// </summary>
-	public class VertexAttributeArray
-	{
-		public float[] Data;
-		public int ElementsPerVertex;
-		public const int SizeOfElement = sizeof(float);
-		public string Name;
-
-		public VertexAttributeArray(string name, float[] data, int elementsPerVertex)
-		{
-			Log.Assert(name != null);
-			Log.Assert(data != null);
-			Log.Assert(elementsPerVertex > 0);
-			Name = name;
-			Data = data;
-			ElementsPerVertex = elementsPerVertex;
-		}
-
-		public int LengthInElements()
-		{
-			return Data.Length;
-		}
-	}
-
-	/// <summary>
 	/// Contains one or more VertexAttributeArray's, shoves them into OpenGL memory,
 	/// and draws them.
 	/// 
@@ -413,7 +429,6 @@ namespace Starmaze.Engine
 	{
 		VertexList Vertexes;
 		VertexLayout Layout;
-		IEnumerable<VertexAttributeArray> AttributeLists;
 		IList<uint> indices;
 		int vao;
 		int buffer;
@@ -445,56 +460,16 @@ namespace Starmaze.Engine
 			GL.BindBuffer(BufferTarget.ArrayBuffer, buffer);
 			indexBuffer = GL.GenBuffer();
 			GL.BindBuffer(BufferTarget.ElementArrayBuffer, indexBuffer);
-			//Log.Message("Adding vertexes to array");
 			AddVertexesToBuffer(vertexes);
-			//Log.Message("Adding indices to array");
 			AddIndicesToBuffer(indices);
-			//Log.Message("Setting up vertex pointer");
 			SetupVertexPointers(shader, vertexes);
-			//Log.Message("Done");
 			// Unbinding the buffer *does not* alter the state of the vertex array object.
 			// The association between buffer and vao is made on the GL.VertexAttribPointer() call.
 			GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
-			// Except for ElementArrayBuffer's, OF COURSE.
+			// Except for ElementArrayBuffer's, OF COURSE.(?)
 			//GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
 			GL.BindVertexArray(0);
 
-		}
-
-
-		public VertexArray(Shader shader, 
-		                   IEnumerable<VertexAttributeArray> attrs, 
-		                   IList<uint> idxs = null,
-		                   PrimitiveType prim = PrimitiveType.Triangles, 
-		                   BufferUsageHint usage = BufferUsageHint.StaticDraw)
-		{
-			Log.Assert(shader != null);
-			Log.Assert(attrs != null);
-
-			var vertexCount = checkVertexArrays(attrs);
-			if (idxs == null) {
-				idxs = generateLinearIndices(vertexCount);
-			}
-			AttributeLists = attrs;
-			indices = idxs;
-			usageHint = usage;
-			primitive = prim;
-			NumberOfIndices = indices.Count;
-			vao = GL.GenVertexArray();
-			GL.BindVertexArray(vao);
-			buffer = GL.GenBuffer();
-			GL.BindBuffer(BufferTarget.ArrayBuffer, buffer);
-			indexBuffer = GL.GenBuffer();
-			GL.BindBuffer(BufferTarget.ElementArrayBuffer, indexBuffer);
-			AddAttributesToBuffer(attrs);
-			AddIndicesToBuffer(indices);
-			SetupVertexPointers(shader, attrs);
-			// Unbinding the buffer *does not* alter the state of the vertex array object.
-			// The association between buffer and vao is made on the GL.VertexAttribPointer() call.
-			GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
-			// Except for ElementArrayBuffer's, OF COURSE.
-			//GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
-			GL.BindVertexArray(0);
 		}
 
 		// Implementing tedious disposal-tracking semantics, see
@@ -535,22 +510,6 @@ namespace Starmaze.Engine
 			GC.SuppressFinalize(this);
 		}
 
-		/// <summary>
-		/// Verifies that all the vertex attribute arrays are of the same size
-		/// </summary>
-		/// <param name="attr">Attr.</param>
-		int checkVertexArrays(IEnumerable<VertexAttributeArray> attrs)
-		{
-			int vertexCount = 0;
-			foreach (var attr in attrs) {
-				//var length = attr.LengthInElements();
-				// BUGGO: This is actually hugely misguided; LengthInElements isn't necessarily valid
-				// when we're using indexed drawing.
-				//Log.Warn(vertexCount != 0 && length != vertexCount, "VertexAttributeArray's have different lengths");
-			}
-			return vertexCount;
-		}
-
 		uint[] generateLinearIndices(int count)
 		{
 			var newIndices = new uint[count];
@@ -564,28 +523,9 @@ namespace Starmaze.Engine
 		{
 			Log.Assert(verts != null);
 			// Not the fastest way, but the easiest.
-
 			var vertexData = verts.ToArray();
-			//Console.WriteLine("Vertex data added to buffer:");
-			//foreach (var v in vertexData) {
-			//	Console.Write("{0}, ", v);
-			//}
-
 			GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(verts.LengthInBytes),
 				vertexData, usageHint);
-		}
-
-		void AddAttributesToBuffer(IEnumerable<VertexAttributeArray> attrs)
-		{
-			Log.Assert(attrs != null);
-			// Not the fastest way, but the easiest.
-			var accm = new List<float>();
-			foreach (var attr in attrs) {
-				accm.AddRange(attr.Data);
-			}
-			var allAttrs = accm.ToArray();
-			GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(allAttrs.Length * VertexAttributeArray.SizeOfElement),
-				allAttrs, usageHint);
 		}
 
 		void AddIndicesToBuffer(IList<uint> indices)
@@ -596,21 +536,6 @@ namespace Starmaze.Engine
 			indices.CopyTo(indexArray, 0);
 			GL.BufferData(BufferTarget.ElementArrayBuffer, (IntPtr)(indexArray.Length * sizeof(int)),
 				indexArray, BufferUsageHint.StaticRead);
-		}
-
-		void SetupVertexPointers(Shader shader, IEnumerable<VertexAttributeArray> attrs)
-		{
-			Log.Assert(shader != null);
-			Log.Assert(attrs != null);
-			var byteOffset = 0;
-			foreach (var attr in attrs) {
-				var location = shader.VertexAttributeLocation(attr.Name);
-				GL.EnableVertexAttribArray(location);
-				GL.VertexAttribPointer(location, attr.ElementsPerVertex, VertexAttribPointerType.Float,
-					false, 0, byteOffset);
-				byteOffset += attr.LengthInElements() * VertexAttributeArray.SizeOfElement;
-
-			}
 		}
 
 		void SetupVertexPointers(Shader shader, VertexList vertexes)
@@ -626,15 +551,6 @@ namespace Starmaze.Engine
 					false, Layout.ByteCount, byteOffset);
 				byteOffset += vertexMember.Count * VertexMember.ElementBytes;
 			}
-		}
-
-		int TotalDataLengthInElements()
-		{
-			var total = 0;
-			foreach (var a in AttributeLists) {
-				total += a.LengthInElements();
-			}
-			return total;
 		}
 
 		public void Draw()
@@ -894,23 +810,32 @@ namespace Starmaze.Engine
 			// Make a billboard to render to.
 			// XXX: Aspect ratio...
 			var aspectRatio = 4.0f / 3.0f;
-			var bbVerts = new VertexAttributeArray("position", new float[] {
-				0, 0,
-				0, height,
-				width, height,
-				width, 0
-			}, 2);
-			var bbTexcoords = new VertexAttributeArray("texcoord", new float[] {
-				0, 0,
-				0, (1.0f / aspectRatio),
-				1, (1.0f / aspectRatio),
-				1, 0
-			}, 2);
+			var bb = new VertexList(VertexLayout.TextureVertex);
+			bb.AddTextureVertex(
+				new Vector2(0, 0),
+				Color4.White,
+				new Vector2(0, 0)
+			);
+			bb.AddTextureVertex(
+				new Vector2(0, height),
+				Color4.White,
+				new Vector2(0, (1.0f / aspectRatio))
+			);
+			bb.AddTextureVertex(
+				new Vector2(width, height),
+				Color4.White,
+				new Vector2(1, (1.0f / aspectRatio))
+			);
+			bb.AddTextureVertex(
+				new Vector2(width, 0),
+				Color4.White,
+				new Vector2(1, 0)
+			);
 			var indices = new uint[] {
 				0, 1, 2,
 				0, 2, 3,
 			};
-			bb = new VertexArray(shader, new VertexAttributeArray[] { bbVerts, bbTexcoords }, idxs: indices);
+			this.bb = new VertexArray(shader, bb, idxs: indices);
 		}
 
 		/// <summary>
