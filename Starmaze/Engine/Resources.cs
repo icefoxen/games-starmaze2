@@ -79,7 +79,7 @@ namespace Starmaze.Engine
 			return RendererCache[r];
 		}
 
-		public Texture GetImage(string r)
+		public Texture GetTexture(string r)
 		{
 			return Get(TextureCache, LoadTexture, r);
 		}

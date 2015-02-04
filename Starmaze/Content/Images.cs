@@ -48,6 +48,37 @@ namespace Starmaze.Content
 			var model = mb.Finish();
 			return model.ToVertexArray(shader);
 		}
+
+		public static VertexArray Billboard()
+		{
+			var shader = Resources.TheResources.GetShader("default-tex");
+			var bb = new VertexList(VertexLayout.TextureVertex);
+			bb.AddTextureVertex(
+				new Vector2(0, 0),
+				Color4.White,
+				new Vector2(0, 1)
+			);
+			bb.AddTextureVertex(
+				new Vector2(0, 10),
+				Color4.White,
+				new Vector2(0, 0)
+			);
+			bb.AddTextureVertex(
+				new Vector2(10, 10),
+				Color4.White,
+				new Vector2(1, 0)
+			);
+			bb.AddTextureVertex(
+				new Vector2(10, 0),
+				Color4.White,
+				new Vector2(1, 1)
+			);
+			var indices = new uint[] {
+				0, 1, 2,
+				0, 2, 3,
+			};
+			return new VertexArray(shader, bb, idxs: indices);
+		}
 	}
 }
 

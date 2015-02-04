@@ -127,8 +127,21 @@ namespace Starmaze.Engine
 
 			BitmapData data = bitmap.LockBits(new System.Drawing.Rectangle(0, 0, bitmap.Width, bitmap.Height),
 				                  ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+
+			//BitmapData data = bitmap.LockBits(new System.Drawing.Rectangle(0, 0, bitmap.Width, bitmap.Height),
+			//	ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
 			GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, data.Width, data.Height, 0,
 				OpenTK.Graphics.OpenGL.PixelFormat.Bgra, PixelType.UnsignedByte, data.Scan0);
+			/*
+			var pixels = new byte[] {
+				255, 255, 255, 255,
+				255, 0, 0, 255,
+				0, 255, 0, 255,
+				0, 0, 255, 255,
+			};
+			GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, 2, 2, 0,
+				OpenTK.Graphics.OpenGL.PixelFormat.Rgba, PixelType.UnsignedByte, pixels);
+				*/
 			bitmap.UnlockBits(data);
 
 			Disable();
@@ -180,6 +193,8 @@ namespace Starmaze.Engine
 
 		public void Enable()
 		{
+			GL.Enable(EnableCap.Texture2D);
+			GL.ActiveTexture(TextureUnit.Texture0);
 			GL.BindTexture(TextureTarget.Texture2D, Handle);
 		}
 
@@ -248,7 +263,7 @@ namespace Starmaze.Engine
 			new VertexLayout(new VertexMember[] {
 				new VertexMember("position", 2),
 				new VertexMember("color", 4),
-				new VertexMember("texcoords", 2),
+				new VertexMember("texcoord", 2),
 			});
 
 		public VertexLayout(VertexMember[] members)
