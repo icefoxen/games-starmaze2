@@ -431,36 +431,43 @@ namespace Starmaze.Engine
 	{
 		const int POSITION_DIMENSIONS = 2;
 		const int COLOR_DIMENSIONS = 4;
-		List<float> positions;
-		List<float> colors;
+		List<Vector2d> positions;
+		List<Color4> colors;
 		List<uint> indices;
 		uint freeIndex;
 
 		public VertexModel()
 		{
-			positions = new List<float>();
-			colors = new List<float>();
+			//positions = new List<float>();
+			//colors = new List<float>();
+
+			positions = new List<Vector2d>();
+			colors = new List<Color4>();
 			indices = new List<uint>();
 			freeIndex = 0;
 		}
 
 		/// <summary>
-		/// Append vertices to vertex data.
+		/// Append Vertexes to vertex data.
 		/// </summary>
 		/// <returns>Index of the first newly-appended index.</returns>
-		/// <param name="vertices">Vertices.</param>
-		public uint AddVertices(IEnumerable<LineArtVertex> vertices)
+		/// <param name="Vertexes">Vertexes.</param>
+		public uint AddVertexes(IEnumerable<LineArtVertex> Vertexes)
 		{
 			uint vertexCount = 0;
-			foreach (var vertex in vertices) {
+			foreach (var vertex in Vertexes) {
 				// Note that this is where we go from double-precision coordinates to 
 				// single-precision coordinates for drawing.
+				/*
 				positions.Add((float)vertex.Pos.X);
 				positions.Add((float)vertex.Pos.Y);
 				colors.Add(vertex.Color.R);
 				colors.Add(vertex.Color.G);
 				colors.Add(vertex.Color.B);
 				colors.Add(vertex.Color.A);
+				*/
+				positions.Add(vertex.Pos);
+				colors.Add(vertex.Color);
 				vertexCount += 1;
 			}
 			var firstIndex = freeIndex;
@@ -486,6 +493,19 @@ namespace Starmaze.Engine
 		/// <returns>The vertex array.</returns>
 		public VertexArray ToVertexArray(Shader s)
 		{
+			/*
+			var positions = new List<float>();
+			var colors = new List<float>();
+			foreach (var pos in this.positions) {
+				positions.Add((float)pos.X);
+				positions.Add((float)pos.Y);
+			}
+			foreach (var col in this.colors) {
+				colors.Add(col.R);
+				colors.Add(col.G);
+				colors.Add(col.B);
+				colors.Add(col.A);
+			}
 			var thePositions = new VertexAttributeArray("position", positions.ToArray(), POSITION_DIMENSIONS);
 			var theColors = new VertexAttributeArray("color", colors.ToArray(), COLOR_DIMENSIONS);
 			var attrList = new List<VertexAttributeArray>();
@@ -493,7 +513,20 @@ namespace Starmaze.Engine
 			attrList.Add(theColors);
 			var vertArray = new VertexArray(s, attrList, indices,
 				                prim: PrimitiveType.Triangles, usage: BufferUsageHint.StaticDraw);
+			*/
+
+
+			var verts = new VertexList(VertexLayout.ColorVertex);
+			for (int i = 0; i < positions.Count; i++) {
+				var pos = new Vector2((float)positions[i].X, (float)positions[i].Y);
+				verts.AddColorVertex(pos, colors[i]);
+			}
+			var vertArray = new VertexArray(s, verts, indices,
+				                prim: PrimitiveType.Triangles, usage: BufferUsageHint.StaticDraw);
+
+
 			return vertArray;
+
 		}
 	}
 
@@ -565,9 +598,9 @@ namespace Starmaze.Engine
 			return new LineArtVertex(pos, BACKGROUND_COLOR);
 		}
 
-		IEnumerable<uint> AddVertices(IList<LineArtVertex> verts)
+		IEnumerable<uint> AddVertexes(IList<LineArtVertex> verts)
 		{
-			uint start = output.AddVertices(verts);
+			uint start = output.AddVertexes(verts);
 			return Util.UnsignedRange(start, (uint)(start + verts.Count));
 		}
 
@@ -579,14 +612,14 @@ namespace Starmaze.Engine
 
 		void BeginRoad(IList<LineArtVertex> verts)
 		{
-			var indices = AddVertices(verts);
+			var indices = AddVertexes(verts);
 			firstIndices = new List<uint>(indices);
 			lastIndices = new List<uint>(indices);
 		}
 		// Might be nicer with a params argument?  I dunno...
 		void AdvanceTo(IList<LineArtVertex> verts, bool swapTriangleFacing = false)
 		{
-			var indices = new List<uint>(AddVertices(verts));
+			var indices = new List<uint>(AddVertexes(verts));
 			//Console.WriteLine("Verts length: {0}, indices length: {1}", verts.Count, indices.Count);
 
 

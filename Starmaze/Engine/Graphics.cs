@@ -236,7 +236,7 @@ namespace Starmaze.Engine
 	{
 		public readonly VertexMember[] Members;
 		public readonly int ElementCount;
-		public readonly int VertexBytes;
+		public readonly int ByteCount;
 
 		public static readonly VertexLayout ColorVertex = 
 			new VertexLayout(new VertexMember[] {
@@ -258,7 +258,7 @@ namespace Starmaze.Engine
 			foreach (var m in members) {
 				ElementCount += m.Count;
 			}
-			VertexBytes = ElementCount * VertexMember.ElementBytes;
+			ByteCount = ElementCount * VertexMember.ElementBytes;
 		}
 
 		int GetElementOffset(string name)
@@ -271,16 +271,17 @@ namespace Starmaze.Engine
 				byteOffset += Members[i].Count * VertexMember.ElementBytes;
 			}
 			var msg = String.Format("Tried to get vertex member offset of {0} which isn't here", name);
+			Log.Message(msg);
 			throw new KeyNotFoundException(msg);
 		}
 	}
 
 	public class VertexList
 	{
-		readonly VertexLayout Layout;
+		public readonly VertexLayout Layout;
 		List<float> Vertexes;
 
-		public int LengthInVertices {
+		public int LengthInVertexes {
 			get {
 				// Sanity check.
 				Log.Assert(Vertexes.Count % Layout.ElementCount == 0, 
@@ -312,7 +313,7 @@ namespace Starmaze.Engine
 		public void AddVertex(float[] vert)
 		{
 			Log.Assert(vert.Length == Layout.ElementCount, 
-				"Got {0} elements for vertex, expected {2}", vert.Length, Layout.ElementCount);
+				"Got {0} elements for vertex, expected {1}", vert.Length, Layout.ElementCount);
 			Vertexes.AddRange(vert);
 		}
 
@@ -326,6 +327,39 @@ namespace Starmaze.Engine
 			);
 
 			Vertexes.AddRange(verts);
+		}
+
+		// Convenience functions for creating common vertex types.
+		public void AddColorVertex(Vector2 pos, Color4 color)
+		{
+			Log.Assert(Layout == VertexLayout.ColorVertex, "Attempted to add a color vertex to a VertexList of the wrong type!");
+			var elementCount = Vertexes.Count;
+			Vertexes.Add(pos.X);
+			Vertexes.Add(pos.Y);
+			Vertexes.Add(color.R);
+			Vertexes.Add(color.G);
+			Vertexes.Add(color.B);
+			Vertexes.Add(color.A);
+			// This assertion is to help catch things if we change the vertex format but don't update this function.
+			var elementsAdded = Vertexes.Count - elementCount;
+			Log.Assert(elementsAdded == (VertexLayout.ColorVertex.ElementCount));
+		}
+
+		public void AddTextureVertex(Vector2 pos, Color4 color, Vector2 texcoord)
+		{
+			Log.Assert(Layout == VertexLayout.TextureVertex, "Attempted to add a color vertex to a VertexList of the wrong type!");
+			var elementCount = Vertexes.Count;
+			Vertexes.Add(pos.X);
+			Vertexes.Add(pos.Y);
+			Vertexes.Add(color.R);
+			Vertexes.Add(color.G);
+			Vertexes.Add(color.B);
+			Vertexes.Add(color.A);
+			Vertexes.Add(texcoord.X);
+			Vertexes.Add(texcoord.Y);
+			// This assertion is to help catch things if we change the vertex format but don't update this function.
+			var elementsAdded = Vertexes.Count - elementCount;
+			Log.Assert(elementsAdded == (VertexLayout.TextureVertex.ElementCount));
 		}
 
 		public float[] ToArray()
@@ -377,6 +411,8 @@ namespace Starmaze.Engine
 	// the shaders all include a common header file, buuuuut...
 	public class VertexArray : IDisposable
 	{
+		VertexList Vertexes;
+		VertexLayout Layout;
 		IEnumerable<VertexAttributeArray> AttributeLists;
 		IList<uint> indices;
 		int vao;
@@ -385,6 +421,46 @@ namespace Starmaze.Engine
 		BufferUsageHint usageHint;
 		PrimitiveType primitive;
 		int NumberOfIndices;
+
+		public VertexArray(Shader shader,
+		                   VertexList vertexes,
+		                   IList<uint> idxs = null,
+		                   PrimitiveType prim = PrimitiveType.Triangles, 
+		                   BufferUsageHint usage = BufferUsageHint.StaticDraw)
+		{
+			Log.Assert(shader != null);
+			Log.Assert(vertexes != null);
+
+			Vertexes = vertexes;
+			Layout = vertexes.Layout;
+			indices = idxs;
+			usageHint = usage;
+			primitive = prim;
+			NumberOfIndices = indices.Count;
+
+
+			vao = GL.GenVertexArray();
+			GL.BindVertexArray(vao);
+			buffer = GL.GenBuffer();
+			GL.BindBuffer(BufferTarget.ArrayBuffer, buffer);
+			indexBuffer = GL.GenBuffer();
+			GL.BindBuffer(BufferTarget.ElementArrayBuffer, indexBuffer);
+			//Log.Message("Adding vertexes to array");
+			AddVertexesToBuffer(vertexes);
+			//Log.Message("Adding indices to array");
+			AddIndicesToBuffer(indices);
+			//Log.Message("Setting up vertex pointer");
+			SetupVertexPointers(shader, vertexes);
+			//Log.Message("Done");
+			// Unbinding the buffer *does not* alter the state of the vertex array object.
+			// The association between buffer and vao is made on the GL.VertexAttribPointer() call.
+			GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+			// Except for ElementArrayBuffer's, OF COURSE.
+			//GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
+			GL.BindVertexArray(0);
+
+		}
+
 
 		public VertexArray(Shader shader, 
 		                   IEnumerable<VertexAttributeArray> attrs, 
@@ -420,6 +496,7 @@ namespace Starmaze.Engine
 			//GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
 			GL.BindVertexArray(0);
 		}
+
 		// Implementing tedious disposal-tracking semantics, see
 		// http://gregbee.ch/blog/implementing-and-using-the-idisposable-interface
 		// and
@@ -482,23 +559,22 @@ namespace Starmaze.Engine
 			}
 			return newIndices;
 		}
-		/*
-		 * This is old but verifying that the number of verts in all buffers is the same might be
-		 * a good idea anyway.
-		int  GetVertCount(IEnumerable<VertexAttributeArray> attrs)
+
+		void AddVertexesToBuffer(VertexList verts)
 		{
-			var vertCount = int.MaxValue;
-			foreach (var attr in attrs) {
-				var totalVerts = attr.LengthInElements() / attr.ElementsPerVertex;
-				// BUGGO: Make this warning work.
-				//Util.Warn(vertCount != int.MaxValue && totalVerts != vertCount, "Inititalizing VertexArray with different size attributes");
-				//Console.WriteLine("Length: {0}, eltsPerVert: {1}, total: {2}, vertCount: {3}", attr.LengthInElements(), attr.ElementsPerVertex, totalVerts, vertCount);
-				// We want to draw the minimum number of vertices we have all the data for.
-				vertCount = Math.Min(totalVerts, vertCount);
-			}
-			return vertCount;
+			Log.Assert(verts != null);
+			// Not the fastest way, but the easiest.
+
+			var vertexData = verts.ToArray();
+			//Console.WriteLine("Vertex data added to buffer:");
+			//foreach (var v in vertexData) {
+			//	Console.Write("{0}, ", v);
+			//}
+
+			GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(verts.LengthInBytes),
+				vertexData, usageHint);
 		}
-		*/
+
 		void AddAttributesToBuffer(IEnumerable<VertexAttributeArray> attrs)
 		{
 			Log.Assert(attrs != null);
@@ -516,7 +592,7 @@ namespace Starmaze.Engine
 		{
 			Log.Assert(indices != null);
 			var indexArray = new uint[indices.Count];
-			// OPT: If we were stricter with types we might be able to get rid of this copy
+			// IList doesn't have ToArray, irritatingly.
 			indices.CopyTo(indexArray, 0);
 			GL.BufferData(BufferTarget.ElementArrayBuffer, (IntPtr)(indexArray.Length * sizeof(int)),
 				indexArray, BufferUsageHint.StaticRead);
@@ -537,6 +613,21 @@ namespace Starmaze.Engine
 			}
 		}
 
+		void SetupVertexPointers(Shader shader, VertexList vertexes)
+		{
+			Log.Assert(shader != null);
+			Log.Assert(vertexes != null);
+
+			var byteOffset = 0;
+			foreach (var vertexMember in Layout.Members) {
+				var location = shader.VertexAttributeLocation(vertexMember.Name);
+				GL.EnableVertexAttribArray(location);
+				GL.VertexAttribPointer(location, vertexMember.Count, VertexAttribPointerType.Float, 
+					false, Layout.ByteCount, byteOffset);
+				byteOffset += vertexMember.Count * VertexMember.ElementBytes;
+			}
+		}
+
 		int TotalDataLengthInElements()
 		{
 			var total = 0;
@@ -548,10 +639,11 @@ namespace Starmaze.Engine
 
 		public void Draw()
 		{
+			//Console.WriteLine("binding vao...");
 			GL.BindVertexArray(vao);
-			// XXX: DrawElementType.Short might be better, but then we have to check and make sure everything's
-			// within reach of a short...
+			//Console.WriteLine("Trying to draw...");
 			GL.DrawElements(primitive, NumberOfIndices, DrawElementsType.UnsignedInt, 0);
+			//Console.WriteLine("Done drawing...");
 			GL.BindVertexArray(0);
 		}
 	}
@@ -872,7 +964,7 @@ namespace Starmaze.Engine
 			disposed = true;
 			if (disposing) {
 				// Clean up managed resources
-				// XXX: Do we really have to do this?  These are managed resources that
+				// These are managed resources that
 				// aren't exactly scarce or high-turnover; we can probably just let the GC handle them.
 				//fbo.Dispose();
 				//DestTexture.Dispose();
