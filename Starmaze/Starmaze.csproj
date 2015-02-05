@@ -39,8 +39,8 @@
     </Reference>
     <Reference Include="System.Drawing" />
     <Reference Include="System.Data.Linq" />
-    <Reference Include="Newtonsoft.Json">
-      <HintPath>..\data\Newtonsoft.Json.dll</HintPath>
+    <Reference Include="nunit.framework">
+      <HintPath>..\data\nunit.framework.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -72,9 +72,12 @@
     <Compile Include="Content\Enemies.cs" />
     <Compile Include="SMath.cs" />
     <Compile Include="Engine\Drawing.cs" />
-    <Compile Include="Game\World.cs" />
     <Compile Include="Content\Bullet.cs" />
-    <Compile Include="Engine\Serialize.cs" />
+    <Compile Include="Game\WorldGen.cs" />
+    <Compile Include="Engine\World.cs" />
+    <Compile Include="Engine\WorldMap.cs" />
+    <Compile Include="Engine\Component.cs" />
+    <Compile Include="Engine\Tests.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

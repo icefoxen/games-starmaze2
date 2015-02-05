@@ -1,68 +1,37 @@
 using System;
 using System.Collections.Generic;
 using Starmaze.Engine;
+using OpenTK;
 using OpenTK.Graphics;
 
 namespace Starmaze.Game
 {
 	/// <summary>
-	/// An area of the game world consisting of a set of rooms all sharing a theme, music, color scheme,
-	/// and other characteristics.
-	/// </summary>
-	public class Zone
-	{
-		public string Name;
-	}
-
-	/// <summary>
-	/// A named area that connects to other Areas.
-	/// 
-	/// Static actors are reloaded from a frozen description every time the room is re-entered,
-	/// and discarded when the room is left.  Dynamic actors preserve their state.
-	/// </summary>
-	public class Room
-	{
-		public Zone Zone;
-		public string Name;
-		//IEnumerable<Actor> StaticFrozen;
-		//IEnumerable<Actor> DynamicFrozen;
-		//IEnumerable<Actor> DynamicLive;
-		/// <summary>
-		/// Creates all the Actors actually in the room.
-		/// </summary>
-		/// <returns>The actors in the room.</returns>
-		public IEnumerable<Actor> ReifyActorsForEntry()
-		{
-			return new List<Actor>();
-		}
-	}
-
-	/// <summary>
-	/// This is the object that tracks all rooms, zones, etc, and generally keeps track of
-	/// where things are and how they connect together.
-	/// </summary>
-	public class WorldMap
-	{
-		Dictionary<string, Zone> zones;
-		Dictionary<string, Room> rooms;
-
-		public WorldMap()
-		{
-			zones = new Dictionary<string,Zone>();
-			rooms = new Dictionary<string,Room>();
-		}
-	}
-
-	/// <summary>
 	/// Base class for any terrain features.
 	/// </summary>
 	public class Terrain : Actor
 	{
-		Room room;
-
-		public Terrain(Room room)
+		public Terrain()
 		{
-			this.room = room;
+		}
+	}
+
+	/// <summary>
+	/// A standalone feature that warps you somewhere else when you near it and
+	/// activate it.  Essentially a portal.  Each one is one-way, but they are generally
+	/// generated in pairs.
+	/// </summary>
+	public class Gate : Terrain
+	{
+		public string DestinationZone;
+		public string DestinationRoom;
+		public Vector2d DestinationLocation;
+
+		public Gate(string destZone, string destRoom, Vector2d destLocation)
+		{
+			DestinationZone = destZone;
+			DestinationRoom = destRoom;
+			DestinationLocation = destLocation;
 		}
 	}
 
@@ -71,7 +40,7 @@ namespace Starmaze.Game
 	/// </summary>
 	public class BoxBlock : Terrain
 	{
-		public BoxBlock(Room room, BBox bbox, Color4 color) : base(room)
+		public BoxBlock(BBox bbox, Color4 color)
 		{
 			Body = new Body(this, immobile: true);
 			Body.AddGeom(new BoxGeom(bbox));
@@ -82,11 +51,12 @@ namespace Starmaze.Game
 			var mb = new ModelBuilder();
 			var width = bbox.Dx;
 			var height = bbox.Dy;
-			mb.RectCorner(bbox.X0, bbox.Y0, width, height, Color4.Blue);
+			mb.RectCorner(bbox.X0, bbox.Y0, width, height, color);
 			var vertModel = mb.Finish();
 			// XXX: Should we need to get a shader here?  We probably shouldn't.
 			var shader = Resources.TheResources.GetShader("default");
-			Model = vertModel.ToVertexArray(shader);
+			var model = vertModel.ToVertexArray(shader);
+			RenderParams = new StaticRendererParams(model);
 		}
 	}
 }

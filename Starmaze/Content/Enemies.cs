@@ -7,7 +7,7 @@ namespace Starmaze.Content
 	// XXX: TODO: Refactor a little bit; lots of Actor types will have a Life,
 	// probably a Gun, etc.  One question is, should it include the Player as well?
 	// various traps?  Can we refactor this out to a Component?  Do we just want
-	// _every_ Actor to have slots for Life, Gun, and other things, even if lots of 
+	// _every_ Actor to have slots for Life, Gun, and other things, even if lots of
 	// things (like Terrain and Collectables) won't ever use them?
 	class CrawlerEnemy : Actor
 	{
@@ -19,28 +19,23 @@ namespace Starmaze.Content
 
 		CrawlerEnemy()
 		{
-			life = new Starmaze.Game.Life(this, 3f, 3f, 1f, 8f);
+			life = new Life(this, 3f, 3f, 1f, 8f);
 
 		}
 
-		public void Update(float dt)
-		{
-			//controller.update(dt)
-		}
-
+		/*
 		public override void OnDeath()
 		{
-			/*
-			 *	c = Collectable()
-        	 *	c.physicsObj.position = s.physicsObj.position
-        	 *	yForce = 350
-        	 *	xForce = (random.random() * 150) - 75
-        	 *	c.physicsObj.apply_impulse((xForce, yForce))
-        	 *	s.world.addActor(c)
-			 */
+			 c = Collectable()
+        	 c.physicsObj.position = s.physicsObj.position
+        	 yForce = 350
+        	 xForce = (random.random() * 150) - 75
+        	 c.physicsObj.apply_impulse((xForce, yForce))
+        	 s.world.addActor(c)
 		}
+			 */
 	}
-	//end CralwerEnemy
+
 	class TrooperEnemy : Actor
 	{
 		//TODO: Incomplete port of python TrooperEnemy
@@ -49,10 +44,10 @@ namespace Starmaze.Content
 		TrooperEnemy()
 		{
 			//s.bulletOffset = (30,0)
-			life = new Starmaze.Game.Life(this, 100);
+			life = new Life(this, 100);
 		}
 	}
-	//end TrooperEnemy
+
 	class ArcherEnemy : Actor
 	{
 		//TODO: Incomplete port of python ArcherEnemy
@@ -61,10 +56,10 @@ namespace Starmaze.Content
 		ArcherEnemy()
 		{
 			//s.bulletOffset = (25, 0)
-			life = new Starmaze.Game.Life(this, 20);
+			life = new Life(this, 20);
 		}
 	}
-	//end ArcherEnemy
+
 	class FloaterEnemy : Actor
 	{
 		//TODO: Incomplete port of python FloaterEnemy
@@ -72,10 +67,10 @@ namespace Starmaze.Content
 
 		FloaterEnemy()
 		{
-			life = new Starmaze.Game.Life(this, 20);
+			life = new Life(this, 20);
 		}
 	}
-	// end FloaterEnemy
+
 	class EliteEnemy : Actor
 	{
 		//TODO: Incompelte port of python EliteEnemy
@@ -83,10 +78,10 @@ namespace Starmaze.Content
 
 		EliteEnemy()
 		{
-			life = new Starmaze.Game.Life(this, 10);
+			life = new Life(this, 10);
 		}
 	}
-	//end EliteEnemy
+
 	class HeavyEnemy : Actor
 	{
 		//TODO: Incomplete port of the python HeavyEnemy
@@ -94,10 +89,10 @@ namespace Starmaze.Content
 
 		HeavyEnemy()
 		{
-			life = new Starmaze.Game.Life(this, 10);
+			life = new Life(this, 10);
 		}
 	}
-	//end HeavyEnemy
+
 	class DragonEnemy : Actor
 	{
 		//TODO: Incomplete port of the python DragonEnemy
@@ -105,10 +100,10 @@ namespace Starmaze.Content
 
 		DragonEnemy()
 		{
-			life = new Starmaze.Game.Life(this, 10);
+			life = new Life(this, 10);
 		}
 	}
-	//end DragonEnemy
+
 	class AnnihilatorEnemy : Actor
 	{
 		//TODO: Incomplete port of the python Enemy
@@ -116,8 +111,7 @@ namespace Starmaze.Content
 
 		AnnihilatorEnemy()
 		{
-			life = new Starmaze.Game.Life(this, 10);
+			life = new Life(this, 10);
 		}
 	}
-	//end AnnihilatorEnemy
 }

@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Starmaze.Engine;
 using OpenTK;
 using OpenTK.Graphics;
-using Newtonsoft.Json;
+using OpenTK.Input;
 
-namespace Starmaze.Game
+namespace Starmaze.Engine
 {
 	/// <summary>
 	/// This is the object that actually *runs* the game, holds on to all the Actors,
@@ -15,25 +16,19 @@ namespace Starmaze.Game
 	{
 		WorldMap Map;
 		Room CurrentRoom;
-		Player Player;
 		RenderManager RenderManager;
 		Space Space;
 		HashSet<Actor> Actors;
 		HashSet<Actor> ActorsToAdd;
 		HashSet<Actor> ActorsToRemove;
 
-		public ParticleGroup group;
-		ParticleRenderer renderer;
-		ParticleEmitter emitter;
-		ParticleController controller;
 
-		// Events...
-		public event EventHandler<EventArgs> OnUpdate;
-		public event EventHandler<OpenTK.Input.KeyboardKeyEventArgs> OnKeyPress;
-		public event EventHandler<OpenTK.Input.KeyboardKeyEventArgs> OnKeyRelease;
+		public event EventHandler<FrameEventArgs> OnUpdate;
+		public event EventHandler<KeyboardKeyEventArgs> OnKeyPress;
+		public event EventHandler<KeyboardKeyEventArgs> OnKeyRelease;
 		public event EventHandler<EventArgs> OnDeath;
 
-		public World()
+		public World(Actor player, WorldMap map, string initialZone, string initialRoom)
 		{
 			Actors = new HashSet<Actor>();
 			ActorsToAdd = new HashSet<Actor>();
@@ -41,51 +36,10 @@ namespace Starmaze.Game
 			Space = new Space();
 
 			RenderManager = new RenderManager();
-			Map = new WorldMap();
-			CurrentRoom = new Room();
 
-			Player = new Player();
-			ImmediateAddActor(Player);
-
-			JsonSerializerSettings jset = new JsonSerializerSettings { PreserveReferencesHandling = PreserveReferencesHandling.Objects };
-
-			string json = "";
-			foreach (Component c in Player.Components) {
-				Log.Message( " Component: {0}",c.ToString());
-				json = JsonConvert.SerializeObject(Player,jset);
-				//json = JsonConvert.SerializeObject(Player, );
-				Log.Message("{0}\n",json);
-			}
-			Log.Message("Compontents done\n",json);
-
-
-
-
-			string playerJSON = Newtonsoft.Json.JsonConvert.SerializeObject(Player,jset);
-			Log.Message("playerJSON: {0}",playerJSON);
-
-			var testTerrain1 = new BoxBlock(CurrentRoom, new BBox(-40, -35, 40, -30), Color4.Blue);
-			string terrainJson = Newtonsoft.Json.JsonConvert.SerializeObject(testTerrain1,jset);
-			Log.Message("terrainJSON: {0}",terrainJson);
-			var test1b = Newtonsoft.Json.JsonConvert.DeserializeObject<BoxBlock>(terrainJson);
-			ImmediateAddActor(testTerrain1);
-			//ImmediateAddActor(test1b);
-			var testTerrain2 = new BoxBlock(CurrentRoom, new BBox(-40, 30, 40, 35), Color4.Blue);
-			ImmediateAddActor(testTerrain2);
-			var testTerrain3 = new BoxBlock(CurrentRoom, new BBox(-45, -35, -40, 35), Color4.Blue);
-			ImmediateAddActor(testTerrain3);
-			var testTerrain4 = new BoxBlock(CurrentRoom, new BBox(40, -35, 45, 35), Color4.Blue);
-			ImmediateAddActor(testTerrain4);
-
-			group = new ParticleGroup();
-			renderer = new ParticleRenderer();
-			emitter = new ParticleEmitter();
-			controller = new ParticleController();
-		}
-
-		public void StartGame(object initialRoom)
-		{
-
+			Map = map;
+			ChangeRoom(Map[initialZone][initialRoom]);
+			AddActor(player);
 		}
 
 		/// <summary>
@@ -103,9 +57,17 @@ namespace Starmaze.Game
 			ActorsToRemove = new HashSet<Actor>();
 		}
 
-		public void ChangeRoom(object newRoom)
+		public void ChangeRoom(Room newRoom)
 		{
-
+			var preservedActors = Actors.Where(act => act.KeepOnRoomChange);
+			ClearWorld();
+			foreach (var act in newRoom.ReifyActorsForEntry()) {
+				AddActor(act);
+			}
+			foreach (var act in preservedActors) {
+				AddActor(act);
+			}
+			CurrentRoom = newRoom;
 		}
 
 		public void AddActor(Actor a)
@@ -134,23 +96,14 @@ namespace Starmaze.Game
 			Space.Remove(a.Body);
 			a.UnregisterEvents(this);
 		}
-		/*
-		void RawAddActor(Actor a)
-		{
 
-		}
-
-		void RawRemoveActor(Actor a)
+		public void Update(FrameEventArgs e)
 		{
-
-		}
-		*/
-		public void Update(double dt)
-		{
+			var dt = e.Time;
 			Space.Update(dt);
 			// If nothing is listening for an event it will be null
 			if (OnUpdate != null) {
-				OnUpdate(this, EventArgs.Empty);
+				OnUpdate(this, e);
 			}
 			foreach (var act in ActorsToAdd) {
 				ImmediateAddActor(act);
@@ -159,8 +112,6 @@ namespace Starmaze.Game
 				ImmediateRemoveActor(act);
 			}
 
-			controller.Update(dt, group);
-			emitter.Update(dt, group);
 			ActorsToAdd.Clear();
 			ActorsToRemove.Clear();
 		}
@@ -168,7 +119,6 @@ namespace Starmaze.Game
 		public void Draw(ViewManager view)
 		{
 			RenderManager.Render(view);
-			renderer.Draw(view, group);
 		}
 
 		public void HandleKeyDown(OpenTK.Input.KeyboardKeyEventArgs e)
@@ -176,9 +126,15 @@ namespace Starmaze.Game
 			// Okay, the 'event handler with nothing attached == null' idiom is a pain in the ass
 			if (OnKeyPress != null) {
 				OnKeyPress(this, e);
-			} else {
-				Log.Message("Thing?");
 			}
+			/*
+			 * Test code to make sure ChangeRoom() works; it does.
+			if (e.Key == OpenTK.Input.Key.Number1) {
+				ChangeRoom(Map["TestZone"]["TestRoom1"]);
+			} else if (e.Key == OpenTK.Input.Key.Number2) {
+				ChangeRoom(Map["TestZone"]["TestRoom2"]);
+			}
+			*/
 		}
 
 		public void HandleKeyUp(OpenTK.Input.KeyboardKeyEventArgs e)
@@ -189,6 +145,8 @@ namespace Starmaze.Game
 		}
 
 		// Hrmbl grmbl C# blrgl not letting random classes invoke events
+		// Which is to say, if any event needs to be triggered by something other than the World
+		// itself, it needs a method like this to make it accessible.
 		public void TriggerOnDeath(object sender, EventArgs e)
 		{
 			if (OnDeath != null) {
