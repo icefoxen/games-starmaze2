@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using OpenTK;
+using Newtonsoft.Json;
 
 namespace Starmaze.Engine
 {
@@ -23,7 +24,10 @@ namespace Starmaze.Engine
 	public class Body : Component
 	{
 		HashSet<Geom> Geometry;
+		//Custom converters are used for vector2d because otherwise circular references happen.
+		[JsonConverter(typeof(OTKVector2dConverter))]
 		public Vector2d Position;
+		[JsonConverter(typeof(OTKVector2dConverter))]
 		public Vector2d Velocity;
 		public Facing Facing;
 		public double Rotation;
