@@ -21,7 +21,7 @@ namespace Starmaze.Engine
 	public class Component
 	{
 		//TODO: XXX seralization bandaid must fix XXX
-		[JsonIgnore]
+		//[JsonIgnore]
 		public Actor Owner;
 		public EventType HandledEvents;
 
