@@ -40,7 +40,7 @@ namespace Starmaze.Engine
 		}
 
 		[Test]
-		public void EmptyActor(){
+		public void EmptyActorSerialTest(){
 			Actor a = new Actor();
 			var json = JsonConvert.SerializeObject(a,jset);
 			Log.Message("{0}", json);
@@ -48,7 +48,7 @@ namespace Starmaze.Engine
 			Assert.True(true);
 		}
 		[Test]
-		public void ActorWithEmptyComponent(){
+		public void ActorWithEmptyComponentSerialTest(){
 			Actor a = new Actor();
 			Component b = new Component(a);
 			a.Components.Add(b);
@@ -58,7 +58,7 @@ namespace Starmaze.Engine
 			Assert.True(true);
 		}
 		[Test]
-		public void EmptyBBox(){
+		public void BBoxSerialTest(){
 			BBox a = new BBox(0.0,1.0,0.0,1.0);
 			var json = JsonConvert.SerializeObject(a,jset);
 			Log.Message("{0}", json);
@@ -67,11 +67,20 @@ namespace Starmaze.Engine
 		}
 
 		[Test]
-		public void EmptyLine(){
+		public void LineSerialTest(){
 			Line a = new Line(0.0,1.0,0.0,1.0);
 			var json = JsonConvert.SerializeObject(a,jset);
 			Log.Message("{0}", json);
 			var z = JsonConvert.DeserializeObject<Line>(json);
+			Assert.True(true);
+		}
+
+		[Test]
+		public void BoxGeomSerialTest(){
+			BoxGeom a = new BoxGeom(new BBox(0.0,1.0,0.0,1.0));
+			var json = JsonConvert.SerializeObject(a,jset);
+			Log.Message("{0}", json);
+			var z = JsonConvert.DeserializeObject<BoxGeom>(json);
 			Assert.True(true);
 		}
 

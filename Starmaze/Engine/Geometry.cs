@@ -225,7 +225,7 @@ namespace Starmaze.Engine
 
 		public abstract Intersection IntersectBBox(BBox other);
 	}
-	// TODO: Implement this
+	// TODO: Implement this, and add a test for seralizing it when you do
 	public class LineGeom : Geom
 	{
 		public override Geom Translated(Vector2d delta)
