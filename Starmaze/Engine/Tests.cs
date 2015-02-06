@@ -41,12 +41,28 @@ namespace Starmaze.Engine
 
 		[Test]
 		public void EmptyActor(){
-			new Actor();
 			Actor a = new Actor();
 			var json = JsonConvert.SerializeObject(a,jset);
-
 			Log.Message("{0}", json);
-			Actor b = JsonConvert.DeserializeObject<Actor>(json);
+			var z = JsonConvert.DeserializeObject<Actor>(json);
+			Assert.True(true);
+		}
+		[Test]
+		public void ActorWithEmptyComponent(){
+			Actor a = new Actor();
+			Component b = new Component(a);
+			a.Components.Add(b);
+			var json = JsonConvert.SerializeObject(a,jset);
+			Log.Message("{0}", json);
+			var z = JsonConvert.DeserializeObject<Actor>(json);
+			Assert.True(true);
+		}
+		[Test]
+		public void EmptyBBox(){
+			BBox a = new BBox(0.0,1.0,0.0,1.0);
+			var json = JsonConvert.SerializeObject(a,jset);
+			Log.Message("{0}", json);
+			var z = JsonConvert.DeserializeObject<BBox>(json);
 			Assert.True(true);
 		}
 

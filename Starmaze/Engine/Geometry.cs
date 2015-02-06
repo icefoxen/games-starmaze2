@@ -1,5 +1,6 @@
 using System;
 using OpenTK;
+using Newtonsoft.Json;
 
 namespace Starmaze.Engine
 {
@@ -29,6 +30,7 @@ namespace Starmaze.Engine
 		/// Gets the bottom left corner.
 		/// </summary>
 		/// <value>The bottom left corner.</value>
+		[JsonConverter(typeof(OTKVector2dConverter))]
 		public Vector2d P0 { 
 			get {
 				return new Vector2d(X0, Y0);
@@ -39,6 +41,7 @@ namespace Starmaze.Engine
 		/// Gets the top right corner.
 		/// </summary>
 		/// <value>The top right corner.</value>
+		[JsonConverter(typeof(OTKVector2dConverter))]
 		public Vector2d P1 {
 			get {
 				return new Vector2d(X1, Y1);
