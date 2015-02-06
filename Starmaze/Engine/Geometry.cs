@@ -152,6 +152,7 @@ namespace Starmaze.Engine
 		public double X1;
 		public double Y1;
 
+		[JsonConstructor]
 		public Line(double x0, double y0, double x1, double y1)
 		{
 			X0 = x0;

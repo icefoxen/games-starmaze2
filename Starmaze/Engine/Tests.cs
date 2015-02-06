@@ -66,5 +66,14 @@ namespace Starmaze.Engine
 			Assert.True(true);
 		}
 
+		[Test]
+		public void EmptyLine(){
+			Line a = new Line(0.0,1.0,0.0,1.0);
+			var json = JsonConvert.SerializeObject(a,jset);
+			Log.Message("{0}", json);
+			var z = JsonConvert.DeserializeObject<Line>(json);
+			Assert.True(true);
+		}
+
 	}
 }
