@@ -33,7 +33,6 @@ namespace Starmaze.Engine
 		}
 	}
 	*/
-
 	public class RendererParams
 	{
 	}
@@ -60,7 +59,6 @@ namespace Starmaze.Engine
 		// Will be needed eventually for postprocessing...
 		//int ScreenW, ScreenH;
 		SortedDictionary<IRenderer, SortedSet<Actor>> Renderers;
-
 		PostprocPipeline postproc;
 
 		public RenderManager() //int screenw, int screenh)
@@ -138,9 +136,7 @@ namespace Starmaze.Engine
 		void RenderStart();
 
 		void RenderMany(ViewManager view, IEnumerable<Actor> actors);
-
 	}
-
 
 	/// <summary>
 	/// A Renderer is an object that does the drawing for a specific type of Actor.
@@ -277,7 +273,7 @@ namespace Starmaze.Engine
 		{
 			shader = Resources.TheResources.GetShader("default-tex");
 			discipline = GLDiscipline.DEFAULT;
-			tex = Resources.TheResources.GetTexture("lena");
+			tex = Resources.TheResources.GetTexture("playertest");
 			billboard = Resources.TheResources.GetModel("Billboard");
 		
 		}
@@ -293,7 +289,6 @@ namespace Starmaze.Engine
 			billboard.Draw();
 			tex.Disable();
 		}
-
 	}
 }
 

@@ -54,22 +54,22 @@ namespace Starmaze.Content
 			var shader = Resources.TheResources.GetShader("default-tex");
 			var bb = new VertexList(VertexLayout.TextureVertex);
 			bb.AddTextureVertex(
-				new Vector2(0, 0),
+				new Vector2(-5, -5),
 				Color4.White,
 				new Vector2(0, 1)
 			);
 			bb.AddTextureVertex(
-				new Vector2(0, 10),
+				new Vector2(-5, 5),
 				Color4.White,
 				new Vector2(0, 0)
 			);
 			bb.AddTextureVertex(
-				new Vector2(10, 10),
+				new Vector2(5, 5),
 				Color4.White,
 				new Vector2(1, 0)
 			);
 			bb.AddTextureVertex(
-				new Vector2(10, 0),
+				new Vector2(5, -5),
 				Color4.White,
 				new Vector2(1, 1)
 			);

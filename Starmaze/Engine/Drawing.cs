@@ -20,6 +20,7 @@ namespace Starmaze.Engine
 
 		public static readonly Color4 DEFAULT_COLOR = new Color4(1.0f, 1.0f, 1.0f, 1.0f);
 		public const double DEFAULT_STROKE_WIDTH = 1.0;
+		public const double EPSILON = 0.0001;
 		public Vector2d Pos;
 		public Color4 Color;
 		public double StrokeHalfWidth;
@@ -63,7 +64,7 @@ namespace Starmaze.Engine
 
 		public bool Equals(LineArtVertex other)
 		{
-			return Pos == other.Pos && Color == other.Color && StrokeHalfWidth == other.StrokeHalfWidth;
+			return Pos == other.Pos && Color == other.Color && Math.Abs(StrokeHalfWidth - other.StrokeHalfWidth) < EPSILON;
 		}
 	}
 
@@ -222,7 +223,7 @@ namespace Starmaze.Engine
 
 			var along = -side.PerpendicularRight;
 			return new RawJoin(side * v.StrokeHalfWidth, along,
-				side * -v.StrokeHalfWidth, along);
+			                   side * -v.StrokeHalfWidth, along);
 		}
 
 		public override RawJoin RawJoinIn()
@@ -491,7 +492,7 @@ namespace Starmaze.Engine
 				verts.AddColorVertex(positions[i], colors[i]);
 			}
 			var vertArray = new VertexArray(s, verts, indices,
-				                prim: PrimitiveType.Triangles, usage: BufferUsageHint.StaticDraw);
+			                                prim: PrimitiveType.Triangles, usage: BufferUsageHint.StaticDraw);
 
 			return vertArray;
 
