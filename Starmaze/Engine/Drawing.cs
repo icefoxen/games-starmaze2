@@ -261,7 +261,7 @@ namespace Starmaze.Engine
 			//var offset1 = V1.Pos - Center;
 			var angle0 = Math.Atan2(V0.Pos.Y - Center.Y, V0.Pos.X - Center.X);
 			var angle1 = Math.Atan2(V1.Pos.Y - Center.Y, V1.Pos.X - Center.X);
-			if (Clockwise && angle0 <= angle1) {
+			if (Clockwise && (angle0 <= angle1)) {
 				angle1 -= SMath.TAU;
 			} else if ((!Clockwise) && (angle0 >= angle1)) {
 				angle1 += SMath.TAU;
@@ -270,6 +270,7 @@ namespace Starmaze.Engine
 
 			var radius0 = (V0.Pos - Center).Length;
 			var radius1 = (V1.Pos - Center).Length;
+			Console.WriteLine("Radius 0 {0}, Radius 1 {1}", radius0, radius1);
 			var radiusStep = (radius1 - radius0) / RequestedSegments;
 
 			var strokeHalfWidth0 = V0.StrokeHalfWidth;
@@ -290,6 +291,7 @@ namespace Starmaze.Engine
 				currentAlpha += alphaStep;
 				currentAngle += angleStep;
 				currentRadius += radiusStep;
+
 				currentX = Math.Cos(currentAngle) * currentRadius;
 				currentY = Math.Sin(currentAngle) * currentRadius;
 				currentStrokeHalfWidth += strokeHalfWidthStep;
@@ -302,6 +304,8 @@ namespace Starmaze.Engine
 				var currentNormal = currentOffset.Normalized();
 				var inner = currentNormal * currentStrokeHalfWidth;
 				var outer = -inner;
+				Console.WriteLine("Current angle: {0}, X: {1}, Y: {2}, center: {3}, alpha: {4}, angle0: {5}, angle1: {6}", 
+				                  currentAngle, currentX, currentY, Center, currentAlpha, angle0, angle1);
 				yield return new Tuple<LineArtVertex, Vector2d, Vector2d>(currentVertex, outer, inner);
 			}
 
@@ -475,7 +479,7 @@ namespace Starmaze.Engine
 		/// Normally it will have a length that is a multiple of 3, for drawing triangles.
 		/// </summary>
 		/// <param name="ind">Collection of indices.</param>
-		public void addIndices(IEnumerable<uint> ind)
+		public void AddIndices(IEnumerable<uint> ind)
 		{
 			indices.AddRange(ind);
 		}
@@ -505,11 +509,11 @@ namespace Starmaze.Engine
 	/// </summary>
 	public abstract class Tesselator
 	{
-		protected VertexModel output;
+		protected VertexModel Output;
 
 		public Tesselator(VertexModel output)
 		{
-			this.output = output;
+			this.Output = output;
 		}
 
 		public abstract void TesselatePath(Path path);
@@ -569,14 +573,14 @@ namespace Starmaze.Engine
 
 		IEnumerable<uint> AddVertexes(IList<LineArtVertex> verts)
 		{
-			uint start = output.AddVertexes(verts);
+			uint start = Output.AddVertexes(verts);
 			return Util.UnsignedRange(start, (uint)(start + verts.Count));
 		}
 
 		void AddQuad(uint a, uint b, uint c, uint d)
 		{
 			var quadIndices = new uint[] { a, b, c, a, c, d };
-			output.addIndices(quadIndices);
+			Output.AddIndices(quadIndices);
 		}
 
 		void BeginRoad(IList<LineArtVertex> verts)
@@ -811,7 +815,7 @@ namespace Starmaze.Engine
 	}
 
 	/// <summary>
-	/// A tesselator that turns a Path into a filled shape.
+	/// A tesselator that turns a Path into a filled shape with no border.
 	/// (Probably convex shapes only; possibly rename this to reflect that?)
 	/// </summary>
 	public class FilledShapeTesselator : Tesselator
@@ -841,9 +845,9 @@ namespace Starmaze.Engine
 	/// A combination of a FilledShapeTesselator and a FadeLineTesselator;
 	/// draws a filled shape with a boundary line around it.
 	/// </summary>
-	public class OutlinedShapeTesselator : Tesselator
+	public class BorderedShapeTesselator : Tesselator
 	{
-		public OutlinedShapeTesselator(VertexModel output) : base(output)
+		public BorderedShapeTesselator(VertexModel output) : base(output)
 		{
 
 		}
@@ -938,8 +942,10 @@ namespace Starmaze.Engine
 		public void Arc(double cx, double cy, double radius, double sweep, Color4 color, double startAngle = 0.0,
 		                int? numSegments = null)
 		{
-			var pos0 = SMath.Rotate(Vector2d.UnitY, startAngle) * radius;
-			var pos1 = SMath.Rotate(Vector2d.UnitY, startAngle + sweep) * radius;
+			var pos0 = SMath.Rotate(Vector2d.UnitX, startAngle) * radius;
+			var pos1 = SMath.Rotate(Vector2d.UnitX, startAngle + sweep) * radius;
+			Console.WriteLine("Start angle {0}, sweep {1}, radius {2}, pos0 {3}, pos1 {4}, length1 {5}, length2 {6}",
+			                  startAngle, sweep, radius, pos0, pos1, pos0.Length, pos1.Length);
 			var v0 = new LineArtVertex(pos0, color: color);
 			var v1 = new LineArtVertex(pos1, color: color);
 			SubmitOpenPath(new ArcSegment(v1, v0, new Vector2d(cx, cy), true, numSegments));
