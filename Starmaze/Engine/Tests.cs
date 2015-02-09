@@ -84,5 +84,16 @@ namespace Starmaze.Engine
 			Assert.True(true);
 		}
 
+		//
+		//Worldmap.cs
+		//
+		[Test]
+		public void EmptyRoomSerialTest(){
+			Room a = new Room("", new Actor[]{new Actor()});
+			var json = JsonConvert.SerializeObject(a,jset);
+			Log.Message("{0}", json);
+			var z = JsonConvert.DeserializeObject<Room>(json);
+			Assert.True(true);
+		}
 	}
 }

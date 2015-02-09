@@ -66,8 +66,8 @@ namespace Starmaze
 				new BoxBlock(new BBox(-45, -35, -40, 35), Color4.Yellow),
 				new BoxBlock(new BBox(40, -35, 45, 35), Color4.Yellow),
 			};
-			var room1 = new Room("TestRoom1", zone, actors1);
-			var room2 = new Room("TestRoom2", zone, actors2);
+			var room1 = new Room("TestRoom1", actors1);
+			var room2 = new Room("TestRoom2", actors2);
 			zone.AddRoom(room1);
 			zone.AddRoom(room2);
 			var map = new WorldMap();
