@@ -33,7 +33,6 @@ namespace Starmaze.Engine
 		}
 	}
 	*/
-
 	public class RendererParams
 	{
 	}
@@ -60,7 +59,6 @@ namespace Starmaze.Engine
 		// Will be needed eventually for postprocessing...
 		//int ScreenW, ScreenH;
 		SortedDictionary<IRenderer, SortedSet<Actor>> Renderers;
-
 		PostprocPipeline postproc;
 
 		public RenderManager() //int screenw, int screenh)
@@ -116,8 +114,8 @@ namespace Starmaze.Engine
 				}
 			};
 
-			thunk();
-			//postproc.RenderWith(thunk);
+			//thunk();
+			postproc.RenderWith(thunk);
 		}
 	}
 
@@ -138,9 +136,7 @@ namespace Starmaze.Engine
 		void RenderStart();
 
 		void RenderMany(ViewManager view, IEnumerable<Actor> actors);
-
 	}
-
 
 	/// <summary>
 	/// A Renderer is an object that does the drawing for a specific type of Actor.
@@ -277,7 +273,7 @@ namespace Starmaze.Engine
 		{
 			shader = Resources.TheResources.GetShader("default-tex");
 			discipline = GLDiscipline.DEFAULT;
-			tex = Resources.TheResources.GetTexture("lena");
+			tex = Resources.TheResources.GetTexture("playertest");
 			billboard = Resources.TheResources.GetModel("Billboard");
 		
 		}
@@ -288,12 +284,12 @@ namespace Starmaze.Engine
 			var transform = new Transform(pos, 0.0f);
 			var mat = transform.TransformMatrix(view.ProjectionMatrix);
 			shader.UniformMatrix("projection", mat);
+			// This is, inconveniently, not the texture handle but in fact the texture unit offset.
 			shader.Uniformi("texture", 0);
 			tex.Enable();
 			billboard.Draw();
 			tex.Disable();
 		}
-
 	}
 }
 

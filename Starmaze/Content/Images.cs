@@ -14,9 +14,9 @@ namespace Starmaze.Content
 			var shader = Resources.TheResources.GetShader("default");
 			var mb = new Starmaze.Engine.ModelBuilder();
 			//mb.Circle(0, 0, 15, Color4.Green, numSegments: 16);
-			mb.Circle(20, 30, 35, Color4.Red, numSegments: 64);
+			//mb.Circle(20, 30, 35, Color4.Red, numSegments: 64);
 			mb.Line(-10, -10, 10, -10, Color4.Green);
-			mb.Arc(-30, -20, 5, SMath.TAU / 4.0, Color4.Yellow, numSegments: 64);
+			mb.Arc(0, 0, 10, SMath.TAU / 6, Color4.Yellow, numSegments: 64);
 
 			mb.RectCorner(10, 10, 20, 10, Color4.BlueViolet);
 			var model = mb.Finish();
@@ -54,22 +54,22 @@ namespace Starmaze.Content
 			var shader = Resources.TheResources.GetShader("default-tex");
 			var bb = new VertexList(VertexLayout.TextureVertex);
 			bb.AddTextureVertex(
-				new Vector2(0, 0),
+				new Vector2(-5, -5),
 				Color4.White,
 				new Vector2(0, 1)
 			);
 			bb.AddTextureVertex(
-				new Vector2(0, 10),
+				new Vector2(-5, 5),
 				Color4.White,
 				new Vector2(0, 0)
 			);
 			bb.AddTextureVertex(
-				new Vector2(10, 10),
+				new Vector2(5, 5),
 				Color4.White,
 				new Vector2(1, 0)
 			);
 			bb.AddTextureVertex(
-				new Vector2(10, 0),
+				new Vector2(5, -5),
 				Color4.White,
 				new Vector2(1, 1)
 			);

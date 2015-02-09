@@ -20,7 +20,13 @@ namespace Starmaze
 		// XXX: Always rotates around the origin.
 		public static Vector2d Rotate(Vector2d vec, double amount)
 		{
-			return new Vector2d(vec.X * Math.Cos(amount), vec.Y * Math.Sin(amount));
+			var theta = Math.Atan2(vec.Y, vec.X);
+			theta += amount;
+			var cs = Math.Cos(theta);
+			var sn = Math.Sin(theta);
+			var x = vec.X * cs - vec.Y * sn;
+			var y = vec.X * sn + vec.Y * cs;
+			return new Vector2d(x, y);
 		}
 		// Handy interpolation functions for types that don't include
 		// their own.

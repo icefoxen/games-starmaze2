@@ -4,7 +4,10 @@ using OpenTK;
 using OpenTK.Graphics;
 using NUnit.Framework;
 using Newtonsoft.Json;
+//using Starmaze;
 using Starmaze.Game;
+
+
 
 namespace Starmaze.Engine
 {
@@ -37,11 +40,47 @@ namespace Starmaze.Engine
 		}
 
 		[Test]
-		public void BoxBlock(){
-			Log.Message("BoxBlock testing");
-			Actor a = new BoxBlock(new BBox(-40, -35, 40, -30), Color4.Blue);
-			//var json = JsonConvert.SerializeObject(a,jset);
-			//Log.Message("{0}", json);
+		public void EmptyActorSerialTest(){
+			Actor a = new Actor();
+			var json = JsonConvert.SerializeObject(a,jset);
+			Log.Message("{0}", json);
+			var z = JsonConvert.DeserializeObject<Actor>(json);
+			Assert.True(true);
+		}
+		[Test]
+		public void ActorWithEmptyComponentSerialTest(){
+			Actor a = new Actor();
+			Component b = new Component(a);
+			a.Components.Add(b);
+			var json = JsonConvert.SerializeObject(a,jset);
+			Log.Message("{0}", json);
+			var z = JsonConvert.DeserializeObject<Actor>(json);
+			Assert.True(true);
+		}
+		[Test]
+		public void BBoxSerialTest(){
+			BBox a = new BBox(0.0,1.0,0.0,1.0);
+			var json = JsonConvert.SerializeObject(a,jset);
+			Log.Message("{0}", json);
+			var z = JsonConvert.DeserializeObject<BBox>(json);
+			Assert.True(true);
+		}
+
+		[Test]
+		public void LineSerialTest(){
+			Line a = new Line(0.0,1.0,0.0,1.0);
+			var json = JsonConvert.SerializeObject(a,jset);
+			Log.Message("{0}", json);
+			var z = JsonConvert.DeserializeObject<Line>(json);
+			Assert.True(true);
+		}
+
+		[Test]
+		public void BoxGeomSerialTest(){
+			BoxGeom a = new BoxGeom(new BBox(0.0,1.0,0.0,1.0));
+			var json = JsonConvert.SerializeObject(a,jset);
+			Log.Message("{0}", json);
+			var z = JsonConvert.DeserializeObject<BoxGeom>(json);
 			Assert.True(true);
 		}
 

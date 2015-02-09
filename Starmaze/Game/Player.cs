@@ -7,10 +7,10 @@ namespace Starmaze.Game
 	{
 		public Player()
 		{
-			RenderClass = "TexTestRenderer";
+			RenderClass = "StaticRenderer";
 			Body = new Body(this);
 			Body.AddGeom(new BoxGeom(new BBox(-5, -5, 5, 5)));
-			var model = Resources.TheResources.GetModel("Player");
+			var model = Resources.TheResources.GetModel("TestModel");
 			RenderParams = new StaticRendererParams(model);
 			Components.Add(new KeyboardController(this));
 			KeepOnRoomChange = true;

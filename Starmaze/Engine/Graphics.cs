@@ -807,12 +807,29 @@ namespace Starmaze.Engine
 		FramebufferObject fbo;
 		Shader shader;
 		VertexArray bb;
+		Texture tex;
+		Matrix4 matrix;
 
 		public PostprocStep(Shader shader, int screenw, int screenh)
 		{
 			width = screenw;
 			height = screenh;
 			this.shader = shader;
+			matrix = Matrix4.CreateOrthographic(120, 80, 0, 10);
+
+			tex = Resources.TheResources.GetTexture("playertest");
+
+            var pixels = new byte[] {
+                255, 255, 255, 255,
+                255, 0, 0, 255,
+                0, 255, 0, 255,
+                0, 0, 255, 255,
+            };
+			tex.Enable();
+            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, 2, 2, 0,
+                OpenTK.Graphics.OpenGL.PixelFormat.Rgba, PixelType.UnsignedByte, pixels);
+			tex.Disable();
+
 
 			// Create back-buffer
 			// XXX: Is ActiveTexture needed?  I THINK so...
@@ -826,25 +843,29 @@ namespace Starmaze.Engine
 			// XXX: Aspect ratio...
 			var aspectRatio = 4.0f / 3.0f;
 			var bb = new VertexList(VertexLayout.TextureVertex);
+
+			var halfHeight = 1.0f / 2;
+			var halfWidth = 1.0f / 2;
+
 			bb.AddTextureVertex(
-				new Vector2(0, 0),
-				Color4.White,
-				new Vector2(0, 0)
-			);
-			bb.AddTextureVertex(
-				new Vector2(0, height),
+				new Vector2(-halfWidth, -halfHeight),
 				Color4.White,
 				new Vector2(0, (1.0f / aspectRatio))
 			);
 			bb.AddTextureVertex(
-				new Vector2(width, height),
+				new Vector2(-halfWidth, halfHeight),
 				Color4.White,
-				new Vector2(1, (1.0f / aspectRatio))
+				new Vector2(0, 0)
 			);
 			bb.AddTextureVertex(
-				new Vector2(width, 0),
+				new Vector2(halfWidth, halfHeight),
 				Color4.White,
 				new Vector2(1, 0)
+			);
+			bb.AddTextureVertex(
+				new Vector2(halfWidth, -halfHeight),
+				Color4.White,
+				new Vector2(1, (1.0f / aspectRatio))
 			);
 			var indices = new uint[] {
 				0, 1, 2,
@@ -872,7 +893,10 @@ namespace Starmaze.Engine
 			}
 			Graphics.TheGLTracking.SetShader(shader);
 			fromTexture.Enable();
-			shader.Uniformi("texture", fromTexture.Handle);
+			//shader.Uniformi("texture", fromTexture.Handle);
+			//tex.Enable();
+			shader.UniformMatrix("projection", matrix);
+			shader.Uniformi("texture", 0);
 			GL.Clear(ClearBufferMask.ColorBufferBit);
 			bb.Draw();
 			Graphics.TheGLTracking.SetShader(null);
@@ -952,7 +976,7 @@ namespace Starmaze.Engine
 			// Then we take the drawn scene and run it through each of the postprocessing steps.
 			for (int i = 0; i < steps.Count - 2; i++) {
 				var step = steps[i];
-				step.Render(fromTexture);
+				step.Render(fromTexture, final: false);
 				fromTexture = step.DestTexture;
 			}
 			// Then do the final rendering to the screen.
