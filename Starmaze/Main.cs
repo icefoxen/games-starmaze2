@@ -146,6 +146,10 @@ namespace Starmaze
 		[STAThread]
 		public static void Main()
 		{
+			var dllDirectory = @"C:\Users\Simon-bak\Desktop\starmaze\Starmaze";
+			Environment.SetEnvironmentVariable("PATH",  Environment.GetEnvironmentVariable("PATH") + ";" + dllDirectory);
+
+
 			GameOptions o = new GameOptions();
 			var physicsRate = Physics.PHYSICS_HZ;
 			using (var g = new StarmazeWindow(o)) {

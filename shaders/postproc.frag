@@ -9,7 +9,7 @@ out vec4 outputColor;
 void main()
 {
     //outputColor = vec4(1.0, 1.0, 0.0, 1.0);
-    outputColor = texture2D(texture, theTexcoord);
+    outputColor = vec4(texture2D(texture, theTexcoord).rgb, 1.0);
 }
 
 /*

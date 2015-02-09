@@ -114,8 +114,8 @@ namespace Starmaze.Engine
 				}
 			};
 
-			thunk();
-			//postproc.RenderWith(thunk);
+			//thunk();
+			postproc.RenderWith(thunk);
 		}
 	}
 
@@ -284,6 +284,7 @@ namespace Starmaze.Engine
 			var transform = new Transform(pos, 0.0f);
 			var mat = transform.TransformMatrix(view.ProjectionMatrix);
 			shader.UniformMatrix("projection", mat);
+			// This is, inconveniently, not the texture handle but in fact the texture unit offset.
 			shader.Uniformi("texture", 0);
 			tex.Enable();
 			billboard.Draw();
