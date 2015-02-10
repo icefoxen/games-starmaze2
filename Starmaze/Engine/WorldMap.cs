@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-
+using Newtonsoft.Json;
 namespace Starmaze.Engine
 {
 	/// <summary>
@@ -10,6 +10,7 @@ namespace Starmaze.Engine
 	public class Zone
 	{
 		public string Name;
+		[JsonIgnore]
 		public Dictionary<string, Room> Rooms;
 
 		/// <summary>
@@ -22,7 +23,7 @@ namespace Starmaze.Engine
 				return Rooms[room];
 			}
 		}
-
+		[JsonConstructor]
 		public Zone(string name)
 		{
 			Name = name;
@@ -52,17 +53,19 @@ namespace Starmaze.Engine
 	/// </summary>
 	public class Room
 	{
-		public Zone Zone;
+		//public Zone Zone;
 		public string Name;
+		[JsonProperty] //When there are multiple actor containers, move this to static.
 		IEnumerable<Actor> Actors;
 		//IEnumerable<Actor> StaticFrozen;
 		//IEnumerable<Actor> DynamicFrozen;
 		//IEnumerable<Actor> DynamicLive;
-
-		public Room(string name, Zone zone, IEnumerable<Actor> actors)
+		[JsonConstructor]
+		//public Room(string name, Zone zone, IEnumerable<Actor> actors)
+		public Room(string name, IEnumerable<Actor> actors)
 		{
 			Name = name;
-			Zone = zone;
+			//Zone = zone;
 			Actors = actors;
 		}
 

@@ -257,6 +257,7 @@ namespace Starmaze.Engine
 
 	public class BoxGeom : Geom
 	{
+		[JsonProperty]
 		BBox bbox;
 
 		public BoxGeom(double x0, double y0, double x1, double y1)
@@ -264,6 +265,7 @@ namespace Starmaze.Engine
 			bbox = new BBox(x0, y0, x1, y1);
 		}
 
+		[JsonConstructor]
 		public BoxGeom(BBox bbox)
 		{
 			this.bbox = bbox;

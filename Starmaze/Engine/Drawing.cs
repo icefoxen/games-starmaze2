@@ -223,7 +223,7 @@ namespace Starmaze.Engine
 
 			var along = -side.PerpendicularRight;
 			return new RawJoin(side * v.StrokeHalfWidth, along,
-			                   side * -v.StrokeHalfWidth, along);
+				side * -v.StrokeHalfWidth, along);
 		}
 
 		public override RawJoin RawJoinIn()
@@ -252,7 +252,7 @@ namespace Starmaze.Engine
 		/// </summary>
 		/// <returns>The interior points.</returns>
 		public IEnumerable<Tuple<LineArtVertex, Vector2d, Vector2d>>
-			GenerateInteriorPoints()
+		GenerateInteriorPoints()
 		{
 			// Everything is in radians in this function because converting to degrees and back would
 			// be rather silly.
@@ -305,7 +305,7 @@ namespace Starmaze.Engine
 				var inner = currentNormal * currentStrokeHalfWidth;
 				var outer = -inner;
 				Console.WriteLine("Current angle: {0}, X: {1}, Y: {2}, center: {3}, alpha: {4}, angle0: {5}, angle1: {6}", 
-				                  currentAngle, currentX, currentY, Center, currentAlpha, angle0, angle1);
+					currentAngle, currentX, currentY, Center, currentAlpha, angle0, angle1);
 				yield return new Tuple<LineArtVertex, Vector2d, Vector2d>(currentVertex, outer, inner);
 			}
 
@@ -496,7 +496,7 @@ namespace Starmaze.Engine
 				verts.AddColorVertex(positions[i], colors[i]);
 			}
 			var vertArray = new VertexArray(s, verts, indices,
-			                                prim: PrimitiveType.Triangles, usage: BufferUsageHint.StaticDraw);
+				                prim: PrimitiveType.Triangles, usage: BufferUsageHint.StaticDraw);
 
 			return vertArray;
 
@@ -509,12 +509,35 @@ namespace Starmaze.Engine
 	/// </summary>
 	public abstract class Tesselator
 	{
+		protected readonly Color4 BACKGROUND_COLOR = new Color4(0.0f, 0.0f, 0.0f, 0.0f);
 		protected VertexModel Output;
 
 		public Tesselator(VertexModel output)
 		{
 			this.Output = output;
 		}
+
+		protected IEnumerable<uint> AddVertexes(IList<LineArtVertex> verts)
+		{
+			uint start = Output.AddVertexes(verts);
+			return Util.UnsignedRange(start, (uint)(start + verts.Count));
+		}
+
+		/// <summary>
+		/// Create a LineArtVertex with the default background color.
+		/// </summary>
+		/// <param name="pos">Position.</param>
+		public LineArtVertex Background(Vector2d pos)
+		{
+			return new LineArtVertex(pos, BACKGROUND_COLOR);
+		}
+
+		protected void AddQuad(uint a, uint b, uint c, uint d)
+		{
+			var quadIndices = new uint[] { a, b, c, a, c, d };
+			Output.AddIndices(quadIndices);
+		}
+
 
 		public abstract void TesselatePath(Path path);
 
@@ -538,17 +561,17 @@ namespace Starmaze.Engine
 	/// </summary>
 	public class FadeLineTesselator : Tesselator
 	{
-		readonly Color4 BACKGROUND_COLOR = new Color4(0.0f, 0.0f, 0.0f, 0.0f);
 		// Number of quad strips across the roaad
 		const int ROAD_LANES = 2;
-		List<uint> firstIndices;
-		List<uint> lastIndices;
+		protected List<uint> firstIndices;
+		protected List<uint> lastIndices;
 
 		public FadeLineTesselator(VertexModel output) : base(output)
 		{
 			firstIndices = null;
 			lastIndices = null;
 		}
+
 
 		public void BeginPath()
 		{
@@ -560,27 +583,6 @@ namespace Starmaze.Engine
 		{
 			firstIndices = null;
 			lastIndices = null;
-		}
-
-		/// <summary>
-		/// Create a LineArtVertex with the default background color.
-		/// </summary>
-		/// <param name="pos">Position.</param>
-		public LineArtVertex Background(Vector2d pos)
-		{
-			return new LineArtVertex(pos, BACKGROUND_COLOR);
-		}
-
-		IEnumerable<uint> AddVertexes(IList<LineArtVertex> verts)
-		{
-			uint start = Output.AddVertexes(verts);
-			return Util.UnsignedRange(start, (uint)(start + verts.Count));
-		}
-
-		void AddQuad(uint a, uint b, uint c, uint d)
-		{
-			var quadIndices = new uint[] { a, b, c, a, c, d };
-			Output.AddIndices(quadIndices);
 		}
 
 		void BeginRoad(IList<LineArtVertex> verts)
@@ -818,21 +820,71 @@ namespace Starmaze.Engine
 	/// A tesselator that turns a Path into a filled shape with no border.
 	/// (Probably convex shapes only; possibly rename this to reflect that?)
 	/// </summary>
+	// XXX: LineSegment's might not be the best way of doing this?  Do we need
+	// a PolySegment or such?  Hmmm.
+	// TODO: Does not anti-alias the edges of the polygon.
 	public class FilledShapeTesselator : Tesselator
 	{
+		List<LineArtVertex> vertAccm;
+
 		public FilledShapeTesselator(VertexModel output) : base(output)
+		{
+			vertAccm = null;
+		}
+
+		public void StartPath(LineArtVertex startPoint)
+		{
+			vertAccm = new List<LineArtVertex>();
+			vertAccm.Add(startPoint);
+		}
+
+		public void EndPath()
 		{
 
 		}
 
 		public override void TesselatePath(Path path)
 		{
+			if (path.Empty) {
+				return;
+			}
+			if (!path.Closed) {
+				Log.Warn(!path.Closed, "FilledShapeTesselator got a Path that isn't closed, closing.");
+				path.Close();
+			}
+			//StartPath();
+			foreach (var seg in path.Segments) {
+				seg.TesselateWith(this);
+			}
+			EndPath();
+		}
 
+		void AccumulateLine(LineSegment line)
+		{
+			vertAccm.Add(line.V1);
+		}
+
+		// Goes through all accumulated vertexes, divvies them up into triangles,
+		// and throws them at the VertexModel
+		// This is trivial, we just draw diagonals from one vertex to all other vertexes.
+		// Again, only works for convex polygons without holes though!
+		void Triangulate()
+		{
+			Log.Assert(vertAccm.Count > 2, "Not enough vertices submitted to make a triangle!");
+			var startIdx = Output.AddVertexes(vertAccm);
+			var endIdx = startIdx + vertAccm.Count;
+			var idxs = new List<uint>();
+			for (var i = startIdx + 2; i < endIdx; i++) {
+				idxs.Add(startIdx);
+				idxs.Add(i - 1);
+				idxs.Add(i);
+			}
+			Output.AddIndices(idxs);
 		}
 
 		public override void TesselateLine(LineSegment line)
 		{
-
+			AccumulateLine(line);
 		}
 
 		public override void TesselateArc(ArcSegment arc)
@@ -945,7 +997,7 @@ namespace Starmaze.Engine
 			var pos0 = SMath.Rotate(Vector2d.UnitX, startAngle) * radius;
 			var pos1 = SMath.Rotate(Vector2d.UnitX, startAngle + sweep) * radius;
 			Console.WriteLine("Start angle {0}, sweep {1}, radius {2}, pos0 {3}, pos1 {4}, length1 {5}, length2 {6}",
-			                  startAngle, sweep, radius, pos0, pos1, pos0.Length, pos1.Length);
+				startAngle, sweep, radius, pos0, pos1, pos0.Length, pos1.Length);
 			var v0 = new LineArtVertex(pos0, color: color);
 			var v1 = new LineArtVertex(pos1, color: color);
 			SubmitOpenPath(new ArcSegment(v1, v0, new Vector2d(cx, cy), true, numSegments));
