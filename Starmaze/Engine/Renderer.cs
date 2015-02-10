@@ -114,8 +114,8 @@ namespace Starmaze.Engine
 				}
 			};
 
-			//thunk();
-			postproc.RenderWith(thunk);
+			thunk();
+			//postproc.RenderWith(thunk);
 		}
 	}
 

@@ -815,10 +815,11 @@ namespace Starmaze.Engine
 			width = screenw;
 			height = screenh;
 			this.shader = shader;
-			matrix = Matrix4.CreateOrthographic(120, 80, 0, 10);
+			matrix = Matrix4.CreateOrthographic(12, -8, -1f, 10f);
 
 			tex = Resources.TheResources.GetTexture("playertest");
 
+			/*
             var pixels = new byte[] {
                 255, 255, 255, 255,
                 255, 0, 0, 255,
@@ -829,7 +830,7 @@ namespace Starmaze.Engine
             GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, 2, 2, 0,
                 OpenTK.Graphics.OpenGL.PixelFormat.Rgba, PixelType.UnsignedByte, pixels);
 			tex.Disable();
-
+			*/
 
 			// Create back-buffer
 			// XXX: Is ActiveTexture needed?  I THINK so...
@@ -838,7 +839,8 @@ namespace Starmaze.Engine
 
 			// Create framebuffer
 			fbo = new FramebufferObject(DestTexture);
-
+			this.bb = Starmaze.Content.Images.Billboard();
+			/*
 			// Make a billboard to render to.
 			// XXX: Aspect ratio...
 			var aspectRatio = 4.0f / 3.0f;
@@ -872,6 +874,7 @@ namespace Starmaze.Engine
 				0, 2, 3,
 			};
 			this.bb = new VertexArray(shader, bb, idxs: indices);
+			*/
 		}
 
 		/// <summary>
