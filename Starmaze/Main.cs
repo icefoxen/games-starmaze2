@@ -94,6 +94,8 @@ namespace Starmaze
 			World = new World(player, map, "TestZone", "TestRoom2");
 			Gui = new GUI();
 			SetupEvents();
+
+			Sound.PlaySound();
 		}
 
 		protected override void OnUnload(EventArgs e)
