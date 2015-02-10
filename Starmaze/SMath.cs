@@ -11,6 +11,7 @@ namespace Starmaze
 	public static class SMath
 	{
 		public const double TAU = Math.PI * 2;
+		public const double PIOVER2 = Math.PI / 2;
 
 		public static double CrossZ(Vector2d v0, Vector2d v1)
 		{

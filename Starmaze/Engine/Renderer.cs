@@ -291,5 +291,77 @@ namespace Starmaze.Engine
 			tex.Disable();
 		}
 	}
+
+	public class SwirlyTestRenderer : Renderer
+	{
+		readonly Color4[] Colors = new Color4[] {
+			new Color4(1.0f, 0f, 0f, 0.3f),
+			new Color4(1.0f, 0.5f, 0f, 0.3f),
+			new Color4(1.0f, 0f, 0f, 0.3f),
+			new Color4(1.0f, 0.5f, 0f, 0.3f),
+			new Color4(1.0f, 0f, 0f, 0.3f),
+			new Color4(1.0f, 0.5f, 0f, 0.3f),
+			new Color4(1.0f, 0f, 0f, 0.3f),
+			new Color4(1.0f, 0.5f, 0f, 0.3f),
+			new Color4(1.0f, 0f, 0f, 0.3f),
+			new Color4(1.0f, 0.5f, 0f, 0.3f),
+			new Color4(1.0f, 0f, 0f, 0.3f),
+			new Color4(1.0f, 0.5f, 0f, 0.3f),
+			new Color4(1.0f, 0f, 0f, 0.3f),
+			new Color4(1.0f, 0.5f, 0f, 0.3f),
+			new Color4(1.0f, 0f, 0f, 0.3f),
+			new Color4(1.0f, 0.5f, 0f, 0.3f),
+			new Color4(1.0f, 0f, 0f, 0.3f),
+			new Color4(1.0f, 0.5f, 0f, 0.3f),
+			new Color4(1.0f, 0f, 0f, 0.3f),
+			new Color4(1.0f, 0.5f, 0f, 0.3f),
+		};
+		const double startSize = 50;
+		const double scaleFactor = 0.9;
+		List<VertexArray> Rects;
+		double time;
+
+		public SwirlyTestRenderer() : base()
+		{
+			shader = Resources.TheResources.GetShader("default");
+			discipline = GLDiscipline.DEFAULT;
+
+			Rects = new List<VertexArray>();
+			var size = startSize;
+			foreach (var color in Colors) {
+				var rect = Starmaze.Content.Images.FilledRectCenter(0, 0, size, size, color);
+				Rects.Add(rect);
+				size *= scaleFactor;
+			}
+
+			time = 0.0;
+		}
+
+		public override void RenderOne(ViewManager view, Actor act)
+		{
+			/*
+			var pos = new Vector2((float)act.Body.Position.X, (float)act.Body.Position.Y);
+			var transform = new Transform(pos, 0.0f);
+			var mat = transform.TransformMatrix(view.ProjectionMatrix);
+			shader.UniformMatrix("projection", mat);
+			var parms = act.RenderParams as StaticRendererParams;
+			if (parms != null) {
+				parms.Model.Draw();
+			}
+			*/
+
+
+			time += 0.0005;
+			for (int i = 0; i < Rects.Count; i++) {
+				var pos = Vector2.Zero;
+				var rot = (float) Math.Sin((time * i));
+				var transform = new Transform(pos, rot);
+				var mat = transform.TransformMatrix(view.ProjectionMatrix);
+				shader.UniformMatrix("projection", mat);
+				Rects[i].Draw();
+			}
+
+		}
+	}
 }
 

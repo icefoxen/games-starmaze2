@@ -79,6 +79,30 @@ namespace Starmaze.Content
 			};
 			return new VertexArray(shader, bb, idxs: indices);
 		}
+
+		public static VertexArray FilledRectCenter(double cx, double cy, double w, double h, Color4 color)
+		{
+			float halfW = (float)( w / 2);
+			float halfH = (float)(h / 2);
+			var positions = new Vector2[] {
+				new Vector2((float)cx - halfW, (float)cy - halfH),
+				new Vector2((float)cx - halfW, (float)cy + halfH),
+				new Vector2((float)cx + halfW, (float)cy + halfH),
+				new Vector2((float)cx + halfW, (float)cy - halfH),
+			};
+
+			var indices = new uint[] {
+				0, 1, 2,
+				0, 2, 3,
+			};
+
+			var shader = Resources.TheResources.GetShader("default");
+			var bb = new VertexList(VertexLayout.ColorVertex);
+			foreach (var pos in positions) {
+				bb.AddColorVertex(pos, color);
+			}
+			return new VertexArray(shader, bb, idxs: indices);
+		}
 	}
 }
 
