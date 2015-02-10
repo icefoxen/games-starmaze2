@@ -13,7 +13,9 @@ namespace Starmaze
 	{
 		public int ResolutionW;
 		public int ResolutionH;
+		public double AspectRatio;
 		public VSyncMode Vsync;
+		public GameWindowFlags WindowMode;
 		// public string Logfile;
 
 		public GameOptions()
@@ -21,6 +23,8 @@ namespace Starmaze
 			ResolutionW = 1024;
 			ResolutionH = 768;
 			Vsync = VSyncMode.On;
+			AspectRatio = 4.0 / 3.0;
+			WindowMode = GameWindowFlags.Default;
 		}
 	}
 
@@ -39,7 +43,7 @@ namespace Starmaze
 			// Using 32 as the color format and depth causes issues on Linux, see
 			// https://github.com/opentk/opentk/issues/108
 			: base(options.ResolutionW, options.ResolutionH, new GraphicsMode(24, 24, 0, 0), Util.WindowTitle, 
-			       GameWindowFlags.Default, DisplayDevice.Default,
+			       options.WindowMode, DisplayDevice.Default,
 			       Util.GlMajorVersion, Util.GlMinorVersion, GraphicsContextFlags.Default)
 				// Comment out previous and uncomment below to test with OpenGL ES 2.0
 			       // 2, 0, GraphicsContextFlags.Embedded)
@@ -78,9 +82,7 @@ namespace Starmaze
 		protected override void OnLoad(System.EventArgs e)
 		{
 			VSync = Options.Vsync;
-			// BUGGO: Aspect ratio, also, magic constants.
-			// Also, should this be part of the Window or World class?  It's basically low-level drawing, so...
-			View = new ViewManager(120, 80);
+			View = new ViewManager(Util.LogicalScreenWidth, Util.LogicalScreenWidth / Options.AspectRatio);
 			Graphics.Init();
 			// Has to be called after the Graphics setup if it's going to be preloading
 			// textures and shaders and such...
@@ -96,10 +98,11 @@ namespace Starmaze
 			Resources.CleanupResources();
 		}
 
-		// TODO: Handle or disallow resizing.
 		protected override void OnResize(EventArgs e)
 		{
 			base.OnResize(e);
+			GL.Viewport(this.ClientRectangle);
+
 		}
 
 		void SetupEvents()

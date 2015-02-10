@@ -20,6 +20,10 @@ namespace Starmaze.Engine
 		public float ZNear;
 		public float ZFar;
 
+		public ViewManager(double width, double height) : this((float)width, (float)height)
+		{
+		}
+
 		public ViewManager(float width, float height)
 		{
 			VisibleSize = new Vector2(width, height);

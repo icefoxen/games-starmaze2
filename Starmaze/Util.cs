@@ -14,6 +14,7 @@ namespace Starmaze
 		public const string WindowTitle = "Starmaze";
 		public const int GlMajorVersion = 3;
 		public const int GlMinorVersion = 3;
+		public const int LogicalScreenWidth = 160;
 
 		public static bool IsPowerOf2(int i)
 		{
