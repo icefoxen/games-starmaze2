@@ -82,6 +82,7 @@
     <Compile Include="Engine\Component.cs" />
     <Compile Include="Engine\Tests.cs" />
     <Compile Include="Engine\Serialize.cs" />
+    <Compile Include="Engine\Camera.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

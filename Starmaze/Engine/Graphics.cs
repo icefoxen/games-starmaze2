@@ -10,51 +10,6 @@ using OpenTK.Graphics.OpenGL;
 namespace Starmaze.Engine
 {
 	/// <summary>
-	/// Stores and defines the projection matrix, which sets the size of the world view, where the "camera"
-	/// is looking, and so on.
-	/// </summary>
-	public class ViewManager
-	{
-		public Vector2 VisibleSize;
-		public Matrix4 ProjectionMatrix;
-		public float ZNear;
-		public float ZFar;
-
-		public ViewManager(double width, double height) : this((float)width, (float)height)
-		{
-		}
-
-		public ViewManager(float width, float height)
-		{
-			VisibleSize = new Vector2(width, height);
-			// XXX: Right now these values are pretty arbitrary.
-			ZNear = 0.0f;
-			ZFar = 10.0f;
-			ProjectionMatrix = Matrix4.CreateOrthographic(width, height, ZNear, ZFar);
-		}
-
-		public void Translate(Vector2 location)
-		{
-			Translate(location.X, location.Y);
-		}
-
-		public void Translate(float x, float y)
-		{
-			var translation = Matrix4.CreateTranslation(new Vector3(x, y, 0.0f));
-			ProjectionMatrix = ProjectionMatrix * translation;
-		}
-
-		public void CenterOn(float x, float y)
-		{
-			var halfWidth = VisibleSize.X / 2;
-			var halfHeight = VisibleSize.Y / 2;
-			ProjectionMatrix = Matrix4.CreateOrthographicOffCenter(x - halfWidth, x + halfWidth,
-				y - halfHeight, y + halfHeight,
-				ZNear, ZFar);
-		}
-	}
-
-	/// <summary>
 	/// A coordinate transform.  Performs low-level translation, rotation, etc.
 	/// Rotation is clockwise.
 	/// </summary>

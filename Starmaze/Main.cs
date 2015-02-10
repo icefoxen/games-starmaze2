@@ -37,6 +37,7 @@ namespace Starmaze
 		GameOptions Options;
 		World World;
 		ViewManager View;
+		FollowCam Camera;
 		GUI Gui;
 
 		public StarmazeWindow(GameOptions options)
@@ -66,7 +67,7 @@ namespace Starmaze
 			};
 			var actors2 = new Actor[] {
 				new BoxBlock(new BBox(-40, -35, 40, -30), Color4.Yellow),
-				new BoxBlock(new BBox(-40, 30, 40, 35), Color4.Yellow),
+				//new BoxBlock(new BBox(-40, 30, 40, 35), Color4.Yellow),
 				new BoxBlock(new BBox(-45, -35, -40, 35), Color4.Yellow),
 				new BoxBlock(new BBox(40, -35, 45, 35), Color4.Yellow),
 			};
@@ -82,13 +83,15 @@ namespace Starmaze
 		protected override void OnLoad(System.EventArgs e)
 		{
 			VSync = Options.Vsync;
-			View = new ViewManager(Util.LogicalScreenWidth, Util.LogicalScreenWidth / Options.AspectRatio);
 			Graphics.Init();
 			// Has to be called after the Graphics setup if it's going to be preloading
 			// textures and shaders and such...
 			Resources.InitResources();
 			var map = BuildTestLevel();
-			World = new World(new Player(), map, "TestZone", "TestRoom1");
+			var player = new Player();
+			View = new ViewManager(Util.LogicalScreenWidth, Util.LogicalScreenWidth / Options.AspectRatio);
+			Camera = new FollowCam(player, Util.LogicalScreenWidth, Util.LogicalScreenWidth / Options.AspectRatio);
+			World = new World(player, map, "TestZone", "TestRoom2");
 			Gui = new GUI();
 			SetupEvents();
 		}
@@ -133,11 +136,13 @@ namespace Starmaze
 		void HandleUpdate(object sender, FrameEventArgs e)
 		{
 			World.Update(e);
+			Camera.Update(e.Time);
 		}
 
 		void HandleRender(object sender, FrameEventArgs e)
 		{
 			Graphics.ClearScreen();
+			View.CenterOn(Camera.CurrentPos);
 			World.Draw(View);
 			Gui.Draw();
 			SwapBuffers();
