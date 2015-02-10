@@ -146,6 +146,7 @@ namespace Starmaze
 		[STAThread]
 		public static void Main()
 		{
+
 			GameOptions o = new GameOptions();
 			var physicsRate = Physics.PHYSICS_HZ;
 			using (var g = new StarmazeWindow(o)) {
