@@ -202,8 +202,14 @@ namespace Starmaze.Engine
 
 		public static ResourceLoader TheResources {
 			get {
-				Log.Assert(_TheResources != null);
+				Log.Assert(_TheResources != null, "Attempting to get null Resources object");
 				return _TheResources;
+			}
+		}
+
+		public static bool IsInitialized {
+			get {
+				return _TheResources != null;
 			}
 		}
 

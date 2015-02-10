@@ -34,8 +34,17 @@ namespace Starmaze.Engine
 	[TestFixture]
 	public class SerializationTests{
 		JsonSerializerSettings jset;
+		GameWindow g;
 		[SetUp]
 		public void Prep(){
+			// Create a dummy GameWindow, which creates an OpenGL context so that if necessary a test
+			// can load a shader, model, whatever
+			if (g == null) {
+				g = new GameWindow();
+			}
+			if (!Resources.IsInitialized) {
+				Resources.InitResources();
+			}
 			jset = new JsonSerializerSettings { PreserveReferencesHandling = PreserveReferencesHandling.Objects };
 		}
 
