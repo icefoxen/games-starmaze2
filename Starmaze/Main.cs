@@ -105,7 +105,7 @@ namespace Starmaze
 		{
 			base.OnResize(e);
 			GL.Viewport(this.ClientRectangle);
-
+			World.Resize(Width, Height);
 		}
 
 		void SetupEvents()

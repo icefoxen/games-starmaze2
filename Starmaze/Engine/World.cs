@@ -35,7 +35,8 @@ namespace Starmaze.Engine
 			ActorsToRemove = new HashSet<Actor>();
 			Space = new Space();
 
-			RenderManager = new RenderManager();
+			// BUGGO: This should use a real resolution.
+			RenderManager = new RenderManager(1024, 768);
 
 			Map = map;
 			ChangeRoom(Map[initialZone][initialRoom]);
@@ -50,7 +51,8 @@ namespace Starmaze.Engine
 		public void ClearWorld()
 		{
 			Space = new Space();
-			RenderManager = new RenderManager();
+			// BUGGO: This should use a real resolution.
+			RenderManager = new RenderManager(1024, 768);
 
 			Actors = new HashSet<Actor>();
 			ActorsToAdd = new HashSet<Actor>();
@@ -119,6 +121,11 @@ namespace Starmaze.Engine
 		public void Draw(ViewManager view)
 		{
 			RenderManager.Render(view);
+		}
+
+		public void Resize(int width, int height)
+		{
+			RenderManager.Resize(width, height);
 		}
 
 		public void HandleKeyDown(OpenTK.Input.KeyboardKeyEventArgs e)

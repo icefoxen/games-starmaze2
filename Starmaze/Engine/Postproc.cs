@@ -26,6 +26,8 @@ namespace Starmaze.Engine
 
 		public PostprocStep(Shader shader, int screenw, int screenh)
 		{
+			Log.Assert(Util.IsPowerOf2(screenw));
+			Log.Assert(Util.IsPowerOf2(screenh));
 			width = screenw;
 			height = screenh;
 			this.shader = shader;
@@ -33,19 +35,6 @@ namespace Starmaze.Engine
 			matrix = Matrix4.CreateOrthographic(1, 1, 0, 10f);
 
 			tex = Resources.TheResources.GetTexture("playertest");
-
-			/*
-            var pixels = new byte[] {
-                255, 255, 255, 255,
-                255, 0, 0, 255,
-                0, 255, 0, 255,
-                0, 0, 255, 255,
-            };
-			tex.Enable();
-            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, 2, 2, 0,
-                OpenTK.Graphics.OpenGL.PixelFormat.Rgba, PixelType.UnsignedByte, pixels);
-			tex.Disable();
-			*/
 
 			// Create back-buffer
 			// XXX: Is ActiveTexture needed?  I THINK so...
@@ -93,14 +82,15 @@ namespace Starmaze.Engine
 		}
 
 		/// <summary>
-		/// Rescale frame buffer object.
+		/// Rescale frame buffer object.  If not given a power of 2 size,
+		/// scales it up until it is.
 		/// </summary>
-		/// <param name="screenw">Screen width.</param>
-		/// <param name="screenh">Screen height.</param>
-		public void Reshape(int screenw, int screenh)
+		/// <param name="width">Screen width.</param>
+		/// <param name="height">Screen height.</param>
+		public void Resize(int width, int height)
 		{
-			width = screenw;
-			height = screenh;
+			Log.Assert(Util.IsPowerOf2(width));
+			Log.Assert(Util.IsPowerOf2(height));
 			DestTexture.ClearAndResize(width, height);
 		}
 
@@ -161,20 +151,27 @@ namespace Starmaze.Engine
 	/// </summary>
 	public class PostprocPipeline
 	{
+		int width;
+		int height;
 		List<PostprocStep> steps;
 		FramebufferObject fbo;
 		Texture fromTexture;
 
-		public PostprocPipeline()
+		public PostprocPipeline(int width, int height)
 		{
+			this.width = (int)SMath.RoundUpToPowerOf2(width);
+			this.height = (int)SMath.RoundUpToPowerOf2(height);
+			// Sanity checking.
+			Log.Assert(Util.IsPowerOf2(this.width));
+			Log.Assert(Util.IsPowerOf2(this.height));
 			steps = new List<PostprocStep>();
-			fromTexture = new Texture(1024, 1024);
+			fromTexture = new Texture(this.width, this.height);
 			fbo = new FramebufferObject(fromTexture);
 		}
 
 		public void AddStep(Shader shader)
 		{
-			var step = new PostprocStep(shader, 1024, 1024);
+			var step = new PostprocStep(shader, width, height);
 			steps.Add(step);
 		}
 
@@ -199,6 +196,16 @@ namespace Starmaze.Engine
 			}
 			// Then do the final rendering to the screen.
 			steps[steps.Count - 1].Render(fromTexture, final: true);
+		}
+
+		public void Resize(int width, int height)
+		{
+			var width2 = (int)SMath.RoundUpToPowerOf2(width);
+			var height2 = (int)SMath.RoundUpToPowerOf2(height);
+			fromTexture.ClearAndResize(width2, height2);
+			foreach (var ppstep in steps) {
+				ppstep.Resize(width2, height2);
+			}
 		}
 	}
 }

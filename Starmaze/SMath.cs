@@ -66,5 +66,17 @@ namespace Starmaze
 				return number;
 			}
 		}
+
+		/// <summary>
+		/// Rounds up to nearest power of 2.
+		/// Algorithm:
+		/// 2^(ceil(log2(x)))
+		/// </summary>
+		/// <returns>Number.</returns>
+		/// <param name="number">Number.</param>
+		public static double RoundUpToPowerOf2(double number)
+		{
+			return Math.Pow(2, Math.Ceiling(Math.Log(number, 2)));
+		}
 	}
 }

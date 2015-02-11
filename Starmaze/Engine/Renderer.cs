@@ -52,14 +52,15 @@ namespace Starmaze.Engine
 	/// A class to manage drawing a heterogenous set of actors.
 	/// This class keeps track of all Renderers and all Actors, and holds the association
 	/// between one and the other.  It also preloads Renderers and tracks; all an Actor has to do is
-	/// specify a RenderClass string.  It also handles Z ordering in the Renderers.
+	/// specify a RenderClass string.  It also handles Z ordering in the Renderers and the postprocessing
+	/// pipeline.
 	/// </summary>
 	public class RenderManager
 	{
 		SortedDictionary<IRenderer, SortedSet<Actor>> Renderers;
 		PostprocPipeline postproc;
 
-		public RenderManager()
+		public RenderManager(int width, int height)
 		{
 
 			// Fill out the required data structures.
@@ -72,7 +73,7 @@ namespace Starmaze.Engine
 				//Renderers.Add(renderer, new SortedSet<Actor>());
 			}
 
-			postproc = new PostprocPipeline();
+			postproc = new PostprocPipeline(width, height);
 			var ppShader = Resources.TheResources.GetShader("postproc");
 			postproc.AddStep(ppShader);
 			var fxaaShader = Resources.TheResources.GetShader("fxaa");
@@ -109,8 +110,12 @@ namespace Starmaze.Engine
 				}
 			};
 
-			//thunk();
 			postproc.RenderWith(thunk);
+		}
+
+		public void Resize(int width, int height)
+		{
+			postproc.Resize(width, height);
 		}
 	}
 
