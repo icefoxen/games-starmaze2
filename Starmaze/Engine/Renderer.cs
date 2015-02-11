@@ -56,15 +56,11 @@ namespace Starmaze.Engine
 	/// </summary>
 	public class RenderManager
 	{
-		// Will be needed eventually for postprocessing...
-		//int ScreenW, ScreenH;
 		SortedDictionary<IRenderer, SortedSet<Actor>> Renderers;
 		PostprocPipeline postproc;
 
-		public RenderManager() //int screenw, int screenh)
+		public RenderManager()
 		{
-			//ScreenW = screenw;
-			//ScreenH = screenh;
 
 			// Fill out the required data structures.
 			Renderers = new SortedDictionary<IRenderer, SortedSet<Actor>>();
@@ -79,9 +75,8 @@ namespace Starmaze.Engine
 			postproc = new PostprocPipeline();
 			var ppShader = Resources.TheResources.GetShader("postproc");
 			postproc.AddStep(ppShader);
-			//foreach (var r in Renderers) {
-			//	Console.WriteLine("Renderer: {0}, total {1}", r, Renderers.Count);
-			//}
+			var fxaaShader = Resources.TheResources.GetShader("fxaa");
+			postproc.AddStep(fxaaShader);
 		}
 
 		public void Add(Actor act)
