@@ -774,7 +774,8 @@ namespace Starmaze.Engine
 			width = screenw;
 			height = screenh;
 			this.shader = shader;
-			matrix = Matrix4.CreateOrthographic(12, -8, -1f, 10f);
+			// XXX: This could be more efficient somehow...
+			matrix = Matrix4.CreateOrthographic(1, 1, 0, 10f);
 
 			tex = Resources.TheResources.GetTexture("playertest");
 
@@ -798,8 +799,8 @@ namespace Starmaze.Engine
 
 			// Create framebuffer
 			fbo = new FramebufferObject(DestTexture);
-			this.bb = Starmaze.Content.Images.Billboard();
-			/*
+			//this.bb = Starmaze.Content.Images.Billboard();
+
 			// Make a billboard to render to.
 			// XXX: Aspect ratio...
 			var aspectRatio = 4.0f / 3.0f;
@@ -811,29 +812,29 @@ namespace Starmaze.Engine
 			bb.AddTextureVertex(
 				new Vector2(-halfWidth, -halfHeight),
 				Color4.White,
-				new Vector2(0, (1.0f / aspectRatio))
+				new Vector2(0, 0)
 			);
 			bb.AddTextureVertex(
 				new Vector2(-halfWidth, halfHeight),
 				Color4.White,
-				new Vector2(0, 0)
+				new Vector2(0, (1.0f / aspectRatio))
 			);
 			bb.AddTextureVertex(
 				new Vector2(halfWidth, halfHeight),
 				Color4.White,
-				new Vector2(1, 0)
+				new Vector2(1, (1.0f / aspectRatio))
 			);
 			bb.AddTextureVertex(
 				new Vector2(halfWidth, -halfHeight),
 				Color4.White,
-				new Vector2(1, (1.0f / aspectRatio))
+				new Vector2(1, 0)
 			);
 			var indices = new uint[] {
 				0, 1, 2,
 				0, 2, 3,
 			};
 			this.bb = new VertexArray(shader, bb, idxs: indices);
-			*/
+
 		}
 
 		/// <summary>
@@ -930,7 +931,7 @@ namespace Starmaze.Engine
 		{
 			// Render initial scene to FBO
 			fbo.Enable();
-			GL.ClearColor(Color4.Tan);
+			GL.ClearColor(Color4.Black);
 			GL.Clear(ClearBufferMask.ColorBufferBit);
 			drawScene();
 			fbo.Disable();

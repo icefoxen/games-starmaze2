@@ -114,8 +114,8 @@ namespace Starmaze.Engine
 				}
 			};
 
-			thunk();
-			//postproc.RenderWith(thunk);
+			//thunk();
+			postproc.RenderWith(thunk);
 		}
 	}
 
@@ -354,7 +354,7 @@ namespace Starmaze.Engine
 			time += 0.0005;
 			for (int i = 0; i < Rects.Count; i++) {
 				var pos = Vector2.Zero;
-				var rot = (float) Math.Sin((time * i));
+				var rot = (float)Math.Sin((time * i));
 				var transform = new Transform(pos, rot);
 				var mat = transform.TransformMatrix(view.ProjectionMatrix);
 				shader.UniformMatrix("projection", mat);
