@@ -76,8 +76,8 @@ namespace Starmaze.Engine
 			postproc = new PostprocPipeline(width, height);
 			var ppShader = Resources.TheResources.GetShader("postproc");
 			postproc.AddStep(ppShader);
-			//var fxaaShader = Resources.TheResources.GetShader("fxaa");
-			//postproc.AddStep(fxaaShader);
+			var fxaaShader = Resources.TheResources.GetShader("fxaa");
+			postproc.AddStep(fxaaShader);
 		}
 
 		public void Add(Actor act)

@@ -65,8 +65,12 @@ namespace Starmaze.Engine
 			// We go through all subclasses of Renderer, instantiate one of each, and 
 			// associate each with its name, and that gets us the string -> Renderer mapping.
 			foreach (Type subclass in subclasses) {
-				var renderer = (Renderer)Activator.CreateInstance(subclass);
-				rendererMap.Add(subclass.Name, renderer);
+				try {
+					var renderer = (Renderer)Activator.CreateInstance(subclass);
+					rendererMap.Add(subclass.Name, renderer);
+				} catch (System.Reflection.TargetInvocationException e) {
+					throw e.InnerException;
+				}
 			}
 		}
 
@@ -111,7 +115,6 @@ namespace Starmaze.Engine
 		{
 			return Get(ModelCache, LoadModel, name);
 		}
-
 		// XXX: Dependency inversion here; should Content/Images.cs be elsewhere, or defined differently?
 		VertexArray LoadModel(string name)
 		{

@@ -7,7 +7,7 @@ namespace Starmaze.Game
 	{
 		public Player()
 		{
-			RenderClass = "SwirlyTestRenderer";
+			RenderClass = "StaticRenderer";
 			//RenderClass = "SwirlyTestRenderer";
 			Body = new Body(this);
 			Body.AddGeom(new BoxGeom(new BBox(-5, -5, 5, 5)));
