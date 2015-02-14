@@ -68,6 +68,84 @@ namespace Starmaze.Engine
 		}
 	}
 
+	public class ShapePath
+	{
+		public List<LineArtVertex> Vertexes;
+		public bool Closed;
+
+		public ShapePath(bool closed = false)
+		{
+			Vertexes = new List<LineArtVertex>();
+			Closed = closed;
+		}
+
+		public ShapePath(IEnumerable<LineArtVertex> verts, bool closed = false) : base(closed)
+		{
+			Vertexes.AddRange(verts);
+		}
+
+		public void AddVertex(LineArtVertex v)
+		{
+			Vertexes.Add(v);
+		}
+
+		public void AddVertex(Vector2 position, Color4? color = null, 
+		                      double strokeWidth = LineArtVertex.DEFAULT_STROKE_WIDTH)
+		{
+			Vertexes.Add(new LineArtVertex(position, color, strokeWidth));
+		}
+	}
+
+	public class LineShapeTesselator
+	{
+		void AdvanceTo(VertexModel model, LineArtVertex vert)
+		{
+
+		}
+
+		public void StartPathClosed(VertexModel model, LineArtVertex vert)
+		{
+		}
+
+		public void StartPathOpen(VertexModel model, LineArtVertex vert)
+		{
+		}
+
+		public void EndPathClosed(VertexModel model, LineArtVertex vert)
+		{
+
+		}
+
+		public void EndPathOpen(VertexModel model, LineArtVertex vert)
+		{
+
+		}
+
+		public VertexModel ToModel(ShapePath shape)
+		{
+			Log.Assert(shape.Vertexes.Count >= 2, "Not enough vertexes to make shape!");
+			var output = new VertexModel();
+			var first = 0;
+			var last = shape.Vertexes[shape.Vertexes.Count - 1];
+			if (shape.Closed) {
+				StartPathClosed(output, shape.Vertexes[first]);
+			} else {
+				StartPathOpen(output, shape.Vertexes[first]);
+			}
+			for (int i = first + 1; i < last; i++) {
+				var vert = shape.Vertexes[i];
+				AdvanceTo(output, vert);
+			}
+			if (shape.Closed) {
+				EndPathClosed(output, shape.Vertexes[last]);
+			} else {
+				EndPathOpen(output, shape.Vertexes[last]);
+			}
+
+			return output;
+		}
+	}
+
 	/// <summary>
 	/// Abstract base class for segments that can be part of `Path`s.
 	///
@@ -432,6 +510,7 @@ namespace Starmaze.Engine
 	/// A model with vertex data suitable for uploading to OpenGL
 	/// (which means creating a VertexArray).
 	/// </summary>
+	// XXX: Currently this doesn't handle textured anything...
 	public class VertexModel
 	{
 		const int POSITION_DIMENSIONS = 2;
@@ -651,7 +730,9 @@ namespace Starmaze.Engine
 				var rjIn = seg.RawJoinIn();
 				var nextVerts = new LineArtVertex[] {
 					Background(seg.Pos0 + rjIn.SideR),
+					//new LineArtVertex(seg.Pos0 + rjIn.SideR, color: seg.V0.Color),
 					seg.V0,
+					//new LineArtVertex(seg.Pos0 + rjIn.SideL, color: seg.V0.Color),
 					Background(seg.Pos0 + rjIn.SideL)
 				};
 				if (seg.Cap) {
@@ -1032,6 +1113,56 @@ namespace Starmaze.Engine
 			Polygon(verts);
 		}
 
+		/*
+		// Goes through all accumulated vertexes, divvies them up into triangles,
+		// and throws them at the VertexModel
+		// This is trivial, we just draw diagonals from one vertex to all other vertexes.
+		// Again, only works for convex polygons without holes though!
+		void Triangulate(IList<LineArtVertex> verts)
+		{
+			Log.Assert(vertAccm.Count > 2, "Not enough vertices submitted to make a triangle!");
+			var startIdx = Output.AddVertexes(vertAccm);
+			var endIdx = startIdx + vertAccm.Count;
+			var idxs = new List<uint>();
+			for (var i = startIdx + 2; i < endIdx; i++) {
+				idxs.Add(startIdx);
+				idxs.Add(i - 1);
+				idxs.Add(i);
+			}
+			Output.AddIndices(idxs);
+		}
+		*/
+
+		public void PolygonFilled(IList<LineArtVertex> verts)
+		{
+			if (verts.Count < 3) {
+				Log.Warn(true, "PolygonFilled got too few vertexes to make a triangle");
+				return;
+			}
+			for (int i = 2; i < verts.Count; i++) {
+
+			}
+
+			var segments = new List<PathSegment>();
+			for (int i = 0; i < verts.Count - 1; i++) {
+				var segment = new LineSegment(verts[i], verts[i + 1]);
+				segments.Add(segment);
+			}
+			// Close the loop
+			segments.Add(new LineSegment(verts[verts.Count - 1], verts[0]));
+			SubmitClosedPath(segments);
+		}
+
+		public void PolygonUniformFilled(IEnumerable<Vector2d> positions, Color4 color)
+		{
+			var verts = new List<LineArtVertex>();
+			foreach (var pos in positions) {
+				var v = new LineArtVertex(pos, color: color);
+				verts.Add(v);
+			}
+			PolygonFilled(verts);
+		}
+
 		public void PolyLine(IList<LineArtVertex> verts)
 		{
 			var segments = new List<PathSegment>();
@@ -1067,6 +1198,31 @@ namespace Starmaze.Engine
 		}
 
 		public void RectCorner(double x0, double y0, double w, double h, Color4 color)
+		{
+			var positions = new Vector2d[] {
+				new Vector2d(x0, y0),
+				new Vector2d(x0, y0 + h),
+				new Vector2d(x0 + w, y0 + h),
+				new Vector2d(x0 + w, y0),
+			};
+			PolygonUniform(positions, color);
+		}
+
+		public void RectCenterFilled(double cx, double cy, double w, double h, Color4 color)
+		{
+			var halfW = w / 2;
+			var halfH = h / 2;
+			var positions = new Vector2d[] {
+				new Vector2d(cx - halfW, cy - halfH),
+				new Vector2d(cx - halfW, cy + halfH),
+				new Vector2d(cx + halfW, cy + halfH),
+				new Vector2d(cx + halfW, cy - halfH),
+			};
+
+			PolygonUniform(positions, color);
+		}
+
+		public void RectCornerFilled(double x0, double y0, double w, double h, Color4 color)
 		{
 			var positions = new Vector2d[] {
 				new Vector2d(x0, y0),
