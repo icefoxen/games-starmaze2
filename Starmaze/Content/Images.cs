@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Starmaze;
 using Starmaze.Engine;
 using OpenTK;
@@ -20,6 +21,19 @@ namespace Starmaze.Content
 
 			mb.RectCorner(10, 10, 20, 10, Color4.BlueViolet);
 			mb.RectCenterFilled(-20, 20, 5, 20, Color4.Aquamarine);
+
+			var verts = new List<LineArtVertex>();
+			var r = new Random();
+			for(int i = 0; i < 5; i++) {
+				var pos = new Vector2d(Math.Sin(i), Math.Cos(i)) * ((i*2)+5);
+				var color = new Color4((float)r.NextDouble(), (float)r.NextDouble(), (float)r.NextDouble(), 1);
+				verts.Add(new LineArtVertex(pos, color));
+			}
+			mb.PolygonFilled(verts);
+
+			mb.RectCenterOutlined(0, 30, 15, 5, Color4.White, Color4.Blue);
+
+			mb.RectCenterOutlined(0, -30, 15, 5, Color4.Black, Color4.Red);
 			var model = mb.Finish();
 			var va = model.ToVertexArray(shader);
 			return va;

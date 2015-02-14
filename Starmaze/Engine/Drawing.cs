@@ -448,6 +448,13 @@ namespace Starmaze.Engine
 			}
 		}
 
+		public FilledPolygon(IEnumerable<LineArtVertex> verts) : this()
+		{
+			foreach (var v in verts) {
+				AddVertex(v);
+			}
+		}
+
 		public void AddVertex(LineArtVertex v)
 		{
 			Vertexes.Add(v);
@@ -851,11 +858,6 @@ namespace Starmaze.Engine
 			tesselator.TesselatePath(path);
 		}
 
-		public void SubmitPolygon(FilledPolygon poly)
-		{
-			poly.Tesselate(model);
-		}
-
 		public void SubmitClosedPath(IList<PathSegment> segments)
 		{
 			var path = new Path();
@@ -917,6 +919,8 @@ namespace Starmaze.Engine
 			SubmitOpenPath(new LineSegment(v0, v1));
 		}
 
+		// XXX: TODO: Add more error checking (or push more of it upstream),
+		// clarify IList vs. IEnumerable
 		public void Polygon(IList<LineArtVertex> verts)
 		{
 			var segments = new List<PathSegment>();
@@ -929,6 +933,20 @@ namespace Starmaze.Engine
 			SubmitClosedPath(segments);
 		}
 
+		public void PolygonFilled(IEnumerable<LineArtVertex> verts)
+		{
+			var p = new FilledPolygon(verts);
+			p.Tesselate(model);
+		}
+
+		// XXX: Needs outline width's
+		public void PolygonOutlined(IList<LineArtVertex> verts, IList<LineArtVertex> outline)
+		{
+			PolygonFilled(verts);
+			Polygon(outline);
+
+		}
+
 		public void PolygonUniform(IEnumerable<Vector2d> positions, Color4 color)
 		{
 			var verts = new List<LineArtVertex>();
@@ -939,34 +957,16 @@ namespace Starmaze.Engine
 			Polygon(verts);
 		}
 
-		public void PolygonFilled(IList<LineArtVertex> verts)
-		{
-			if (verts.Count < 3) {
-				Log.Warn(true, "PolygonFilled got too few vertexes to make a triangle");
-				return;
-			}
-			for (int i = 2; i < verts.Count; i++) {
-
-			}
-
-			var segments = new List<PathSegment>();
-			for (int i = 0; i < verts.Count - 1; i++) {
-				var segment = new LineSegment(verts[i], verts[i + 1]);
-				segments.Add(segment);
-			}
-			// Close the loop
-			segments.Add(new LineSegment(verts[verts.Count - 1], verts[0]));
-			SubmitClosedPath(segments);
-		}
-
 		public void PolygonUniformFilled(IEnumerable<Vector2d> positions, Color4 color)
 		{
-			var verts = new List<LineArtVertex>();
-			foreach (var pos in positions) {
-				var v = new LineArtVertex(pos, color: color);
-				verts.Add(v);
-			}
-			PolygonFilled(verts);
+			var p = new FilledPolygon(positions, color);
+			p.Tesselate(model);
+		}
+
+		public void PolygonUniformOutlined(IEnumerable<Vector2d> positions, Color4 color, Color4 outlinecolor)
+		{
+			PolygonUniformFilled(positions, color);
+			PolygonUniform(positions, outlinecolor);
 		}
 
 		public void PolyLine(IList<LineArtVertex> verts)
@@ -1024,9 +1024,20 @@ namespace Starmaze.Engine
 				new Vector2d(cx + halfW, cy + halfH),
 				new Vector2d(cx + halfW, cy - halfH),
 			};
+			PolygonUniformFilled(positions, color);
+		}
 
-			var p = new FilledPolygon(positions, color);
-			SubmitPolygon(p);
+		public void RectCenterOutlined(double cx, double cy, double w, double h, Color4 color, Color4 outlinecolor)
+		{
+			var halfW = w / 2;
+			var halfH = h / 2;
+			var positions = new Vector2d[] {
+				new Vector2d(cx - halfW, cy - halfH),
+				new Vector2d(cx - halfW, cy + halfH),
+				new Vector2d(cx + halfW, cy + halfH),
+				new Vector2d(cx + halfW, cy - halfH),
+			};
+			PolygonUniformOutlined(positions, color, outlinecolor);
 		}
 
 		public void RectCornerFilled(double x0, double y0, double w, double h, Color4 color)
@@ -1037,7 +1048,18 @@ namespace Starmaze.Engine
 				new Vector2d(x0 + w, y0 + h),
 				new Vector2d(x0 + w, y0),
 			};
-			PolygonUniform(positions, color);
+			PolygonUniformFilled(positions, color);
+		}
+
+		public void RectCornerOutlined(double x0, double y0, double w, double h, Color4 color, Color4 outlinecolor)
+		{
+			var positions = new Vector2d[] {
+				new Vector2d(x0, y0),
+				new Vector2d(x0, y0 + h),
+				new Vector2d(x0 + w, y0 + h),
+				new Vector2d(x0 + w, y0),
+			};
+			PolygonUniformOutlined(positions, color, outlinecolor);
 		}
 	}
 }
