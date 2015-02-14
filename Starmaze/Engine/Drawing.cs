@@ -900,6 +900,27 @@ namespace Starmaze.Engine
 			SubmitClosedPath(verts);
 		}
 
+		public void CircleFilled(double x, double y, double radius, Color4 color, int? numSegments = null)
+		{
+			var segments = numSegments ?? 16;
+			var radiansPerSegment = SMath.TAU / segments;
+			var angle = 0.0;
+			var verts = new List<LineArtVertex>();
+			for (int i = 0; i < segments; i++) {
+				var pos = new Vector2d(Math.Cos(angle) * radius + x, Math.Sin(angle) * radius + y);
+				angle += radiansPerSegment;
+				verts.Add(new LineArtVertex(pos, color));
+			}
+			PolygonFilled(verts);
+		}
+
+		public void CircleOutlined(double x, double y, double radius, Color4 color, Color4 outlineColor, int? numSegments = null)
+		{
+			CircleFilled(x, y, radius, color, numSegments: numSegments);
+			Circle(x, y, radius, outlineColor, numSegments: numSegments);
+
+		}
+
 		public void Arc(double cx, double cy, double radius, double sweep, Color4 color, double startAngle = 0.0,
 		                int? numSegments = null)
 		{

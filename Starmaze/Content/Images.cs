@@ -34,6 +34,9 @@ namespace Starmaze.Content
 			mb.RectCenterOutlined(0, 30, 15, 5, Color4.White, Color4.Blue);
 
 			mb.RectCenterOutlined(0, -30, 15, 5, Color4.Black, Color4.Red);
+
+			mb.CircleFilled(30, 30, 5, Color4.IndianRed);
+			mb.CircleOutlined(-30, -30, 15, Color4.NavajoWhite, Color4.Tomato, numSegments: 32);
 			var model = mb.Finish();
 			var va = model.ToVertexArray(shader);
 			return va;
