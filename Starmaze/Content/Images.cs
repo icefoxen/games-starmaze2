@@ -19,6 +19,7 @@ namespace Starmaze.Content
 			mb.Arc(0, 0, 10, SMath.TAU / 6, Color4.Yellow, numSegments: 64);
 
 			mb.RectCorner(10, 10, 20, 10, Color4.BlueViolet);
+			mb.RectCenterFilled(-20, 20, 5, 20, Color4.Aquamarine);
 			var model = mb.Finish();
 			var va = model.ToVertexArray(shader);
 			return va;
@@ -82,7 +83,7 @@ namespace Starmaze.Content
 
 		public static VertexArray FilledRectCenter(double cx, double cy, double w, double h, Color4 color)
 		{
-			float halfW = (float)( w / 2);
+			float halfW = (float)(w / 2);
 			float halfH = (float)(h / 2);
 			var positions = new Vector2[] {
 				new Vector2((float)cx - halfW, (float)cy - halfH),

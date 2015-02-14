@@ -68,88 +68,6 @@ namespace Starmaze.Engine
 		}
 	}
 
-	public class ShapePath
-	{
-		public List<LineArtVertex> Vertexes;
-		public bool Closed;
-
-		public ShapePath(bool closed = false)
-		{
-			Vertexes = new List<LineArtVertex>();
-			Closed = closed;
-		}
-
-		public ShapePath(IEnumerable<LineArtVertex> verts, bool closed = false) : this(closed)
-		{
-			Vertexes.AddRange(verts);
-		}
-
-		public void AddVertex(LineArtVertex v)
-		{
-			Vertexes.Add(v);
-		}
-
-		public void AddVertex(Vector2d position, Color4? color = null, 
-		                      double strokeWidth = LineArtVertex.DEFAULT_STROKE_WIDTH)
-		{
-			Vertexes.Add(new LineArtVertex(position, color: color, strokeWidth: strokeWidth));
-		}
-	}
-
-	public class LineShapeTesselator
-	{
-		LineArtVertex previousVert;
-		Vector2d previousOffset;
-		uint nextIndex;
-
-		void AdvanceTo(VertexModel model, LineArtVertex vert)
-		{
-			var offset = vert.Pos - previousVert.Pos;
-		}
-
-		public void StartPathClosed(VertexModel model, LineArtVertex firstVert)
-		{
-		}
-
-		public void StartPathOpen(VertexModel model, LineArtVertex firstVert, LineArtVertex nextVert)
-		{
-			var startPoint = firstVert.Pos;
-			var nextPoint = nextVert.Pos;
-			var offset = nextPoint - startPoint;
-			var perpendicular = offset.PerpendicularLeft.Normalized() * firstVert.StrokeHalfWidth;
-			var verts = new LineArtVertex[] {
-			};
-			nextIndex = model.AddVertexes(verts);
-		}
-
-		public void EndPathClosed(VertexModel model, LineArtVertex lastVert)
-		{
-
-		}
-
-		public VertexModel ToModel(ShapePath shape)
-		{
-			Log.Assert(shape.Vertexes.Count >= 2, "Not enough vertexes to make line shape!");
-			var output = new VertexModel();
-			var first = 0;
-			var last = shape.Vertexes.Count - 1;
-			if (shape.Closed) {
-				StartPathClosed(output, shape.Vertexes[first]);
-			}
-			previousVert = shape.Vertexes[first];
-			for (int i = first + 1; i < last; i++) {
-				var vert = shape.Vertexes[i];
-				AdvanceTo(output, vert);
-				previousVert = vert;
-			}
-			if (shape.Closed) {
-				EndPathClosed(output, shape.Vertexes[first]);
-			}
-
-			return output;
-		}
-	}
-
 	/// <summary>
 	/// Abstract base class for segments that can be part of `Path`s.
 	///
@@ -511,6 +429,58 @@ namespace Starmaze.Engine
 	}
 
 	/// <summary>
+	/// A class representing a filled, solid-color polygon.
+	/// For now, it MUST be convex!
+	/// </summary>
+	public class FilledPolygon
+	{
+		List<LineArtVertex> Vertexes;
+
+		public FilledPolygon()
+		{
+			Vertexes = new List<LineArtVertex>();
+		}
+
+		public FilledPolygon(IEnumerable<Vector2d> points, Color4 color) : this()
+		{
+			foreach (var p in points) {
+				AddVertex(p, color);
+			}
+		}
+
+		public void AddVertex(LineArtVertex v)
+		{
+			Vertexes.Add(v);
+		}
+
+		public void AddVertex(Vector2d pos, Color4 color)
+		{
+			Vertexes.Add(new LineArtVertex(pos, color: color));
+		}
+
+		public VertexModel ToVertexModel()
+		{
+			var output = new VertexModel();
+			Tesselate(output);
+			return output;
+		}
+
+		public void Tesselate(VertexModel output)
+		{
+			var firstIdx = output.AddVertexes(Vertexes);
+			var lastIdx = firstIdx + Vertexes.Count;
+			// We triangulate a convex poly just by drawing lines from the first point to
+			// all the others...
+			for (uint i = firstIdx + 2; i < lastIdx; i++) {
+				var tri = new uint[] {
+					firstIdx, i-1, i
+				};
+				output.AddIndices(tri);
+			}
+		}
+	}
+
+	/// <summary>
 	/// A model with vertex data suitable for uploading to OpenGL
 	/// (which means creating a VertexArray).
 	/// </summary>
@@ -629,7 +599,7 @@ namespace Starmaze.Engine
 	}
 
 	/// <summary>
-	/// Tessellate lines and arcs using a two-lane road of quads.
+	/// Tessellate lines and arcs to make solid lines.
 	/// 
 	/// Each base vertex encountered along a path is converted into a
 	/// string of three subvertexes: the central one plus right and left
@@ -643,8 +613,6 @@ namespace Starmaze.Engine
 	/// </summary>
 	public class LineTesselator : Tesselator
 	{
-		// Number of quad strips across the roaad
-		const int ROAD_LANES = 1;
 		protected List<uint> firstIndices;
 		protected List<uint> lastIndices;
 
@@ -672,56 +640,20 @@ namespace Starmaze.Engine
 			firstIndices = new List<uint>(indices);
 			lastIndices = new List<uint>(indices);
 		}
-		// Might be nicer with a params argument?  I dunno...
-		void AdvanceTo(IList<LineArtVertex> verts, bool swapTriangleFacing = false)
+
+		void AdvanceTo(IList<LineArtVertex> verts)
 		{
 			var indices = new List<uint>(AddVertexes(verts));
 			//Console.WriteLine("Verts length: {0}, indices length: {1}", verts.Count, indices.Count);
 
+			AddQuad(lastIndices[0], lastIndices[1], indices[1], indices[0]);
 
-			// This is the same as the for loop below EXCEPT what order we put the verts in in matters because we want
-			// the triangles to be mirrored on both 'sides' of the line, otherwise the end-caps become lopsided.
-			// Then if we want to switch the division of the triangles, we have swapTriangleFacing.
-			// Essentially, if swapTriangleFacing is false, we create triangles in a line segment like this:
-			// ---+-+---
-			//    |\|
-			// ---+-+---
-			//    |/|
-			// ---+-+---
-			// If it's true, we do this:
-			// ---+-+---
-			//    |/|
-			// ---+-+---
-			//    |\|
-			// ---+-+---
-			// Were we to do the naive for-loop implementation below, we get this:
-			// ---+-+---
-			//    |\|
-			// ---+-+---
-			//    |\|
-			// ---+-+---
-			// Which screws up and looks funny when we try to make an end cap for a line.
-
-			if (swapTriangleFacing) {
-				//AddQuad(lastIndices[1], lastIndices[1 + 1], indices[1 + 1], indices[1]);
-				AddQuad(lastIndices[0 + 1], lastIndices[0], indices[0], indices[0 + 1]);
-			} else {
-				AddQuad(lastIndices[0], lastIndices[0 + 1], indices[0 + 1], indices[0]);
-				//AddQuad(lastIndices[1 + 1], lastIndices[1], indices[1], indices[1 + 1]);
-			}
-
-			//for (int i = 0; i < ROAD_LANES; i++) {
-			//Console.WriteLine("lastIndices: {0}, i: {1}, indices: {2}", lastIndices.Count, i, indices.Count);
-			//AddQuad(lastIndices[i], lastIndices[i + 1], indices[i + 1], indices[i]);
-			//}
 			lastIndices = indices;
 		}
 
 		void CloseRoad()
 		{
-			for (int i = 0; i < ROAD_LANES; i++) {
-				AddQuad(lastIndices[i], lastIndices[i + 1], firstIndices[i + 1], firstIndices[i]);
-			}
+			AddQuad(lastIndices[0], lastIndices[1], firstIndices[1], firstIndices[0]);
 			firstIndices = null;
 			lastIndices = null;
 		}
@@ -732,7 +664,6 @@ namespace Starmaze.Engine
 				var rjIn = seg.RawJoinIn();
 				var nextVerts = new LineArtVertex[] {
 					new LineArtVertex(seg.Pos0 + rjIn.SideR, color: seg.V0.Color),
-					//seg.V0,
 					new LineArtVertex(seg.Pos0 + rjIn.SideL, color: seg.V0.Color),
 				};
 				if (seg.Cap) {
@@ -741,7 +672,6 @@ namespace Starmaze.Engine
 					var cap1 = cap.Item2;
 					var beginVerts = new LineArtVertex[] {
 						new LineArtVertex(seg.Pos0 + cap0, color: seg.V0.Color),
-						//new LineArtVertex(seg.Pos0 + Vector2d.Lerp(cap0, cap1, 0.5), color: seg.V0.Color),
 						new LineArtVertex(seg.Pos0 + cap1, color: seg.V0.Color),
 					};
 					BeginRoad(beginVerts);
@@ -758,7 +688,6 @@ namespace Starmaze.Engine
 				var sideL = jn.Item2;
 				var verts = new LineArtVertex[] {
 					new LineArtVertex(seg.Pos0 + sideR, color: seg.V0.Color),
-					//seg.V0,
 					new LineArtVertex(seg.Pos0 + sideL, color: seg.V0.Color),
 				};
 				BeginRoad(verts);
@@ -771,7 +700,6 @@ namespace Starmaze.Engine
 				var rjOut = seg.RawJoinOut();
 				var nextVerts = new LineArtVertex[] {
 					new LineArtVertex(seg.Pos1 + rjOut.SideR, color: seg.V1.Color),
-					//seg.V1,
 					new LineArtVertex(seg.Pos1 + rjOut.SideL, color: seg.V1.Color),
 				};
 				if (seg.Cap) {
@@ -780,11 +708,10 @@ namespace Starmaze.Engine
 					var cap1 = cap.Item2;
 					var endVerts = new LineArtVertex[] {
 						new LineArtVertex(seg.Pos1 + cap0, color: seg.V1.Color),
-						//new LineArtVertex(seg.Pos1 + Vector2d.Lerp(cap0, cap1, 0.5), color: seg.V1.Color),
 						new LineArtVertex(seg.Pos1 + cap1, color: seg.V1.Color)
 					};
 					AdvanceTo(nextVerts);
-					AdvanceTo(endVerts, swapTriangleFacing: true);
+					AdvanceTo(endVerts);
 				} else {
 					AdvanceTo(nextVerts);
 				}
@@ -796,7 +723,6 @@ namespace Starmaze.Engine
 				var sideL = jn.Item2;
 				var nextVerts = new LineArtVertex[] {
 					new LineArtVertex(seg.Pos1 + sideR, color: seg.V1.Color),
-					//seg.V1,
 					new LineArtVertex(seg.Pos1 + sideL, color: seg.V1.Color)
 				};
 				AdvanceTo(nextVerts);
@@ -819,7 +745,6 @@ namespace Starmaze.Engine
 
 				var verts = new LineArtVertex[] {
 					new LineArtVertex(interior.Pos + sideR, color: interior.Color),
-					//interior,
 					new LineArtVertex(interior.Pos + sideL, color: interior.Color)
 				};
 
@@ -898,380 +823,6 @@ namespace Starmaze.Engine
 	}
 
 	/// <summary>
-	/// Tessellate lines and arcs using a two-lane road of quads.
-	/// 
-	/// Each base vertex encountered along a path is converted into a
-	/// string of three subvertexes: the central one plus right and left
-	/// edges.  Subvertexes at the same position in each string form the
-	/// borders of quadrilaterals, which are each rendered using two
-	/// triangles.
-	///
-	/// Multiple paths may be tessellated using a single tessellator so long as
-	/// `beginPath`() and `endPath`() are called properly.  If you use the main
-	/// entrypoint `tessellatePath`(), this is done automatically.
-	/// </summary>
-	public class FadeLineTesselator : Tesselator
-	{
-		// Number of quad strips across the roaad
-		const int ROAD_LANES = 2;
-		protected List<uint> firstIndices;
-		protected List<uint> lastIndices;
-
-		public FadeLineTesselator(VertexModel output) : base(output)
-		{
-			firstIndices = null;
-			lastIndices = null;
-		}
-
-		public void BeginPath()
-		{
-			firstIndices = null;
-			lastIndices = null;
-		}
-
-		public void EndPath()
-		{
-			firstIndices = null;
-			lastIndices = null;
-		}
-
-		void BeginRoad(IList<LineArtVertex> verts)
-		{
-			var indices = AddVertexes(verts);
-			firstIndices = new List<uint>(indices);
-			lastIndices = new List<uint>(indices);
-		}
-		// Might be nicer with a params argument?  I dunno...
-		void AdvanceTo(IList<LineArtVertex> verts, bool swapTriangleFacing = false)
-		{
-			var indices = new List<uint>(AddVertexes(verts));
-			//Console.WriteLine("Verts length: {0}, indices length: {1}", verts.Count, indices.Count);
-
-
-			// This is the same as the for loop below EXCEPT what order we put the verts in in matters because we want
-			// the triangles to be mirrored on both 'sides' of the line, otherwise the end-caps become lopsided.
-			// Then if we want to switch the division of the triangles, we have swapTriangleFacing.
-			// Essentially, if swapTriangleFacing is false, we create triangles in a line segment like this:
-			// ---+-+---
-			//    |\|
-			// ---+-+---
-			//    |/|
-			// ---+-+---
-			// If it's true, we do this:
-			// ---+-+---
-			//    |/|
-			// ---+-+---
-			//    |\|
-			// ---+-+---
-			// Were we to do the naive for-loop implementation below, we get this:
-			// ---+-+---
-			//    |\|
-			// ---+-+---
-			//    |\|
-			// ---+-+---
-			// Which screws up and looks funny when we try to make an end cap for a line.
-
-			if (swapTriangleFacing) {
-				AddQuad(lastIndices[1], lastIndices[1 + 1], indices[1 + 1], indices[1]);
-				AddQuad(lastIndices[0 + 1], lastIndices[0], indices[0], indices[0 + 1]);
-			} else {
-				AddQuad(lastIndices[0], lastIndices[0 + 1], indices[0 + 1], indices[0]);
-				AddQuad(lastIndices[1 + 1], lastIndices[1], indices[1], indices[1 + 1]);
-			}
-
-			//for (int i = 0; i < ROAD_LANES; i++) {
-			//Console.WriteLine("lastIndices: {0}, i: {1}, indices: {2}", lastIndices.Count, i, indices.Count);
-			//AddQuad(lastIndices[i], lastIndices[i + 1], indices[i + 1], indices[i]);
-			//}
-			lastIndices = indices;
-		}
-
-		void CloseRoad()
-		{
-			for (int i = 0; i < ROAD_LANES; i++) {
-				AddQuad(lastIndices[i], lastIndices[i + 1], firstIndices[i + 1], firstIndices[i]);
-			}
-			firstIndices = null;
-			lastIndices = null;
-		}
-
-		void AdvanceToSegmentIn(PathSegment seg)
-		{
-			if (seg.Before == null) {
-				var rjIn = seg.RawJoinIn();
-				var nextVerts = new LineArtVertex[] {
-					Background(seg.Pos0 + rjIn.SideR),
-					//new LineArtVertex(seg.Pos0 + rjIn.SideR, color: seg.V0.Color),
-					seg.V0,
-					//new LineArtVertex(seg.Pos0 + rjIn.SideL, color: seg.V0.Color),
-					Background(seg.Pos0 + rjIn.SideL)
-				};
-				if (seg.Cap) {
-					var cap = SquarishCap(rjIn, -1.0);
-					var cap0 = cap.Item1;
-					var cap1 = cap.Item2;
-					var beginVerts = new LineArtVertex[] {
-						Background(seg.Pos0 + cap0),
-						Background(seg.Pos0 + Vector2d.Lerp(cap0, cap1, 0.5)),
-						Background(seg.Pos0 + cap1)
-					};
-					BeginRoad(beginVerts);
-					AdvanceTo(nextVerts);
-				} else {
-					// No cap
-					BeginRoad(nextVerts);
-				}
-			} else if (seg.Before.Closing || (lastIndices == null)) {
-				// The RHS of the disjunction is in case we start tessellating in the middle of a
-				// path somehow.  That feels like it might be useful later.
-				var jn = MiterishJoin(seg.Before.RawJoinOut(), seg.RawJoinIn());
-				var sideR = jn.Item1;
-				var sideL = jn.Item2;
-				var verts = new LineArtVertex[] {
-					Background(seg.Pos0 + sideR),
-					seg.V0,
-					Background(seg.Pos0 + sideL)
-				};
-				BeginRoad(verts);
-			}
-		}
-
-		void AdvanceToSegmentOut(PathSegment seg)
-		{
-			if (seg.After == null) {
-				var rjOut = seg.RawJoinOut();
-				var nextVerts = new LineArtVertex[] {
-					Background(seg.Pos1 + rjOut.SideR),
-					seg.V1,
-					Background(seg.Pos1 + rjOut.SideL)
-				};
-				if (seg.Cap) {
-					var cap = SquarishCap(rjOut, +1.0);
-					var cap0 = cap.Item1;
-					var cap1 = cap.Item2;
-					var endVerts = new LineArtVertex[] {
-						Background(seg.Pos1 + cap0),
-						Background(seg.Pos1 + Vector2d.Lerp(cap0, cap1, 0.5)),
-						Background(seg.Pos1 + cap1)
-					};
-					AdvanceTo(nextVerts);
-					AdvanceTo(endVerts, swapTriangleFacing: true);
-				} else {
-					AdvanceTo(nextVerts);
-				}
-			} else if (seg.Closing) {
-				CloseRoad();
-			} else {
-				var jn = MiterishJoin(seg.RawJoinOut(), seg.After.RawJoinIn());
-				var sideR = jn.Item1;
-				var sideL = jn.Item2;
-				var nextVerts = new LineArtVertex[] {
-					Background(seg.Pos1 + sideR),
-					seg.V1,
-					Background(seg.Pos1 + sideL)
-				};
-				AdvanceTo(nextVerts);
-			}
-		}
-
-		public override void TesselateLine(LineSegment line)
-		{
-			AdvanceToSegmentIn(line);
-			AdvanceToSegmentOut(line);
-		}
-
-		public override void TesselateArc(ArcSegment arc)
-		{
-			AdvanceToSegmentIn(arc);
-			foreach (var pt in arc.GenerateInteriorPoints()) {
-				var interior = pt.Item1;
-				var sideR = pt.Item2;
-				var sideL = pt.Item3;
-
-				var verts = new LineArtVertex[] {
-					Background(interior.Pos + sideR),
-					interior,
-					Background(interior.Pos + sideL)
-				};
-
-				AdvanceTo(verts);
-			}
-			AdvanceToSegmentOut(arc);
-		}
-
-		public override void TesselatePath(Path path)
-		{
-			if (path.Empty) {
-				return;
-			}
-			BeginPath();
-			foreach (var seg in path.Segments) {
-				seg.TesselateWith(this);
-			}
-			EndPath();
-		}
-
-		/// <summary>
-		/// Given a RawJoin, compute the corners of a square cap.
-		/// </summary>
-		/// <returns>The cap.</returns>
-		/// <param name="rj">The RawJoin</param>
-		/// <param name="multiplier">Usually -1.0 for backward or +1.0 for forward, 
-		/// depending on the segment being capped.</param>
-		static Tuple<Vector2d, Vector2d> SquarishCap(RawJoin rj, double multiplier)
-		{
-			var extent = multiplier * (0.5 * (rj.SideR - rj.SideL).Length);
-			return new Tuple<Vector2d, Vector2d>(rj.SideR + rj.AlongR * extent, rj.SideL + rj.AlongL * extent);
-		}
-
-		/// <summary>
-		/// Given two adjoining (side, along) pairs, computer a miter-ish point for them.
-		/// 
-		// These are named A and B because they're on the same side but come from two different segments.
-		// Solve for position = (sideA + alongA * parameterA) = (sideB + alongB * parameterB)
-		// (ie, just a line intersection).
-		/// </summary>
-		/// <returns>The intersect.</returns>
-		/// <param name="sideA">Side a.</param>
-		/// <param name="alongA">Along a.</param>
-		/// <param name="sideB">Side b.</param>
-		/// <param name="alongB">Along b.</param>
-		// OPT: This may not be the most efficient way.
-		static Vector2d MiterishIntersect(Vector2d sideA, Vector2d alongA, Vector2d sideB, Vector2d alongB)
-		{
-			// Transform to origin at sideA, +x is alongA.
-			var tlSideB = sideB - sideA;
-			var relSideB = new Vector2d(Vector2d.Dot(tlSideB, alongA), Vector2d.Dot(tlSideB, alongA.PerpendicularLeft));
-			var rotAlongB = new Vector2d(Vector2d.Dot(alongB, alongA), Vector2d.Dot(alongB, alongA.PerpendicularLeft));
-			if (Math.Abs(rotAlongB.Y) < Math.Abs(rotAlongB.X) && Math.Abs(rotAlongB.Y / rotAlongB.X) < 0.001) {
-				// Very closely angled lines.  Give up and approximate for numerical stability.
-				return Vector2d.Lerp(sideA, sideB, 0.5);
-			}
-
-			// B's transformed line equation in terms of A
-			var xSlope = rotAlongB.X / rotAlongB.Y;
-			var xIntercept = relSideB.X - relSideB.Y * xSlope;
-			// Transform (xIntercept, 0) back into world coordinates.
-			return sideA + alongA * xIntercept;
-		}
-
-		/// <summary>
-		/// Given two adjoining RawJoin's, computer the right and left sides of a miter-ish join.
-		/// </summary>
-		/// <returns>The join.</returns>
-		static Tuple<Vector2d, Vector2d> MiterishJoin(RawJoin rjIn, RawJoin rjOut)
-		{
-			var v1 = MiterishIntersect(rjIn.SideR, rjIn.AlongR, rjOut.SideR, rjOut.AlongR);
-			var v2 = MiterishIntersect(rjIn.SideL, rjIn.AlongL, rjOut.SideL, rjOut.AlongL);
-
-			return new Tuple<Vector2d, Vector2d>(v1, v2);
-		}
-	}
-
-	/// <summary>
-	/// A tesselator that turns a Path into a filled shape with no border.
-	/// (Probably convex shapes only; possibly rename this to reflect that?)
-	/// </summary>
-	// XXX: LineSegment's might not be the best way of doing this?  Do we need
-	// a PolySegment or such?  Hmmm.
-	// TODO: Does not anti-alias the edges of the polygon.
-	public class FilledShapeTesselator : Tesselator
-	{
-		List<LineArtVertex> vertAccm;
-
-		public FilledShapeTesselator(VertexModel output) : base(output)
-		{
-			vertAccm = null;
-		}
-
-		public void StartPath(LineArtVertex startPoint)
-		{
-			vertAccm = new List<LineArtVertex>();
-			vertAccm.Add(startPoint);
-		}
-
-		public void EndPath()
-		{
-
-		}
-
-		public override void TesselatePath(Path path)
-		{
-			if (path.Empty) {
-				return;
-			}
-			if (!path.Closed) {
-				Log.Warn(!path.Closed, "FilledShapeTesselator got a Path that isn't closed, closing.");
-				path.Close();
-			}
-			//StartPath();
-			foreach (var seg in path.Segments) {
-				seg.TesselateWith(this);
-			}
-			EndPath();
-		}
-
-		void AccumulateLine(LineSegment line)
-		{
-			vertAccm.Add(line.V1);
-		}
-		// Goes through all accumulated vertexes, divvies them up into triangles,
-		// and throws them at the VertexModel
-		// This is trivial, we just draw diagonals from one vertex to all other vertexes.
-		// Again, only works for convex polygons without holes though!
-		void Triangulate()
-		{
-			Log.Assert(vertAccm.Count > 2, "Not enough vertices submitted to make a triangle!");
-			var startIdx = Output.AddVertexes(vertAccm);
-			var endIdx = startIdx + vertAccm.Count;
-			var idxs = new List<uint>();
-			for (var i = startIdx + 2; i < endIdx; i++) {
-				idxs.Add(startIdx);
-				idxs.Add(i - 1);
-				idxs.Add(i);
-			}
-			Output.AddIndices(idxs);
-		}
-
-		public override void TesselateLine(LineSegment line)
-		{
-			AccumulateLine(line);
-		}
-
-		public override void TesselateArc(ArcSegment arc)
-		{
-
-		}
-	}
-
-	/// <summary>
-	/// A combination of a FilledShapeTesselator and a FadeLineTesselator;
-	/// draws a filled shape with a boundary line around it.
-	/// </summary>
-	public class BorderedShapeTesselator : Tesselator
-	{
-		public BorderedShapeTesselator(VertexModel output) : base(output)
-		{
-
-		}
-
-		public override void TesselatePath(Path path)
-		{
-
-		}
-
-		public override void TesselateLine(LineSegment line)
-		{
-
-		}
-
-		public override void TesselateArc(ArcSegment arc)
-		{
-
-		}
-	}
-
-	/// <summary>
 	/// A convenient way to construct `VertexModel`s.
 	///
 	/// Create one of these, then call methods on it to add geometry.
@@ -1298,6 +849,11 @@ namespace Starmaze.Engine
 		public void SubmitPath(Path path)
 		{
 			tesselator.TesselatePath(path);
+		}
+
+		public void SubmitPolygon(FilledPolygon poly)
+		{
+			poly.Tesselate(model);
 		}
 
 		public void SubmitClosedPath(IList<PathSegment> segments)
@@ -1382,25 +938,7 @@ namespace Starmaze.Engine
 			}
 			Polygon(verts);
 		}
-		/*
-		// Goes through all accumulated vertexes, divvies them up into triangles,
-		// and throws them at the VertexModel
-		// This is trivial, we just draw diagonals from one vertex to all other vertexes.
-		// Again, only works for convex polygons without holes though!
-		void Triangulate(IList<LineArtVertex> verts)
-		{
-			Log.Assert(vertAccm.Count > 2, "Not enough vertices submitted to make a triangle!");
-			var startIdx = Output.AddVertexes(vertAccm);
-			var endIdx = startIdx + vertAccm.Count;
-			var idxs = new List<uint>();
-			for (var i = startIdx + 2; i < endIdx; i++) {
-				idxs.Add(startIdx);
-				idxs.Add(i - 1);
-				idxs.Add(i);
-			}
-			Output.AddIndices(idxs);
-		}
-		*/
+
 		public void PolygonFilled(IList<LineArtVertex> verts)
 		{
 			if (verts.Count < 3) {
@@ -1487,7 +1025,8 @@ namespace Starmaze.Engine
 				new Vector2d(cx + halfW, cy - halfH),
 			};
 
-			PolygonUniform(positions, color);
+			var p = new FilledPolygon(positions, color);
+			SubmitPolygon(p);
 		}
 
 		public void RectCornerFilled(double x0, double y0, double w, double h, Color4 color)
