@@ -94,6 +94,8 @@ namespace Starmaze
 			World = new World(player, map, "TestZone", "TestRoom2");
 			Gui = new GUI();
 			SetupEvents();
+
+			fpsTimer.Start();
 		}
 
 		protected override void OnUnload(EventArgs e)
@@ -133,11 +135,21 @@ namespace Starmaze
 			World.HandleKeyUp(e);
 		}
 
+		Stopwatch fpsTimer = new Stopwatch();
+		const double fpsInterval = 5;
+		int frames = 0;
+
 		void HandleUpdate(object sender, FrameEventArgs e)
 		{
 			World.Update(e);
 			Camera.Update(e.Time);
+			if (fpsTimer.ElapsedMilliseconds > (fpsInterval * 1000)) {
+				fpsTimer.Restart();
+				Log.Message("FPS: {0}", frames / fpsInterval);
+				frames = 0;
+			}
 		}
+
 
 		void HandleRender(object sender, FrameEventArgs e)
 		{
@@ -146,6 +158,7 @@ namespace Starmaze
 			World.Draw(View);
 			Gui.Draw();
 			SwapBuffers();
+			frames += 1;
 		}
 	}
 
