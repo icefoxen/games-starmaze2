@@ -155,7 +155,7 @@ namespace Starmaze.Engine
 		int height;
 		List<PostprocStep> steps;
 		FramebufferObject fbo;
-		Texture fromTexture;
+		Texture fboTexture;
 
 		public PostprocPipeline(int width, int height)
 		{
@@ -165,8 +165,8 @@ namespace Starmaze.Engine
 			Log.Assert(Util.IsPowerOf2(this.width));
 			Log.Assert(Util.IsPowerOf2(this.height));
 			steps = new List<PostprocStep>();
-			fromTexture = new Texture(this.width, this.height);
-			fbo = new FramebufferObject(fromTexture);
+			fboTexture = new Texture(this.width, this.height);
+			fbo = new FramebufferObject(fboTexture);
 		}
 
 		public void AddStep(Shader shader)
@@ -188,8 +188,10 @@ namespace Starmaze.Engine
 			drawScene();
 			fbo.Disable();
 
+			var fromTexture = fboTexture;
+
 			// Then we take the drawn scene and run it through each of the postprocessing steps.
-			for (int i = 0; i < steps.Count - 2; i++) {
+			for (int i = 0; i < steps.Count - 1; i++) {
 				var step = steps[i];
 				step.Render(fromTexture, final: false);
 				fromTexture = step.DestTexture;
@@ -202,7 +204,7 @@ namespace Starmaze.Engine
 		{
 			var width2 = (int)SMath.RoundUpToPowerOf2(width);
 			var height2 = (int)SMath.RoundUpToPowerOf2(height);
-			fromTexture.ClearAndResize(width2, height2);
+			fboTexture.ClearAndResize(width2, height2);
 			foreach (var ppstep in steps) {
 				ppstep.Resize(width2, height2);
 			}
