@@ -223,7 +223,7 @@ namespace Starmaze.Engine
 
 			var along = -side.PerpendicularRight;
 			return new RawJoin(side * v.StrokeHalfWidth, along,
-			                   side * -v.StrokeHalfWidth, along);
+				side * -v.StrokeHalfWidth, along);
 		}
 
 		public override RawJoin RawJoinIn()
@@ -270,7 +270,7 @@ namespace Starmaze.Engine
 
 			var radius0 = (V0.Pos - Center).Length;
 			var radius1 = (V1.Pos - Center).Length;
-			Console.WriteLine("Radius 0 {0}, Radius 1 {1}", radius0, radius1);
+			//Log.Message("Radius 0 {0}, Radius 1 {1}", radius0, radius1);
 			var radiusStep = (radius1 - radius0) / RequestedSegments;
 
 			var strokeHalfWidth0 = V0.StrokeHalfWidth;
@@ -304,8 +304,8 @@ namespace Starmaze.Engine
 				var currentNormal = currentOffset.Normalized();
 				var inner = currentNormal * currentStrokeHalfWidth;
 				var outer = -inner;
-				Console.WriteLine("Current angle: {0}, X: {1}, Y: {2}, center: {3}, alpha: {4}, angle0: {5}, angle1: {6}", 
-				                  currentAngle, currentX, currentY, Center, currentAlpha, angle0, angle1);
+				//Log.Message("Current angle: {0}, X: {1}, Y: {2}, center: {3}, alpha: {4}, angle0: {5}, angle1: {6}", 
+				//	currentAngle, currentX, currentY, Center, currentAlpha, angle0, angle1);
 				yield return new Tuple<LineArtVertex, Vector2d, Vector2d>(currentVertex, outer, inner);
 			}
 
@@ -480,7 +480,7 @@ namespace Starmaze.Engine
 			// all the others...
 			for (uint i = firstIdx + 2; i < lastIdx; i++) {
 				var tri = new uint[] {
-					firstIdx, i-1, i
+					firstIdx, i - 1, i
 				};
 				output.AddIndices(tri);
 			}
@@ -556,7 +556,7 @@ namespace Starmaze.Engine
 				verts.AddColorVertex(positions[i], colors[i]);
 			}
 			var vertArray = new VertexArray(s, verts, indices,
-			                                prim: PrimitiveType.Triangles, usage: BufferUsageHint.StaticDraw);
+				                prim: PrimitiveType.Triangles, usage: BufferUsageHint.StaticDraw);
 
 			return vertArray;
 
@@ -926,8 +926,8 @@ namespace Starmaze.Engine
 		{
 			var pos0 = SMath.Rotate(Vector2d.UnitX, startAngle) * radius;
 			var pos1 = SMath.Rotate(Vector2d.UnitX, startAngle + sweep) * radius;
-			Console.WriteLine("Start angle {0}, sweep {1}, radius {2}, pos0 {3}, pos1 {4}, length1 {5}, length2 {6}",
-			                  startAngle, sweep, radius, pos0, pos1, pos0.Length, pos1.Length);
+			//Log.Message("Start angle {0}, sweep {1}, radius {2}, pos0 {3}, pos1 {4}, length1 {5}, length2 {6}",
+			//                  startAngle, sweep, radius, pos0, pos1, pos0.Length, pos1.Length);
 			var v0 = new LineArtVertex(pos0, color: color);
 			var v1 = new LineArtVertex(pos1, color: color);
 			SubmitOpenPath(new ArcSegment(v1, v0, new Vector2d(cx, cy), true, numSegments));

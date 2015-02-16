@@ -83,6 +83,7 @@ namespace Starmaze
 		protected override void OnLoad(System.EventArgs e)
 		{
 			VSync = Options.Vsync;
+			Log.Init();
 			Graphics.Init();
 			// Has to be called after the Graphics setup if it's going to be preloading
 			// textures and shaders and such...
@@ -170,7 +171,7 @@ namespace Starmaze
 			GameOptions o = new GameOptions();
 			var physicsRate = Physics.PHYSICS_HZ;
 			using (var g = new StarmazeWindow(o)) {
-				Console.WriteLine("Game started...");
+				Log.Message("Starting game...");
 				// If no graphics frame rate is entered, it will just run as fast as it can.
 				g.Run(physicsRate);
 			}

@@ -47,7 +47,7 @@ namespace Starmaze.Engine
 					cache.Add(name, t);
 					return t;
 				} catch {
-					Console.WriteLine("Error loading {0}!", name);
+					Log.Message("Error loading {0}!", name);
 					throw;
 				}
 			}
@@ -69,6 +69,7 @@ namespace Starmaze.Engine
 					var renderer = (Renderer)Activator.CreateInstance(subclass);
 					rendererMap.Add(subclass.Name, renderer);
 				} catch (System.Reflection.TargetInvocationException e) {
+					// The renderer constructor threw an exception
 					throw e.InnerException;
 				}
 			}
@@ -116,11 +117,12 @@ namespace Starmaze.Engine
 			return Get(ModelCache, LoadModel, name);
 		}
 		// XXX: Dependency inversion here; should Content/Images.cs be elsewhere, or defined differently?
+		// XXX: Can we mark certain things as uncachable?
 		VertexArray LoadModel(string name)
 		{
 			var t = typeof(Starmaze.Content.Images);
 			var method = t.GetMethod(name);
-			Console.WriteLine("Loading model {0}", method.Name);
+			Log.Message("Loading model {0}", method.Name);
 			var model = (VertexArray)method.Invoke(null, null);
 			return model;
 		}

@@ -24,12 +24,27 @@ namespace Starmaze.Content
 
 			var verts = new List<LineArtVertex>();
 			var r = new Random();
-			for(int i = 0; i < 5; i++) {
-				var pos = new Vector2d(Math.Sin(i), Math.Cos(i)) * ((i*2)+5);
+			for (int i = 0; i < 5; i++) {
+				var pos = new Vector2d(Math.Sin(i), Math.Cos(i)) * ((i * 2) + 5);
 				var color = new Color4((float)r.NextDouble(), (float)r.NextDouble(), (float)r.NextDouble(), 1);
 				verts.Add(new LineArtVertex(pos, color));
 			}
 			mb.PolygonFilled(verts);
+
+			// Concave test polygon that doesn't draw right.
+			/*
+			var verts2 = new Vector2d[] {
+				new Vector2d(-25, 0),
+				new Vector2d(-10, 10),
+				new Vector2d(0, 25),
+				new Vector2d(10, 10),
+				new Vector2d(25, 0),
+				new Vector2d(10, -10),
+				new Vector2d(0, -25),
+				new Vector2d(-10, -10),
+			};
+			mb.PolygonUniformFilled(verts2, Color4.LimeGreen);
+			*/
 
 			mb.RectCenterOutlined(0, 30, 15, 5, Color4.White, Color4.Blue);
 

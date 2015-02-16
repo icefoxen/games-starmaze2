@@ -118,6 +118,7 @@ namespace Starmaze.Engine
 	/// A set of particles that tracks and updates itself.  All particles in the system obey the same rules,
 	/// given by a ParticleController.
 	/// </summary>
+	// XXX: Removing particles while maintaining draw order might become a little wonky.
 	public class ParticleGroup
 	{
 		public List<Particle> Particles;

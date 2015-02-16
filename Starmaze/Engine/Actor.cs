@@ -62,7 +62,7 @@ namespace Starmaze.Engine
 
 		public void RegisterEvents(World w)
 		{
-			Console.WriteLine("{0} registering events", this);
+			//Log.Message("{0} registering events", this);
 			foreach (var c in Components) {
 				c.RegisterEvents(w);
 			}

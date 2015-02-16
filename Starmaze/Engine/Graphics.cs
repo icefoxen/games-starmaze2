@@ -425,7 +425,7 @@ namespace Starmaze.Engine
 			Vertexes.Add(color.A);
 			// This assertion is to help catch things if we change the vertex format but don't update this function.
 			var elementsAdded = Vertexes.Count - elementCount;
-			Log.Assert(elementsAdded == (VertexLayout.ColorVertex.ElementCount));
+			Log.Assert(elementsAdded == VertexLayout.ColorVertex.ElementCount);
 		}
 
 		public void AddTextureVertex(Vector2 pos, Color4 color, Vector2 texcoord)
@@ -442,7 +442,7 @@ namespace Starmaze.Engine
 			Vertexes.Add(texcoord.Y);
 			// This assertion is to help catch things if we change the vertex format but don't update this function.
 			var elementsAdded = Vertexes.Count - elementCount;
-			Log.Assert(elementsAdded == (VertexLayout.TextureVertex.ElementCount));
+			Log.Assert(elementsAdded == VertexLayout.TextureVertex.ElementCount);
 		}
 
 		public float[] ToArray()
@@ -624,11 +624,11 @@ namespace Starmaze.Engine
 		public void ForceApply()
 		{
 			if (blendFunc != null) {
-				Console.WriteLine("Enabling blending");
+				//Log.Message("Enabling blending");
 				GL.Enable(EnableCap.Blend);
 				GL.BlendFunc(blendFunc.Item1, blendFunc.Item2);
 			} else {
-				Console.WriteLine("Disabling blending");
+				//Log.Message("Disabling blending");
 				GL.Disable(EnableCap.Blend);
 			}
 		}
