@@ -15,7 +15,13 @@ namespace Starmaze
 	{
 		public int ResolutionW;
 		public int ResolutionH;
-		public double AspectRatio;
+
+		public double AspectRatio { 
+			get { 
+				return ((double)ResolutionW) / ((double)ResolutionH);
+			}
+		}
+
 		public VSyncMode Vsync;
 		public GameWindowFlags WindowMode;
 		// public string Logfile;
@@ -25,7 +31,6 @@ namespace Starmaze
 			ResolutionW = 1024;
 			ResolutionH = 768;
 			Vsync = VSyncMode.On;
-			AspectRatio = 4.0 / 3.0;
 			WindowMode = GameWindowFlags.Default;
 		}
 
@@ -35,11 +40,13 @@ namespace Starmaze
 			if (File.Exists(fileName) == false) {
 				Log.Message("Unable to open settings file, loading default settings.");
 				return new GameOptions();
+			} else {
+				StreamReader file = File.OpenText(fileName);
+				string json = file.ReadToEnd();
+				GameOptions options = JsonConvert.DeserializeObject<GameOptions>(json);
+				Log.Message("Loading game options from settings file: {0}", json);
+				return options;
 			}
-			StreamReader file = File.OpenText(fileName);
-			string json = file.ReadToEnd();
-			GameOptions options = JsonConvert.DeserializeObject<GameOptions>(json);
-			return options;
 
 
 		}
@@ -100,7 +107,6 @@ namespace Starmaze
 		protected override void OnLoad(System.EventArgs e)
 		{
 			VSync = Options.Vsync;
-			Log.Init();
 			Graphics.Init();
 			// Has to be called after the Graphics setup if it's going to be preloading
 			// textures and shaders and such...
@@ -186,6 +192,8 @@ namespace Starmaze
 		[STAThread]
 		public static void Main()
 		{
+			// This is set up first thing so that GameOptions can use it.
+			Log.Init();
 			//GameOptions o = new GameOptions();
 			GameOptions o = GameOptions.OptionsFromFile();
 			var physicsRate = Physics.PHYSICS_HZ;
