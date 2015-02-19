@@ -2,13 +2,21 @@ Overview of general file layout.
 
 Engine/                       | Low-level engine code
    Actor.cs                   | Actor/Component structure
+   Camera.cs                  | Camera and view management code
+   Component.cs               | Basic component class
    Drawing.cs                 | Vector graphics drawing and rendering
-   Geometry.cs                | Low-level physics shapes and pprimitives
+   Geometry.cs                | Low-level physics shapes and primitives
+   Graphics.cs                | Low-level graphics objects and state
    Particle.cs                | Particle systems
    Physics.cs                 | Physics and collision processing
+   Postproc.cs                | Graphical postprocessing effect code
    Renderer.cs                | Graphics state juggling and drawing specifics
    Resources.cs               | Resource loading, caching and transformation
+   Serialize.cs               | Turning game objects into saveable data and back again
    Shader.cs                  | OpenGL shader loading
+   Tests.cs                   | Unit tests for game code
+   World.cs                   | Main loop and actual game operations
+   WorldMap.cs                | Representations of the game world, zones and rooms
     
 Game/                         | General-purpose gameplay systems
    Enemies.cs                 | Base enemy behavior
@@ -18,7 +26,7 @@ Game/                         | General-purpose gameplay systems
    Powers.cs                  | Base classes for powers and powerups
    Terrain.cs                 | Elements for constructing and managing levels
    UI.cs                      | GUI drawing and interface elements
-   World.cs                   | Main loop and actual game operations
+   WorldGen.cs                | World generation and setup
     
 Content/                      | Level-specific objects and features
    Enemies.cs                 | Concrete, non-zone-specific enemy types
@@ -29,6 +37,7 @@ Content/                      | Level-specific objects and features
       Powers.cs               | Powers associated with this zone
       Zone.cs                 | Zone-specific level features and generation code
 
+Log.cs                        | Logging and error reporting functions
 Main.cs                       | Main game window, config and command line handling.
 SMath.cs                      | Useful math functions
 Util.cs                       | Useful misc. functions
