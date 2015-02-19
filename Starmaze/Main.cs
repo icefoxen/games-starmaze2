@@ -28,7 +28,9 @@ namespace Starmaze
 			AspectRatio = 4.0 / 3.0;
 			WindowMode = GameWindowFlags.Default;
 		}
-		public static GameOptions OptionsFromFile(string fileName = "settings.txt"){
+
+		public static GameOptions OptionsFromFile(string fileName = "settings.txt")
+		{
 
 			if (File.Exists(fileName) == false) {
 				Log.Message("Unable to open settings file, loading default settings.");
@@ -139,7 +141,8 @@ namespace Starmaze
 
 		void HandleKeyDown(object sender, OpenTK.Input.KeyboardKeyEventArgs e)
 		{
-			if (e.Key == OpenTK.Input.Key.Escape) {
+			if (e.Key == OpenTK.Input.Key.Escape ||
+			    (e.Key == OpenTK.Input.Key.F4 && e.Alt)) {
 				Exit();
 			} else {
 				World.HandleKeyDown(e);
