@@ -137,5 +137,14 @@ namespace Starmaze.Engine
 			var room1 = new Room("TestRoom1", actors1);*/
 			Assert.True(true);
 		}
+
+		[Test]
+		public void GameOptionSerialize(){
+			Log.Message("HOOOO");
+			GameOptions a = new GameOptions();
+			var j = JsonConvert.SerializeObject(a,jset);
+			Log.Message("{0}", j);
+			Assert.True(true);
+		}
 	}
 }

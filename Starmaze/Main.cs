@@ -6,6 +6,8 @@ using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
 using Starmaze.Engine;
 using Starmaze.Game;
+using System.IO;
+using Newtonsoft.Json;
 
 namespace Starmaze
 {
@@ -25,6 +27,19 @@ namespace Starmaze
 			Vsync = VSyncMode.On;
 			AspectRatio = 4.0 / 3.0;
 			WindowMode = GameWindowFlags.Default;
+		}
+		public static GameOptions OptionsFromFile(string fileName = "settings.txt"){
+
+			if (File.Exists(fileName) == false) {
+				Log.Message("Unable to open settings file, loading default settings.");
+				return new GameOptions();
+			}
+			StreamReader file = File.OpenText(fileName);
+			string json = file.ReadToEnd();
+			GameOptions options = JsonConvert.DeserializeObject<GameOptions>(json);
+			return options;
+
+
 		}
 	}
 
@@ -168,7 +183,8 @@ namespace Starmaze
 		[STAThread]
 		public static void Main()
 		{
-			GameOptions o = new GameOptions();
+			//GameOptions o = new GameOptions();
+			GameOptions o = GameOptions.OptionsFromFile();
 			var physicsRate = Physics.PHYSICS_HZ;
 			using (var g = new StarmazeWindow(o)) {
 				Log.Message("Starting game...");
