@@ -16,6 +16,7 @@ namespace Starmaze
 		public int ResolutionW;
 		public int ResolutionH;
 
+		[JsonIgnore]
 		public double AspectRatio { 
 			get { 
 				return ((double)ResolutionW) / ((double)ResolutionH);
