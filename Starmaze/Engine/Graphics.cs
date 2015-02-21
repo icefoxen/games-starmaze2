@@ -61,48 +61,63 @@ namespace Starmaze.Engine
 
 	/// <summary>
 	/// A texture.
-	/// It's small, but it's _not_ a struct, because it allocates resources and thus needs
-	/// the reference semantics of a real object.
+	/// Supports multitexturing, optionally.
 	/// </summary>
-	//  We could make it a value type but that would require making
-	// an object to manage them beyond the ResourceLoader or making the ResourceLoader do more work,
-	// so.
 	public class Texture : IDisposable
 	{
-		public int Handle;
+		public int[] Handle;
+
+		public readonly byte[] TestTextureData = new byte[] {
+			255, 255, 255, 255,
+			255, 0, 0, 255,
+			0, 255, 0, 255,
+			0, 0, 255, 255,
+		};
 
 		/// <summary>
 		/// Creates a new texture from the given bitmap.
 		/// </summary>
 		/// <param name="bitmap">Bitmap.</param>
-		public Texture(Bitmap bitmap)
+		public Texture(Bitmap bitmap) : this(new Bitmap[] { bitmap })
 		{
-			if (!Util.IsPowerOf2(bitmap.Width) || !Util.IsPowerOf2(bitmap.Height)) {
+
+		}
+
+		public Texture(Bitmap[] bitmaps)
+		{
+			SetupNewTexture(bitmaps.Length);
+			for (int i = 0; i < bitmaps.Length; i++) {
+				if (!Util.IsPowerOf2(bitmaps[i].Width) || !Util.IsPowerOf2(bitmaps[i].Height)) {
+					// XXX: FormatException isn't really the best here, buuuut...
+					// Assertion?  Except I sorta want to check this at runtime in the real game.
+					throw new FormatException("Texture sizes must be powers of 2!");
+				}
+
+				BitmapData data = bitmaps[i].LockBits(new System.Drawing.Rectangle(0, 0, bitmaps[i].Width, bitmaps[i].Height),
+					                  ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+
+				EnableOne(i);
+				//BitmapData data = bitmap.LockBits(new System.Drawing.Rectangle(0, 0, bitmap.Width, bitmap.Height),
+				//	ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+				GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, data.Width, data.Height, 0,
+					OpenTK.Graphics.OpenGL.PixelFormat.Bgra, PixelType.UnsignedByte, data.Scan0);
+				bitmaps[i].UnlockBits(data);
+			}
+
+			Disable();
+		}
+
+		// XXX: Could make a multitexture version of this, but, not necessary right now.
+		public Texture(byte[] data, int width, int height)
+		{
+			if (!Util.IsPowerOf2(width) || !Util.IsPowerOf2(height)) {
 				// XXX: FormatException isn't really the best here, buuuut...
 				// Assertion?  Except I sorta want to check this at runtime in the real game.
 				throw new FormatException("Texture sizes must be powers of 2!");
 			}
-			SetupNewTexture();
-
-			BitmapData data = bitmap.LockBits(new System.Drawing.Rectangle(0, 0, bitmap.Width, bitmap.Height),
-				                  ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
-
-			//BitmapData data = bitmap.LockBits(new System.Drawing.Rectangle(0, 0, bitmap.Width, bitmap.Height),
-			//	ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
-			GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, data.Width, data.Height, 0,
-				OpenTK.Graphics.OpenGL.PixelFormat.Bgra, PixelType.UnsignedByte, data.Scan0);
-			/*
-			var pixels = new byte[] {
-				255, 255, 255, 255,
-				255, 0, 0, 255,
-				0, 255, 0, 255,
-				0, 0, 255, 255,
-			};
+			SetupNewTexture(1);
 			GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, 2, 2, 0,
-				OpenTK.Graphics.OpenGL.PixelFormat.Rgba, PixelType.UnsignedByte, pixels);
-				*/
-			bitmap.UnlockBits(data);
-
+				OpenTK.Graphics.OpenGL.PixelFormat.Rgba, PixelType.UnsignedByte, data);
 			Disable();
 		}
 
@@ -111,9 +126,9 @@ namespace Starmaze.Engine
 		/// </summary>
 		/// <param name="width">Width.</param>
 		/// <param name="height">Height.</param>
-		public Texture(int width, int height)
+		public Texture(int width, int height, int layers = 1)
 		{
-			SetupNewTexture();
+			SetupNewTexture(layers);
 			ClearAndResize(width, height);
 		}
 
@@ -126,39 +141,72 @@ namespace Starmaze.Engine
 				throw new FormatException("Texture sizes must be powers of 2!");
 			}
 
-			Enable();
-			GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, width, height, 0, 
-				OpenTK.Graphics.OpenGL.PixelFormat.Rgba, PixelType.UnsignedByte, IntPtr.Zero);
-			Disable();
+			WithEachTexture(() => {
+				GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, width, height, 0, 
+					OpenTK.Graphics.OpenGL.PixelFormat.Rgba, PixelType.UnsignedByte, IntPtr.Zero);
+			}
+			);
+		}
+
+		void WithEachTexture(Action thunk)
+		{
+			for (int i = 0; i < Handle.Length; i++) {
+				EnableOne(i);
+				thunk();
+				DisableOne(i);
+			}
 		}
 
 		/// <summary>
-		/// Actually creates the texture object and sets the appropriate parameters.
+		/// Actually creates the texture objects and sets the appropriate parameters.
 		/// 
 		/// Note that this leaves the current texture enabled, because it's for internal use only.
 		/// </summary>
 		// XXX: Right now, texture parameters are basically hardcoded.  That's fine as long as we never want
-		// anything different!
-		void SetupNewTexture()
+		// anything different!  Creating a TextureParameters object that gets given to the texture would be
+		// pretty easy though.
+		void SetupNewTexture(int numTextures)
 		{
-			Handle = GL.GenTexture();
-			Enable();
+			Handle = new int[numTextures];
+			for (int i = 0; i < numTextures; i++) {
+				Handle[i] = GL.GenTexture();
+			}
 
-			GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
-			GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
-			GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
-			GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
+			WithEachTexture(() => {
+				GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
+				GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+				GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
+				GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
+			}
+			);
 		}
 
 		public void Enable()
 		{
 			GL.Enable(EnableCap.Texture2D);
-			GL.ActiveTexture(TextureUnit.Texture0);
-			GL.BindTexture(TextureTarget.Texture2D, Handle);
+			for (int i = 0; i < Handle.Length; i++) {
+				EnableOne(i);
+			}
+		}
+
+		public void EnableOne(int i)
+		{
+			Log.Assert(i < Handle.Length, "Tried to enable texture {0} but max texture is {1}", i, Handle.Length - 1);
+			GL.ActiveTexture(TextureUnit.Texture0 + i);
+			GL.BindTexture(TextureTarget.Texture2D, Handle[i]);
 		}
 
 		public void Disable()
 		{
+			for (int i = 0; i < Handle.Length; i++) {
+				DisableOne(i);
+			}
+		}
+
+		public void DisableOne(int i)
+		{
+			Log.Assert(i < Handle.Length, "Tried to disable texture {0} but max texture is {1}", i, Handle.Length - 1);
+			GL.ActiveTexture(TextureUnit.Texture0 + i);
 			GL.BindTexture(TextureTarget.Texture2D, 0);
 		}
 
@@ -187,7 +235,9 @@ namespace Starmaze.Engine
 			}
 			// Clean up unmanaged resources
 			if (GraphicsContext.CurrentContext != null) {
-				GL.DeleteTexture(Handle);
+				foreach (var tex in Handle) {
+					GL.DeleteTexture(tex);
+				}
 			}
 		}
 	}
@@ -199,16 +249,16 @@ namespace Starmaze.Engine
 	public class FramebufferObject : IDisposable
 	{
 		int Handle;
-		Texture destination;
 
 		public FramebufferObject(Texture dest)
 		{
-			destination = dest;
 			// Create frame buffer
 			Handle = GL.GenFramebuffer();
 			Enable();
-			GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0,
-				TextureTarget.Texture2D, destination.Handle, 0);
+			for (int i = 0; i < dest.Handle.Length; i++) {
+				GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0,
+					TextureTarget.Texture2D, dest.Handle[i], 0);
+			}
 			var status = GL.CheckFramebufferStatus(FramebufferTarget.Framebuffer);
 			// TODO: More rigorous error checking?
 			Log.Assert(status == FramebufferErrorCode.FramebufferComplete, 
