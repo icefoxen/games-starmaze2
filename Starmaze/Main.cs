@@ -34,21 +34,23 @@ namespace Starmaze
 			WindowMode = GameWindowFlags.Default;
 		}
 
-		public static GameOptions OptionsFromFile(string fileName = "settings.txt")
+		public static GameOptions OptionsFromFile(string fileName = "settings.cfg")
 		{
-
 			if (File.Exists(fileName) == false) {
 				Log.Message("Unable to open settings file, loading default settings.");
 				return new GameOptions();
 			} else {
-				StreamReader file = File.OpenText(fileName);
-				string json = file.ReadToEnd();
+				string json = File.ReadAllText(fileName);
 				GameOptions options = JsonConvert.DeserializeObject<GameOptions>(json);
 				Log.Message("Loading game options from settings file: {0}", json);
 				return options;
 			}
+		}
 
-
+		public static void OptionsToFile(GameOptions options, string fileName = "settings.cfg")
+		{
+			var optionString = JsonConvert.SerializeObject(options);
+			File.WriteAllText(fileName, optionString);
 		}
 	}
 
@@ -196,6 +198,8 @@ namespace Starmaze
 			Log.Init();
 			//GameOptions o = new GameOptions();
 			GameOptions o = GameOptions.OptionsFromFile();
+			// Save game options so that if there is no options file we create one.
+			GameOptions.OptionsToFile(o);
 			var physicsRate = Physics.PHYSICS_HZ;
 			using (var g = new StarmazeWindow(o)) {
 				Log.Message("Starting game...");
