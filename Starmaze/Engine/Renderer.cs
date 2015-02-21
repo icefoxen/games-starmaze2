@@ -76,6 +76,7 @@ namespace Starmaze.Engine
 			postproc = new PostprocPipeline(width, height);
 			var ppShader = Resources.TheResources.GetShader("postproc");
 			postproc.AddStep(ppShader);
+			postproc.AddStep(new GlowFilter(width, width));
 			var fxaaShader = Resources.TheResources.GetShader("fxaa");
 			postproc.AddStep(fxaaShader);
 		}

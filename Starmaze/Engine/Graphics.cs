@@ -181,6 +181,11 @@ namespace Starmaze.Engine
 			);
 		}
 
+		/// <summary>
+		/// Enables all the multiple textures in this texture.
+		/// Takes an optional int saying which texture unit to start with,
+		/// and returns 1 past the last one used.
+		/// </summary>
 		public void Enable()
 		{
 			GL.Enable(EnableCap.Texture2D);
@@ -208,6 +213,38 @@ namespace Starmaze.Engine
 			Log.Assert(i < Handle.Length, "Tried to disable texture {0} but max texture is {1}", i, Handle.Length - 1);
 			GL.ActiveTexture(TextureUnit.Texture0 + i);
 			GL.BindTexture(TextureTarget.Texture2D, 0);
+		}
+
+
+		/// <summary>
+		/// This is a bit of a hack, since having multitexture things together in one texture would be nicer.
+		/// But this isn't always possible, so, here we are.
+		/// </summary>
+		/// <param name="textures">Textures to enable.</param>
+		/// <returns>The number of texture units activated.</returns>
+		public static int EnableMultiple(IEnumerable<Texture> textures)
+		{
+			int currentTextureUnit = 0;
+			foreach (var tex in textures) {
+				for (int j = 0; j < tex.Handle.Length; j++) {
+					GL.ActiveTexture(TextureUnit.Texture0 + currentTextureUnit);
+					GL.BindTexture(TextureTarget.Texture2D, tex.Handle[j]);
+					currentTextureUnit += 1;
+				}
+			}
+			return currentTextureUnit;
+		}
+
+		public static void DisableMultiple(IEnumerable<Texture> textures)
+		{
+			int currentTextureUnit = 0;
+			foreach (var tex in textures) {
+				for (int j = 0; j < tex.Handle.Length; j++) {
+					GL.ActiveTexture(TextureUnit.Texture0 + currentTextureUnit);
+					GL.BindTexture(TextureTarget.Texture2D, 0);
+					currentTextureUnit += 1;
+				}
+			}
 		}
 
 		private bool disposed = false;
