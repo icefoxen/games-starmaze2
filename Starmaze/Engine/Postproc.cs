@@ -24,8 +24,7 @@ namespace Starmaze.Engine
 
 		void AttachSource(IPostprocSource source);
 	}
-
-	public interface IPostprocFilter : IPostprocSource, IPostprocSink
+	public interface IPostprocFilter
 	{
 
 		int bufferWidth { get; }
@@ -34,7 +33,9 @@ namespace Starmaze.Engine
 
 		void Resize(int width, int height);
 
+		Texture[] Render(Texture[] inputs, bool final = false);
 	}
+
 */
 
 
@@ -45,6 +46,10 @@ namespace Starmaze.Engine
 		Texture Render(Texture fromTexture, bool final = false);
 	}
 
+	/// <summary>
+	/// A very janky but more or less implementation of a glow filter.
+	/// Will probably get cleaned up in further passes.
+	/// </summary>
 	public class GlowFilter : IPostprocStep
 	{
 		int width;
@@ -131,6 +136,7 @@ namespace Starmaze.Engine
 			width = (int)SMath.RoundUpToPowerOf2(width);
 			height = (int)SMath.RoundUpToPowerOf2(height);
 			DestTexture1.ClearAndResize(width, height);
+			DestTexture2.ClearAndResize(width, height);
 		}
 
 		public Texture Render(Texture fromTexture, bool final = false)

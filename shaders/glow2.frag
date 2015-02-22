@@ -25,7 +25,7 @@ void main()
 
 	float glowAlpha = length(colorAccumulator.rgb);
 
-	outputColor = vec4(colorAccumulator.rgb, 1);
+	outputColor = vec4(colorAccumulator.rgb, glowAlpha);
 
 
     //outputColor = vec4(texture2D(texture, theTexcoord).rgb, 1);
