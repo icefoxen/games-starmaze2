@@ -1,15 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
+using Newtonsoft.Json;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
+using OpenTK.Input;
 using Starmaze.Engine;
 using Starmaze.Game;
-using System.IO;
-using Newtonsoft.Json;
-using OpenTK.Input;
-using System.Collections;
 
 namespace Starmaze
 {
@@ -27,9 +26,7 @@ namespace Starmaze
 
 		public VSyncMode Vsync;
 		public GameWindowFlags WindowMode;
-        public KeyBindings keybindings;
-
-        // public string Logfile;
+		public KeyBindings KeyBindings;
 
 		public GameOptions()
 		{
@@ -37,7 +34,7 @@ namespace Starmaze
 			ResolutionH = 768;
 			Vsync = VSyncMode.On;
 			WindowMode = GameWindowFlags.Default;
-            keybindings = new KeyBindings();
+			KeyBindings = new KeyBindings();
 		}
 
 		public static GameOptions OptionsFromFile(string fileName = "settings.cfg")
@@ -49,7 +46,7 @@ namespace Starmaze
 				string json = File.ReadAllText(fileName);
 				GameOptions options = JsonConvert.DeserializeObject<GameOptions>(json);
 				Log.Message("Loading game options from settings file: {0}", json);
-                return options;
+				return options;
 			}
 
 		}
@@ -118,6 +115,7 @@ namespace Starmaze
 		protected override void OnLoad(System.EventArgs e)
 		{
 			VSync = Options.Vsync;
+			Input.Init(Options.KeyBindings);
 			Graphics.Init();
 			// Has to be called after the Graphics setup if it's going to be preloading
 			// textures and shaders and such...
@@ -207,7 +205,6 @@ namespace Starmaze
 			Log.Init();
 			//GameOptions o = new GameOptions();
 			GameOptions o = GameOptions.OptionsFromFile();
-            GlobalProperties.Instance.keys = o.keybindings;
 			// Save game options so that if there is no options file we create one.
 			GameOptions.OptionsToFile(o);
 			var physicsRate = Physics.PHYSICS_HZ;

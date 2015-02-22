@@ -8,37 +8,46 @@ using System.Collections;
 
 namespace Starmaze.Engine
 {
-    /*If I were you I'd just make a new Engine/Input.cs file, 
-     * make a class for key bindings, 
-     * and then make an instance of that class 
-     * get put somewhere globally accessible upon game load.
-     */ 
-    //(left/right/up//down), fire1, fire2, jump, defend.
-    //should load and save the keybindings to the config file
-    //settings.cfg
-    /*The saving and loading of it should happen semi-automatically,
-     * so we should be able to just stick a new property in the 
-     * GameOptions class and have it get saved and loaded already.
-     * 
-     * Make code that prints the settings and copy and paste that into a file
-     * 
-     */
+	public class KeyBindings
+	{
+		//store name and the key
 
-    public class KeyBindings
-    {
-       //store name and the key
+		public readonly Key MoveLeft, MoveRight, MoveUp, MoveDown;
+		public readonly Key Fire1, Fire2, Defend;
 
-        public Key MoveLeft,MoveRight, MoveUp, MoveDown;
-        //public Key Fire1, Fire2, Defend;
-        
-        public KeyBindings()
-        {
-            MoveLeft = Key.Left;
-            MoveRight = Key.Right;
-            MoveUp = Key.Up;
-            MoveDown = Key.Down;
-        }
+		public KeyBindings()
+		{
+			MoveLeft = Key.Left;
+			MoveRight = Key.Right;
+			MoveUp = Key.Up;
+			MoveDown = Key.Down;
 
-    }
+			Fire1 = Key.C;
+			Fire2 = Key.X;
+			Defend = Key.Z;
+		}
+
+	}
+
+
+	public static class Input
+	{
+		private static KeyBindings _keys;
+
+		public static KeyBindings Keys {
+			get {
+				Log.Assert(_keys != null, "Tried to get key bindings that are not initialized!");
+				return _keys;
+			}
+			set {
+				_keys = value;
+			}
+		}
+
+		public static void Init(KeyBindings bindings)
+		{
+			Keys = bindings;
+		}
+	}
 
 }

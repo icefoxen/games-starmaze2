@@ -163,11 +163,10 @@ namespace Starmaze.Game
 	/// </summary>
 	public class KeyboardController : Component
 	{
-     //   KeyBindings keys = GlobalProperties.Instance.keys;
 
 		public KeyboardController(Actor owner) : base(owner)
 		{
-          HandledEvents = EventType.OnKeyPress | EventType.OnKeyRelease;
+			HandledEvents = EventType.OnKeyPress | EventType.OnKeyRelease;
 		}
 
    
@@ -175,23 +174,17 @@ namespace Starmaze.Game
 		{
 			Log.Message("Key down: {0}", e.Key);
 
-           
-            if (e.Key == GlobalProperties.Instance.keys.MoveLeft)
-            {
+			// A switch statement won't work 'cause Input.Keys.whatever can't be constant.
+			// Sour.
+			if (e.Key == Input.Keys.MoveLeft) {
 				Owner.Body.AddImpulse(Vector2d.UnitX * -5);
-			}
-            else if (e.Key == GlobalProperties.Instance.keys.MoveRight)
-            {
+			} else if (e.Key == Input.Keys.MoveRight) {
 				Owner.Body.AddImpulse(Vector2d.UnitX * 5);
+			} else if (e.Key == Input.Keys.MoveUp) {
+				Owner.Body.AddImpulse(Vector2d.UnitY * 5);
+			} else if (e.Key == Input.Keys.MoveDown) {
+				Owner.Body.AddImpulse(Vector2d.UnitY * -5);
 			}
-            else if (e.Key == GlobalProperties.Instance.keys.MoveUp)
-            {
-                Owner.Body.AddImpulse(Vector2d.UnitY * 5);
-            }
-            else if (e.Key == GlobalProperties.Instance.keys.MoveDown)
-            {
-                Owner.Body.AddImpulse(Vector2d.UnitY * -5);
-            }
 		}
 
 		public override void OnKeyRelease(object sender, KeyboardKeyEventArgs e)
