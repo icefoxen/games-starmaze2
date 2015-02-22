@@ -15,6 +15,7 @@ namespace Starmaze.Engine
 		// But in the end it has to go in the Components set as well(?)
 		Body _body;
 
+		[Newtonsoft.Json.JsonIgnore]
 		public Body Body {
 			get {
 				return _body;
@@ -25,6 +26,26 @@ namespace Starmaze.Engine
 				Components.Add(_body);
 			}
 		}
+
+		[System.Runtime.Serialization.OnDeserialized]
+		protected void PostDeserialize(System.Runtime.Serialization.StreamingContext context)
+		{
+			Log.Message("Deserializing actor");
+			var body = GetComponent<Body>();
+			Body = body;
+		}
+
+		public T GetComponent<T>() where T : Component
+		{
+			foreach (var c in Components) {
+				T test = c as T;
+				if (test != null) {
+					return test;
+				}
+			}
+			return default(T);
+		}
+
 		// Other properties
 		readonly long OrderingNumber;
 		public string RenderClass;
