@@ -163,40 +163,35 @@ namespace Starmaze.Game
 	/// </summary>
 	public class KeyboardController : Component
 	{
+        
+
 		public KeyboardController(Actor owner) : base(owner)
 		{
-			HandledEvents = EventType.OnKeyPress | EventType.OnKeyRelease;
+          HandledEvents = EventType.OnKeyPress | EventType.OnKeyRelease;
 		}
 
+   
 		public override void OnKeyPress(object sender, KeyboardKeyEventArgs e)
 		{
 			Log.Message("Key down: {0}", e.Key);
-			switch (e.Key) {
-				case Key.Left:
-					Owner.Body.AddImpulse(Vector2d.UnitX * -5);
-					break;
-				case Key.Right:
-					Owner.Body.AddImpulse(Vector2d.UnitX * 5);
-					break;
-				case Key.Up:
-					Owner.Body.AddImpulse(Vector2d.UnitY * 5);
-					break;
-				case Key.Down:
-					Owner.Body.AddImpulse(Vector2d.UnitY * -5);
-					break;
-				case Key.Z:
-					break;
-				case Key.X:
-					break;
-				case Key.C:
-					break;
-				case Key.D:
-					break;
-				case Key.S:
-					break;
-				default:
-					break;
+
+           
+            if (e.Key == GlobalProperties.Instance.keys.MoveLeft)
+            {
+				Owner.Body.AddImpulse(Vector2d.UnitX * -5);
 			}
+            else if (e.Key == GlobalProperties.Instance.keys.MoveLeft)
+            {
+				Owner.Body.AddImpulse(Vector2d.UnitX * 5);
+			}
+            else if (e.Key == GlobalProperties.Instance.keys.MoveLeft)
+            {
+                Owner.Body.AddImpulse(Vector2d.UnitY * 5);
+            }
+            else if (e.Key == GlobalProperties.Instance.keys.MoveLeft)
+            {
+                Owner.Body.AddImpulse(Vector2d.UnitY * -5);
+            }
 		}
 
 		public override void OnKeyRelease(object sender, KeyboardKeyEventArgs e)

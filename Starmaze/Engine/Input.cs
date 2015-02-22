@@ -3,6 +3,7 @@ using System.IO;
 using OpenTK;
 using OpenTK.Input;
 using Newtonsoft.Json;
+using System.Collections;
 
 
 namespace Starmaze.Engine
@@ -27,9 +28,9 @@ namespace Starmaze.Engine
     {
        //store name and the key
 
-        public Key MoveLeft, MoveRight, MoveUp, MoveDown;
-        public Key Fire1, Fire2, Jump, Defend;
-
+        public Key MoveLeft,MoveRight, MoveUp, MoveDown;
+        //public Key Fire1, Fire2, Defend;
+        
         public KeyBindings()
         {
             MoveLeft = Key.Left;
@@ -38,9 +39,6 @@ namespace Starmaze.Engine
             MoveDown = Key.Down;
         }
 
-        public static void KeysFromFile()
-        {
-        }
     }
 
 }
