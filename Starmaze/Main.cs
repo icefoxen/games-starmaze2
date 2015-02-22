@@ -1,13 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
+using Newtonsoft.Json;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
+using OpenTK.Input;
 using Starmaze.Engine;
 using Starmaze.Game;
-using System.IO;
-using Newtonsoft.Json;
 
 namespace Starmaze
 {
@@ -25,7 +26,7 @@ namespace Starmaze
 
 		public VSyncMode Vsync;
 		public GameWindowFlags WindowMode;
-		// public string Logfile;
+		public KeyBindings KeyBindings;
 
 		public GameOptions()
 		{
@@ -33,6 +34,7 @@ namespace Starmaze
 			ResolutionH = 768;
 			Vsync = VSyncMode.On;
 			WindowMode = GameWindowFlags.Default;
+			KeyBindings = new KeyBindings();
 		}
 
 		public static GameOptions OptionsFromFile(string fileName = "settings.cfg")
@@ -46,6 +48,7 @@ namespace Starmaze
 				Log.Message("Loading game options from settings file: {0}", json);
 				return options;
 			}
+
 		}
 
 		public static void OptionsToFile(GameOptions options, string fileName = "settings.cfg")
@@ -53,6 +56,8 @@ namespace Starmaze
 			var optionString = JsonConvert.SerializeObject(options);
 			File.WriteAllText(fileName, optionString);
 		}
+
+        
 	}
 
 	/// <summary>
@@ -61,7 +66,7 @@ namespace Starmaze
 	/// </summary>
 	public class StarmazeWindow : GameWindow
 	{
-		GameOptions Options;
+		public GameOptions Options;
 		World World;
 		ViewManager View;
 		FollowCam Camera;
@@ -110,6 +115,7 @@ namespace Starmaze
 		protected override void OnLoad(System.EventArgs e)
 		{
 			VSync = Options.Vsync;
+			Input.Init(Options.KeyBindings);
 			Graphics.Init();
 			// Has to be called after the Graphics setup if it's going to be preloading
 			// textures and shaders and such...
