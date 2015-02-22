@@ -163,7 +163,7 @@ namespace Starmaze.Game
 	/// </summary>
 	public class KeyboardController : Component
 	{
-        
+     //   KeyBindings keys = GlobalProperties.Instance.keys;
 
 		public KeyboardController(Actor owner) : base(owner)
 		{
@@ -180,15 +180,15 @@ namespace Starmaze.Game
             {
 				Owner.Body.AddImpulse(Vector2d.UnitX * -5);
 			}
-            else if (e.Key == GlobalProperties.Instance.keys.MoveLeft)
+            else if (e.Key == GlobalProperties.Instance.keys.MoveRight)
             {
 				Owner.Body.AddImpulse(Vector2d.UnitX * 5);
 			}
-            else if (e.Key == GlobalProperties.Instance.keys.MoveLeft)
+            else if (e.Key == GlobalProperties.Instance.keys.MoveUp)
             {
                 Owner.Body.AddImpulse(Vector2d.UnitY * 5);
             }
-            else if (e.Key == GlobalProperties.Instance.keys.MoveLeft)
+            else if (e.Key == GlobalProperties.Instance.keys.MoveDown)
             {
                 Owner.Body.AddImpulse(Vector2d.UnitY * -5);
             }

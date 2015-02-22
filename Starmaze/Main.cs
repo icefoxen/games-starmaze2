@@ -28,7 +28,8 @@ namespace Starmaze
 		public VSyncMode Vsync;
 		public GameWindowFlags WindowMode;
         public KeyBindings keybindings;
-		// public string Logfile;
+
+        // public string Logfile;
 
 		public GameOptions()
 		{
@@ -36,7 +37,7 @@ namespace Starmaze
 			ResolutionH = 768;
 			Vsync = VSyncMode.On;
 			WindowMode = GameWindowFlags.Default;
-            keybindings = GlobalProperties.Instance.keys;
+            keybindings = new KeyBindings();
 		}
 
 		public static GameOptions OptionsFromFile(string fileName = "settings.cfg")
@@ -48,7 +49,6 @@ namespace Starmaze
 				string json = File.ReadAllText(fileName);
 				GameOptions options = JsonConvert.DeserializeObject<GameOptions>(json);
 				Log.Message("Loading game options from settings file: {0}", json);
-                
                 return options;
 			}
 
@@ -207,6 +207,7 @@ namespace Starmaze
 			Log.Init();
 			//GameOptions o = new GameOptions();
 			GameOptions o = GameOptions.OptionsFromFile();
+            GlobalProperties.Instance.keys = o.keybindings;
 			// Save game options so that if there is no options file we create one.
 			GameOptions.OptionsToFile(o);
 			var physicsRate = Physics.PHYSICS_HZ;
