@@ -8,6 +8,8 @@ using Starmaze.Engine;
 using Starmaze.Game;
 using System.IO;
 using Newtonsoft.Json;
+using OpenTK.Input;
+using System.Collections;
 
 namespace Starmaze
 {
@@ -25,6 +27,7 @@ namespace Starmaze
 
 		public VSyncMode Vsync;
 		public GameWindowFlags WindowMode;
+        public KeyBindings Keybindings;
 		// public string Logfile;
 
 		public GameOptions()
@@ -33,6 +36,7 @@ namespace Starmaze
 			ResolutionH = 768;
 			Vsync = VSyncMode.On;
 			WindowMode = GameWindowFlags.Default;
+            Keybindings = new KeyBindings();
 		}
 
 		public static GameOptions OptionsFromFile(string fileName = "settings.cfg")
