@@ -41,6 +41,7 @@ namespace Starmaze.Engine
 		[SetUp]
 		public void Prep()
 		{
+			Log.LogToConsole = true;
 			// Create a dummy GameWindow, which creates an OpenGL context so that if necessary a test
 			// can load a shader, model, whatever
 			if (g == null) {
@@ -122,10 +123,15 @@ namespace Starmaze.Engine
 		[Test]
 		public void BoxBlockSerialTest()
 		{
+
 			BoxBlock a = new BoxBlock(new BBox(0.0, 1.0, 2.0, 2.0), Color4.AliceBlue);
 			var json = JsonConvert.SerializeObject(a, jset);
 			Log.Message("Box block: {0}", json);
 			var z = JsonConvert.DeserializeObject<BoxBlock>(json);
+			var postJson = JsonConvert.SerializeObject(z, jset);
+			Log.Message("Box block: {0}", postJson);
+
+			Assert.True(a.Body.Position==z.Body.Position);
 			Assert.True(true);
 		}
 
@@ -146,7 +152,7 @@ namespace Starmaze.Engine
 		public void RoomCreationTest()
 		{
 			var actors1 = new Actor[] {
-				new Actor(),
+				new BoxBlock(new BBox(0.0, 1.0, 2.0, 2.0), Color4.AliceBlue),
 				new Actor(),
 				new Actor(),
 				new Actor()
