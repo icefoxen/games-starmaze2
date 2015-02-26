@@ -6,7 +6,6 @@ using System.Linq;
 
 namespace Starmaze
 {
-
 	public static class Log
 	{
 		// Screw singletons.
@@ -52,7 +51,6 @@ namespace Starmaze
 
 			return String.Format("Starmaze version: {0} OS: {1}, runtime version {2}", Util.StarmazeVersion, os, runtimeVersion);
 		}
-
 		// These Conditional() flags mark these methods as never getting called if we are not
 		// making a DEBUG build.  Monodevelop sets the DEBUG #define or not based
 		// on project build mode.  Supposedly; in reality, it seems a little conservative
@@ -77,7 +75,6 @@ namespace Starmaze
 			}
 		}
 
-
 		[Conditional("DEBUG")]
 		public static void Warn(bool assertion, string message, params object[] args)
 		{
@@ -88,7 +85,6 @@ namespace Starmaze
 				Log.Message(new StackTrace().ToString());
 			}
 		}
-
 		// Do we want a debug-only version of this?  That's _kind_ of the above Warn() method...
 		public static void Message(string message, params object[] args)
 		{

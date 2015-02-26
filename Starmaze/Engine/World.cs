@@ -22,11 +22,15 @@ namespace Starmaze.Engine
 		HashSet<Actor> ActorsToAdd;
 		HashSet<Actor> ActorsToRemove;
 
-
 		public event EventHandler<FrameEventArgs> OnUpdate;
 		public event EventHandler<KeyboardKeyEventArgs> OnKeyPress;
 		public event EventHandler<KeyboardKeyEventArgs> OnKeyRelease;
 		public event EventHandler<EventArgs> OnDeath;
+
+		public ParticleGroup grp;
+		ParticleController cont;
+		ParticleRenderer rend;
+		ParticleEmitter emit;
 
 		public World(Actor player, WorldMap map, string initialZone, string initialRoom)
 		{
@@ -41,6 +45,11 @@ namespace Starmaze.Engine
 			Map = map;
 			ChangeRoom(Map[initialZone][initialRoom]);
 			AddActor(player);
+
+			grp = new ParticleGroup();
+			cont = new ParticleController();
+			rend = new ParticleRenderer();
+			emit = new ParticleEmitter(0.001);
 		}
 
 		/// <summary>
@@ -116,11 +125,15 @@ namespace Starmaze.Engine
 
 			ActorsToAdd.Clear();
 			ActorsToRemove.Clear();
+			
+			//emit.Update(dt, grp);
+			//cont.Update(dt, grp);
 		}
 
 		public void Draw(ViewManager view)
 		{
 			RenderManager.Render(view);
+			//rend.Draw(view, grp);
 		}
 
 		public void Resize(int width, int height)
@@ -150,7 +163,6 @@ namespace Starmaze.Engine
 				OnKeyRelease(this, e);
 			}
 		}
-
 		// Hrmbl grmbl C# blrgl not letting random classes invoke events
 		// Which is to say, if any event needs to be triggered by something other than the World
 		// itself, it needs a method like this to make it accessible.

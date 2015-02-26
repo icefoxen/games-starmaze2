@@ -56,8 +56,6 @@ namespace Starmaze
 			var optionString = JsonConvert.SerializeObject(options);
 			File.WriteAllText(fileName, optionString);
 		}
-
-        
 	}
 
 	/// <summary>
@@ -85,8 +83,6 @@ namespace Starmaze
 			// set up.
 			Options = options;
 		}
-
-
 
 		WorldMap BuildTestLevel()
 		{
@@ -157,7 +153,7 @@ namespace Starmaze
 		void HandleKeyDown(object sender, OpenTK.Input.KeyboardKeyEventArgs e)
 		{
 			if (e.Key == OpenTK.Input.Key.Escape ||
-			    (e.Key == OpenTK.Input.Key.F4 && e.Alt)) {
+				(e.Key == OpenTK.Input.Key.F4 && e.Alt)) {
 				Exit();
 			} else {
 				World.HandleKeyDown(e);
@@ -183,7 +179,6 @@ namespace Starmaze
 				frames = 0;
 			}
 		}
-
 
 		void HandleRender(object sender, FrameEventArgs e)
 		{

@@ -91,8 +91,6 @@ namespace Starmaze.Engine
 		}
 	}
 	*/
-
-
 	/// <summary>
 	/// A particle!  Mainly just here to contain things.
 	/// </summary>
@@ -176,7 +174,7 @@ namespace Starmaze.Engine
 
 		public void Draw(ViewManager view, ParticleGroup group)
 		{
-			/*
+
 			Graphics.TheGLTracking.SetShader(shader);
 			shader.UniformMatrix("projection", view.ProjectionMatrix);
 			foreach (var p in group.Particles) {
@@ -185,7 +183,7 @@ namespace Starmaze.Engine
 				shader.Uniformf("colorOffset", p.Color.R, p.Color.G, p.Color.B, p.Color.A);
 				array.Draw();
 			}
-			*/
+
 		}
 	}
 
@@ -197,7 +195,6 @@ namespace Starmaze.Engine
 		double lastTime = 0.0;
 		double nextTime = 0.0;
 		double emitDelay;
-
 		Random rand;
 
 		public ParticleEmitter(double emitDelay = 0.1)
@@ -249,6 +246,5 @@ namespace Starmaze.Engine
 			controller.Update(dt, group);
 		}
 	}
-
 }
 

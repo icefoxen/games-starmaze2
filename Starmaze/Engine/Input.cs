@@ -5,13 +5,11 @@ using OpenTK.Input;
 using Newtonsoft.Json;
 using System.Collections;
 
-
 namespace Starmaze.Engine
 {
 	public class KeyBindings
 	{
 		//store name and the key
-
 		public readonly Key MoveLeft, MoveRight, MoveUp, MoveDown;
 		public readonly Key Fire1, Fire2, Defend;
 
@@ -26,9 +24,7 @@ namespace Starmaze.Engine
 			Fire2 = Key.X;
 			Defend = Key.Z;
 		}
-
 	}
-
 
 	public static class Input
 	{
@@ -49,5 +45,4 @@ namespace Starmaze.Engine
 			Keys = bindings;
 		}
 	}
-
 }

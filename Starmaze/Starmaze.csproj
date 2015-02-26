@@ -86,6 +86,7 @@
     <Compile Include="Engine\Camera.cs" />
     <Compile Include="Engine\Postproc.cs" />
     <Compile Include="Log.cs" />
+    <Compile Include="Engine\Sprite.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

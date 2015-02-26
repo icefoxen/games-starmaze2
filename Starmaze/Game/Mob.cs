@@ -144,7 +144,7 @@ namespace Starmaze.Game
 			}
 		}
 	}
-	//end TimedLife component
+	// Check out this awesomeness: http://gameprogrammingpatterns.com/state.html
 	/// <summary>
 	/// A Component that fires bullets of various types.
 	/// </summary>
@@ -169,7 +169,6 @@ namespace Starmaze.Game
 			HandledEvents = EventType.OnKeyPress | EventType.OnKeyRelease;
 		}
 
-   
 		public override void OnKeyPress(object sender, KeyboardKeyEventArgs e)
 		{
 			Log.Message("Key down: {0}", e.Key);
@@ -191,8 +190,6 @@ namespace Starmaze.Game
 		{
 
 		}
-
-
 	}
 	//TODO: ParticleSystem reimplementation seems to depend on implementation of graphics
 	//Might belong in Component instead?
