@@ -10,7 +10,7 @@ namespace Starmaze.Engine
 	public class Actor : IComparable<Actor>
 	{
 		// Components.
-		public HashSet<Component> Components;
+		public List<Component> Components;
 		// We handle the Body specially since it's common to want to get it directly
 		// But in the end it has to go in the Components set as well(?)
 		Body _body;
@@ -62,7 +62,7 @@ namespace Starmaze.Engine
 			RenderClass = "TestRenderer";
 			OrderingNumber = Util.GetSerial();
 			//Model = null;
-			Components = new HashSet<Component>();
+			Components = new List<Component>();
 		}
 
 		/// <summary>

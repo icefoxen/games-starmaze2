@@ -127,7 +127,8 @@ namespace Starmaze.Engine
 			BoxBlock a = new BoxBlock(new BBox(0.0, 1.0, 2.0, 2.0), Color4.AliceBlue);
 			var json = JsonConvert.SerializeObject(a, jset);
 			Log.Message("Box block: {0}", json);
-			var z = JsonConvert.DeserializeObject<BoxBlock>(json);
+			var z = JsonConvert.DeserializeObject<BoxBlock>(json,new ActorConverter());
+			//using(
 			var postJson = JsonConvert.SerializeObject(z, jset);
 			Log.Message("Box block: {0}", postJson);
 
