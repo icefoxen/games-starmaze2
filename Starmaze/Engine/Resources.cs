@@ -218,7 +218,7 @@ namespace Starmaze.Engine
 			}
 		}
 
-		public static ResourceLoader InitResources()
+		public static ResourceLoader Init()
 		{
 			if (_TheResources != null) {
 				// XXX: Better exception type

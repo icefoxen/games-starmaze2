@@ -26,7 +26,7 @@ namespace Starmaze
 
 		public VSyncMode Vsync;
 		public GameWindowFlags WindowMode;
-		public KeyBindings KeyBindings;
+		public KeyboardBinding KeyBinding;
 
 		public GameOptions()
 		{
@@ -34,7 +34,7 @@ namespace Starmaze
 			ResolutionH = 768;
 			Vsync = VSyncMode.On;
 			WindowMode = GameWindowFlags.Default;
-			KeyBindings = new KeyBindings();
+			KeyBinding = new KeyboardBinding(new KeyConfig());
 		}
 
 		public static GameOptions OptionsFromFile(string fileName = "settings.cfg")
@@ -111,11 +111,10 @@ namespace Starmaze
 		protected override void OnLoad(System.EventArgs e)
 		{
 			VSync = Options.Vsync;
-			Input.Init(Options.KeyBindings);
 			Graphics.Init();
 			// Has to be called after the Graphics setup if it's going to be preloading
 			// textures and shaders and such...
-			Resources.InitResources();
+			Resources.Init();
 			var map = BuildTestLevel();
 			var player = new Player();
 			View = new ViewManager(Util.LogicalScreenWidth, Util.LogicalScreenWidth / Options.AspectRatio);
@@ -156,15 +155,21 @@ namespace Starmaze
 				(e.Key == OpenTK.Input.Key.F4 && e.Alt)) {
 				Exit();
 			} else {
-				World.HandleKeyDown(e);
+				var keyaction = Options.KeyBinding.Action(e.Key);
+				if (keyaction != null) {
+					World.HandleKeyDown(keyaction);
+				}
 			}
 		}
 
 		void HandleKeyUp(object sender, OpenTK.Input.KeyboardKeyEventArgs e)
 		{
-			World.HandleKeyUp(e);
+			var keyaction = Options.KeyBinding.Action(e.Key);
+			if (keyaction != null) {
+				World.HandleKeyUp(keyaction);
+			}
 		}
-
+		// XXX: This FPS counter is a little hacky, make it better.
 		Stopwatch fpsTimer = new Stopwatch();
 		const double fpsInterval = 5;
 		int frames = 0;

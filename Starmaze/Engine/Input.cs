@@ -7,13 +7,24 @@ using System.Collections;
 
 namespace Starmaze.Engine
 {
-	public class KeyBindings
+	public enum InputAction
+	{
+		MoveLeft,
+		MoveRight,
+		MoveUp,
+		MoveDown,
+		Fire1,
+		Fire2,
+		Defend,
+	}
+
+	public class KeyConfig
 	{
 		//store name and the key
 		public readonly Key MoveLeft, MoveRight, MoveUp, MoveDown;
 		public readonly Key Fire1, Fire2, Defend;
 
-		public KeyBindings()
+		public KeyConfig()
 		{
 			MoveLeft = Key.Left;
 			MoveRight = Key.Right;
@@ -26,23 +37,26 @@ namespace Starmaze.Engine
 		}
 	}
 
-	public static class Input
+	public class KeyboardBinding
 	{
-		private static KeyBindings _keys;
+		InputAction[] Keys;
 
-		public static KeyBindings Keys {
-			get {
-				Log.Assert(_keys != null, "Tried to get key bindings that are not initialized!");
-				return _keys;
-			}
-			set {
-				_keys = value;
-			}
+		public KeyboardBinding(KeyConfig config)
+		{
+			Keys = new InputAction[(int)Key.LastKey];
+			Keys[(int)config.MoveLeft] = InputAction.MoveLeft;
+			Keys[(int)config.MoveRight] = InputAction.MoveRight;
+			Keys[(int)config.MoveUp] = InputAction.MoveUp;
+			Keys[(int)config.MoveDown] = InputAction.MoveDown;
+			
+			Keys[(int)config.Fire1] = InputAction.Fire1;
+			Keys[(int)config.Fire2] = InputAction.Fire2;
+			Keys[(int)config.Defend] = InputAction.Defend;
 		}
 
-		public static void Init(KeyBindings bindings)
+		public InputAction Action(Key key)
 		{
-			Keys = bindings;
+			return Keys[(int)key];
 		}
 	}
 }

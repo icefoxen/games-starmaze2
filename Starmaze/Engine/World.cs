@@ -23,8 +23,8 @@ namespace Starmaze.Engine
 		HashSet<Actor> ActorsToRemove;
 
 		public event EventHandler<FrameEventArgs> OnUpdate;
-		public event EventHandler<KeyboardKeyEventArgs> OnKeyPress;
-		public event EventHandler<KeyboardKeyEventArgs> OnKeyRelease;
+		public event EventHandler<InputAction> OnKeyDown;
+		public event EventHandler<InputAction> OnKeyUp;
 		public event EventHandler<EventArgs> OnDeath;
 
 		public ParticleGroup grp;
@@ -141,11 +141,11 @@ namespace Starmaze.Engine
 			RenderManager.Resize(width, height);
 		}
 
-		public void HandleKeyDown(OpenTK.Input.KeyboardKeyEventArgs e)
+		public void HandleKeyDown(InputAction a)
 		{
 			// Okay, the 'event handler with nothing attached == null' idiom is a pain in the ass
-			if (OnKeyPress != null) {
-				OnKeyPress(this, e);
+			if (OnKeyDown != null) {
+				OnKeyDown(this, a);
 			}
 			/*
 			 * Test code to make sure ChangeRoom() works; it does.
@@ -157,10 +157,10 @@ namespace Starmaze.Engine
 			*/
 		}
 
-		public void HandleKeyUp(OpenTK.Input.KeyboardKeyEventArgs e)
+		public void HandleKeyUp(InputAction a)
 		{
-			if (OnKeyRelease != null) {
-				OnKeyRelease(this, e);
+			if (OnKeyUp != null) {
+				OnKeyUp(this, a);
 			}
 		}
 		// Hrmbl grmbl C# blrgl not letting random classes invoke events

@@ -48,11 +48,10 @@ namespace Starmaze.Game
 		}
 
 		[System.Runtime.Serialization.OnDeserialized]
-		protected void PostDeserialize(System.Runtime.Serialization.StreamingContext context)
+		protected override void PostDeserialize(System.Runtime.Serialization.StreamingContext context)
 		{
 			Log.Message("Rawr!");
 		}
-
 
 		public BoxBlock(BBox bbox, Color4 color)
 		{

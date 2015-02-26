@@ -1,6 +1,5 @@
 ﻿using System;
 using OpenTK;
-using OpenTK.Input;
 
 namespace Starmaze.Engine
 {
@@ -9,13 +8,11 @@ namespace Starmaze.Engine
 	{
 		None = 0,
 		OnUpdate = 1 << 0,
-		OnKeyPress = 1 << 1,
-		OnKeyRelease = 1 << 2,
+		OnKeyDown = 1 << 1,
+		OnKeyUp = 1 << 2,
 		OnDeath = 1 << 3,
 	}
-
 	// Other event types: OnRoomChange?  OnZoneChange?  Plus physics-based ones, of course...
-
 	/// <summary>
 	/// Base class for all Components.  Actors are made of Components.
 	/// </summary>
@@ -29,7 +26,6 @@ namespace Starmaze.Engine
 			Owner = owner;
 			HandledEvents = EventType.None;
 		}
-
 		// It would be nice if these were unnecessary; we could just provide a list of events somehow
 		// that each component cares about and the system would be smart enough to add/remove them itself.
 		public void RegisterEvents(World w)
@@ -38,11 +34,11 @@ namespace Starmaze.Engine
 			if (HandledEvents.HasFlag(EventType.OnUpdate)) {
 				w.OnUpdate += OnUpdate;
 			}
-			if (HandledEvents.HasFlag(EventType.OnKeyPress)) {
-				w.OnKeyPress += OnKeyPress;
+			if (HandledEvents.HasFlag(EventType.OnKeyDown)) {
+				w.OnKeyDown += OnKeyDown;
 			}
-			if (HandledEvents.HasFlag(EventType.OnKeyRelease)) {
-				w.OnKeyRelease += OnKeyRelease;
+			if (HandledEvents.HasFlag(EventType.OnKeyUp)) {
+				w.OnKeyUp += OnKeyUp;
 			}
 			if (HandledEvents.HasFlag(EventType.OnDeath)) {
 				w.OnDeath += OnDeath;
@@ -54,11 +50,11 @@ namespace Starmaze.Engine
 			if (HandledEvents.HasFlag(EventType.OnUpdate)) {
 				w.OnUpdate -= OnUpdate;
 			}
-			if (HandledEvents.HasFlag(EventType.OnKeyPress)) {
-				w.OnKeyPress -= OnKeyPress;
+			if (HandledEvents.HasFlag(EventType.OnKeyDown)) {
+				w.OnKeyDown -= OnKeyDown;
 			}
-			if (HandledEvents.HasFlag(EventType.OnKeyRelease)) {
-				w.OnKeyRelease -= OnKeyRelease;
+			if (HandledEvents.HasFlag(EventType.OnKeyUp)) {
+				w.OnKeyUp -= OnKeyUp;
 			}
 			if (HandledEvents.HasFlag(EventType.OnDeath)) {
 				w.OnDeath -= OnDeath;
@@ -70,12 +66,12 @@ namespace Starmaze.Engine
 
 		}
 
-		public virtual void OnKeyPress(object sender, OpenTK.Input.KeyboardKeyEventArgs args)
+		public virtual void OnKeyDown(object sender, InputAction a)
 		{
 
 		}
 
-		public virtual void OnKeyRelease(object sender, OpenTK.Input.KeyboardKeyEventArgs args)
+		public virtual void OnKeyUp(object sender, InputAction a)
 		{
 
 		}
