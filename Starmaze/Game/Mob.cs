@@ -159,34 +159,37 @@ namespace Starmaze.Game
 	}
 
 	/// <summary>
-	/// A Component that moves an Actor around and such based on key inputs.
+	/// A Component that moves an Actor around and such based on user inputs.
 	/// </summary>
-	public class KeyboardController : Component
+	public class InputController : Component
 	{
 
-		public KeyboardController(Actor owner) : base(owner)
+		public InputController(Actor owner) : base(owner)
 		{
-			HandledEvents = EventType.OnKeyPress | EventType.OnKeyRelease;
+			HandledEvents = EventType.OnKeyDown | EventType.OnKeyUp;
 		}
 
-		public override void OnKeyPress(object sender, KeyboardKeyEventArgs e)
+		public override void OnKeyDown(object sender, InputAction a)
 		{
-			Log.Message("Key down: {0}", e.Key);
+			Log.Message("Key down: {0}", a);
 
-			// A switch statement won't work 'cause Input.Keys.whatever can't be constant.
-			// Sour.
-			if (e.Key == Input.Keys.MoveLeft) {
-				Owner.Body.AddImpulse(Vector2d.UnitX * -5);
-			} else if (e.Key == Input.Keys.MoveRight) {
-				Owner.Body.AddImpulse(Vector2d.UnitX * 5);
-			} else if (e.Key == Input.Keys.MoveUp) {
-				Owner.Body.AddImpulse(Vector2d.UnitY * 5);
-			} else if (e.Key == Input.Keys.MoveDown) {
-				Owner.Body.AddImpulse(Vector2d.UnitY * -5);
+			switch (a) {
+				case InputAction.MoveUp:
+					Owner.Body.AddVelocity(new Vector2d(0, 5));
+					break;
+				case InputAction.MoveDown:
+					Owner.Body.AddVelocity(new Vector2d(0, -5));
+					break;
+				case InputAction.MoveLeft:
+					Owner.Body.AddVelocity(new Vector2d(-5, 0));
+					break;
+				case InputAction.MoveRight:
+					Owner.Body.AddVelocity(new Vector2d(5, 0));
+					break;
 			}
 		}
 
-		public override void OnKeyRelease(object sender, KeyboardKeyEventArgs e)
+		public override void OnKeyUp(object sender, InputAction a)
 		{
 
 		}

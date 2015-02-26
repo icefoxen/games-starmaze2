@@ -13,7 +13,7 @@ namespace Starmaze.Game
 			Body.AddGeom(new BoxGeom(new BBox(-5, -5, 5, 5)));
 			var model = Resources.TheResources.GetModel("TestModel");
 			RenderParams = new StaticRendererParams(model);
-			Components.Add(new KeyboardController(this));
+			Components.Add(new InputController(this));
 			KeepOnRoomChange = true;
 		}
 	}
