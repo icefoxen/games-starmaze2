@@ -48,7 +48,7 @@ namespace Starmaze.Engine
 				g = new GameWindow();
 			}
 			if (!Resources.IsInitialized) {
-				Resources.InitResources();
+				Resources.Init();
 			}
 			jset = new JsonSerializerSettings { PreserveReferencesHandling = PreserveReferencesHandling.Objects };
 		}
