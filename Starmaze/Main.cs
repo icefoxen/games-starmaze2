@@ -152,11 +152,11 @@ namespace Starmaze
 		void HandleKeyDown(object sender, OpenTK.Input.KeyboardKeyEventArgs e)
 		{
 			if (e.Key == OpenTK.Input.Key.Escape ||
-				(e.Key == OpenTK.Input.Key.F4 && e.Alt)) {
+			    (e.Key == OpenTK.Input.Key.F4 && e.Alt)) {
 				Exit();
 			} else {
 				var keyaction = Options.KeyBinding.Action(e.Key);
-				if (keyaction != null) {
+				if (keyaction != InputAction.Unbound) {
 					World.HandleKeyDown(keyaction);
 				}
 			}
@@ -165,7 +165,7 @@ namespace Starmaze
 		void HandleKeyUp(object sender, OpenTK.Input.KeyboardKeyEventArgs e)
 		{
 			var keyaction = Options.KeyBinding.Action(e.Key);
-			if (keyaction != null) {
+			if (keyaction != InputAction.Unbound) {
 				World.HandleKeyUp(keyaction);
 			}
 		}

@@ -9,6 +9,7 @@ namespace Starmaze.Engine
 {
 	public enum InputAction
 	{
+		Unbound,
 		MoveLeft,
 		MoveRight,
 		MoveUp,
@@ -43,6 +44,8 @@ namespace Starmaze.Engine
 
 		public KeyboardBinding(KeyConfig config)
 		{
+			// Array gets filled with default(InputAction) by default, which is equivalent to (InputAction)0 ,
+			// which is the first item in the enum, which is InputAction.Unbound
 			Keys = new InputAction[(int)Key.LastKey];
 			Keys[(int)config.MoveLeft] = InputAction.MoveLeft;
 			Keys[(int)config.MoveRight] = InputAction.MoveRight;
