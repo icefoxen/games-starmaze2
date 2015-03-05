@@ -66,7 +66,7 @@ namespace Starmaze
 		}
 
 		// BUGGO: There's really no way to do this in C#?
-		public static T[] InitArray<T>(int length, T initItem)
+		public static T[] FillArray<T>(int length, T initItem)
 		{
 			var arr = new T[length];
 			for (int i = 0; i < arr.Length; i++) {

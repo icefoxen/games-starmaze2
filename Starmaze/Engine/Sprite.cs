@@ -67,7 +67,8 @@ namespace Starmaze.Engine
 	}
 
 	/// <summary>
-	/// A sequence of Texture's with timing information 
+	/// A sequence of delays that keeps track of a state; it is utterly independent of 
+	/// what it is actually animating.
 	/// </summary>
 	public class Animation
 	{
@@ -85,7 +86,7 @@ namespace Starmaze.Engine
 			Delays = frames;
 		}
 
-		public Animation(int maxframes, double delay) : this(Util.InitArray(maxframes, delay))
+		public Animation(int maxframes, double delay) : this(Util.FillArray(maxframes, delay))
 		{
 		}
 
@@ -148,11 +149,6 @@ namespace Starmaze.Engine
 			var dt = args.Time;
 			Animations[CurrentAnim].Update(dt);
 		}
-	}
-
-	public class AnimModel
-	{
-
 	}
 }
 
