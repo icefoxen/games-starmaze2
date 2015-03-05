@@ -70,7 +70,7 @@ namespace Starmaze.Game
 			// XXX: Should we need to get a shader here?  We probably shouldn't.
 			var shader = Resources.TheResources.GetShader("default");
 			var model = vertModel.ToVertexArray(shader);
-			RenderParams = new StaticRendererParams(model);
+			RenderState = new ModelRenderState(model, this);
 		}
 	}
 }

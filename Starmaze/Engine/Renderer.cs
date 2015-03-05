@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using OpenTK;
 using OpenTK.Graphics;
@@ -33,24 +34,87 @@ namespace Starmaze.Engine
 		}
 	}
 	*/
-	public class RendererParams
+	public class RenderState : IComparable<RenderState>
 	{
-		public readonly string RenderClass;
+		public IRenderer Renderer;
+		public Body Body;
+		long OrderingNumber;
 
-		public RendererParams(string renderclass)
+		public RenderState(string renderclass, Actor act)
 		{
-			RenderClass = renderclass;
+			Renderer = Resources.TheResources.GetRenderer(renderclass);
+			Body = act.Body;
+			OrderingNumber = Util.GetSerial();
+		}
+
+
+		public int CompareTo(RenderState other)
+		{
+			return OrderingNumber.CompareTo(other.OrderingNumber);
 		}
 	}
 
-	public class StaticRendererParams : RendererParams
+	public class ModelRenderState : RenderState
 	{
 		public VertexArray Model;
 
-		public StaticRendererParams(VertexArray model) : base("StaticRenderer")
+		public ModelRenderState(VertexArray model, Actor act) : base("StaticModelRenderer", act)
 		{
 			Log.Assert(model != null);
 			Model = model;
+		}
+	}
+
+	public class BillboardRenderState : RenderState
+	{
+		public Texture Texture;
+
+		// XXX: Should be BillboardRenderer, if we're sure it's beyond test quality.
+		public BillboardRenderState(Texture texture, Actor act) : base("TexTestRenderer", act)
+		{
+			Log.Assert(texture != null);
+			Texture = texture;
+		}
+	}
+
+	public class SpriteRenderState : RenderState
+	{
+		public Sprite Sprite;
+
+		public SpriteRenderState(Sprite sprite, Actor act) : base("SpriteRenderer", act)
+		{
+			Log.Assert(sprite != null);
+			Sprite = sprite;
+		}
+	}
+
+	public class RenderBatch<T> where T : RenderState
+	{
+		public SortedSet<T> RenderState;
+
+		public RenderBatch()
+		{
+			RenderState = new SortedSet<T>();
+		}
+
+		public void Add(RenderState r)
+		{
+			T fml = r as T;
+			if (fml == null) {
+				Log.Message("Something...");
+			} else {
+				Add(fml);
+			}
+		}
+
+		public void Add(T r)
+		{
+			RenderState.Add(r);
+		}
+
+		public void Remove(T r)
+		{
+			RenderState.Remove(r);
 		}
 	}
 
@@ -63,19 +127,21 @@ namespace Starmaze.Engine
 	/// </summary>
 	public class RenderManager
 	{
-		SortedDictionary<IRenderer, SortedSet<Actor>> Renderers;
+		//SortedDictionary<IRenderer, SortedSet<Actor>> Renderers;
+		SortedSet<IRenderer> Renderers;
 		PostprocPipeline postproc;
 
 		public RenderManager(int width, int height)
 		{
-
-			// Fill out the required data structures.
-			Renderers = new SortedDictionary<IRenderer, SortedSet<Actor>>();
-			foreach (var renderclass in Util.GetSubclassesOf(typeof(Renderer))) {
+			Renderers = new SortedSet<IRenderer>();
+			foreach (var renderclass in Util.GetImplementorsOf(typeof(IRenderer))) {
 				// Remember to get the cached renderer from the resources system here.
-				var renderer = Resources.TheResources.GetRenderer(renderclass.Name);
-				//Console.WriteLine("Adding renderer {0}", renderer);
-				Renderers[renderer] = new SortedSet<Actor>();
+
+				if (!renderclass.ContainsGenericParameters && !renderclass.IsAbstract) {
+					var renderer = Resources.TheResources.GetRenderer(renderclass.Name);
+					Console.WriteLine("Adding renderer {0}", renderer);
+					Renderers.Add(renderer);
+				}
 				//Renderers.Add(renderer, new SortedSet<Actor>());
 			}
 
@@ -89,11 +155,9 @@ namespace Starmaze.Engine
 
 		public void Add(Actor act)
 		{
-			// OPT: Not caching the Renderer instance on the Actor feels a little goofy, but,
-			// should work fine if we don't do this too often.
-			var renderer = Resources.TheResources.GetRenderer(act.RenderClass);
 			//Console.WriteLine("Got renderer {0} for actor {1}", renderer, act);
-			Renderers[renderer].Add(act);
+			var rs = act.RenderState;
+			rs.Renderer.Add(rs);
 			//foreach (var r in Renderers) {
 			//	Console.WriteLine("Renderer: {0}, total {1}", r, Renderers.Count);
 			//}
@@ -101,19 +165,16 @@ namespace Starmaze.Engine
 
 		public void Remove(Actor act)
 		{
-			// OPT: Same as Add()
-			var renderer = Resources.TheResources.GetRenderer(act.RenderClass);
-			Renderers[renderer].Remove(act);
+			var rs = act.RenderState;
+			rs.Renderer.Remove(rs);
 		}
 
 		public void Render(ViewManager view)
 		{
 			Action thunk = () => {
-				foreach (var kv in Renderers) {
-					var renderer = kv.Key;
-					var actors = kv.Value;
+				foreach (var renderer in Renderers) {
 					//Console.WriteLine("Rendering {0} with {1}?", actors, renderer);
-					renderer.RenderMany(view, actors);
+					renderer.Render(view);
 				}
 			};
 
@@ -140,9 +201,11 @@ namespace Starmaze.Engine
 
 		long serial { get; set; }
 
-		void RenderStart();
+		void Render(ViewManager view);
 
-		void RenderMany(ViewManager view, IEnumerable<Actor> actors);
+		void Add(RenderState r);
+
+		void Remove(RenderState r);
 	}
 
 	/// <summary>
@@ -155,7 +218,7 @@ namespace Starmaze.Engine
 	/// Note that these should not keep Actor-level state around.  If it needs some data per-Actor,
 	/// the Actors need to be able to provide it.
 	/// </summary>
-	public abstract class Renderer : IComparable<IRenderer>, IRenderer
+	public abstract class Renderer<T> : IRenderer where T : RenderState
 	{
 		public ZOrder zOrder { get; set; }
 
@@ -164,10 +227,14 @@ namespace Starmaze.Engine
 		protected GLDiscipline discipline;
 		protected Shader shader;
 
+		protected RenderBatch<T> RenderBatch;
+
 		public Renderer()
 		{
 			zOrder = ZOrder.FG;
 			serial = Util.GetSerial();
+			RenderBatch = new RenderBatch<T>();
+			discipline = GLDiscipline.DEFAULT;
 		}
 
 		public virtual void RenderStart()
@@ -176,22 +243,43 @@ namespace Starmaze.Engine
 			Graphics.TheGLTracking.SetShader(shader);
 		}
 
+
 		/// <summary>
 		/// Must be overriden in subclasses.
 		/// </summary>
 		/// <param name="view">View.</param>
 		/// <param name="act">Act.</param>
-		public virtual void RenderOne(ViewManager view, Actor act)
+		public virtual void Render(ViewManager view)
+		{
+			RenderStart();
+			foreach (var rs in RenderBatch.RenderState) {
+				RenderOne(view, rs);
+			}
+		}
+
+		protected virtual void RenderOne(ViewManager view, T r)
 		{
 
 		}
 
-		public virtual void RenderMany(ViewManager view, IEnumerable<Actor> actors)
+		public void Add(RenderState r)
 		{
-			RenderStart();
-			foreach (var act in actors) {
-				RenderOne(view, act);
-			}
+			RenderBatch.Add(r);
+		}
+
+		public void Remove(RenderState r)
+		{
+			RenderBatch.Remove(r as T);
+		}
+
+		public void Add(T r)
+		{
+			RenderBatch.Add(r);
+		}
+
+		public void Remove(T r)
+		{
+			RenderBatch.Remove(r);
 		}
 
 		/// <Docs>To be added.</Docs>
@@ -217,18 +305,11 @@ namespace Starmaze.Engine
 	/// <summary>
 	/// A renderer that draws nothing.
 	/// </summary>
-	// OPT: Having a Renderer that draws nothing and using that for invisible objects is wasteful because
-	// we still go through all the mechanics of adding and removing Actors to it, calling the code to draw
-	// them, and so on.  BUT, for now, it is also simpler, because we don't have to special-case out Renderers
-	// that do nothing.  Overriding RenderActors makes life a little better though.
-	public class NullRenderer : Renderer
+	public class NullRenderer : Renderer<RenderState>
 	{
-		public override void RenderMany(ViewManager view, IEnumerable<Actor> actors)
-		{
-		}
 	}
 
-	public class TestRenderer : Renderer
+	public class TestRenderer : Renderer<RenderState>
 	{
 		VertexArray model;
 
@@ -239,10 +320,10 @@ namespace Starmaze.Engine
 			discipline = GLDiscipline.DEFAULT;
 		}
 
-		public override void RenderOne(ViewManager view, Actor act)
+		protected override void RenderOne(ViewManager view, RenderState r)
 		{
 			//Console.WriteLine("Drawing actor");
-			var pos = new Vector2((float)act.Body.Position.X, (float)act.Body.Position.Y);
+			var pos = new Vector2((float)r.Body.Position.X, (float)r.Body.Position.Y);
 			var transform = new Transform(pos, 0.0f);
 			var mat = transform.TransformMatrix(view.ProjectionMatrix);
 			shader.UniformMatrix("projection", mat);
@@ -250,71 +331,65 @@ namespace Starmaze.Engine
 		}
 	}
 
-	public class StaticRenderer : Renderer
+	public class StaticModelRenderer : Renderer<ModelRenderState>
 	{
-		public StaticRenderer() : base()
+
+		public StaticModelRenderer() : base()
 		{
 			shader = Resources.TheResources.GetShader("default");
 			discipline = GLDiscipline.DEFAULT;
 		}
 
-		public override void RenderOne(ViewManager view, Actor act)
+		protected override void RenderOne(ViewManager view, ModelRenderState r)
 		{
-			var pos = new Vector2((float)act.Body.Position.X, (float)act.Body.Position.Y);
+			var pos = new Vector2((float)r.Body.Position.X, (float)r.Body.Position.Y);
 			var transform = new Transform(pos, 0.0f);
 			var mat = transform.TransformMatrix(view.ProjectionMatrix);
 			shader.UniformMatrix("projection", mat);
-			var parms = act.RenderParams as StaticRendererParams;
-			if (parms != null) {
-				parms.Model.Draw();
-			}
+			r.Model.Draw();
 		}
 	}
 
-	public class TexTestRenderer : Renderer
+	public class TexTestRenderer : Renderer<BillboardRenderState>
 	{
-		Texture tex;
 		VertexArray billboard;
 
 		public TexTestRenderer() : base()
 		{
 			shader = Resources.TheResources.GetShader("default-tex");
 			discipline = GLDiscipline.DEFAULT;
-			tex = Resources.TheResources.GetTexture("playertest");
 			billboard = Resources.TheResources.GetModel("Billboard");
-		
 		}
 
-		public override void RenderOne(ViewManager view, Actor act)
+		protected override void RenderOne(ViewManager view, BillboardRenderState r)
 		{
-			var pos = new Vector2((float)act.Body.Position.X, (float)act.Body.Position.Y);
+			var pos = new Vector2((float)r.Body.Position.X, (float)r.Body.Position.Y);
 			var transform = new Transform(pos, 0.0f);
 			var mat = transform.TransformMatrix(view.ProjectionMatrix);
 			shader.UniformMatrix("projection", mat);
 			// This is, inconveniently, not the texture handle but in fact the texture unit offset.
 			shader.Uniformi("texture", 0);
-			tex.Enable();
+			r.Texture.Enable();
 			billboard.Draw();
-			tex.Disable();
+			r.Texture.Disable();
 		}
 	}
 
-	public class SpriteTestRenderer : Renderer
+	public class SpriteRenderer : Renderer<SpriteRenderState>
 	{
 		VertexArray billboard;
 
-		public SpriteTestRenderer() : base()
+		public SpriteRenderer() : base()
 		{
 			shader = Resources.TheResources.GetShader("default-sprite");
 			discipline = GLDiscipline.DEFAULT;
 			billboard = Resources.TheResources.GetModel("Billboard");
-
 		}
 
-		public override void RenderOne(ViewManager view, Actor act)
+		protected override void RenderOne(ViewManager view, SpriteRenderState r)
 		{
-			var sprite = act.GetComponent<Sprite>();
-			var pos = new Vector2((float)act.Body.Position.X, (float)act.Body.Position.Y);
+			var sprite = r.Sprite;
+			var pos = new Vector2((float)r.Body.Position.X, (float)r.Body.Position.Y);
 			var transform = new Transform(pos, 0.0f, new Vector2(5, 5));
 			var mat = transform.TransformMatrix(view.ProjectionMatrix);
 			shader.UniformMatrix("projection", mat);
@@ -327,7 +402,7 @@ namespace Starmaze.Engine
 		}
 	}
 
-	public class SwirlyTestRenderer : Renderer
+	public class SwirlyTestRenderer : Renderer<RenderState>
 	{
 		readonly Color4[] Colors = new Color4[] {
 			new Color4(1.0f, 0f, 0f, 0.3f),
@@ -372,20 +447,8 @@ namespace Starmaze.Engine
 			time = 0.0;
 		}
 
-		public override void RenderOne(ViewManager view, Actor act)
+		protected override void RenderOne(ViewManager view, RenderState r)
 		{
-			/*
-			var pos = new Vector2((float)act.Body.Position.X, (float)act.Body.Position.Y);
-			var transform = new Transform(pos, 0.0f);
-			var mat = transform.TransformMatrix(view.ProjectionMatrix);
-			shader.UniformMatrix("projection", mat);
-			var parms = act.RenderParams as StaticRendererParams;
-			if (parms != null) {
-				parms.Model.Draw();
-			}
-			*/
-
-
 			time += 0.0005;
 			for (int i = 0; i < Rects.Count; i++) {
 				var pos = Vector2.Zero;

@@ -54,7 +54,7 @@ namespace Starmaze.Engine
 		public bool KeepOnRoomChange = false;
 		// Used for StaticRenderer
 		//public VertexArray Model;
-		public RendererParams RenderParams;
+		public RenderState RenderState;
 		// XXX: Dependency inversion
 		public World World;
 

@@ -12,7 +12,6 @@ namespace Starmaze.Game
 			Body = new Body(this);
 			Body.AddGeom(new BoxGeom(new BBox(-5, -5, 5, 5)));
 			var model = Resources.TheResources.GetModel("TestModel");
-			RenderParams = new StaticRendererParams(model);
 			Components.Add(new InputController(this));
 
 			var tex = Resources.TheResources.GetTexture("animtest");
@@ -21,8 +20,9 @@ namespace Starmaze.Game
 			var anim2 = new Animation(2, 0.2);
 			var sprite = new Sprite(this, atlas, anim);
 			sprite.AddAnimation(anim2);
-			sprite.CurrentAnim = 1;
+			sprite.CurrentAnim = 0;
 			Components.Add(sprite);
+			RenderState = new SpriteRenderState(sprite, this);
 			KeepOnRoomChange = true;
 		}
 	}

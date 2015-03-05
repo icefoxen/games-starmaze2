@@ -15,7 +15,7 @@ namespace Starmaze.Engine
 	{
 
 		string ResourceRoot;
-		Dictionary<string, Renderer> RendererCache;
+		Dictionary<string, IRenderer> RendererCache;
 		Dictionary<string, Texture> TextureCache;
 		Dictionary<string, Shader> ShaderCache;
 		Dictionary<string, VertexArray> ModelCache;
@@ -31,7 +31,7 @@ namespace Starmaze.Engine
 			// in the resource path root.
 			basePath = System.IO.Path.Combine(basePath, "..");
 			ResourceRoot = basePath;
-			RendererCache = new Dictionary<string, Renderer>();
+			RendererCache = new Dictionary<string, IRenderer>();
 			TextureCache = new Dictionary<string, Texture>();
 			ShaderCache = new Dictionary<string, Shader>();
 			ModelCache = new Dictionary<string, VertexArray>();
@@ -59,23 +59,46 @@ namespace Starmaze.Engine
 		/// name.  Using strings to refer to them is a _little_ grotty but reflects nicely.
 		/// </summary>
 		/// <returns>The render map.</returns>
-		static void PreloadRenderers(Dictionary<string, Renderer> rendererMap)
+		static void PreloadRenderers(Dictionary<string, IRenderer> rendererMap)
 		{
-			var subclasses = Util.GetSubclassesOf(typeof(Renderer));
+
+			var subclasses = Util.GetImplementorsOf(typeof(IRenderer));
+			var t = typeof(IRenderer);
 			// We go through all subclasses of Renderer, instantiate one of each, and 
 			// associate each with its name, and that gets us the string -> Renderer mapping.
+			Console.WriteLine("Preloading renderers...");
 			foreach (Type subclass in subclasses) {
 				try {
-					var renderer = (Renderer)Activator.CreateInstance(subclass);
-					rendererMap.Add(subclass.Name, renderer);
+					Log.Message("Renderer: {0}", subclass);
+					if (!subclass.ContainsGenericParameters && !subclass.IsAbstract) {
+						var renderer = (IRenderer)Activator.CreateInstance(subclass);
+						rendererMap.Add(subclass.Name, renderer);
+					}
 				} catch (System.Reflection.TargetInvocationException e) {
 					// The renderer constructor threw an exception
 					throw e.InnerException;
 				}
 			}
+
+/*
+			var r1 = new SpriteRenderer();
+			var r2 = new StaticModelRenderer();
+			var r3 = new SwirlyTestRenderer();
+			var r4 = new TestRenderer();
+			var r6 = new TexTestRenderer();
+			var rs = new IRenderer[] {
+				r1, r2, r3, r4,  r6
+			};
+
+			foreach (var r in rs) {
+				var t = r.GetType();
+				Log.Message("Preloading renderer: {0}", t.Name);
+				rendererMap.Add(t.Name, r);
+			}
+			*/
 		}
 
-		public Renderer GetRenderer(string r)
+		public IRenderer GetRenderer(string r)
 		{
 			// We don't use the ResourceLoader.Get function here 'cause all renderers
 			// are preloaded and associating a string to a renderer is a little squirrelly.

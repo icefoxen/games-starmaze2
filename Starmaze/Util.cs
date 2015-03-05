@@ -45,6 +45,16 @@ namespace Starmaze
 			var subclasses = assembly.GetTypes().Where(t => t.IsSubclassOf(baseType));
 			return subclasses;
 		}
+
+		public static IEnumerable<Type> GetImplementorsOf(Type baseType)
+		{
+			var assembly = baseType.Assembly;
+			// Monodevelop stupidly doesn't know about Linq.
+
+			var subclasses = assembly.GetTypes().Where(t => t.GetInterfaces().Contains(baseType));
+			//Log.Message("Subclasses: {0}", subclasses);
+			return subclasses;
+		}
 		// XXX: Does C# already have a generator like this somewhere?
 		// step < 0 doesn't work.
 		public static IEnumerable<uint> UnsignedRange(uint start, uint to, int step = 1)
