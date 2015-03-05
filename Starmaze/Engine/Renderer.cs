@@ -7,33 +7,6 @@ using OpenTK.Graphics.OpenGL;
 
 namespace Starmaze.Engine
 {
-	/*
-	 * This could potentially work but suddenly we have a million different types of actors...
-	 * Because suddenly we have Actor<T> which cointains slot T RendererParams.
-	 * But this DOES bind together the Renderer and RendererParams so both are always the right type...
-	 * But any collection of Actor's suddenly becomes a collection of Actor<T>, and we have to implement
-	 * IActor to abstract that out some...  Doable, but weird.
-	public class RendererParams<T> where T : Renderer
-	{
-		T Renderer;
-
-		public RendererParams(T renderer)
-		{
-			Renderer = renderer;
-		}
-	}
-
-	public class StaticRendererParams : RendererParams<StaticRenderer>
-	{
-		public VertexArray Model;
-
-		public StaticRendererParams(StaticRenderer renderer, VertexArray model) : base(renderer)
-		{
-			Log.Assert(model != null);
-			Model = model;
-		}
-	}
-	*/
 	public class RenderState : IComparable<RenderState>
 	{
 		public IRenderer Renderer;
@@ -43,6 +16,8 @@ namespace Starmaze.Engine
 		public RenderState(string renderclass, Actor act)
 		{
 			Renderer = Resources.TheResources.GetRenderer(renderclass);
+			Log.Assert(act != null);
+			Log.Assert(act.Body != null);
 			Body = act.Body;
 			OrderingNumber = Util.GetSerial();
 		}
@@ -69,8 +44,7 @@ namespace Starmaze.Engine
 	{
 		public Texture Texture;
 
-		// XXX: Should be BillboardRenderer, if we're sure it's beyond test quality.
-		public BillboardRenderState(Actor act, Texture texture) : base("TexTestRenderer", act)
+		public BillboardRenderState(Actor act, Texture texture) : base("BillboardRenderer", act)
 		{
 			Log.Assert(texture != null);
 			Texture = texture;
@@ -101,9 +75,19 @@ namespace Starmaze.Engine
 		{
 			T fml = r as T;
 			if (fml == null) {
-				Log.Message("Something...");
+				Log.Message("Something went screwy adding item to a renderbatch; expected {0}, got {1}", typeof(T), r);
 			} else {
-				Add(fml);
+				RenderState.Add(fml);
+			}
+		}
+
+		public void Remove(RenderState r)
+		{
+			T fml = r as T;
+			if (fml == null) {
+				Log.Message("Something went screwy removing item from a renderbatch; expected {0}, got {1}", typeof(T), r);
+			} else {
+				RenderState.Remove(fml);
 			}
 		}
 
@@ -121,9 +105,8 @@ namespace Starmaze.Engine
 
 	/// <summary>
 	/// A class to manage drawing a heterogenous set of actors.
-	/// This class keeps track of all Renderers and all Actors, and holds the association
-	/// between one and the other.  It also preloads Renderers and tracks; all an Actor has to do is
-	/// specify a RenderClass string.  It also handles Z ordering in the Renderers and the postprocessing
+	/// This class keeps track of all Renderers, which then keep track of which actors they draw.
+	/// It also handles Z ordering in the Renderers and the postprocessing.
 	/// pipeline.
 	/// </summary>
 	public class RenderManager
@@ -137,13 +120,10 @@ namespace Starmaze.Engine
 			Renderers = new SortedSet<IRenderer>();
 			foreach (var renderclass in Util.GetImplementorsOf(typeof(IRenderer))) {
 				// Remember to get the cached renderer from the resources system here.
-
 				if (!renderclass.ContainsGenericParameters && !renderclass.IsAbstract) {
 					var renderer = Resources.TheResources.GetRenderer(renderclass.Name);
-					Console.WriteLine("Adding renderer {0}", renderer);
 					Renderers.Add(renderer);
 				}
-				//Renderers.Add(renderer, new SortedSet<Actor>());
 			}
 
 			postproc = new PostprocPipeline(width, height);
@@ -190,7 +170,8 @@ namespace Starmaze.Engine
 
 	public enum ZOrder
 	{
-		BG = 10,
+		BG = 00,
+		Terrain = 10,
 		FG = 20,
 		GUI = 30,
 	}
@@ -245,11 +226,7 @@ namespace Starmaze.Engine
 		}
 
 
-		/// <summary>
-		/// Must be overriden in subclasses.
-		/// </summary>
-		/// <param name="view">View.</param>
-		/// <param name="act">Act.</param>
+
 		public virtual void Render(ViewManager view)
 		{
 			RenderStart();
@@ -258,6 +235,11 @@ namespace Starmaze.Engine
 			}
 		}
 
+		/// <summary>
+		/// Must be overriden in subclasses.
+		/// </summary>
+		/// <param name="view">View.</param>
+		/// <param name="r">RenderState</param>
 		protected virtual void RenderOne(ViewManager view, T r)
 		{
 
@@ -283,15 +265,14 @@ namespace Starmaze.Engine
 			RenderBatch.Remove(r);
 		}
 
-		/// <Docs>To be added.</Docs>
-		/// <para>Returns the sort order of the current instance compared to the specified object.</para>
+
 		/// <summary>
 		/// Renderers sort themselves first by their Z order, then in an arbitrary but consistent order.
 		/// This way we can all just put them in a SortedDictionary and have them draw in order without
 		/// an additional data structure to draw one layer at a time.
 		/// </summary>
-		/// <returns>The to.</returns>
-		/// <param name="other">Other.</param>
+		/// <returns>-1 for less than, 0 for equal, 1 for greater than.</returns>
+		/// <param name="other">Object to compare to.</param>
 		// OPT: I feel like it should be possible to do this without the if.
 		public int CompareTo(IRenderer other)
 		{
@@ -334,7 +315,6 @@ namespace Starmaze.Engine
 
 	public class StaticModelRenderer : Renderer<ModelRenderState>
 	{
-
 		public StaticModelRenderer() : base()
 		{
 			shader = Resources.TheResources.GetShader("default");
@@ -351,11 +331,11 @@ namespace Starmaze.Engine
 		}
 	}
 
-	public class TexTestRenderer : Renderer<BillboardRenderState>
+	public class BillboardRenderer : Renderer<BillboardRenderState>
 	{
 		VertexArray billboard;
 
-		public TexTestRenderer() : base()
+		public BillboardRenderer() : base()
 		{
 			shader = Resources.TheResources.GetShader("default-tex");
 			discipline = GLDiscipline.DEFAULT;
