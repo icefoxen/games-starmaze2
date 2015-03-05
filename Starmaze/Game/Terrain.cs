@@ -58,8 +58,7 @@ namespace Starmaze.Game
 			Log.Message("Creating new BoxBlock: {0} {1}", bbox, color);
 			Body = new Body(this, immobile: true);
 			Body.AddGeom(new BoxGeom(bbox));
-			
-			RenderClass = "StaticRenderer";
+
 			// BUGGO: Since the Actor gets the model and such themselves, instead of
 			// it being handled by the Resources system, they aren't freed properly on game end.
 			var mb = new ModelBuilder();
@@ -70,7 +69,7 @@ namespace Starmaze.Game
 			// XXX: Should we need to get a shader here?  We probably shouldn't.
 			var shader = Resources.TheResources.GetShader("default");
 			var model = vertModel.ToVertexArray(shader);
-			RenderState = new ModelRenderState(model, this);
+			RenderState = new ModelRenderState(this, model);
 		}
 	}
 }

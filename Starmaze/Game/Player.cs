@@ -7,11 +7,8 @@ namespace Starmaze.Game
 	{
 		public Player()
 		{
-			//RenderClass = "TexTestRenderer";
-			RenderClass = "SpriteTestRenderer";
 			Body = new Body(this);
 			Body.AddGeom(new BoxGeom(new BBox(-5, -5, 5, 5)));
-			var model = Resources.TheResources.GetModel("TestModel");
 			Components.Add(new InputController(this));
 
 			var tex = Resources.TheResources.GetTexture("animtest");
@@ -22,7 +19,7 @@ namespace Starmaze.Game
 			sprite.AddAnimation(anim2);
 			sprite.CurrentAnim = 0;
 			Components.Add(sprite);
-			RenderState = new SpriteRenderState(sprite, this);
+			RenderState = new SpriteRenderState(this, sprite);
 			KeepOnRoomChange = true;
 		}
 	}

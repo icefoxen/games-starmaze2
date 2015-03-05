@@ -7,7 +7,7 @@ namespace Starmaze.Engine
 	/// <summary>
 	/// An Actor is any object that exists in the game world.
 	/// </summary>
-	public class Actor : IComparable<Actor>
+	public class Actor
 	{
 		// Components.
 		public List<Component> Components;
@@ -48,33 +48,14 @@ namespace Starmaze.Engine
 		}
 
 		// Other properties
-		readonly long OrderingNumber;
-		public string RenderClass;
 		public bool Alive = true;
 		public bool KeepOnRoomChange = false;
-		// Used for StaticRenderer
-		//public VertexArray Model;
 		public RenderState RenderState;
-		// XXX: Dependency inversion
 		public World World;
 
 		public Actor()
 		{
-			RenderClass = "TestRenderer";
-			OrderingNumber = Util.GetSerial();
-			//Model = null;
 			Components = new List<Component>();
-		}
-
-		/// <summary>
-		/// Provides an ordering to Actors, allowing them to be sorted consistently, so that the rendering
-		/// code always draws them in the same order.
-		/// </summary>
-		/// <returns>The to.</returns>
-		/// <param name="other">Other Actor.</param>
-		public int CompareTo(Actor other)
-		{
-			return OrderingNumber.CompareTo(other.OrderingNumber);
 		}
 
 		public virtual void OnUpdate(object sender, EventArgs e)

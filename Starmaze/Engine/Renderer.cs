@@ -58,7 +58,7 @@ namespace Starmaze.Engine
 	{
 		public VertexArray Model;
 
-		public ModelRenderState(VertexArray model, Actor act) : base("StaticModelRenderer", act)
+		public ModelRenderState(Actor act, VertexArray model) : base("StaticModelRenderer", act)
 		{
 			Log.Assert(model != null);
 			Model = model;
@@ -70,7 +70,7 @@ namespace Starmaze.Engine
 		public Texture Texture;
 
 		// XXX: Should be BillboardRenderer, if we're sure it's beyond test quality.
-		public BillboardRenderState(Texture texture, Actor act) : base("TexTestRenderer", act)
+		public BillboardRenderState(Actor act, Texture texture) : base("TexTestRenderer", act)
 		{
 			Log.Assert(texture != null);
 			Texture = texture;
@@ -81,7 +81,7 @@ namespace Starmaze.Engine
 	{
 		public Sprite Sprite;
 
-		public SpriteRenderState(Sprite sprite, Actor act) : base("SpriteRenderer", act)
+		public SpriteRenderState(Actor act, Sprite sprite) : base("SpriteRenderer", act)
 		{
 			Log.Assert(sprite != null);
 			Sprite = sprite;
@@ -107,6 +107,7 @@ namespace Starmaze.Engine
 			}
 		}
 
+		// XXX: Are these right?
 		public void Add(T r)
 		{
 			RenderState.Add(r);
