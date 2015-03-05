@@ -35,13 +35,19 @@ namespace Starmaze.Engine
 	*/
 	public class RendererParams
 	{
+		public readonly string RenderClass;
+
+		public RendererParams(string renderclass)
+		{
+			RenderClass = renderclass;
+		}
 	}
 
 	public class StaticRendererParams : RendererParams
 	{
 		public VertexArray Model;
 
-		public StaticRendererParams(VertexArray model)
+		public StaticRendererParams(VertexArray model) : base("StaticRenderer")
 		{
 			Log.Assert(model != null);
 			Model = model;
@@ -76,7 +82,7 @@ namespace Starmaze.Engine
 			postproc = new PostprocPipeline(width, height);
 			var ppShader = Resources.TheResources.GetShader("postproc");
 			postproc.AddStep(ppShader);
-			postproc.AddStep(new GlowFilter(width, width));
+			//postproc.AddStep(new GlowFilter(width, width));
 			var fxaaShader = Resources.TheResources.GetShader("fxaa");
 			postproc.AddStep(fxaaShader);
 		}
@@ -290,6 +296,34 @@ namespace Starmaze.Engine
 			tex.Enable();
 			billboard.Draw();
 			tex.Disable();
+		}
+	}
+
+	public class SpriteTestRenderer : Renderer
+	{
+		VertexArray billboard;
+
+		public SpriteTestRenderer() : base()
+		{
+			shader = Resources.TheResources.GetShader("default-sprite");
+			discipline = GLDiscipline.DEFAULT;
+			billboard = Resources.TheResources.GetModel("Billboard");
+
+		}
+
+		public override void RenderOne(ViewManager view, Actor act)
+		{
+			var sprite = act.GetComponent<Sprite>();
+			var pos = new Vector2((float)act.Body.Position.X, (float)act.Body.Position.Y);
+			var transform = new Transform(pos, 0.0f, new Vector2(5, 5));
+			var mat = transform.TransformMatrix(view.ProjectionMatrix);
+			shader.UniformMatrix("projection", mat);
+			shader.Uniformi("texture", 0);
+			var coords = sprite.GetBox();
+			shader.Uniformf("atlasCoords", coords.X, coords.Y, coords.Z, coords.W);
+			sprite.Atlas.Enable();
+			billboard.Draw();
+			sprite.Atlas.Disable();
 		}
 	}
 

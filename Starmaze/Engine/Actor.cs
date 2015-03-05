@@ -43,6 +43,7 @@ namespace Starmaze.Engine
 					return test;
 				}
 			}
+			Log.Warn(true, "Could not find component {0} in actor, returning default", typeof(T));
 			return default(T);
 		}
 
