@@ -7,3 +7,4 @@ Starmaze/Starmaze.userprefs
 *.pyc
 env
 Starmaze\log.txt
+Starmaze\settings.cfg
