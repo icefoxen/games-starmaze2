@@ -27,7 +27,6 @@ namespace Starmaze.Game
             guiActor.RenderState = billBRState;
             textToDraw = "";         
            //DrawString("The quick brown\n fox jumps over the lazy dog \njumps over the lazy dog", new PointF());
-           
         }
 
         public void Draw()
@@ -41,11 +40,9 @@ namespace Starmaze.Game
         /// <param name="text">The <see cref="System.String"/> to draw.</param>
         /// <param name="brush">The <see cref="System.Drawing.Brush"/> that will be used for the color of text.</param>
         /// <param name="point">The location of the text (at least it should be)
-        /// The origin (0, 0) lies at the top-left corner of the backing store.</param>
         public void DrawString(string text, PointF point)
         {          
             textToDraw += text;
-            texture = generateTextTexture();
         }
 
         public void LoadString(string name)
@@ -53,7 +50,7 @@ namespace Starmaze.Game
             texture = Resources.TheResources.GetStringTexture(name);
         }
 
-        public Texture generateTextTexture()
+        public Texture generateTextTexture(string name)
         {
             Vector2 size = getTextSize();
             bmp = new Bitmap((int)size.X, (int)size.Y);
@@ -64,7 +61,7 @@ namespace Starmaze.Game
                 graphics.Flush();
                 graphics.Dispose();
             }
-            Resources.TheResources.addStringTexture("test", bmp);
+            Resources.TheResources.addStringTexture(name, bmp);
             textToDraw = "";
             return new Texture(bmp);
         }
@@ -78,16 +75,8 @@ namespace Starmaze.Game
             return vector2;
         }
     }
-
-    public class TextMap
-    {
-        string text;
-        PointF position;
-        
-        public TextMap(string _text, PointF _pos)
-        {
-            text = _text;
-            position = _pos;
-        }
-    }
 }
+
+/*
+To draw text, the GUI will just draw a bunch of textured billboards, pretty much like the BillboardRenderer does.  It will just have more logic around what it draws and where than "draw everything in this list"
+*/
