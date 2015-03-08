@@ -11,6 +11,7 @@ namespace Starmaze
 	public static class SMath
 	{
 		public const double TAU = Math.PI * 2;
+		public const double PIOVER2 = Math.PI / 2;
 
 		public static double CrossZ(Vector2d v0, Vector2d v1)
 		{
@@ -64,6 +65,18 @@ namespace Starmaze
 			} else {
 				return number;
 			}
+		}
+
+		/// <summary>
+		/// Rounds up to nearest power of 2.
+		/// Algorithm:
+		/// 2^(ceil(log2(x)))
+		/// </summary>
+		/// <returns>Number.</returns>
+		/// <param name="number">Number.</param>
+		public static double RoundUpToPowerOf2(double number)
+		{
+			return Math.Pow(2, Math.Ceiling(Math.Log(number, 2)));
 		}
 	}
 }

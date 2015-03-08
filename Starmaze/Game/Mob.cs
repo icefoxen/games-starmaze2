@@ -144,7 +144,7 @@ namespace Starmaze.Game
 			}
 		}
 	}
-	//end TimedLife component
+	// Check out this awesomeness: http://gameprogrammingpatterns.com/state.html
 	/// <summary>
 	/// A Component that fires bullets of various types.
 	/// </summary>
@@ -159,52 +159,40 @@ namespace Starmaze.Game
 	}
 
 	/// <summary>
-	/// A Component that moves an Actor around and such based on key inputs.
+	/// A Component that moves an Actor around and such based on user inputs.
 	/// </summary>
-	public class KeyboardController : Component
+	public class InputController : Component
 	{
-		public KeyboardController(Actor owner) : base(owner)
+
+		public InputController(Actor owner) : base(owner)
 		{
-			HandledEvents = EventType.OnKeyPress | EventType.OnKeyRelease;
+			HandledEvents = EventType.OnKeyDown | EventType.OnKeyUp;
 		}
 
-		public override void OnKeyPress(object sender, KeyboardKeyEventArgs e)
+		public override void OnKeyDown(object sender, InputAction a)
 		{
-			Log.Message("Key down: {0}", e.Key);
-			switch (e.Key) {
-				case Key.Left:
-					Owner.Body.AddImpulse(Vector2d.UnitX * -5);
+			Log.Message("Key down: {0}", a);
+
+			switch (a) {
+				case InputAction.MoveUp:
+					Owner.Body.AddVelocity(new Vector2d(0, 5));
 					break;
-				case Key.Right:
-					Owner.Body.AddImpulse(Vector2d.UnitX * 5);
+				case InputAction.MoveDown:
+					Owner.Body.AddVelocity(new Vector2d(0, -5));
 					break;
-				case Key.Up:
-					Owner.Body.AddImpulse(Vector2d.UnitY * 5);
+				case InputAction.MoveLeft:
+					Owner.Body.AddVelocity(new Vector2d(-5, 0));
 					break;
-				case Key.Down:
-					Owner.Body.AddImpulse(Vector2d.UnitY * -5);
-					break;
-				case Key.Z:
-					break;
-				case Key.X:
-					break;
-				case Key.C:
-					break;
-				case Key.D:
-					break;
-				case Key.S:
-					break;
-				default:
+				case InputAction.MoveRight:
+					Owner.Body.AddVelocity(new Vector2d(5, 0));
 					break;
 			}
 		}
 
-		public override void OnKeyRelease(object sender, KeyboardKeyEventArgs e)
+		public override void OnKeyUp(object sender, InputAction a)
 		{
 
 		}
-
-
 	}
 	//TODO: ParticleSystem reimplementation seems to depend on implementation of graphics
 	//Might belong in Component instead?

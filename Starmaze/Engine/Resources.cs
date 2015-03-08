@@ -15,7 +15,7 @@ namespace Starmaze.Engine
 	{
 
 		string ResourceRoot;
-		Dictionary<string, Renderer> RendererCache;
+		Dictionary<string, IRenderer> RendererCache;
 		Dictionary<string, Texture> TextureCache;
 		Dictionary<string, Shader> ShaderCache;
 		Dictionary<string, VertexArray> ModelCache;
@@ -31,7 +31,7 @@ namespace Starmaze.Engine
 			// in the resource path root.
 			basePath = System.IO.Path.Combine(basePath, "..");
 			ResourceRoot = basePath;
-			RendererCache = new Dictionary<string, Renderer>();
+			RendererCache = new Dictionary<string, IRenderer>();
 			TextureCache = new Dictionary<string, Texture>();
 			ShaderCache = new Dictionary<string, Shader>();
 			ModelCache = new Dictionary<string, VertexArray>();
@@ -47,7 +47,7 @@ namespace Starmaze.Engine
 					cache.Add(name, t);
 					return t;
 				} catch {
-					Console.WriteLine("Error loading {0}!", name);
+					Log.Message("Error loading {0}!", name);
 					throw;
 				}
 			}
@@ -59,18 +59,46 @@ namespace Starmaze.Engine
 		/// name.  Using strings to refer to them is a _little_ grotty but reflects nicely.
 		/// </summary>
 		/// <returns>The render map.</returns>
-		static void PreloadRenderers(Dictionary<string, Renderer> rendererMap)
+		static void PreloadRenderers(Dictionary<string, IRenderer> rendererMap)
 		{
-			var subclasses = Util.GetSubclassesOf(typeof(Renderer));
+
+			var subclasses = Util.GetImplementorsOf(typeof(IRenderer));
+			var t = typeof(IRenderer);
 			// We go through all subclasses of Renderer, instantiate one of each, and 
 			// associate each with its name, and that gets us the string -> Renderer mapping.
+			Console.WriteLine("Preloading renderers...");
 			foreach (Type subclass in subclasses) {
-				var renderer = (Renderer)Activator.CreateInstance(subclass);
-				rendererMap.Add(subclass.Name, renderer);
+				try {
+					Log.Message("Renderer: {0}", subclass);
+					if (!subclass.ContainsGenericParameters && !subclass.IsAbstract) {
+						var renderer = (IRenderer)Activator.CreateInstance(subclass);
+						rendererMap.Add(subclass.Name, renderer);
+					}
+				} catch (System.Reflection.TargetInvocationException e) {
+					// The renderer constructor threw an exception
+					throw e.InnerException;
+				}
 			}
+
+/*
+			var r1 = new SpriteRenderer();
+			var r2 = new StaticModelRenderer();
+			var r3 = new SwirlyTestRenderer();
+			var r4 = new TestRenderer();
+			var r6 = new TexTestRenderer();
+			var rs = new IRenderer[] {
+				r1, r2, r3, r4,  r6
+			};
+
+			foreach (var r in rs) {
+				var t = r.GetType();
+				Log.Message("Preloading renderer: {0}", t.Name);
+				rendererMap.Add(t.Name, r);
+			}
+			*/
 		}
 
-		public Renderer GetRenderer(string r)
+		public IRenderer GetRenderer(string r)
 		{
 			// We don't use the ResourceLoader.Get function here 'cause all renderers
 			// are preloaded and associating a string to a renderer is a little squirrelly.
@@ -111,13 +139,13 @@ namespace Starmaze.Engine
 		{
 			return Get(ModelCache, LoadModel, name);
 		}
-
 		// XXX: Dependency inversion here; should Content/Images.cs be elsewhere, or defined differently?
+		// XXX: Can we mark certain things as uncachable?
 		VertexArray LoadModel(string name)
 		{
 			var t = typeof(Starmaze.Content.Images);
 			var method = t.GetMethod(name);
-			Console.WriteLine("Loading model {0}", method.Name);
+			Log.Message("Loading model {0}", method.Name);
 			var model = (VertexArray)method.Invoke(null, null);
 			return model;
 		}
@@ -202,12 +230,18 @@ namespace Starmaze.Engine
 
 		public static ResourceLoader TheResources {
 			get {
-				Log.Assert(_TheResources != null);
+				Log.Assert(_TheResources != null, "Attempting to get null Resources object");
 				return _TheResources;
 			}
 		}
 
-		public static ResourceLoader InitResources()
+		public static bool IsInitialized {
+			get {
+				return _TheResources != null;
+			}
+		}
+
+		public static ResourceLoader Init()
 		{
 			if (_TheResources != null) {
 				// XXX: Better exception type

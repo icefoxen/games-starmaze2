@@ -61,48 +61,63 @@ namespace Starmaze.Engine
 
 	/// <summary>
 	/// A texture.
-	/// It's small, but it's _not_ a struct, because it allocates resources and thus needs
-	/// the reference semantics of a real object.
+	/// Supports multitexturing, optionally.
 	/// </summary>
-	//  We could make it a value type but that would require making
-	// an object to manage them beyond the ResourceLoader or making the ResourceLoader do more work,
-	// so.
 	public class Texture : IDisposable
 	{
-		public int Handle;
+		public int[] Handle;
+
+		public readonly byte[] TestTextureData = new byte[] {
+			255, 255, 255, 255,
+			255, 0, 0, 255,
+			0, 255, 0, 255,
+			0, 0, 255, 255,
+		};
 
 		/// <summary>
 		/// Creates a new texture from the given bitmap.
 		/// </summary>
 		/// <param name="bitmap">Bitmap.</param>
-		public Texture(Bitmap bitmap)
+		public Texture(Bitmap bitmap) : this(new Bitmap[] { bitmap })
 		{
-			if (!Util.IsPowerOf2(bitmap.Width) || !Util.IsPowerOf2(bitmap.Height)) {
+
+		}
+
+		public Texture(Bitmap[] bitmaps)
+		{
+			SetupNewTexture(bitmaps.Length);
+			for (int i = 0; i < bitmaps.Length; i++) {
+				if (!Util.IsPowerOf2(bitmaps[i].Width) || !Util.IsPowerOf2(bitmaps[i].Height)) {
+					// XXX: FormatException isn't really the best here, buuuut...
+					// Assertion?  Except I sorta want to check this at runtime in the real game.
+					throw new FormatException("Texture sizes must be powers of 2!");
+				}
+
+				BitmapData data = bitmaps[i].LockBits(new System.Drawing.Rectangle(0, 0, bitmaps[i].Width, bitmaps[i].Height),
+					                  ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+
+				EnableOne(i);
+				//BitmapData data = bitmap.LockBits(new System.Drawing.Rectangle(0, 0, bitmap.Width, bitmap.Height),
+				//	ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+				GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, data.Width, data.Height, 0,
+					OpenTK.Graphics.OpenGL.PixelFormat.Bgra, PixelType.UnsignedByte, data.Scan0);
+				bitmaps[i].UnlockBits(data);
+			}
+
+			Disable();
+		}
+
+		// XXX: Could make a multitexture version of this, but, not necessary right now.
+		public Texture(byte[] data, int width, int height)
+		{
+			if (!Util.IsPowerOf2(width) || !Util.IsPowerOf2(height)) {
 				// XXX: FormatException isn't really the best here, buuuut...
 				// Assertion?  Except I sorta want to check this at runtime in the real game.
 				throw new FormatException("Texture sizes must be powers of 2!");
 			}
-			SetupNewTexture();
-
-			BitmapData data = bitmap.LockBits(new System.Drawing.Rectangle(0, 0, bitmap.Width, bitmap.Height),
-				                  ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
-
-			//BitmapData data = bitmap.LockBits(new System.Drawing.Rectangle(0, 0, bitmap.Width, bitmap.Height),
-			//	ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
-			GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, data.Width, data.Height, 0,
-				OpenTK.Graphics.OpenGL.PixelFormat.Bgra, PixelType.UnsignedByte, data.Scan0);
-			/*
-			var pixels = new byte[] {
-				255, 255, 255, 255,
-				255, 0, 0, 255,
-				0, 255, 0, 255,
-				0, 0, 255, 255,
-			};
+			SetupNewTexture(1);
 			GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, 2, 2, 0,
-				OpenTK.Graphics.OpenGL.PixelFormat.Rgba, PixelType.UnsignedByte, pixels);
-				*/
-			bitmap.UnlockBits(data);
-
+				OpenTK.Graphics.OpenGL.PixelFormat.Rgba, PixelType.UnsignedByte, data);
 			Disable();
 		}
 
@@ -111,9 +126,9 @@ namespace Starmaze.Engine
 		/// </summary>
 		/// <param name="width">Width.</param>
 		/// <param name="height">Height.</param>
-		public Texture(int width, int height)
+		public Texture(int width, int height, int layers = 1)
 		{
-			SetupNewTexture();
+			SetupNewTexture(layers);
 			ClearAndResize(width, height);
 		}
 
@@ -126,40 +141,110 @@ namespace Starmaze.Engine
 				throw new FormatException("Texture sizes must be powers of 2!");
 			}
 
-			Enable();
-			GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, width, height, 0, 
-				OpenTK.Graphics.OpenGL.PixelFormat.Rgba, PixelType.UnsignedByte, IntPtr.Zero);
-			Disable();
+			WithEachTexture(() => {
+				GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, width, height, 0, 
+					OpenTK.Graphics.OpenGL.PixelFormat.Rgba, PixelType.UnsignedByte, IntPtr.Zero);
+			}
+			);
+		}
+
+		void WithEachTexture(Action thunk)
+		{
+			for (int i = 0; i < Handle.Length; i++) {
+				EnableOne(i);
+				thunk();
+				DisableOne(i);
+			}
 		}
 
 		/// <summary>
-		/// Actually creates the texture object and sets the appropriate parameters.
+		/// Actually creates the texture objects and sets the appropriate parameters.
 		/// 
 		/// Note that this leaves the current texture enabled, because it's for internal use only.
 		/// </summary>
 		// XXX: Right now, texture parameters are basically hardcoded.  That's fine as long as we never want
-		// anything different!
-		void SetupNewTexture()
+		// anything different!  Creating a TextureParameters object that gets given to the texture would be
+		// pretty easy though.
+		void SetupNewTexture(int numTextures)
 		{
-			Handle = GL.GenTexture();
-			Enable();
+			Handle = new int[numTextures];
+			for (int i = 0; i < numTextures; i++) {
+				Handle[i] = GL.GenTexture();
+			}
 
-			GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
-			GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
-			GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
-			GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
+			WithEachTexture(() => {
+				GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
+				GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+				GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
+				GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
+			}
+			);
 		}
 
+		/// <summary>
+		/// Enables all the multiple textures in this texture.
+		/// Takes an optional int saying which texture unit to start with,
+		/// and returns 1 past the last one used.
+		/// </summary>
 		public void Enable()
 		{
 			GL.Enable(EnableCap.Texture2D);
-			GL.ActiveTexture(TextureUnit.Texture0);
-			GL.BindTexture(TextureTarget.Texture2D, Handle);
+			for (int i = 0; i < Handle.Length; i++) {
+				EnableOne(i);
+			}
+		}
+
+		public void EnableOne(int i)
+		{
+			Log.Assert(i < Handle.Length, "Tried to enable texture {0} but max texture is {1}", i, Handle.Length - 1);
+			GL.ActiveTexture(TextureUnit.Texture0 + i);
+			GL.BindTexture(TextureTarget.Texture2D, Handle[i]);
 		}
 
 		public void Disable()
 		{
+			for (int i = 0; i < Handle.Length; i++) {
+				DisableOne(i);
+			}
+		}
+
+		public void DisableOne(int i)
+		{
+			Log.Assert(i < Handle.Length, "Tried to disable texture {0} but max texture is {1}", i, Handle.Length - 1);
+			GL.ActiveTexture(TextureUnit.Texture0 + i);
 			GL.BindTexture(TextureTarget.Texture2D, 0);
+		}
+
+
+		/// <summary>
+		/// This is a bit of a hack, since having multitexture things together in one texture would be nicer.
+		/// But this isn't always possible, so, here we are.
+		/// </summary>
+		/// <param name="textures">Textures to enable.</param>
+		/// <returns>The number of texture units activated.</returns>
+		public static int EnableMultiple(IEnumerable<Texture> textures)
+		{
+			int currentTextureUnit = 0;
+			foreach (var tex in textures) {
+				for (int j = 0; j < tex.Handle.Length; j++) {
+					GL.ActiveTexture(TextureUnit.Texture0 + currentTextureUnit);
+					GL.BindTexture(TextureTarget.Texture2D, tex.Handle[j]);
+					currentTextureUnit += 1;
+				}
+			}
+			return currentTextureUnit;
+		}
+
+		public static void DisableMultiple(IEnumerable<Texture> textures)
+		{
+			int currentTextureUnit = 0;
+			foreach (var tex in textures) {
+				for (int j = 0; j < tex.Handle.Length; j++) {
+					GL.ActiveTexture(TextureUnit.Texture0 + currentTextureUnit);
+					GL.BindTexture(TextureTarget.Texture2D, 0);
+					currentTextureUnit += 1;
+				}
+			}
 		}
 
 		private bool disposed = false;
@@ -187,7 +272,75 @@ namespace Starmaze.Engine
 			}
 			// Clean up unmanaged resources
 			if (GraphicsContext.CurrentContext != null) {
-				GL.DeleteTexture(Handle);
+				foreach (var tex in Handle) {
+					GL.DeleteTexture(tex);
+				}
+			}
+		}
+	}
+
+
+	/// <summary>
+	/// An object that specifies to render the scene to the given texture, with the given shader.
+	/// </summary>
+	public class FramebufferObject : IDisposable
+	{
+		int Handle;
+
+		public FramebufferObject(Texture dest)
+		{
+			// Create frame buffer
+			Handle = GL.GenFramebuffer();
+			Enable();
+			for (int i = 0; i < dest.Handle.Length; i++) {
+				GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0,
+					TextureTarget.Texture2D, dest.Handle[i], 0);
+			}
+			var status = GL.CheckFramebufferStatus(FramebufferTarget.Framebuffer);
+			// TODO: More rigorous error checking?
+			Log.Assert(status == FramebufferErrorCode.FramebufferComplete, 
+				"Something went wrong creating framebuffer for postprocessing step: {0}", status);
+			Disable();
+		}
+
+		public void Enable()
+		{
+			GL.BindFramebuffer(FramebufferTarget.Framebuffer, Handle);
+		}
+
+		public void Disable()
+		{
+			GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
+		}
+
+		private bool disposed = false;
+
+		~FramebufferObject()
+		{
+			Dispose(false);
+		}
+
+		public void Dispose()
+		{
+			Dispose(true);
+			// Don't run the finalizer, since it's a waste of time.
+			GC.SuppressFinalize(this);
+		}
+
+		protected virtual void Dispose(bool disposing)
+		{
+			if (disposed) {
+				return;
+			}
+			disposed = true;
+			if (disposing) {
+				// Clean up managed resources
+			}
+			// Clean up unmanaged resources
+			// We don't clean up the texture because it might still be used by something else.
+			// Seems like reference counting would be nice for that...
+			if (GraphicsContext.CurrentContext != null) {
+				GL.DeleteFramebuffer(Handle);
 			}
 		}
 	}
@@ -359,7 +512,7 @@ namespace Starmaze.Engine
 			Vertexes.Add(color.A);
 			// This assertion is to help catch things if we change the vertex format but don't update this function.
 			var elementsAdded = Vertexes.Count - elementCount;
-			Log.Assert(elementsAdded == (VertexLayout.ColorVertex.ElementCount));
+			Log.Assert(elementsAdded == VertexLayout.ColorVertex.ElementCount);
 		}
 
 		public void AddTextureVertex(Vector2 pos, Color4 color, Vector2 texcoord)
@@ -376,7 +529,7 @@ namespace Starmaze.Engine
 			Vertexes.Add(texcoord.Y);
 			// This assertion is to help catch things if we change the vertex format but don't update this function.
 			var elementsAdded = Vertexes.Count - elementCount;
-			Log.Assert(elementsAdded == (VertexLayout.TextureVertex.ElementCount));
+			Log.Assert(elementsAdded == VertexLayout.TextureVertex.ElementCount);
 		}
 
 		public float[] ToArray()
@@ -558,11 +711,11 @@ namespace Starmaze.Engine
 		public void ForceApply()
 		{
 			if (blendFunc != null) {
-				Console.WriteLine("Enabling blending");
+				//Log.Message("Enabling blending");
 				GL.Enable(EnableCap.Blend);
 				GL.BlendFunc(blendFunc.Item1, blendFunc.Item2);
 			} else {
-				Console.WriteLine("Disabling blending");
+				//Log.Message("Disabling blending");
 				GL.Disable(EnableCap.Blend);
 			}
 		}
@@ -687,263 +840,5 @@ namespace Starmaze.Engine
 		}
 	}
 
-	/// <summary>
-	/// An object that specifies to render the scene to the given texture, with the given shader.
-	/// </summary>
-	public class FramebufferObject : IDisposable
-	{
-		int Handle;
-		Texture destination;
-
-		public FramebufferObject(Texture dest)
-		{
-			destination = dest;
-			// Create frame buffer
-			Handle = GL.GenFramebuffer();
-			Enable();
-			GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0,
-				TextureTarget.Texture2D, destination.Handle, 0);
-			var status = GL.CheckFramebufferStatus(FramebufferTarget.Framebuffer);
-			// TODO: More rigorous error checking?
-			Log.Assert(status == FramebufferErrorCode.FramebufferComplete, 
-				"Something went wrong creating framebuffer for postprocessing step: {0}", status);
-			Disable();
-		}
-
-		public void Enable()
-		{
-			GL.BindFramebuffer(FramebufferTarget.Framebuffer, Handle);
-		}
-
-		public void Disable()
-		{
-			GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
-		}
-
-		private bool disposed = false;
-
-		~FramebufferObject()
-		{
-			Dispose(false);
-		}
-
-		public void Dispose()
-		{
-			Dispose(true);
-			// Don't run the finalizer, since it's a waste of time.
-			GC.SuppressFinalize(this);
-		}
-
-		protected virtual void Dispose(bool disposing)
-		{
-			if (disposed) {
-				return;
-			}
-			disposed = true;
-			if (disposing) {
-				// Clean up managed resources
-			}
-			// Clean up unmanaged resources
-			// We don't clean up the texture because it might still be used by something else.
-			// Seems like reference counting would be nice for that...
-			if (GraphicsContext.CurrentContext != null) {
-				GL.DeleteFramebuffer(Handle);
-			}
-		}
-	}
-
-	/// <summary>
-	/// A class that represents a single step in a graphics post-processing pipeline.
-	/// It takes a texture and renders it to a new texture with a particular shader.
-	/// </summary>
-	// TODO: Make it so each step can accept multiple inputs and produce multiple outputs.
-	// But how to wire them together to feed one into the other requires some thought.
-	public class PostprocStep : IDisposable
-	{
-		int width;
-		int height;
-		public Texture DestTexture;
-		FramebufferObject fbo;
-		Shader shader;
-		VertexArray bb;
-		Texture tex;
-		Matrix4 matrix;
-
-		public PostprocStep(Shader shader, int screenw, int screenh)
-		{
-			width = screenw;
-			height = screenh;
-			this.shader = shader;
-			matrix = Matrix4.CreateOrthographic(12, -8, -1f, 10f);
-
-			tex = Resources.TheResources.GetTexture("playertest");
-
-			/*
-            var pixels = new byte[] {
-                255, 255, 255, 255,
-                255, 0, 0, 255,
-                0, 255, 0, 255,
-                0, 0, 255, 255,
-            };
-			tex.Enable();
-            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, 2, 2, 0,
-                OpenTK.Graphics.OpenGL.PixelFormat.Rgba, PixelType.UnsignedByte, pixels);
-			tex.Disable();
-			*/
-
-			// Create back-buffer
-			// XXX: Is ActiveTexture needed?  I THINK so...
-			//GL.ActiveTexture(TextureUnit.Texture0);
-			DestTexture = new Texture(width, height);
-
-			// Create framebuffer
-			fbo = new FramebufferObject(DestTexture);
-			this.bb = Starmaze.Content.Images.Billboard();
-			/*
-			// Make a billboard to render to.
-			// XXX: Aspect ratio...
-			var aspectRatio = 4.0f / 3.0f;
-			var bb = new VertexList(VertexLayout.TextureVertex);
-
-			var halfHeight = 1.0f / 2;
-			var halfWidth = 1.0f / 2;
-
-			bb.AddTextureVertex(
-				new Vector2(-halfWidth, -halfHeight),
-				Color4.White,
-				new Vector2(0, (1.0f / aspectRatio))
-			);
-			bb.AddTextureVertex(
-				new Vector2(-halfWidth, halfHeight),
-				Color4.White,
-				new Vector2(0, 0)
-			);
-			bb.AddTextureVertex(
-				new Vector2(halfWidth, halfHeight),
-				Color4.White,
-				new Vector2(1, 0)
-			);
-			bb.AddTextureVertex(
-				new Vector2(halfWidth, -halfHeight),
-				Color4.White,
-				new Vector2(1, (1.0f / aspectRatio))
-			);
-			var indices = new uint[] {
-				0, 1, 2,
-				0, 2, 3,
-			};
-			this.bb = new VertexArray(shader, bb, idxs: indices);
-			*/
-		}
-
-		/// <summary>
-		/// Rescale frame buffer object.
-		/// </summary>
-		/// <param name="screenw">Screen width.</param>
-		/// <param name="screenh">Screen height.</param>
-		public void Reshape(int screenw, int screenh)
-		{
-			width = screenw;
-			height = screenh;
-			DestTexture.ClearAndResize(width, height);
-		}
-
-		public void Render(Texture fromTexture, bool final = false)
-		{
-			if (!final) {
-				fbo.Enable();
-			}
-			Graphics.TheGLTracking.SetShader(shader);
-			fromTexture.Enable();
-			//shader.Uniformi("texture", fromTexture.Handle);
-			//tex.Enable();
-			shader.UniformMatrix("projection", matrix);
-			shader.Uniformi("texture", 0);
-			GL.Clear(ClearBufferMask.ColorBufferBit);
-			bb.Draw();
-			Graphics.TheGLTracking.SetShader(null);
-			if (!final) {
-				fbo.Disable();
-			}
-		}
-
-
-		private bool disposed = false;
-
-		~PostprocStep()
-		{
-			Dispose(false);
-		}
-
-		public void Dispose()
-		{
-			Dispose(true);
-			// Don't run the finalizer, since it's a waste of time.
-			GC.SuppressFinalize(this);
-		}
-
-		protected virtual void Dispose(bool disposing)
-		{
-			if (disposed) {
-				return;
-			}
-			disposed = true;
-			if (disposing) {
-				// Clean up managed resources
-				// These are managed resources that
-				// aren't exactly scarce or high-turnover; we can probably just let the GC handle them.
-				//fbo.Dispose();
-				//DestTexture.Dispose();
-			}
-			// Clean up unmanaged resources
-		}
-	}
-
-	/// <summary>
-	/// A class that represents a post-processing pipeline,
-	/// which is a set of shader passes that occur after the main drawing step.
-	/// </summary>
-	public class PostprocPipeline
-	{
-		List<PostprocStep> steps;
-		FramebufferObject fbo;
-		Texture fromTexture;
-
-		public PostprocPipeline()
-		{
-			steps = new List<PostprocStep>();
-			fromTexture = new Texture(1024, 1024);
-			fbo = new FramebufferObject(fromTexture);
-		}
-
-		public void AddStep(Shader shader)
-		{
-			var step = new PostprocStep(shader, 1024, 1024);
-			steps.Add(step);
-		}
-
-		/// <summary>
-		/// Takes a function that draws the scene, and draws everything with the postprocessing pipeline.
-		/// </summary>
-		/// <param name="thunk">Thunk.</param>
-		public void RenderWith(Action drawScene)
-		{
-			// Render initial scene to FBO
-			fbo.Enable();
-			GL.ClearColor(Color4.Tan);
-			GL.Clear(ClearBufferMask.ColorBufferBit);
-			drawScene();
-			fbo.Disable();
-
-			// Then we take the drawn scene and run it through each of the postprocessing steps.
-			for (int i = 0; i < steps.Count - 2; i++) {
-				var step = steps[i];
-				step.Render(fromTexture, final: false);
-				fromTexture = step.DestTexture;
-			}
-			// Then do the final rendering to the screen.
-			steps[steps.Count - 1].Render(fromTexture, final: true);
-		}
-	}
 }
 

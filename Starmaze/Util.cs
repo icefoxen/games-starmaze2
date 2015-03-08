@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 
 namespace Starmaze
@@ -15,6 +16,9 @@ namespace Starmaze
 		public const int GlMajorVersion = 3;
 		public const int GlMinorVersion = 3;
 		public const int LogicalScreenWidth = 160;
+		public const string SettingsFileName = "settings.cfg";
+
+		public static readonly Version StarmazeVersion = new Version(0, 1);
 
 		public static bool IsPowerOf2(int i)
 		{
@@ -41,6 +45,16 @@ namespace Starmaze
 			var subclasses = assembly.GetTypes().Where(t => t.IsSubclassOf(baseType));
 			return subclasses;
 		}
+
+		public static IEnumerable<Type> GetImplementorsOf(Type baseType)
+		{
+			var assembly = baseType.Assembly;
+			// Monodevelop stupidly doesn't know about Linq.
+
+			var subclasses = assembly.GetTypes().Where(t => t.GetInterfaces().Contains(baseType));
+			//Log.Message("Subclasses: {0}", subclasses);
+			return subclasses;
+		}
 		// XXX: Does C# already have a generator like this somewhere?
 		// step < 0 doesn't work.
 		public static IEnumerable<uint> UnsignedRange(uint start, uint to, int step = 1)
@@ -50,43 +64,17 @@ namespace Starmaze
 				yield return i;
 			}
 		}
-	}
 
-	public static class Log
-	{
-		// These Conditional() flags mark these methods as never getting called if we are not
-		// making a DEBUG build.  Monodevelop sets the DEBUG #define or not based
-		// on project build mode.  Supposedly; in reality, it seems a little conservative
-		// about rebuilding the project when you switch modes, and has to be forced
-		// to rebuild.  Stupid.
-		[Conditional("DEBUG")]
-		public static void Assert(bool assertion)
+		// BUGGO: There's really no way to do this in C#?
+		public static T[] FillArray<T>(int length, T initItem)
 		{
-			// TODO: Implement this better, since on Windows an assertion failure pops up a box that
-			// has an 'ignore' button, and assertions are for things that should never happen
-			Debug.Assert(assertion);
-		}
-
-		public static void Assert(bool assertion, string message, params object[] args)
-		{
-			Debug.Assert(assertion, String.Format(message, args));
-		}
-
-
-		[Conditional("DEBUG")]
-		public static void Warn(bool assertion, string message, params object[] args)
-		{
-			// TODO: Implement this for cases where an assertion is too strong;
-			// ie, recoverable errors that nonetheless should never happen.
-			Debug.Assert(assertion, message);
-		}
-
-		public static void Message(string message, params object[] args)
-		{
-			// TODO: Implement this for messages (like OpenGL version) that are useful to have
-			// but which the user shouldn't confront unless they look for it.
-			Console.WriteLine(String.Format(message, args));
+			var arr = new T[length];
+			for (int i = 0; i < arr.Length; i++) {
+				arr[i] = initItem;
+			}
+			return arr;
 		}
 	}
+
 }
 

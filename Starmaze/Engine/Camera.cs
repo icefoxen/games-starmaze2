@@ -71,17 +71,19 @@ namespace Starmaze.Engine
 		Vector2d AimedAtPos;
 		public Vector2d CurrentPos;
 		Vector2d Border;
-		double ScrollSpeed;
 
-		double const BorderScale;
+		const double ScrollSpeed = 2.5;
+
+		/// <summary>
+		/// What fraction of the screen you can move away from the center.
+		/// </summary>
+		const double BorderScale = 0.35;
 
 		public FollowCam(double width, double height)
 		{
 			AimedAtPos = Vector2d.Zero;
 			CurrentPos = Vector2d.Zero;
 			Border = new Vector2d(width, height) * BorderScale;
-
-			ScrollSpeed = 2.5;
 		}
 
 		public FollowCam(Actor target, double width, double height) : this(width, height)

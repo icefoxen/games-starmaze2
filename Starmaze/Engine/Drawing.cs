@@ -19,7 +19,7 @@ namespace Starmaze.Engine
 	{
 
 		public static readonly Color4 DEFAULT_COLOR = new Color4(1.0f, 1.0f, 1.0f, 1.0f);
-		public const double DEFAULT_STROKE_WIDTH = 1.0;
+		public const double DEFAULT_STROKE_WIDTH = 0.25;
 		public const double EPSILON = 0.0001;
 		public Vector2d Pos;
 		public Color4 Color;
@@ -270,7 +270,7 @@ namespace Starmaze.Engine
 
 			var radius0 = (V0.Pos - Center).Length;
 			var radius1 = (V1.Pos - Center).Length;
-			Console.WriteLine("Radius 0 {0}, Radius 1 {1}", radius0, radius1);
+			//Log.Message("Radius 0 {0}, Radius 1 {1}", radius0, radius1);
 			var radiusStep = (radius1 - radius0) / RequestedSegments;
 
 			var strokeHalfWidth0 = V0.StrokeHalfWidth;
@@ -304,8 +304,8 @@ namespace Starmaze.Engine
 				var currentNormal = currentOffset.Normalized();
 				var inner = currentNormal * currentStrokeHalfWidth;
 				var outer = -inner;
-				Console.WriteLine("Current angle: {0}, X: {1}, Y: {2}, center: {3}, alpha: {4}, angle0: {5}, angle1: {6}", 
-					currentAngle, currentX, currentY, Center, currentAlpha, angle0, angle1);
+				//Log.Message("Current angle: {0}, X: {1}, Y: {2}, center: {3}, alpha: {4}, angle0: {5}, angle1: {6}", 
+				//	currentAngle, currentX, currentY, Center, currentAlpha, angle0, angle1);
 				yield return new Tuple<LineArtVertex, Vector2d, Vector2d>(currentVertex, outer, inner);
 			}
 
@@ -429,9 +429,69 @@ namespace Starmaze.Engine
 	}
 
 	/// <summary>
+	/// A class representing a filled, solid-color polygon.
+	/// For now, it MUST be convex!
+	/// </summary>
+	public class FilledPolygon
+	{
+		List<LineArtVertex> Vertexes;
+
+		public FilledPolygon()
+		{
+			Vertexes = new List<LineArtVertex>();
+		}
+
+		public FilledPolygon(IEnumerable<Vector2d> points, Color4 color) : this()
+		{
+			foreach (var p in points) {
+				AddVertex(p, color);
+			}
+		}
+
+		public FilledPolygon(IEnumerable<LineArtVertex> verts) : this()
+		{
+			foreach (var v in verts) {
+				AddVertex(v);
+			}
+		}
+
+		public void AddVertex(LineArtVertex v)
+		{
+			Vertexes.Add(v);
+		}
+
+		public void AddVertex(Vector2d pos, Color4 color)
+		{
+			Vertexes.Add(new LineArtVertex(pos, color: color));
+		}
+
+		public VertexModel ToVertexModel()
+		{
+			var output = new VertexModel();
+			Tesselate(output);
+			return output;
+		}
+
+		public void Tesselate(VertexModel output)
+		{
+			var firstIdx = output.AddVertexes(Vertexes);
+			var lastIdx = firstIdx + Vertexes.Count;
+			// We triangulate a convex poly just by drawing lines from the first point to
+			// all the others...
+			for (uint i = firstIdx + 2; i < lastIdx; i++) {
+				var tri = new uint[] {
+					firstIdx, i - 1, i
+				};
+				output.AddIndices(tri);
+			}
+		}
+	}
+
+	/// <summary>
 	/// A model with vertex data suitable for uploading to OpenGL
 	/// (which means creating a VertexArray).
 	/// </summary>
+	// XXX: Currently this doesn't handle textured anything...
 	public class VertexModel
 	{
 		const int POSITION_DIMENSIONS = 2;
@@ -538,7 +598,6 @@ namespace Starmaze.Engine
 			Output.AddIndices(quadIndices);
 		}
 
-
 		public abstract void TesselatePath(Path path);
 
 		public abstract void TesselateLine(LineSegment line);
@@ -547,7 +606,7 @@ namespace Starmaze.Engine
 	}
 
 	/// <summary>
-	/// Tessellate lines and arcs using a two-lane road of quads.
+	/// Tessellate lines and arcs to make solid lines.
 	/// 
 	/// Each base vertex encountered along a path is converted into a
 	/// string of three subvertexes: the central one plus right and left
@@ -559,19 +618,16 @@ namespace Starmaze.Engine
 	/// `beginPath`() and `endPath`() are called properly.  If you use the main
 	/// entrypoint `tessellatePath`(), this is done automatically.
 	/// </summary>
-	public class FadeLineTesselator : Tesselator
+	public class LineTesselator : Tesselator
 	{
-		// Number of quad strips across the roaad
-		const int ROAD_LANES = 2;
 		protected List<uint> firstIndices;
 		protected List<uint> lastIndices;
 
-		public FadeLineTesselator(VertexModel output) : base(output)
+		public LineTesselator(VertexModel output) : base(output)
 		{
 			firstIndices = null;
 			lastIndices = null;
 		}
-
 
 		public void BeginPath()
 		{
@@ -591,56 +647,20 @@ namespace Starmaze.Engine
 			firstIndices = new List<uint>(indices);
 			lastIndices = new List<uint>(indices);
 		}
-		// Might be nicer with a params argument?  I dunno...
-		void AdvanceTo(IList<LineArtVertex> verts, bool swapTriangleFacing = false)
+
+		void AdvanceTo(IList<LineArtVertex> verts)
 		{
 			var indices = new List<uint>(AddVertexes(verts));
 			//Console.WriteLine("Verts length: {0}, indices length: {1}", verts.Count, indices.Count);
 
+			AddQuad(lastIndices[0], lastIndices[1], indices[1], indices[0]);
 
-			// This is the same as the for loop below EXCEPT what order we put the verts in in matters because we want
-			// the triangles to be mirrored on both 'sides' of the line, otherwise the end-caps become lopsided.
-			// Then if we want to switch the division of the triangles, we have swapTriangleFacing.
-			// Essentially, if swapTriangleFacing is false, we create triangles in a line segment like this:
-			// ---+-+---
-			//    |\|
-			// ---+-+---
-			//    |/|
-			// ---+-+---
-			// If it's true, we do this:
-			// ---+-+---
-			//    |/|
-			// ---+-+---
-			//    |\|
-			// ---+-+---
-			// Were we to do the naive for-loop implementation below, we get this:
-			// ---+-+---
-			//    |\|
-			// ---+-+---
-			//    |\|
-			// ---+-+---
-			// Which screws up and looks funny when we try to make an end cap for a line.
-
-			if (swapTriangleFacing) {
-				AddQuad(lastIndices[1], lastIndices[1 + 1], indices[1 + 1], indices[1]);
-				AddQuad(lastIndices[0 + 1], lastIndices[0], indices[0], indices[0 + 1]);
-			} else {
-				AddQuad(lastIndices[0], lastIndices[0 + 1], indices[0 + 1], indices[0]);
-				AddQuad(lastIndices[1 + 1], lastIndices[1], indices[1], indices[1 + 1]);
-			}
-
-			//for (int i = 0; i < ROAD_LANES; i++) {
-			//Console.WriteLine("lastIndices: {0}, i: {1}, indices: {2}", lastIndices.Count, i, indices.Count);
-			//AddQuad(lastIndices[i], lastIndices[i + 1], indices[i + 1], indices[i]);
-			//}
 			lastIndices = indices;
 		}
 
 		void CloseRoad()
 		{
-			for (int i = 0; i < ROAD_LANES; i++) {
-				AddQuad(lastIndices[i], lastIndices[i + 1], firstIndices[i + 1], firstIndices[i]);
-			}
+			AddQuad(lastIndices[0], lastIndices[1], firstIndices[1], firstIndices[0]);
 			firstIndices = null;
 			lastIndices = null;
 		}
@@ -650,18 +670,16 @@ namespace Starmaze.Engine
 			if (seg.Before == null) {
 				var rjIn = seg.RawJoinIn();
 				var nextVerts = new LineArtVertex[] {
-					Background(seg.Pos0 + rjIn.SideR),
-					seg.V0,
-					Background(seg.Pos0 + rjIn.SideL)
+					new LineArtVertex(seg.Pos0 + rjIn.SideR, color: seg.V0.Color),
+					new LineArtVertex(seg.Pos0 + rjIn.SideL, color: seg.V0.Color),
 				};
 				if (seg.Cap) {
 					var cap = SquarishCap(rjIn, -1.0);
 					var cap0 = cap.Item1;
 					var cap1 = cap.Item2;
 					var beginVerts = new LineArtVertex[] {
-						Background(seg.Pos0 + cap0),
-						Background(seg.Pos0 + Vector2d.Lerp(cap0, cap1, 0.5)),
-						Background(seg.Pos0 + cap1)
+						new LineArtVertex(seg.Pos0 + cap0, color: seg.V0.Color),
+						new LineArtVertex(seg.Pos0 + cap1, color: seg.V0.Color),
 					};
 					BeginRoad(beginVerts);
 					AdvanceTo(nextVerts);
@@ -676,9 +694,8 @@ namespace Starmaze.Engine
 				var sideR = jn.Item1;
 				var sideL = jn.Item2;
 				var verts = new LineArtVertex[] {
-					Background(seg.Pos0 + sideR),
-					seg.V0,
-					Background(seg.Pos0 + sideL)
+					new LineArtVertex(seg.Pos0 + sideR, color: seg.V0.Color),
+					new LineArtVertex(seg.Pos0 + sideL, color: seg.V0.Color),
 				};
 				BeginRoad(verts);
 			}
@@ -689,21 +706,19 @@ namespace Starmaze.Engine
 			if (seg.After == null) {
 				var rjOut = seg.RawJoinOut();
 				var nextVerts = new LineArtVertex[] {
-					Background(seg.Pos1 + rjOut.SideR),
-					seg.V1,
-					Background(seg.Pos1 + rjOut.SideL)
+					new LineArtVertex(seg.Pos1 + rjOut.SideR, color: seg.V1.Color),
+					new LineArtVertex(seg.Pos1 + rjOut.SideL, color: seg.V1.Color),
 				};
 				if (seg.Cap) {
 					var cap = SquarishCap(rjOut, +1.0);
 					var cap0 = cap.Item1;
 					var cap1 = cap.Item2;
 					var endVerts = new LineArtVertex[] {
-						Background(seg.Pos1 + cap0),
-						Background(seg.Pos1 + Vector2d.Lerp(cap0, cap1, 0.5)),
-						Background(seg.Pos1 + cap1)
+						new LineArtVertex(seg.Pos1 + cap0, color: seg.V1.Color),
+						new LineArtVertex(seg.Pos1 + cap1, color: seg.V1.Color)
 					};
 					AdvanceTo(nextVerts);
-					AdvanceTo(endVerts, swapTriangleFacing: true);
+					AdvanceTo(endVerts);
 				} else {
 					AdvanceTo(nextVerts);
 				}
@@ -714,9 +729,8 @@ namespace Starmaze.Engine
 				var sideR = jn.Item1;
 				var sideL = jn.Item2;
 				var nextVerts = new LineArtVertex[] {
-					Background(seg.Pos1 + sideR),
-					seg.V1,
-					Background(seg.Pos1 + sideL)
+					new LineArtVertex(seg.Pos1 + sideR, color: seg.V1.Color),
+					new LineArtVertex(seg.Pos1 + sideL, color: seg.V1.Color)
 				};
 				AdvanceTo(nextVerts);
 			}
@@ -737,9 +751,8 @@ namespace Starmaze.Engine
 				var sideL = pt.Item3;
 
 				var verts = new LineArtVertex[] {
-					Background(interior.Pos + sideR),
-					interior,
-					Background(interior.Pos + sideL)
+					new LineArtVertex(interior.Pos + sideR, color: interior.Color),
+					new LineArtVertex(interior.Pos + sideL, color: interior.Color)
 				};
 
 				AdvanceTo(verts);
@@ -817,110 +830,6 @@ namespace Starmaze.Engine
 	}
 
 	/// <summary>
-	/// A tesselator that turns a Path into a filled shape with no border.
-	/// (Probably convex shapes only; possibly rename this to reflect that?)
-	/// </summary>
-	// XXX: LineSegment's might not be the best way of doing this?  Do we need
-	// a PolySegment or such?  Hmmm.
-	// TODO: Does not anti-alias the edges of the polygon.
-	public class FilledShapeTesselator : Tesselator
-	{
-		List<LineArtVertex> vertAccm;
-
-		public FilledShapeTesselator(VertexModel output) : base(output)
-		{
-			vertAccm = null;
-		}
-
-		public void StartPath(LineArtVertex startPoint)
-		{
-			vertAccm = new List<LineArtVertex>();
-			vertAccm.Add(startPoint);
-		}
-
-		public void EndPath()
-		{
-
-		}
-
-		public override void TesselatePath(Path path)
-		{
-			if (path.Empty) {
-				return;
-			}
-			if (!path.Closed) {
-				Log.Warn(!path.Closed, "FilledShapeTesselator got a Path that isn't closed, closing.");
-				path.Close();
-			}
-			//StartPath();
-			foreach (var seg in path.Segments) {
-				seg.TesselateWith(this);
-			}
-			EndPath();
-		}
-
-		void AccumulateLine(LineSegment line)
-		{
-			vertAccm.Add(line.V1);
-		}
-
-		// Goes through all accumulated vertexes, divvies them up into triangles,
-		// and throws them at the VertexModel
-		// This is trivial, we just draw diagonals from one vertex to all other vertexes.
-		// Again, only works for convex polygons without holes though!
-		void Triangulate()
-		{
-			Log.Assert(vertAccm.Count > 2, "Not enough vertices submitted to make a triangle!");
-			var startIdx = Output.AddVertexes(vertAccm);
-			var endIdx = startIdx + vertAccm.Count;
-			var idxs = new List<uint>();
-			for (var i = startIdx + 2; i < endIdx; i++) {
-				idxs.Add(startIdx);
-				idxs.Add(i - 1);
-				idxs.Add(i);
-			}
-			Output.AddIndices(idxs);
-		}
-
-		public override void TesselateLine(LineSegment line)
-		{
-			AccumulateLine(line);
-		}
-
-		public override void TesselateArc(ArcSegment arc)
-		{
-
-		}
-	}
-
-	/// <summary>
-	/// A combination of a FilledShapeTesselator and a FadeLineTesselator;
-	/// draws a filled shape with a boundary line around it.
-	/// </summary>
-	public class BorderedShapeTesselator : Tesselator
-	{
-		public BorderedShapeTesselator(VertexModel output) : base(output)
-		{
-
-		}
-
-		public override void TesselatePath(Path path)
-		{
-
-		}
-
-		public override void TesselateLine(LineSegment line)
-		{
-
-		}
-
-		public override void TesselateArc(ArcSegment arc)
-		{
-
-		}
-	}
-
-	/// <summary>
 	/// A convenient way to construct `VertexModel`s.
 	///
 	/// Create one of these, then call methods on it to add geometry.
@@ -936,7 +845,7 @@ namespace Starmaze.Engine
 		public ModelBuilder()
 		{
 			model = new VertexModel();
-			tesselator = new FadeLineTesselator(model);
+			tesselator = new LineTesselator(model);
 		}
 
 		public VertexModel Finish()
@@ -991,13 +900,34 @@ namespace Starmaze.Engine
 			SubmitClosedPath(verts);
 		}
 
+		public void CircleFilled(double x, double y, double radius, Color4 color, int? numSegments = null)
+		{
+			var segments = numSegments ?? 16;
+			var radiansPerSegment = SMath.TAU / segments;
+			var angle = 0.0;
+			var verts = new List<LineArtVertex>();
+			for (int i = 0; i < segments; i++) {
+				var pos = new Vector2d(Math.Cos(angle) * radius + x, Math.Sin(angle) * radius + y);
+				angle += radiansPerSegment;
+				verts.Add(new LineArtVertex(pos, color));
+			}
+			PolygonFilled(verts);
+		}
+
+		public void CircleOutlined(double x, double y, double radius, Color4 color, Color4 outlineColor, int? numSegments = null)
+		{
+			CircleFilled(x, y, radius, color, numSegments: numSegments);
+			Circle(x, y, radius, outlineColor, numSegments: numSegments);
+
+		}
+
 		public void Arc(double cx, double cy, double radius, double sweep, Color4 color, double startAngle = 0.0,
 		                int? numSegments = null)
 		{
 			var pos0 = SMath.Rotate(Vector2d.UnitX, startAngle) * radius;
 			var pos1 = SMath.Rotate(Vector2d.UnitX, startAngle + sweep) * radius;
-			Console.WriteLine("Start angle {0}, sweep {1}, radius {2}, pos0 {3}, pos1 {4}, length1 {5}, length2 {6}",
-				startAngle, sweep, radius, pos0, pos1, pos0.Length, pos1.Length);
+			//Log.Message("Start angle {0}, sweep {1}, radius {2}, pos0 {3}, pos1 {4}, length1 {5}, length2 {6}",
+			//                  startAngle, sweep, radius, pos0, pos1, pos0.Length, pos1.Length);
 			var v0 = new LineArtVertex(pos0, color: color);
 			var v1 = new LineArtVertex(pos1, color: color);
 			SubmitOpenPath(new ArcSegment(v1, v0, new Vector2d(cx, cy), true, numSegments));
@@ -1010,6 +940,8 @@ namespace Starmaze.Engine
 			SubmitOpenPath(new LineSegment(v0, v1));
 		}
 
+		// XXX: TODO: Add more error checking (or push more of it upstream),
+		// clarify IList vs. IEnumerable
 		public void Polygon(IList<LineArtVertex> verts)
 		{
 			var segments = new List<PathSegment>();
@@ -1022,6 +954,20 @@ namespace Starmaze.Engine
 			SubmitClosedPath(segments);
 		}
 
+		public void PolygonFilled(IEnumerable<LineArtVertex> verts)
+		{
+			var p = new FilledPolygon(verts);
+			p.Tesselate(model);
+		}
+
+		// XXX: Needs outline width's
+		public void PolygonOutlined(IList<LineArtVertex> verts, IList<LineArtVertex> outline)
+		{
+			PolygonFilled(verts);
+			Polygon(outline);
+
+		}
+
 		public void PolygonUniform(IEnumerable<Vector2d> positions, Color4 color)
 		{
 			var verts = new List<LineArtVertex>();
@@ -1030,6 +976,18 @@ namespace Starmaze.Engine
 				verts.Add(v);
 			}
 			Polygon(verts);
+		}
+
+		public void PolygonUniformFilled(IEnumerable<Vector2d> positions, Color4 color)
+		{
+			var p = new FilledPolygon(positions, color);
+			p.Tesselate(model);
+		}
+
+		public void PolygonUniformOutlined(IEnumerable<Vector2d> positions, Color4 color, Color4 outlinecolor)
+		{
+			PolygonUniformFilled(positions, color);
+			PolygonUniform(positions, outlinecolor);
 		}
 
 		public void PolyLine(IList<LineArtVertex> verts)
@@ -1075,6 +1033,54 @@ namespace Starmaze.Engine
 				new Vector2d(x0 + w, y0),
 			};
 			PolygonUniform(positions, color);
+		}
+
+		public void RectCenterFilled(double cx, double cy, double w, double h, Color4 color)
+		{
+			var halfW = w / 2;
+			var halfH = h / 2;
+			var positions = new Vector2d[] {
+				new Vector2d(cx - halfW, cy - halfH),
+				new Vector2d(cx - halfW, cy + halfH),
+				new Vector2d(cx + halfW, cy + halfH),
+				new Vector2d(cx + halfW, cy - halfH),
+			};
+			PolygonUniformFilled(positions, color);
+		}
+
+		public void RectCenterOutlined(double cx, double cy, double w, double h, Color4 color, Color4 outlinecolor)
+		{
+			var halfW = w / 2;
+			var halfH = h / 2;
+			var positions = new Vector2d[] {
+				new Vector2d(cx - halfW, cy - halfH),
+				new Vector2d(cx - halfW, cy + halfH),
+				new Vector2d(cx + halfW, cy + halfH),
+				new Vector2d(cx + halfW, cy - halfH),
+			};
+			PolygonUniformOutlined(positions, color, outlinecolor);
+		}
+
+		public void RectCornerFilled(double x0, double y0, double w, double h, Color4 color)
+		{
+			var positions = new Vector2d[] {
+				new Vector2d(x0, y0),
+				new Vector2d(x0, y0 + h),
+				new Vector2d(x0 + w, y0 + h),
+				new Vector2d(x0 + w, y0),
+			};
+			PolygonUniformFilled(positions, color);
+		}
+
+		public void RectCornerOutlined(double x0, double y0, double w, double h, Color4 color, Color4 outlinecolor)
+		{
+			var positions = new Vector2d[] {
+				new Vector2d(x0, y0),
+				new Vector2d(x0, y0 + h),
+				new Vector2d(x0 + w, y0 + h),
+				new Vector2d(x0 + w, y0),
+			};
+			PolygonUniformOutlined(positions, color, outlinecolor);
 		}
 	}
 }

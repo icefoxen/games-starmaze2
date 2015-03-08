@@ -22,11 +22,15 @@ namespace Starmaze.Engine
 		HashSet<Actor> ActorsToAdd;
 		HashSet<Actor> ActorsToRemove;
 
-
 		public event EventHandler<FrameEventArgs> OnUpdate;
-		public event EventHandler<KeyboardKeyEventArgs> OnKeyPress;
-		public event EventHandler<KeyboardKeyEventArgs> OnKeyRelease;
+		public event EventHandler<InputAction> OnKeyDown;
+		public event EventHandler<InputAction> OnKeyUp;
 		public event EventHandler<EventArgs> OnDeath;
+
+		public ParticleGroup grp;
+		ParticleController cont;
+		ParticleRenderer rend;
+		ParticleEmitter emit;
 
 		public World(Actor player, WorldMap map, string initialZone, string initialRoom)
 		{
@@ -35,11 +39,17 @@ namespace Starmaze.Engine
 			ActorsToRemove = new HashSet<Actor>();
 			Space = new Space();
 
-			RenderManager = new RenderManager();
+			// BUGGO: This should use a real resolution.
+			RenderManager = new RenderManager(1024, 768);
 
 			Map = map;
 			ChangeRoom(Map[initialZone][initialRoom]);
 			AddActor(player);
+
+			grp = new ParticleGroup();
+			cont = new ParticleController();
+			rend = new ParticleRenderer();
+			emit = new ParticleEmitter(0.001);
 		}
 
 		/// <summary>
@@ -50,7 +60,8 @@ namespace Starmaze.Engine
 		public void ClearWorld()
 		{
 			Space = new Space();
-			RenderManager = new RenderManager();
+			// BUGGO: This should use a real resolution.
+			RenderManager = new RenderManager(1024, 768);
 
 			Actors = new HashSet<Actor>();
 			ActorsToAdd = new HashSet<Actor>();
@@ -114,18 +125,27 @@ namespace Starmaze.Engine
 
 			ActorsToAdd.Clear();
 			ActorsToRemove.Clear();
+			
+			//emit.Update(dt, grp);
+			//cont.Update(dt, grp);
 		}
 
 		public void Draw(ViewManager view)
 		{
 			RenderManager.Render(view);
+			//rend.Draw(view, grp);
 		}
 
-		public void HandleKeyDown(OpenTK.Input.KeyboardKeyEventArgs e)
+		public void Resize(int width, int height)
+		{
+			RenderManager.Resize(width, height);
+		}
+
+		public void HandleKeyDown(InputAction a)
 		{
 			// Okay, the 'event handler with nothing attached == null' idiom is a pain in the ass
-			if (OnKeyPress != null) {
-				OnKeyPress(this, e);
+			if (OnKeyDown != null) {
+				OnKeyDown(this, a);
 			}
 			/*
 			 * Test code to make sure ChangeRoom() works; it does.
@@ -137,13 +157,12 @@ namespace Starmaze.Engine
 			*/
 		}
 
-		public void HandleKeyUp(OpenTK.Input.KeyboardKeyEventArgs e)
+		public void HandleKeyUp(InputAction a)
 		{
-			if (OnKeyRelease != null) {
-				OnKeyRelease(this, e);
+			if (OnKeyUp != null) {
+				OnKeyUp(this, a);
 			}
 		}
-
 		// Hrmbl grmbl C# blrgl not letting random classes invoke events
 		// Which is to say, if any event needs to be triggered by something other than the World
 		// itself, it needs a method like this to make it accessible.

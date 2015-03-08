@@ -7,12 +7,19 @@ namespace Starmaze.Game
 	{
 		public Player()
 		{
-			RenderClass = "StaticRenderer";
 			Body = new Body(this);
 			Body.AddGeom(new BoxGeom(new BBox(-5, -5, 5, 5)));
-			var model = Resources.TheResources.GetModel("TestModel");
-			RenderParams = new StaticRendererParams(model);
-			Components.Add(new KeyboardController(this));
+			Components.Add(new InputController(this));
+
+			var tex = Resources.TheResources.GetTexture("animtest");
+			var atlas = new TextureAtlas(tex, 4, 4);
+			var anim = new Animation(4, 0.51);
+			var anim2 = new Animation(2, 0.2);
+			var sprite = new Sprite(this, atlas, anim);
+			sprite.AddAnimation(anim2);
+			sprite.CurrentAnim = 0;
+			Components.Add(sprite);
+			RenderState = new SpriteRenderState(this, sprite);
 			KeepOnRoomChange = true;
 		}
 	}

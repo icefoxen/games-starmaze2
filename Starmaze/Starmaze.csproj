@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -50,6 +50,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Engine\Input.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Main.cs" />
     <Compile Include="Util.cs" />
@@ -86,15 +87,13 @@
     <Compile Include="Engine\Tests.cs" />
     <Compile Include="Engine\Serialize.cs" />
     <Compile Include="Engine\Camera.cs" />
+    <Compile Include="Engine\Postproc.cs" />
     <Compile Include="Engine\Sound.cs" />
+    <Compile Include="Log.cs" />
+    <Compile Include="Engine\Sprite.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
-    <Folder Include="Content\" />
-    <Folder Include="Engine\" />
-    <Folder Include="Game\" />
     <Folder Include="LevelEditor\" />
-    <Folder Include="Content\Air\" />
-    <Folder Include="Content\Beginnings\" />
   </ItemGroup>
 </Project>

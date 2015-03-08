@@ -5,6 +5,92 @@ using OpenTK.Graphics;
 
 namespace Starmaze.Engine
 {
+	/*
+	public class ParticleInfo
+	{
+		Color4[] Color;
+		double[] Opacity;
+		double[] Size;
+		double[] GravityVel;
+		double[] FadeRate;
+		double[] MaxLifespan;
+		double[] Speed;
+		double[] Elasticity;
+		double[] Floor;
+	}
+
+	public class ParticleSet
+	{
+		ParticleInfo[] Set;
+	}
+
+	public class ParticleSystem
+	{
+		Random Rand;
+		List<Particle> Particles;
+
+		public ParticleSystem()
+		{
+			Rand = new Random();
+			Particles = new List<Particle>();
+		}
+
+		public void CreateParticles(ParticleSet type, double x, double y, int count, double radius = 0)
+		{
+			// OPT: Could be optimized further for radius == 0 case, but, meh
+			for (int i = 0; i < count; i++) {
+				var currentX = x - radius + Rand.NextDouble() * radius * 2;
+				var currentY = y - radius + Rand.NextDouble() * radius * 2;
+
+			}
+		}
+
+		public void Update(double dt)
+		{
+
+		}
+
+		public void Draw()
+		{
+
+		}
+
+		  
+		/// <summary>
+		/// Go through and remove dead particles, replacing them with ones off the end
+		/// of the list.
+		/// </summary>
+		void PurgeDeadParticles()
+		{
+
+		}
+
+		T ArrayRand<T>(IList<T> items)
+		{
+
+		}
+	}
+
+	public class Particle
+	{
+		Vector2d InitialPosition;
+		Vector2d Position;
+		Vector2d Velocity;
+
+		public Particle(Vector2d pos, Vector2d vel, ParticleInfo type)
+		{
+
+			InitialPosition = pos;
+			Position = pos;
+			Velocity = vel;
+		}
+
+		public Particle(Vector2d pos, Vector2d vel, ParticleSet type)
+		{
+
+		}
+	}
+	*/
 	/// <summary>
 	/// A particle!  Mainly just here to contain things.
 	/// </summary>
@@ -30,6 +116,7 @@ namespace Starmaze.Engine
 	/// A set of particles that tracks and updates itself.  All particles in the system obey the same rules,
 	/// given by a ParticleController.
 	/// </summary>
+	// XXX: Removing particles while maintaining draw order might become a little wonky.
 	public class ParticleGroup
 	{
 		public List<Particle> Particles;
@@ -87,6 +174,7 @@ namespace Starmaze.Engine
 
 		public void Draw(ViewManager view, ParticleGroup group)
 		{
+
 			Graphics.TheGLTracking.SetShader(shader);
 			shader.UniformMatrix("projection", view.ProjectionMatrix);
 			foreach (var p in group.Particles) {
@@ -95,6 +183,7 @@ namespace Starmaze.Engine
 				shader.Uniformf("colorOffset", p.Color.R, p.Color.G, p.Color.B, p.Color.A);
 				array.Draw();
 			}
+
 		}
 	}
 
@@ -106,7 +195,6 @@ namespace Starmaze.Engine
 		double lastTime = 0.0;
 		double nextTime = 0.0;
 		double emitDelay;
-
 		Random rand;
 
 		public ParticleEmitter(double emitDelay = 0.1)
