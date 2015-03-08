@@ -191,7 +191,7 @@ namespace Starmaze
 			Graphics.ClearScreen();
 			View.CenterOn(Camera.CurrentPos);
 			World.Draw(View);
-			Gui.Draw(View);
+			Gui.Draw();
 			SwapBuffers();
 			frames += 1;
 		}

@@ -19,6 +19,7 @@ namespace Starmaze.Engine
 		Dictionary<string, Texture> TextureCache;
 		Dictionary<string, Shader> ShaderCache;
 		Dictionary<string, VertexArray> ModelCache;
+        Dictionary<string, Texture> TextCache;
 
 		public ResourceLoader()
 		{
@@ -35,7 +36,8 @@ namespace Starmaze.Engine
 			TextureCache = new Dictionary<string, Texture>();
 			ShaderCache = new Dictionary<string, Shader>();
 			ModelCache = new Dictionary<string, VertexArray>();
-		}
+            TextCache = new Dictionary<string, Texture>();
+        }
 
 		TVal Get<TKey,TVal>(Dictionary<TKey,TVal> cache, Func<TKey,TVal> loader, TKey name)
 		{
@@ -120,6 +122,27 @@ namespace Starmaze.Engine
 			var t = new Texture(bitmap);
 			return t;
 		}
+
+        public Texture GetStringTexture(string r)
+        {
+            return Get(TextCache, LoadStringTexture, r);
+        }
+
+        public void addStringTexture(string r,Bitmap bmp)
+        {
+            string fullPath = System.IO.Path.Combine(ResourceRoot, "stringtextures", r + ".png");
+            bmp.Save(fullPath, System.Drawing.Imaging.ImageFormat.Png);
+            TextCache.Add(r, new Texture(bmp));
+        }
+
+        Texture LoadStringTexture(string file)
+        {
+            var fullPath = System.IO.Path.Combine(ResourceRoot, "stringtextures", file + ".png");
+            Log.Message("Loading string texture {0}", fullPath);
+            Bitmap bitmap = new Bitmap(fullPath);
+            var t = new Texture(bitmap);
+            return t;
+        }
 
 		public Shader GetShader(string r)
 		{

@@ -11,18 +11,11 @@ namespace Starmaze.Game
 {
     public class GUI
     {
-
+        Texture texture;
         Bitmap bmp;
         float fontsize = 20;
         public Actor guiActor;
         string textToDraw;
-
-
-        struct TextMap
-        {
-            string text;
-            PointF position;
-        }
 
        public GUI()
         {
@@ -30,15 +23,16 @@ namespace Starmaze.Game
             guiActor = new Actor();
             guiActor.Body = new Body(guiActor,false,true);
             BillboardRenderState billBRState = new BillboardRenderState(guiActor, new Texture(bmp));
-            billBRState._scale = new Vector2(6,3);
+            billBRState._scale = new Vector2(5,2);
             guiActor.RenderState = billBRState;
-            textToDraw = "";
+            textToDraw = "";         
+           //DrawString("The quick brown\n fox jumps over the lazy dog \njumps over the lazy dog", new PointF());
+           
         }
 
-        public void Draw(ViewManager view)
+        public void Draw()
         {
-            DrawString("The quick brown\n fox jumps over the lazy dog \njumps over the lazy dog",new PointF());
-            //((BillboardRenderState)guiActor.RenderState).Texture = new Texture(generateBitmap());
+           ((BillboardRenderState)guiActor.RenderState).Texture = texture;
         }
 
         /// <summary>
@@ -49,41 +43,30 @@ namespace Starmaze.Game
         /// <param name="point">The location of the text (at least it should be)
         /// The origin (0, 0) lies at the top-left corner of the backing store.</param>
         public void DrawString(string text, PointF point)
-        {
-           /* Bitmap newbmp;
-            System.Drawing.Graphics graphics = System.Drawing.Graphics.FromImage(bmp);
-            //Finds the size that the text would take up on the screen (width, height)
-            SizeF size = graphics.MeasureString(text,new Font(FontFamily.GenericSerif, fontsize));
-            int w=Convert.ToInt32(SMath.RoundUpToPowerOf2(size.Width));
-            int h=Convert.ToInt32(SMath.RoundUpToPowerOf2(size.Height));
-            
-            newbmp = new Bitmap(w,h,System.Drawing.Imaging.PixelFormat.Format32bppArgb);
-            graphics = System.Drawing.Graphics.FromImage(newbmp);
-            graphics.FillRectangle(new SolidBrush(Color.Empty), 0, 0, newbmp.Width, newbmp.Height);
-            graphics.DrawString(text, new Font(FontFamily.GenericSerif, fontsize), Brushes.White, point.X, point.Y);
-            graphics.Flush();
-            graphics.Dispose();
-            
-            bmp = newbmp;*/
-            textToDraw = text;
-            ((BillboardRenderState)guiActor.RenderState).Texture = new Texture(generateBitmap());
+        {          
+            textToDraw += text;
+            texture = generateTextTexture();
         }
 
-        public Bitmap generateBitmap()
+        public void LoadString(string name)
         {
-            Bitmap newbmp;
-            Vector2 size = getTextSize();
+            texture = Resources.TheResources.GetStringTexture(name);
+        }
 
-            newbmp = new Bitmap((int)size.X, (int)size.Y);
-            using (System.Drawing.Graphics graphics = System.Drawing.Graphics.FromImage(newbmp))
+        public Texture generateTextTexture()
+        {
+            Vector2 size = getTextSize();
+            bmp = new Bitmap((int)size.X, (int)size.Y);
+            using (System.Drawing.Graphics graphics = System.Drawing.Graphics.FromImage(bmp))
             {
-                graphics.FillRectangle(new SolidBrush(Color.Empty), 0, 0, newbmp.Width, newbmp.Height);
-                graphics.DrawString(textToDraw, new Font(FontFamily.GenericSerif, fontsize), Brushes.White, new PointF());
+                graphics.FillRectangle(new SolidBrush(Color.Empty), 0, 0, bmp.Width, bmp.Height);
+                graphics.DrawString(textToDraw, new Font(FontFamily.GenericMonospace, fontsize), Brushes.White, new PointF());
                 graphics.Flush();
                 graphics.Dispose();
             }
-            return newbmp;
-
+            Resources.TheResources.addStringTexture("test", bmp);
+            textToDraw = "";
+            return new Texture(bmp);
         }
 
         public Vector2 getTextSize()
@@ -96,4 +79,15 @@ namespace Starmaze.Game
         }
     }
 
+    public class TextMap
+    {
+        string text;
+        PointF position;
+        
+        public TextMap(string _text, PointF _pos)
+        {
+            text = _text;
+            position = _pos;
+        }
+    }
 }
