@@ -442,5 +442,33 @@ namespace Starmaze.Engine
 
 		}
 	}
+
+    public class TextRenderer : Renderer<RenderState>
+    {
+        public Texture tex;
+        VertexArray billboard;
+
+        public TextRenderer(): base()
+        {
+            shader = Resources.TheResources.GetShader("default-tex");
+            discipline = GLDiscipline.DEFAULT;
+            tex = Resources.TheResources.GetTexture("playertest");
+            billboard = Resources.TheResources.GetModel("Billboard");
+
+        }
+
+        public void RenderText(ViewManager view, Vector2 _pos, Vector2 _scale)
+        {
+            var pos = _pos;
+            var transform = new Transform(pos, 0.0f, _scale);
+            var mat = transform.TransformMatrix(view.ProjectionMatrix);
+            shader.UniformMatrix("projection", mat);
+            // This is, inconveniently, not the texture handle but in fact the texture unit offset.
+            shader.Uniformi("texture", 0);
+            tex.Enable();
+            billboard.Draw();
+            tex.Disable();
+        }
+    }
 }
 

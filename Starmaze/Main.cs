@@ -120,7 +120,7 @@ namespace Starmaze
 			View = new ViewManager(Util.LogicalScreenWidth, Util.LogicalScreenWidth / Options.AspectRatio);
 			Camera = new FollowCam(player, Util.LogicalScreenWidth, Util.LogicalScreenWidth / Options.AspectRatio);
 			World = new World(player, map, "TestZone", "TestRoom2");
-			Gui = new GUI();
+			Gui = new GUI(Options.ResolutionW);
 			SetupEvents();
 
 			fpsTimer.Start();
@@ -190,7 +190,7 @@ namespace Starmaze
 			Graphics.ClearScreen();
 			View.CenterOn(Camera.CurrentPos);
 			World.Draw(View);
-			Gui.Draw();
+			Gui.Draw(View);
 			SwapBuffers();
 			frames += 1;
 		}
