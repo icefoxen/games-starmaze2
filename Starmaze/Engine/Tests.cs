@@ -127,12 +127,12 @@ namespace Starmaze.Engine
 			BoxBlock a = new BoxBlock(new BBox(0.0, 1.0, 2.0, 2.0), Color4.AliceBlue);
 			var json = JsonConvert.SerializeObject(a, jset);
 			Log.Message("Box block: {0}", json);
-			var z = JsonConvert.DeserializeObject<BoxBlock>(json,new ActorConverter());
+			var z = JsonConvert.DeserializeObject<BoxBlock>(json, new ActorConverter());
 			//using(
 			var postJson = JsonConvert.SerializeObject(z, jset);
 			Log.Message("Box block: {0}", postJson);
 
-			Assert.True(a.Body.Position==z.Body.Position);
+			Assert.True(a.Body.Position == z.Body.Position);
 			Assert.True(true);
 		}
 
@@ -179,6 +179,29 @@ namespace Starmaze.Engine
 			GameOptions a = new GameOptions();
 			var j = JsonConvert.SerializeObject(a, jset);
 			Log.Message("Serialized game options: {0}", j);
+			Assert.True(true);
+		}
+
+		[Test]
+		public void AnimationSerialTest()
+		{
+			var a = new Animation(6, 0.25);
+			var json = JsonConvert.SerializeObject(a);
+			Log.Message("Serialized animation: {0}", json);
+			var z = JsonConvert.DeserializeObject<Animation>(json);
+			Assert.True(true);
+		}
+
+		[Test]
+		public void SpriteSerialTest()
+		{
+			var a = new Animation(6, 0.25);
+			var act = new Actor();
+			var ta = new TextureAtlas(Resources.TheResources.GetTexture("animtest"), 4, 4);
+			var sprite = new Sprite(act, ta, a);
+			var json = JsonConvert.SerializeObject(sprite);
+			Log.Message("Serialized sprite: {0}", json);
+			var z = JsonConvert.DeserializeObject<Sprite>(json);
 			Assert.True(true);
 		}
 	}

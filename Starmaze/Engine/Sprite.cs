@@ -11,6 +11,8 @@ namespace Starmaze.Engine
 		readonly int Width;
 		readonly int Height;
 
+
+
 		public TextureAtlas(Texture tex, int width, int height)
 		{
 			Log.Assert(tex != null);
@@ -72,15 +74,25 @@ namespace Starmaze.Engine
 	/// </summary>
 	public class Animation
 	{
-		readonly int MaxFrame;
+		public int MaxFrame {
+			get {
+				return Delays.Length;
+			}
+		}
+
 		public int Frame;
 		public double[] Delays;
 
 		double LastUpdate;
 
+		[Newtonsoft.Json.JsonConstructor]
+		public Animation()
+		{
+
+		}
+
 		public Animation(double[] frames)
 		{
-			MaxFrame = frames.Length;
 			Frame = 0;
 			LastUpdate = 0;
 			Delays = frames;
@@ -105,6 +117,7 @@ namespace Starmaze.Engine
 	/// </summary>
 	public class Sprite : Component
 	{
+		[Newtonsoft.Json.JsonIgnore]
 		public TextureAtlas Atlas;
 		List<Animation> Animations;
 
