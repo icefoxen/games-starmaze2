@@ -9,7 +9,9 @@ namespace Starmaze.Engine
 {
 	public class RenderState : IComparable<RenderState>
 	{
+		[Newtonsoft.Json.JsonIgnore]
 		public IRenderer Renderer;
+		[Newtonsoft.Json.JsonIgnore]
 		public Body Body;
 		long OrderingNumber;
 
