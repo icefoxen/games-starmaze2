@@ -1,5 +1,6 @@
 using System;
 using Starmaze.Engine;
+using Newtonsoft.Json;
 using OpenTK;
 using OpenTK.Input;
 
@@ -35,13 +36,18 @@ namespace Starmaze.Game
 	//end Timer
 	public class Life : Component
 	{
+		[JsonProperty]
 		double CurrentLife { get; set; }
 
+		[JsonProperty]
 		double MaxLife { get; set; }
 		//Multiplier to damage taken
+
+		[JsonProperty]
 		double DamageAttenuation { get; set; }
 		//subtractive damage reduction
 		//Applied BEFORE attenuation
+		[JsonProperty]
 		double DamageReduction { get; set; }
 
 		public Life(Actor owner, double hpsIn, double maxLifeIn = -1.0f, double attenuationIn = 1.0f, double reductionIn = 0.0f) : base(owner)
@@ -80,6 +86,11 @@ namespace Starmaze.Game
 			//string output = "Took " + attenuatedDamage.ToString() + " out of " + damage.ToString() + " damage, life is now " + CurrentLife.ToString();
 			string output = String.Format("Took {0} out of {1} damage, life is now {2}.", attenuatedDamage, damage, CurrentLife);
 			Log.Message(output);
+		}
+
+		public override string ToString()
+		{
+			return string.Format("Life(CurrentLife: {0}, MaxLife: {1}, DamageAttenuation: {2}, DamageReduction: {3})", CurrentLife, MaxLife, DamageAttenuation, DamageReduction);
 		}
 	}
 	//end Life component

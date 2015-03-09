@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using Newtonsoft.Json;
+using NUnit.Framework;
 using OpenTK;
 using OpenTK.Graphics;
-using NUnit.Framework;
-using Newtonsoft.Json;
 
 //using Starmaze;
 using Starmaze.Game;
@@ -58,7 +58,9 @@ namespace Starmaze.Engine
 		{
 			Vector2d testvector = new Vector2d(4.0, 5.0);
 			string testJSON = JsonConvert.SerializeObject(testvector, new OTKVector2dConverter());
+			Log.Message("{0}", testJSON);
 			Vector2d vectorRT = JsonConvert.DeserializeObject<Vector2d>(testJSON);
+			Log.Message("{0}", vectorRT);
 			Assert.True(testvector == vectorRT);
 		}
 

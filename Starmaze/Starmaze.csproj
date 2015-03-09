@@ -87,6 +87,7 @@
     <Compile Include="Engine\Postproc.cs" />
     <Compile Include="Log.cs" />
     <Compile Include="Engine\Sprite.cs" />
+    <Compile Include="Game\Tests.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

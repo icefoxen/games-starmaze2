@@ -47,6 +47,20 @@ namespace Starmaze.Engine
 			return default(T);
 		}
 
+		// BUGGO: Might need some kind of callback to let the World know that a new component exists
+		// and thus needs to be notified of events?  OR, this just can't be called after the actor
+		// has been added to the World.  Either way!  It's basically here for purposes of deserialization.
+		public void AddComponent(Component c)
+		{
+			c.Owner = this;
+			var b = c as Body; // special caaaaase (it seemed like a good idea at the time)
+			if (b != null) {
+				Body = b;
+			} else {
+				Components.Add(c);
+			}
+		}
+
 		// Other properties
 		public bool Alive = true;
 		public bool KeepOnRoomChange = false;
