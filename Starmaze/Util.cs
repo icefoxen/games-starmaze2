@@ -74,7 +74,12 @@ namespace Starmaze
 			}
 			return arr;
 		}
+
+		public static Color FromColor4(OpenTK.Graphics.Color4 c)
+		{
+			// Really now?  Really?
+			return Color.FromArgb((int)(c.A * 255), (int)(c.R * 255), (int)(c.G * 255), (int)(c.B * 255));
+		}
+
 	}
-
 }
-

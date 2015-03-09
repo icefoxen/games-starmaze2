@@ -121,7 +121,7 @@ namespace Starmaze
 			Camera = new FollowCam(player, Util.LogicalScreenWidth, Util.LogicalScreenWidth / Options.AspectRatio);
 			World = new World(player, map, "TestZone", "TestRoom2");
 			Gui = new GUI();
-            World.AddActor(Gui.guiActor);
+			//World.AddActor(Gui.guiActor);
 			SetupEvents();
 
 			fpsTimer.Start();

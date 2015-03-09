@@ -43,24 +43,30 @@ namespace Starmaze.Engine
 	public class BillboardRenderState : RenderState
 	{
 		public Texture Texture;
-        public Vector2 _scale;
-		public BillboardRenderState(Actor act, Texture texture) : base("BillboardRenderer", act)
+		public float Rotation;
+		public Vector2 Scale;
+
+		public BillboardRenderState(Actor act, Texture texture, float rotation = 0.0f, Vector2? scale = null) : base("BillboardRenderer", act)
 		{
 			Log.Assert(texture != null);
 			Texture = texture;
-            _scale = new Vector2(1, 1);
+			Rotation = rotation;
+			Scale = scale ?? Vector2.One;
 		}
-
 	}
 
 	public class SpriteRenderState : RenderState
 	{
 		public Sprite Sprite;
+		public float Rotation;
+		public Vector2 Scale;
 
-		public SpriteRenderState(Actor act, Sprite sprite) : base("SpriteRenderer", act)
+		public SpriteRenderState(Actor act, Sprite sprite, float rotation = 0.0f, Vector2? scale = null) : base("SpriteRenderer", act)
 		{
 			Log.Assert(sprite != null);
 			Sprite = sprite;
+			Rotation = rotation;
+			Scale = scale ?? Vector2.One;
 		}
 	}
 
@@ -336,6 +342,7 @@ namespace Starmaze.Engine
 	public class BillboardRenderer : Renderer<BillboardRenderState>
 	{
 		VertexArray billboard;
+
 		public BillboardRenderer() : base()
 		{
 			shader = Resources.TheResources.GetShader("default-tex");
@@ -345,8 +352,9 @@ namespace Starmaze.Engine
 
 		protected override void RenderOne(ViewManager view, BillboardRenderState r)
 		{
+			// BUGGO: Is the billboard not centered here?
 			var pos = new Vector2((float)r.Body.Position.X, (float)r.Body.Position.Y);
-			var transform = new Transform(pos, 0.0f,r._scale);
+			var transform = new Transform(pos, r.Rotation, r.Scale);
 			var mat = transform.TransformMatrix(view.ProjectionMatrix);
 			shader.UniformMatrix("projection", mat);
 			// This is, inconveniently, not the texture handle but in fact the texture unit offset.
@@ -444,5 +452,32 @@ namespace Starmaze.Engine
 		}
 	}
 
+	public class TextRenderer : Renderer<RenderState>
+	{
+		public Texture tex;
+		VertexArray billboard;
+
+		public TextRenderer() : base()
+		{
+			shader = Resources.TheResources.GetShader("default-tex");
+			discipline = GLDiscipline.DEFAULT;
+			tex = Resources.TheResources.GetTexture("playertest");
+			billboard = Resources.TheResources.GetModel("Billboard");
+
+		}
+
+		public void RenderText(ViewManager view, Vector2 _pos, Vector2 _scale)
+		{
+			var pos = _pos;
+			var transform = new Transform(pos, 0.0f, _scale);
+			var mat = transform.TransformMatrix(view.ProjectionMatrix);
+			shader.UniformMatrix("projection", mat);
+			// This is, inconveniently, not the texture handle but in fact the texture unit offset.
+			shader.Uniformi("texture", 0);
+			tex.Enable();
+			billboard.Draw();
+			tex.Disable();
+		}
+	}
 }
 
