@@ -58,11 +58,13 @@ namespace Starmaze.Game
 			var a = new Life(dummy, 10);
 			var json = JsonConvert.SerializeObject(a, jset);
 			Log.Message("Life: {0}", json);
-			var z = JsonConvert.DeserializeObject(json);
-			Log.Message("Type of result: {0}", z.GetType());
 			var j = Newtonsoft.Json.Linq.JObject.Parse(json);
-
-			Log.Message("Life: {0}", z);
+			var typ = Type.GetType(j["$type"].ToString());
+			Log.Message("Life type: {0}", typ);
+			var z = JsonConvert.DeserializeObject(json, typ);
+			Log.Message("Type of result: {0}", z.GetType());
+			Log.Message("Result: {0}", z);
+			//Log.Message()
 			Assert.True(true);
 		}
 	}
