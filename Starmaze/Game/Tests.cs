@@ -9,66 +9,6 @@ using Starmaze.Engine;
 
 namespace Starmaze.Game
 {
-	static class ComponentConverter
-	{
-		public static Component LoadComponent(JObject json)
-		{
-			try {
-				var typ = json["type"].Value<string>();
-				Log.Message("Type name: {0}", typ);
-				// This is a little ugly, but it gets everything hard-coded in at compile time,
-				// which is exactly what we want, semantically.  Also prevents irritating type
-				// shenanigans when we try to put bunches of functions into a collection or such.
-				switch (typ) {
-					case "Life":
-						return LoadLife(json);
-					default:
-						return null;
-				}
-			} catch (KeyNotFoundException e) {
-				throw e;
-			}
-		}
-
-		public static JObject SaveComponent(Component c)
-		{
-			var typ = c.GetType();
-			Log.Message("Type name: {0}", typ.Name);
-			// This is a little ugly, but it gets everything hard-coded in at compile time,
-			// which is exactly what we want, semantically.  Also prevents irritating type
-			// shenanigans when we try to put bunches of functions into a collection or such.
-			switch (typ.Name) {
-				case "Life":
-					return SaveLife(c as Life);
-				default:
-					return new JObject();
-			}
-		}
-
-		public static Life LoadLife(JObject json)
-		{
-			var hpIn = json["hp"].Value<double>();
-			var maxLifeIn = json["maxLife"].Value<double>();
-			var attenuation = json["damageAttenuation"].Value<double>();
-			var damageReduction = json["damageReduction"].Value<double>();
-			var l = new Life(null, hpIn, maxLifeIn, attenuation, damageReduction);
-			return l;
-		}
-
-		public static JObject SaveLife(Life l)
-		{
-			Log.Assert(l != null, "Shouldn't be possible!");
-			var json = new JObject {
-				{"type", l.GetType().Name},
-				{"hp", l.CurrentLife},
-				{"maxLife", l.MaxLife},
-				{"damageAttenuation", l.DamageAttenuation},
-				{"damageReduction", l.DamageReduction},
-			};
-			return json;
-		}
-	}
-
 	class LifeConverter : JsonConverter
 	{
 		public override bool CanConvert(Type objectType)
@@ -139,8 +79,11 @@ namespace Starmaze.Game
 			var dummy = new Actor();
 			var a = new Life(dummy, 20, 30, 0.8, 2);
 			var json = JsonConvert.SerializeObject(a, jset);
+			var jj = JsonSerializer.Create(jset);
 			Log.Message("Serialized Life: {0}", json);
 			// This is sorta messy 'cause we have to parse the json twice...
+			// Not necessary for this example, but it will be for reals when we are
+			// trying to find out what kind of component we're creating.
 			var jo = JObject.Parse(json);
 			var typ = Type.GetType(jo["type"].Value<string>());
 			Log.Message("Should be type '{0}'", typ);
