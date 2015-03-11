@@ -36,19 +36,22 @@ namespace Starmaze.Game
 	//end Timer
 	public class Life : Component
 	{
-		[JsonProperty]
-		double CurrentLife { get; set; }
+		public double CurrentLife { get; set; }
 
-		[JsonProperty]
-		double MaxLife { get; set; }
-		//Multiplier to damage taken
+		public double MaxLife { get; set; }
 
-		[JsonProperty]
-		double DamageAttenuation { get; set; }
-		//subtractive damage reduction
-		//Applied BEFORE attenuation
-		[JsonProperty]
-		double DamageReduction { get; set; }
+		/// <summary>
+		/// Multiplier to damage taken, generally <1.0
+		/// </summary>
+		/// <value>The damage attenuation.</value>
+		public double DamageAttenuation { get; set; }
+
+		/// <summary>
+		/// subtractive damage reduction
+		/// Applied BEFORE attenuation
+		/// </summary>
+		/// <value>The damage reduction.</value>
+		public double DamageReduction { get; set; }
 
 		public Life(Actor owner, double hpsIn, double maxLifeIn = -1.0f, double attenuationIn = 1.0f, double reductionIn = 0.0f) : base(owner)
 		{

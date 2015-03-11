@@ -19,9 +19,7 @@ namespace Starmaze.Engine
 	/// </summary>
 	public class Component
 	{
-		[JsonIgnore]
 		public Actor Owner;
-		[JsonIgnore]
 		public EventType HandledEvents;
 
 		public Component(Actor owner)
