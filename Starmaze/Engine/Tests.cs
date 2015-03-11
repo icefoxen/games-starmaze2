@@ -33,6 +33,21 @@ namespace Starmaze.Engine
 	*/
 
 	[TestFixture]
+	public class SoundTests
+	{
+		Sound s;
+		[SetUp]
+		public void Prep(){
+			s = new Sound();
+		}
+		[Test]
+		public void PlaySound(){
+			s.PlaySound("../sounds/Powers_Air_Wave_Large.wav");
+
+		}
+	}
+
+	[TestFixture]
 	public class SerializationTests
 	{
 		JsonSerializerSettings jset;

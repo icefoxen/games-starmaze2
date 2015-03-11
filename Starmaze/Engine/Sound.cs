@@ -4,6 +4,7 @@ using System.Threading;
 using NAudio;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
+using NAudio.Mixer;
 
 namespace Starmaze.Engine
 {
@@ -11,19 +12,27 @@ namespace Starmaze.Engine
 	{
 		// See http://mark-dot-net.blogspot.co.uk/2014/02/fire-and-forget-audio-playback-with.html
 		// Also see http://channel9.msdn.com/coding4fun/articles/Skype-Voice-Changer for fx
-		public static void PlaySound()
-		{
-			var waveOut = new WaveOut();
-			var source1 = new AudioFileReader("../sounds/Powerup.wav");
-			var source2 = new AudioFileReader("../sounds/Powers_Air_Wave_Large.wav");
-			var mixer = new MixingSampleProvider(WaveFormat.CreateIeeeFloatWaveFormat);
-			waveOut.Init(source2);
-			waveOut.Play();
-			Thread.Sleep(500);
-			waveOut.Play();
-			Thread.Sleep(500);
+		private readonly IWavePlayer player;
+		private readonly MixingSampleProvider mixer;
 
+		public Sound (int sampleRate = 44100, int channelCount = 2)
+		{
+			player = new WaveOutEvent();
+			mixer = new MixingSampleProvider(WaveFormat.CreateIeeeFloatWaveFormat(sampleRate, channelCount));
+			mixer.ReadFully = true;
+			player.Init(mixer);
+			player.Play();
 		}
+
+		public void PlaySound(string filename)
+		{
+			AudioFileReader input = new AudioFileReader(filename);
+			WaveOut wav = new WaveOut();
+			wav.Init(input);
+			mixer.AddMixerInput(wav.);
+		}
+
+			
 	}
 }
 
