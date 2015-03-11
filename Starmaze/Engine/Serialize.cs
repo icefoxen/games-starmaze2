@@ -23,7 +23,8 @@ namespace Starmaze.Engine
 
 		public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
 		{
-			throw new NotImplementedException();
+
+			var jo = new JObject();
 		}
 
 		public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
