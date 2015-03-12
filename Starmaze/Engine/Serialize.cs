@@ -6,37 +6,6 @@ using Newtonsoft.Json.Linq;
 
 namespace Starmaze.Engine
 {
-	class ActorConverter : JsonConverter
-	{
-		public override bool CanConvert(Type objectType)
-		{
-			return (objectType == typeof(Actor));
-		}
-
-		public override bool CanWrite {
-			get{ return false; }
-		}
-
-		public override bool CanRead {
-			get{ return true; }
-		}
-
-		public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
-		{
-
-			var jo = new JObject();
-		}
-
-		public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
-		{
-			JObject jo = JObject.Load(reader);
-			var properties = jo.Properties();
-			Log.Message("{0}", properties.GetType().ToString());
-
-			throw new NotImplementedException();
-		}
-	}
-
 	/// <summary>
 	/// OTK vector2d converter. Default serialization behavior gets circular references
 	/// Probably due to vectors having a useful diverse way to be specified
