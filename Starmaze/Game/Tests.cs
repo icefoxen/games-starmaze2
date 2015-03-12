@@ -83,9 +83,9 @@ namespace Starmaze.Game
 
 		public static JObject SaveComponent(Component c)
 		{
-			var typ = c.GetType();
-			Log.Message("Saving component of type: {0}", typ.ToString());
-			switch (typ.ToString()) {
+			var typ = c.GetType().ToString();
+			Log.Message("Saving component of type: {0}", typ);
+			switch (typ) {
 				case "Starmaze.Game.Life":
 					{
 						var cc = c as Life;
@@ -214,6 +214,126 @@ namespace Starmaze.Game
 			};
 			return json;
 		}
+
+		public static RenderState LoadRenderState(JObject json)
+		{
+			JToken tok;
+			var got = json.TryGetValue("type", out tok);
+			if (!got) {
+				var msg = String.Format("No type field when trying to load component: {0}", json);
+				throw new JsonSerializationException(msg);
+			}
+			var typ = tok.Value<string>();
+			Log.Message("Loading renderstate of type: {0}", typ);
+			switch (typ) {
+				case "Starmaze.Engine.RenderState":
+					return null;
+				case "Starmaze.Engine.ModelRenderState":
+					return null;
+				case "Starmaze.Engine.BillboardRenderState":
+					return null;
+				case "Starmaze.Engine.SpriteRenderState":
+					return null;
+				default:
+					var msg = String.Format("Don't know how to save renderstate type: {0}", typ);
+					throw new JsonSerializationException(msg);
+			}
+		}
+
+		public static JObject SaveRenderState(RenderState r)
+		{
+			var typ = r.GetType().ToString();
+			Log.Message("Saving renderstate of type: {0}", typ);
+			switch (typ) {
+				case "Starmaze.Engine.RenderState":
+					return null;
+				case "Starmaze.Engine.ModelRenderState":
+					return null;
+				case "Starmaze.Engine.BillboardRenderState":
+					return null;
+				case "Starmaze.Engine.SpriteRenderState":
+					return null;
+				default:
+					var msg = String.Format("Don't know how to save renderstate type: {0}", typ);
+					throw new JsonSerializationException(msg);
+			}
+		}
+
+		public static RenderState LoadRenderStateSpecific(JObject json)
+		{
+			var renderer = json["renderer"].Value<string>();
+			return new RenderState(renderer, null);
+		}
+
+		public static JObject SaveRenderStateSpecific(RenderState r)
+		{
+			Log.Assert(r != null);
+			var json = new JObject {
+				{"type", r.GetType().ToString()},
+				{"renderer", r.Renderer.GetType().Name},
+			};
+			return json;
+		}
+
+		public static ModelRenderState LoadModelRenderState(JObject json)
+		{
+			var renderer = json["renderer"].Value<string>();
+			var model = Resources.TheResources.GetModel(json["model"].Value<string>());
+			return new ModelRenderState(null, model);
+		}
+
+		public static JObject SaveModelRenderState(RenderState r)
+		{
+			Log.Assert(r != null);
+			var json = new JObject {
+				{"type", r.GetType().ToString()},
+				{"renderer", r.Renderer.GetType().Name},
+				// XXX: Ow, how do we turn a random VertexArray into a string?!
+			};
+			return json;
+		}
+
+		public static BillboardRenderState LoadBillboardRenderState(JObject json)
+		{
+			var renderer = json["renderer"].Value<string>();
+			var scaleX = json["scaleX"].Value<float>();
+			var scaleY = json["scaleY"].Value<float>();
+			var rotation = json["rotation"].Value<float>();
+			var texture = Resources.TheResources.GetTexture(json["texture"].Value<string>());
+			return new BillboardRenderState(null, texture, rotation, new Vector2(scaleX, scaleY));
+		}
+
+		public static JObject SaveBillboardRenderState(RenderState r)
+		{
+			Log.Assert(r != null);
+			var json = new JObject {
+				{"type", r.GetType().ToString()},
+				{"renderer", r.Renderer.GetType().Name},
+				// XXX: Ow, how do we turn a random Texture into a string?!  It could be dynamic...
+			};
+			return json;
+		}
+
+		public static SpriteRenderState LoadSpriteRenderState(JObject json)
+		{
+			var renderer = json["renderer"].Value<string>();
+			//var frames = new double[] { };
+			//var animation = new Animation();
+			//var textureatlas = new TextureAtlas();
+			//var sprite = new Sprite();
+			return null;
+		}
+
+		public static JObject SaveSpriteRenderState(RenderState r)
+		{
+			Log.Assert(r != null);
+			var json = new JObject {
+				{"type", r.GetType().ToString()},
+				{"renderer", r.Renderer.GetType().Name},
+				// Oof...
+			};
+			return json;
+		}
 	}
 
 	[TestFixture]
@@ -289,6 +409,16 @@ namespace Starmaze.Game
 			var a = new Player();
 			var json = SaveLoad.SaveActor(a);
 			Log.Message("Serialized Player: {0}", json);
+			var z = SaveLoad.LoadActor(json);
+			Log.Message("Type of result: {0}", z.GetType());
+			Log.Message("Result: {0}", z);
+			Assert.True(true);
+		}
+
+		[Test]
+		public void PlayerLoadTest()
+		{
+			var json = Resources.TheResources.GetJson("player");
 			var z = SaveLoad.LoadActor(json);
 			Log.Message("Type of result: {0}", z.GetType());
 			Log.Message("Result: {0}", z);

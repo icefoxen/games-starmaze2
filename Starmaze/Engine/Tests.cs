@@ -8,8 +8,6 @@ using OpenTK.Graphics;
 //using Starmaze;
 using Starmaze.Game;
 
-
-
 namespace Starmaze.Engine
 {
 	/*
@@ -31,7 +29,6 @@ namespace Starmaze.Engine
 		}
 	}
 	*/
-
 	[TestFixture]
 	public class SerializationTests
 	{
@@ -63,7 +60,6 @@ namespace Starmaze.Engine
 			Log.Message("{0}", vectorRT);
 			Assert.True(testvector == vectorRT);
 		}
-
 		// The Assert.True(true) in these is a little ingenuous, but these tests are mainly
 		// there to see if the serialization runs at all, not whether it runs correctly.
 		// If it hits an error before getting to the assert, the test is failed.
@@ -125,7 +121,7 @@ namespace Starmaze.Engine
 		[Test]
 		public void BoxBlockSerialTest()
 		{
-
+			/*
 			BoxBlock a = new BoxBlock(new BBox(0.0, 1.0, 2.0, 2.0), Color4.AliceBlue);
 			var json = JsonConvert.SerializeObject(a, jset);
 			Log.Message("Box block: {0}", json);
@@ -133,18 +129,17 @@ namespace Starmaze.Engine
 			//using(
 			var postJson = JsonConvert.SerializeObject(z, jset);
 			Log.Message("Box block: {0}", postJson);
-
 			Assert.True(a.Body.Position == z.Body.Position);
-			Assert.True(true);
+*/
+			Assert.True(false);
 		}
-
 		//
 		//Worldmap.cs
 		//
 		[Test]
 		public void EmptyRoomSerialTest()
 		{
-			Room a = new Room("", new Actor[]{ new Actor() });
+			Room a = new Room("", new Actor[] { new Actor() });
 			var json = JsonConvert.SerializeObject(a, jset);
 			Log.Message("Serialized empty room: {0}", json);
 			var z = JsonConvert.DeserializeObject<Room>(json);

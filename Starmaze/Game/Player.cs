@@ -10,7 +10,8 @@ namespace Starmaze.Game
 		{
 			Body = new Body(this);
 			Body.AddGeom(new BoxGeom(new BBox(-5, -5, 5, 5)));
-			Components.Add(new InputController(this));
+			AddComponent(new InputController(this));
+			AddComponent(new Life(this, 10));
 
 			var tex = Resources.TheResources.GetTexture("animtest");
 			var atlas = new TextureAtlas(tex, 4, 4);

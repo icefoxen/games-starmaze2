@@ -9,21 +9,34 @@ namespace Starmaze.Engine
 {
 	public class RenderState : IComparable<RenderState>
 	{
-		[Newtonsoft.Json.JsonIgnore]
 		public IRenderer Renderer;
-		[Newtonsoft.Json.JsonIgnore]
+		Actor _actor;
+
+		public Actor Actor {
+			get {
+				return _actor;
+			}
+			set {
+				_actor = value;
+				Log.Assert(_actor == null, "Set the actor to an invalid actor, ow...");
+				Body = _actor.Body;
+				Log.Warn(Body == null, "This will probably make a renderer explode!");
+			}
+		}
+
 		public Body Body;
 		long OrderingNumber;
 
 		public RenderState(string renderclass, Actor act)
 		{
 			Renderer = Resources.TheResources.GetRenderer(renderclass);
-			Log.Assert(act != null);
-			Log.Assert(act.Body != null);
-			Body = act.Body;
+			// Sort of nasty, but, sort of necessary for deserialization.
+			_actor = act;
+			if (act != null) {
+				Body = act.Body;
+			}
 			OrderingNumber = Util.GetSerial();
 		}
-
 
 		public int CompareTo(RenderState other)
 		{
@@ -100,7 +113,6 @@ namespace Starmaze.Engine
 				RenderState.Remove(fml);
 			}
 		}
-
 		// XXX: Are these right?
 		public void Add(T r)
 		{
@@ -218,7 +230,6 @@ namespace Starmaze.Engine
 
 		protected GLDiscipline discipline;
 		protected Shader shader;
-
 		protected RenderBatch<T> RenderBatch;
 
 		public Renderer()
@@ -234,8 +245,6 @@ namespace Starmaze.Engine
 			Graphics.TheGLTracking.SetDiscipline(discipline);
 			Graphics.TheGLTracking.SetShader(shader);
 		}
-
-
 
 		public virtual void Render(ViewManager view)
 		{
@@ -274,7 +283,6 @@ namespace Starmaze.Engine
 		{
 			RenderBatch.Remove(r);
 		}
-
 
 		/// <summary>
 		/// Renderers sort themselves first by their Z order, then in an arbitrary but consistent order.

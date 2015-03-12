@@ -6,6 +6,8 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Reflection;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
 
@@ -20,6 +22,7 @@ namespace Starmaze.Engine
 		Dictionary<string, Shader> ShaderCache;
 		Dictionary<string, VertexArray> ModelCache;
 		Dictionary<string, Texture> TextCache;
+		Dictionary<string, JObject> JsonCache;
 
 		public ResourceLoader()
 		{
@@ -37,6 +40,7 @@ namespace Starmaze.Engine
 			ShaderCache = new Dictionary<string, Shader>();
 			ModelCache = new Dictionary<string, VertexArray>();
 			TextCache = new Dictionary<string, Texture>();
+			JsonCache = new Dictionary<string, JObject>();
 		}
 
 		TVal Get<TKey,TVal>(Dictionary<TKey,TVal> cache, Func<TKey,TVal> loader, TKey name)
@@ -161,6 +165,38 @@ namespace Starmaze.Engine
 			Log.Message("Loading model {0}", method.Name);
 			var model = (VertexArray)method.Invoke(null, null);
 			return model;
+		}
+
+		Animation LoadAnimation(JArray json)
+		{
+			var l = new List<double>();
+			foreach (var item in json) {
+				l.Add(item.Value<double>());
+			}
+			var anim = new Animation(l.ToArray());
+			return anim;
+		}
+
+		TextureAtlas LoadTextureAtlas(JObject json)
+		{
+			var texname = json["texture"].Value<string>();
+			var texture = Resources.TheResources.GetTexture(texname);
+			var width = json["width"].Value<int>();
+			var height = json["height"].Value<int>();
+			return new TextureAtlas(texture, width, height);
+		}
+
+		public JObject GetJson(string file)
+		{
+			var fullPath = System.IO.Path.Combine(ResourceRoot, "config", file + ".cfg");
+			Log.Message("Loading config file {0}", fullPath);
+			return Get(JsonCache, LoadJson, fullPath);
+		}
+
+		JObject LoadJson(string file)
+		{
+			var json = JObject.Parse(File.ReadAllText(file));
+			return json;
 		}
 
 		/// <summary>

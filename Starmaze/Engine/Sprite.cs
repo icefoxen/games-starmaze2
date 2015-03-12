@@ -4,14 +4,11 @@ using OpenTK;
 
 namespace Starmaze.Engine
 {
-
 	public class TextureAtlas
 	{
 		readonly Texture Tex;
 		readonly int Width;
 		readonly int Height;
-
-
 
 		public TextureAtlas(Texture tex, int width, int height)
 		{
@@ -59,7 +56,6 @@ namespace Starmaze.Engine
 		{
 			return new Vector2d(OffsetX(xoff), OffsetY(yoff));
 		}
-
 		// Construct a texture atlas from a series of bitmaps
 		// possibly as a tool so we can construct atlases from segments.
 		//public static TextureAtlas Construct(System.Drawing.Bitmap[] images)
@@ -82,7 +78,6 @@ namespace Starmaze.Engine
 
 		public int Frame;
 		public double[] Delays;
-
 		double LastUpdate;
 
 		[Newtonsoft.Json.JsonConstructor]
@@ -117,10 +112,8 @@ namespace Starmaze.Engine
 	/// </summary>
 	public class Sprite : Component
 	{
-		[Newtonsoft.Json.JsonIgnore]
 		public TextureAtlas Atlas;
 		List<Animation> Animations;
-
 		public int CurrentAnim;
 
 		public Sprite(Actor owner, TextureAtlas atlas, IEnumerable<Animation> anim) : base(owner)
