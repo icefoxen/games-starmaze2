@@ -26,10 +26,11 @@ namespace Starmaze.Engine
 
 		public void PlaySound(string filename)
 		{
+
 			AudioFileReader input = new AudioFileReader(filename);
-			WaveOut wav = new WaveOut();
-			wav.Init(input);
-			mixer.AddMixerInput(wav.);
+			//WaveOut wav = new WaveOut();
+			//wav.Init(input);
+			mixer.AddMixerInput((IWaveProvider) input);
 		}
 
 			
