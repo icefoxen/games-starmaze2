@@ -23,7 +23,7 @@ namespace Starmaze.Game
 			//Components.Add(sprite);
 			RenderState = new SpriteRenderState(this, sprite);
 
-			var t = TextDrawer.RenderString("The quick white fox jumps over the lazy dog", OpenTK.Graphics.Color4.White, fontSize: 36);
+			var t = TextDrawer.RenderString("The quick white fox jumps over the zephyr-blessed dragon", OpenTK.Graphics.Color4.White, fontSize: 36);
 			RenderState = new BillboardRenderState(this, t, scale: new Vector2(15, 1));
 			KeepOnRoomChange = true;
 		}
