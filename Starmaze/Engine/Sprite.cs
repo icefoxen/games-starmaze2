@@ -80,12 +80,6 @@ namespace Starmaze.Engine
 		public double[] Delays;
 		double LastUpdate;
 
-		[Newtonsoft.Json.JsonConstructor]
-		public Animation()
-		{
-
-		}
-
 		public Animation(double[] frames)
 		{
 			Frame = 0;
