@@ -99,11 +99,11 @@ namespace Starmaze.Game
 	//end Life component
 	public class Energy : Component
 	{
-		double MaxEnergy { get; set; }
+		public double MaxEnergy { get; set; }
 
 		double CurrentEnergy { get; set; }
 
-		double RegenRate { get; set; }
+		public double RegenRate { get; set; }
 
 		public Energy(Actor owner, double maxEnergy = 100f, double regenRate = 10f) : base(owner)
 		{
@@ -139,7 +139,7 @@ namespace Starmaze.Game
 	{
 		double Time { get; set; }
 
-		double MaxTime { get; set; }
+		public double MaxTime { get; set; }
 
 		public TimedLife(Actor owner, double time) : base(owner)
 		{

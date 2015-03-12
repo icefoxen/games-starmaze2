@@ -14,7 +14,7 @@ namespace Starmaze.Engine
 		}
 
 		public override bool CanWrite {
-			get{ return false; }
+			get{ return true; }
 		}
 
 		public override bool CanRead {
@@ -23,17 +23,31 @@ namespace Starmaze.Engine
 
 		public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
 		{
-
-			var jo = new JObject();
+			var a = value as Actor;
+			Log.Assert(a != null);
+			var json = new JObject {
+				{"type", a.GetType().ToString()},
+				//{"components", a.Components},
+				//{"renderState", a.RenderState},
+				{"keepOnRoomChange", a.KeepOnRoomChange},
+			};
+			json.WriteTo(writer);
 		}
 
 		public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
 		{
-			JObject jo = JObject.Load(reader);
-			var properties = jo.Properties();
-			Log.Message("{0}", properties.GetType().ToString());
-
-			throw new NotImplementedException();
+			Log.Assert(objectType == typeof(Actor));
+			var json = JObject.Load(reader);
+			var components = json["components"].Value<IEnumerable<Component>>();
+			var keepOnRoomChange = json["keepOnRoomChange"].Value<bool>();
+			var renderState = json["renderState"].Value<RenderState>();
+			var a = new Actor();
+			a.RenderState = renderState;
+			a.KeepOnRoomChange = keepOnRoomChange;
+			foreach (var c in components) {
+				a.AddComponent(c);
+			}
+			return a;
 		}
 	}
 
