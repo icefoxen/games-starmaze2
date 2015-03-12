@@ -19,7 +19,7 @@ namespace Starmaze.Game
 			var sprite = new Sprite(this, atlas, anim);
 			sprite.AddAnimation(anim2);
 			sprite.CurrentAnim = 0;
-			Components.Add(sprite);
+			//Components.Add(sprite);
 			RenderState = new SpriteRenderState(this, sprite);
 
 			var t = TextDrawer.RenderString("The quick white fox jumps over the lazy dog", OpenTK.Graphics.Color4.White, fontSize: 36);

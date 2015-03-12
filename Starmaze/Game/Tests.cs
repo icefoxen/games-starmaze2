@@ -9,40 +9,136 @@ using Starmaze.Engine;
 
 namespace Starmaze.Game
 {
-	static class ComponentConverter
+	static class SaveLoad
 	{
+		public static Actor LoadActor(JObject json)
+		{
+			var act = new Actor();
+			act.KeepOnRoomChange = json["keepOnRoomChange"].Value<bool>();
+			foreach (var component in LoadComponents(json["components"].Value<JArray>())) {
+				act.AddComponent(component);
+			}
+			return act;
+		}
+
+		public static JObject SaveActor(Actor a)
+		{
+			var json = new JObject {
+				{"type", a.GetType().ToString()},
+				{"keepOnRoomChange", a.KeepOnRoomChange},
+				//{"renderState", a.RenderState},
+				{"components", SaveComponents(a.Components)}
+			};
+			return json;
+		}
+
+		public static IEnumerable<Component> LoadComponents(JArray json)
+		{
+			var l = new List<Component>();
+			foreach (var obj in json) {
+				l.Add(LoadComponent(obj.Value<JObject>()));
+			}
+			return l;
+		}
+
+		public static JArray SaveComponents(IEnumerable<Component> components)
+		{
+			var json = new JArray();
+			foreach (var component in components) {
+				json.Add(SaveComponent(component));
+			}
+			return json;
+		}
+
 		public static Component LoadComponent(JObject json)
 		{
-			try {
-				var typ = json["type"].Value<string>();
-				Log.Message("Type name: {0}", typ);
-				// This is a little ugly, but it gets everything hard-coded in at compile time,
-				// which is exactly what we want, semantically.  Also prevents irritating type
-				// shenanigans when we try to put bunches of functions into a collection or such.
-				switch (typ) {
-					case "Life":
-						return LoadLife(json);
-					default:
-						return null;
-				}
-			} catch (KeyNotFoundException e) {
-				throw e;
+			JToken tok;
+			var got = json.TryGetValue("type", out tok);
+			if (!got) {
+				var msg = String.Format("No type field when trying to load component: {0}", json);
+				throw new JsonSerializationException(msg);
+			}
+			var typ = tok.Value<string>();
+			Log.Message("Loading component of type: {0}", typ);
+			// This is a little ugly, but it gets everything hard-coded in at compile time,
+			// which is exactly what we want, semantically.  Also prevents irritating type
+			// shenanigans when we try to put bunches of functions into a collection or such.
+			// Yay brute force, I guess!
+			switch (typ) {
+				case "Starmaze.Game.Life":
+					return LoadLife(json);
+				case "Starmaze.Game.TimedLife":
+					return LoadTimedLife(json);
+				case "Starmaze.Game.Energy":
+					return LoadEnergy(json);
+				case "Starmaze.Game.InputController":
+					return LoadInputController(json);
+				case "Starmaze.Engine.Body":
+					return LoadBody(json);
+				default:
+					var msg = String.Format("Don't know how to load component type:: {0}", typ);
+					throw new JsonSerializationException(msg);
 			}
 		}
 
 		public static JObject SaveComponent(Component c)
 		{
 			var typ = c.GetType();
-			Log.Message("Type name: {0}", typ.Name);
-			// This is a little ugly, but it gets everything hard-coded in at compile time,
-			// which is exactly what we want, semantically.  Also prevents irritating type
-			// shenanigans when we try to put bunches of functions into a collection or such.
-			switch (typ.Name) {
-				case "Life":
-					return SaveLife(c as Life);
+			Log.Message("Saving component of type: {0}", typ.ToString());
+			switch (typ.ToString()) {
+				case "Starmaze.Game.Life":
+					{
+						var cc = c as Life;
+						Log.Assert(cc != null, "This should never happen!");
+						return SaveLife(cc);
+					}
+				case "Starmaze.Game.TimedLife":
+					{
+						var cc = c as TimedLife;
+						Log.Assert(cc != null, "This should never happen!");
+						return SaveTimedLife(cc);
+					}
+				case "Starmaze.Game.Energy":
+					{
+						var cc = c as Energy;
+						Log.Assert(cc != null, "This should never happen!");
+						return SaveEnergy(cc);
+					}
+				case "Starmaze.Game.InputController":
+					{
+						var cc = c as InputController;
+						Log.Assert(cc != null, "This should never happen!");
+						return SaveInputController(cc);
+					}
+				case "Starmaze.Engine.Body":
+					{
+						var cc = c as Body;
+						Log.Assert(cc != null, "This should never happen!");
+						return SaveBody(cc);
+					}
 				default:
-					return new JObject();
+					var msg = String.Format("Don't know how to save component type: {0}", typ);
+					throw new JsonSerializationException(msg);
 			}
+		}
+
+		public static Body LoadBody(JObject json)
+		{
+			var gravitating = json["gravitating"].Value<bool>();
+			var immobile = json["immobile"].Value<bool>();
+			var b = new Body(null, gravitating, immobile);
+			return b;
+		}
+
+		public static JObject SaveBody(Body b)
+		{
+			Log.Assert(b != null, "Shouldn't be possible!");
+			var json = new JObject {
+				{"type", b.GetType().ToString()},
+				{"gravitating", b.IsGravitating},
+				{"immobile", b.IsImmobile},
+			};
+			return json;
 		}
 
 		public static Life LoadLife(JObject json)
@@ -59,7 +155,7 @@ namespace Starmaze.Game
 		{
 			Log.Assert(l != null, "Shouldn't be possible!");
 			var json = new JObject {
-				{"type", l.GetType().Name},
+				{"type", l.GetType().ToString()},
 				{"hp", l.CurrentLife},
 				{"maxLife", l.MaxLife},
 				{"damageAttenuation", l.DamageAttenuation},
@@ -67,54 +163,62 @@ namespace Starmaze.Game
 			};
 			return json;
 		}
-	}
 
-	class LifeConverter : JsonConverter
-	{
-		public override bool CanConvert(Type objectType)
+		public static TimedLife LoadTimedLife(JObject json)
 		{
-			return (objectType == typeof(Life));
+			var maxTime = json["maxTime"].Value<double>();
+			var l = new TimedLife(null, maxTime);
+			return l;
 		}
 
-		public override bool CanWrite {
-			get{ return true; }
-		}
-
-		public override bool CanRead {
-			get{ return true; }
-		}
-
-		public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+		public static JObject SaveTimedLife(TimedLife l)
 		{
-			var l = value as Life;
 			Log.Assert(l != null);
 			var json = new JObject {
 				{"type", l.GetType().ToString()},
-				{"hp", l.CurrentLife},
-				{"maxLife", l.MaxLife},
-				{"damageAttenuation", l.DamageAttenuation},
-				{"damageReduction", l.DamageReduction},
+				{"maxTime", l.MaxTime},
 			};
-			json.WriteTo(writer);
+			return json;
 		}
 
-		public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+		public static Energy LoadEnergy(JObject json)
 		{
-			Log.Assert(objectType == typeof(Life));
-			var json = JObject.Load(reader);
-			var hpIn = json["hp"].Value<double>();
-			var maxLifeIn = json["maxLife"].Value<double>();
-			var attenuation = json["damageAttenuation"].Value<double>();
-			var damageReduction = json["damageReduction"].Value<double>();
-			var l = new Life(null, hpIn, maxLifeIn, attenuation, damageReduction);
-			return l;
+			var maxEnergy = json["maxEnergy"].Value<double>();
+			var regenRate = json["regenRate"].Value<double>();
+			var e = new Energy(null, maxEnergy, regenRate);
+			return e;
+		}
+
+		public static JObject SaveEnergy(Energy e)
+		{
+			Log.Assert(e != null);
+			var json = new JObject {
+				{"type", e.GetType().ToString()},
+				{"maxEnergy", e.MaxEnergy},
+				{"regenRate", e.RegenRate},
+			};
+			return json;
+		}
+
+		public static InputController LoadInputController(JObject json)
+		{
+			var c = new InputController(null);
+			return c;
+		}
+
+		public static JObject SaveInputController(InputController c)
+		{
+			Log.Assert(c != null);
+			var json = new JObject {
+				{"type", c.GetType().ToString()},
+			};
+			return json;
 		}
 	}
 
 	[TestFixture]
 	public class SerializationTests
 	{
-		JsonSerializerSettings jset;
 		GameWindow g;
 
 		[SetUp]
@@ -129,25 +233,65 @@ namespace Starmaze.Game
 			if (!Resources.IsInitialized) {
 				Resources.Init();
 			}
-			jset = new JsonSerializerSettings { TypeNameHandling = TypeNameHandling.All };
-			jset.Converters.Add(new LifeConverter());
 		}
 
 		[Test]
 		public void LifeSerialTest()
 		{
-			var dummy = new Actor();
-			var a = new Life(dummy, 20, 30, 0.8, 2);
-			var json = JsonConvert.SerializeObject(a, jset);
+			var a = new Life(null, 20, 30, 0.8, 2);
+			var json = SaveLoad.SaveComponent(a);
 			Log.Message("Serialized Life: {0}", json);
-			// This is sorta messy 'cause we have to parse the json twice...
-			var jo = JObject.Parse(json);
-			var typ = Type.GetType(jo["type"].Value<string>());
-			Log.Message("Should be type '{0}'", typ);
-			var z = JsonConvert.DeserializeObject(json, typ, jset);
+			var z = SaveLoad.LoadComponent(json);
 			Log.Message("Type of result: {0}", z.GetType());
 			Log.Message("Result: {0}", z);
-			//Log.Message()
+			Assert.True(true);
+		}
+
+		[Test]
+		public void TimedLifeSerialTest()
+		{
+			var a = new TimedLife(null, 14.3);
+			var json = SaveLoad.SaveComponent(a);
+			Log.Message("Serialized Life: {0}", json);
+			var z = SaveLoad.LoadComponent(json);
+			Log.Message("Type of result: {0}", z.GetType());
+			Log.Message("Result: {0}", z);
+			Assert.True(true);
+		}
+
+		[Test]
+		public void EnergySerialTest()
+		{
+			var a = new Energy(null, 91.3, 14.9);
+			var json = SaveLoad.SaveComponent(a);
+			Log.Message("Serialized Life: {0}", json);
+			var z = SaveLoad.LoadComponent(json);
+			Log.Message("Type of result: {0}", z.GetType());
+			Log.Message("Result: {0}", z);
+			Assert.True(true);
+		}
+
+		[Test]
+		public void InputControllerSerialTest()
+		{
+			var a = new InputController(null);
+			var json = SaveLoad.SaveComponent(a);
+			Log.Message("Serialized Life: {0}", json);
+			var z = SaveLoad.LoadComponent(json);
+			Log.Message("Type of result: {0}", z.GetType());
+			Log.Message("Result: {0}", z);
+			Assert.True(true);
+		}
+
+		[Test]
+		public void PlayerSerialTest()
+		{
+			var a = new Player();
+			var json = SaveLoad.SaveActor(a);
+			Log.Message("Serialized Player: {0}", json);
+			var z = SaveLoad.LoadActor(json);
+			Log.Message("Type of result: {0}", z.GetType());
+			Log.Message("Result: {0}", z);
 			Assert.True(true);
 		}
 	}
