@@ -277,7 +277,6 @@ namespace Starmaze.Game
 
 		public static ModelRenderState LoadModelRenderState(Actor act, JObject json)
 		{
-			var renderer = json["renderer"].Value<string>();
 			var model = Resources.TheResources.GetModel(json["model"].Value<string>());
 			return new ModelRenderState(act, model);
 		}
@@ -295,7 +294,6 @@ namespace Starmaze.Game
 
 		public static BillboardRenderState LoadBillboardRenderState(Actor act, JObject json)
 		{
-			var renderer = json["renderer"].Value<string>();
 			var scaleX = json["scaleX"].Value<float>();
 			var scaleY = json["scaleY"].Value<float>();
 			var rotation = json["rotation"].Value<float>();
@@ -316,7 +314,6 @@ namespace Starmaze.Game
 
 		public static SpriteRenderState LoadSpriteRenderState(Actor act, JObject json)
 		{
-			var renderer = json["renderer"].Value<string>();
 			//var frames = new double[] { };
 			//var animation = new Animation();
 			//var textureatlas = new TextureAtlas();

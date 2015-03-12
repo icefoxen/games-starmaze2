@@ -17,6 +17,7 @@ namespace Starmaze.Engine
 				return _actor;
 			}
 			set {
+				// Assertions here bogusly fail, for some reason.
 				_actor = value;
 				Body = _actor.Body;
 			}

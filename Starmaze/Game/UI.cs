@@ -75,8 +75,7 @@ namespace Starmaze.Game
 			return vector2;
 		}
 	}
-
-
+	/* TODO: Remove?
 	public class TextMap
 	{
 		string text;
@@ -88,4 +87,5 @@ namespace Starmaze.Game
 			position = _pos;
 		}
 	}
+	*/
 }

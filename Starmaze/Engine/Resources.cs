@@ -69,7 +69,6 @@ namespace Starmaze.Engine
 		{
 
 			var subclasses = Util.GetImplementorsOf(typeof(IRenderer));
-			var t = typeof(IRenderer);
 			// We go through all subclasses of Renderer, instantiate one of each, and 
 			// associate each with its name, and that gets us the string -> Renderer mapping.
 			Console.WriteLine("Preloading renderers...");

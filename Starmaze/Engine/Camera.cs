@@ -3,7 +3,6 @@ using OpenTK;
 
 namespace Starmaze.Engine
 {
-
 	/// <summary>
 	/// Stores and defines the projection matrix, which sets the size of the world view, where the "camera"
 	/// is looking, and so on.
@@ -44,8 +43,8 @@ namespace Starmaze.Engine
 			var halfWidth = VisibleSize.X / 2;
 			var halfHeight = VisibleSize.Y / 2;
 			ProjectionMatrix = Matrix4.CreateOrthographicOffCenter(x - halfWidth, x + halfWidth,
-				y - halfHeight, y + halfHeight,
-				ZNear, ZFar);
+			                                                       y - halfHeight, y + halfHeight,
+			                                                       ZNear, ZFar);
 		}
 
 		public void CenterOn(Vector2 pos)
@@ -68,12 +67,9 @@ namespace Starmaze.Engine
 	{
 		public Actor Target { get; set; }
 
-		Vector2d AimedAtPos;
 		public Vector2d CurrentPos;
 		Vector2d Border;
-
 		const double ScrollSpeed = 2.5;
-
 		/// <summary>
 		/// What fraction of the screen you can move away from the center.
 		/// </summary>
@@ -81,7 +77,6 @@ namespace Starmaze.Engine
 
 		public FollowCam(double width, double height)
 		{
-			AimedAtPos = Vector2d.Zero;
 			CurrentPos = Vector2d.Zero;
 			Border = new Vector2d(width, height) * BorderScale;
 		}
@@ -93,7 +88,6 @@ namespace Starmaze.Engine
 
 		public void SnapTo(Vector2d pos)
 		{
-			AimedAtPos = pos;
 			CurrentPos = pos;
 		}
 
@@ -121,8 +115,6 @@ namespace Starmaze.Engine
 				CurrentPos.Y = targetPos.Y + Border.Y;
 			}
 		}
-
-
 	}
 }
 

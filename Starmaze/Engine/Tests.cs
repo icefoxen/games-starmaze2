@@ -71,7 +71,7 @@ namespace Starmaze.Engine
 			Log.Message("Empty actor: {0}", json);
 			var z = JsonConvert.DeserializeObject<Actor>(json);
 
-			Assert.True(true);
+			Assert.NotNull(z);
 		}
 
 		[Test]
@@ -83,7 +83,7 @@ namespace Starmaze.Engine
 			var json = JsonConvert.SerializeObject(a, jset);
 			Log.Message("Actor with component: {0}", json);
 			var z = JsonConvert.DeserializeObject<Actor>(json);
-			Assert.True(true);
+			Assert.NotNull(z);
 		}
 
 		[Test]
@@ -93,7 +93,7 @@ namespace Starmaze.Engine
 			var json = JsonConvert.SerializeObject(a, jset);
 			Log.Message("BBox: {0}", json);
 			var z = JsonConvert.DeserializeObject<BBox>(json);
-			Assert.True(true);
+			Assert.NotNull(z);
 		}
 
 		[Test]
@@ -103,7 +103,7 @@ namespace Starmaze.Engine
 			var json = JsonConvert.SerializeObject(a, jset);
 			Log.Message("Line: {0}", json);
 			var z = JsonConvert.DeserializeObject<Line>(json);
-			Assert.True(true);
+			Assert.NotNull(z);
 		}
 
 		[Test]
@@ -113,7 +113,7 @@ namespace Starmaze.Engine
 			var json = JsonConvert.SerializeObject(a, jset);
 			Log.Message("Box geom: {0}", json);
 			var z = JsonConvert.DeserializeObject<BoxGeom>(json);
-			Assert.True(true);
+			Assert.NotNull(z);
 		}
 		//
 		//Terrain.cs
@@ -143,7 +143,7 @@ namespace Starmaze.Engine
 			var json = JsonConvert.SerializeObject(a, jset);
 			Log.Message("Serialized empty room: {0}", json);
 			var z = JsonConvert.DeserializeObject<Room>(json);
-			Assert.True(true);
+			Assert.NotNull(z);
 		}
 
 		[Test]
@@ -167,7 +167,7 @@ namespace Starmaze.Engine
 				new BoxBlock(new BBox(40, -35, 45, 35), Color4.Blue),
 			};
 			var room1 = new Room("TestRoom1", actors1);*/
-			Assert.True(true);
+			Assert.NotNull(z);
 		}
 
 		[Test]
@@ -186,7 +186,7 @@ namespace Starmaze.Engine
 			var json = JsonConvert.SerializeObject(a);
 			Log.Message("Serialized animation: {0}", json);
 			var z = JsonConvert.DeserializeObject<Animation>(json);
-			Assert.True(true);
+			Assert.NotNull(z);
 		}
 
 		[Test]
@@ -199,7 +199,7 @@ namespace Starmaze.Engine
 			var json = JsonConvert.SerializeObject(sprite);
 			Log.Message("Serialized sprite: {0}", json);
 			var z = JsonConvert.DeserializeObject<Sprite>(json);
-			Assert.True(true);
+			Assert.NotNull(z);
 		}
 	}
 }
