@@ -15,7 +15,7 @@ namespace Starmaze.Game
 		{
 			var act = new Actor();
 			act.KeepOnRoomChange = json["keepOnRoomChange"].Value<bool>();
-			foreach (var component in LoadComponents(json["components"].Value<JArray>())) {
+			foreach (var component in LoadComponents(act, json["components"].Value<JArray>())) {
 				act.AddComponent(component);
 			}
 			return act;
@@ -32,11 +32,11 @@ namespace Starmaze.Game
 			return json;
 		}
 
-		public static IEnumerable<Component> LoadComponents(JArray json)
+		public static IEnumerable<Component> LoadComponents(Actor act, JArray json)
 		{
 			var l = new List<Component>();
 			foreach (var obj in json) {
-				l.Add(LoadComponent(obj.Value<JObject>()));
+				l.Add(LoadComponent(act, obj.Value<JObject>()));
 			}
 			return l;
 		}
@@ -50,7 +50,7 @@ namespace Starmaze.Game
 			return json;
 		}
 
-		public static Component LoadComponent(JObject json)
+		public static Component LoadComponent(Actor act, JObject json)
 		{
 			JToken tok;
 			var got = json.TryGetValue("type", out tok);
@@ -66,15 +66,15 @@ namespace Starmaze.Game
 			// Yay brute force, I guess!
 			switch (typ) {
 				case "Starmaze.Game.Life":
-					return LoadLife(json);
+					return LoadLife(act, json);
 				case "Starmaze.Game.TimedLife":
-					return LoadTimedLife(json);
+					return LoadTimedLife(act, json);
 				case "Starmaze.Game.Energy":
-					return LoadEnergy(json);
+					return LoadEnergy(act, json);
 				case "Starmaze.Game.InputController":
-					return LoadInputController(json);
+					return LoadInputController(act, json);
 				case "Starmaze.Engine.Body":
-					return LoadBody(json);
+					return LoadBody(act, json);
 				default:
 					var msg = String.Format("Don't know how to load component type:: {0}", typ);
 					throw new JsonSerializationException(msg);
@@ -122,11 +122,11 @@ namespace Starmaze.Game
 			}
 		}
 
-		public static Body LoadBody(JObject json)
+		public static Body LoadBody(Actor act, JObject json)
 		{
 			var gravitating = json["gravitating"].Value<bool>();
 			var immobile = json["immobile"].Value<bool>();
-			var b = new Body(null, gravitating, immobile);
+			var b = new Body(act, gravitating, immobile);
 			return b;
 		}
 
@@ -141,13 +141,13 @@ namespace Starmaze.Game
 			return json;
 		}
 
-		public static Life LoadLife(JObject json)
+		public static Life LoadLife(Actor act, JObject json)
 		{
 			var hpIn = json["hp"].Value<double>();
 			var maxLifeIn = json["maxLife"].Value<double>();
 			var attenuation = json["damageAttenuation"].Value<double>();
 			var damageReduction = json["damageReduction"].Value<double>();
-			var l = new Life(null, hpIn, maxLifeIn, attenuation, damageReduction);
+			var l = new Life(act, hpIn, maxLifeIn, attenuation, damageReduction);
 			return l;
 		}
 
@@ -164,10 +164,10 @@ namespace Starmaze.Game
 			return json;
 		}
 
-		public static TimedLife LoadTimedLife(JObject json)
+		public static TimedLife LoadTimedLife(Actor act, JObject json)
 		{
 			var maxTime = json["maxTime"].Value<double>();
-			var l = new TimedLife(null, maxTime);
+			var l = new TimedLife(act, maxTime);
 			return l;
 		}
 
@@ -181,11 +181,11 @@ namespace Starmaze.Game
 			return json;
 		}
 
-		public static Energy LoadEnergy(JObject json)
+		public static Energy LoadEnergy(Actor act, JObject json)
 		{
 			var maxEnergy = json["maxEnergy"].Value<double>();
 			var regenRate = json["regenRate"].Value<double>();
-			var e = new Energy(null, maxEnergy, regenRate);
+			var e = new Energy(act, maxEnergy, regenRate);
 			return e;
 		}
 
@@ -200,9 +200,9 @@ namespace Starmaze.Game
 			return json;
 		}
 
-		public static InputController LoadInputController(JObject json)
+		public static InputController LoadInputController(Actor act, JObject json)
 		{
-			var c = new InputController(null);
+			var c = new InputController(act);
 			return c;
 		}
 
@@ -215,7 +215,7 @@ namespace Starmaze.Game
 			return json;
 		}
 
-		public static RenderState LoadRenderState(JObject json)
+		public static RenderState LoadRenderState(Actor act, JObject json)
 		{
 			JToken tok;
 			var got = json.TryGetValue("type", out tok);
@@ -259,10 +259,10 @@ namespace Starmaze.Game
 			}
 		}
 
-		public static RenderState LoadRenderStateSpecific(JObject json)
+		public static RenderState LoadRenderStateSpecific(Actor act, JObject json)
 		{
 			var renderer = json["renderer"].Value<string>();
-			return new RenderState(renderer, null);
+			return new RenderState(renderer, act);
 		}
 
 		public static JObject SaveRenderStateSpecific(RenderState r)
@@ -275,14 +275,14 @@ namespace Starmaze.Game
 			return json;
 		}
 
-		public static ModelRenderState LoadModelRenderState(JObject json)
+		public static ModelRenderState LoadModelRenderState(Actor act, JObject json)
 		{
 			var renderer = json["renderer"].Value<string>();
 			var model = Resources.TheResources.GetModel(json["model"].Value<string>());
-			return new ModelRenderState(null, model);
+			return new ModelRenderState(act, model);
 		}
 
-		public static JObject SaveModelRenderState(RenderState r)
+		public static JObject SaveModelRenderState(Actor act, RenderState r)
 		{
 			Log.Assert(r != null);
 			var json = new JObject {
@@ -293,14 +293,14 @@ namespace Starmaze.Game
 			return json;
 		}
 
-		public static BillboardRenderState LoadBillboardRenderState(JObject json)
+		public static BillboardRenderState LoadBillboardRenderState(Actor act, JObject json)
 		{
 			var renderer = json["renderer"].Value<string>();
 			var scaleX = json["scaleX"].Value<float>();
 			var scaleY = json["scaleY"].Value<float>();
 			var rotation = json["rotation"].Value<float>();
 			var texture = Resources.TheResources.GetTexture(json["texture"].Value<string>());
-			return new BillboardRenderState(null, texture, rotation, new Vector2(scaleX, scaleY));
+			return new BillboardRenderState(act, texture, rotation, new Vector2(scaleX, scaleY));
 		}
 
 		public static JObject SaveBillboardRenderState(RenderState r)
@@ -314,7 +314,7 @@ namespace Starmaze.Game
 			return json;
 		}
 
-		public static SpriteRenderState LoadSpriteRenderState(JObject json)
+		public static SpriteRenderState LoadSpriteRenderState(Actor act, JObject json)
 		{
 			var renderer = json["renderer"].Value<string>();
 			//var frames = new double[] { };
@@ -358,10 +358,11 @@ namespace Starmaze.Game
 		[Test]
 		public void LifeSerialTest()
 		{
-			var a = new Life(null, 20, 30, 0.8, 2);
+			var dummy = new Actor();
+			var a = new Life(dummy, 20, 30, 0.8, 2);
 			var json = SaveLoad.SaveComponent(a);
 			Log.Message("Serialized Life: {0}", json);
-			var z = SaveLoad.LoadComponent(json);
+			var z = SaveLoad.LoadComponent(dummy, json);
 			Log.Message("Type of result: {0}", z.GetType());
 			Log.Message("Result: {0}", z);
 			Assert.True(true);
@@ -370,10 +371,11 @@ namespace Starmaze.Game
 		[Test]
 		public void TimedLifeSerialTest()
 		{
-			var a = new TimedLife(null, 14.3);
+			var dummy = new Actor();
+			var a = new TimedLife(dummy, 14.3);
 			var json = SaveLoad.SaveComponent(a);
 			Log.Message("Serialized Life: {0}", json);
-			var z = SaveLoad.LoadComponent(json);
+			var z = SaveLoad.LoadComponent(dummy, json);
 			Log.Message("Type of result: {0}", z.GetType());
 			Log.Message("Result: {0}", z);
 			Assert.True(true);
@@ -382,10 +384,11 @@ namespace Starmaze.Game
 		[Test]
 		public void EnergySerialTest()
 		{
-			var a = new Energy(null, 91.3, 14.9);
+			var dummy = new Actor();
+			var a = new Energy(dummy, 91.3, 14.9);
 			var json = SaveLoad.SaveComponent(a);
 			Log.Message("Serialized Life: {0}", json);
-			var z = SaveLoad.LoadComponent(json);
+			var z = SaveLoad.LoadComponent(dummy, json);
 			Log.Message("Type of result: {0}", z.GetType());
 			Log.Message("Result: {0}", z);
 			Assert.True(true);
@@ -394,10 +397,11 @@ namespace Starmaze.Game
 		[Test]
 		public void InputControllerSerialTest()
 		{
-			var a = new InputController(null);
+			var dummy = new Actor();
+			var a = new InputController(dummy);
 			var json = SaveLoad.SaveComponent(a);
 			Log.Message("Serialized Life: {0}", json);
-			var z = SaveLoad.LoadComponent(json);
+			var z = SaveLoad.LoadComponent(dummy, json);
 			Log.Message("Type of result: {0}", z.GetType());
 			Log.Message("Result: {0}", z);
 			Assert.True(true);

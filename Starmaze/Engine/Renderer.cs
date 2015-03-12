@@ -18,9 +18,7 @@ namespace Starmaze.Engine
 			}
 			set {
 				_actor = value;
-				Log.Assert(_actor == null, "Set the actor to an invalid actor, ow...");
 				Body = _actor.Body;
-				Log.Warn(Body == null, "This will probably make a renderer explode!");
 			}
 		}
 
