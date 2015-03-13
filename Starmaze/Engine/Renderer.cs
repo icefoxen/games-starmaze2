@@ -389,7 +389,7 @@ namespace Starmaze.Engine
 		{
 			var sprite = r.Sprite;
 			var pos = new Vector2((float)r.Body.Position.X, (float)r.Body.Position.Y);
-			var transform = new Transform(pos, 0.0f, new Vector2(5, 5));
+			var transform = new Transform(pos, r.Rotation, r.Scale);
 			var mat = transform.TransformMatrix(view.ProjectionMatrix);
 			shader.UniformMatrix("projection", mat);
 			shader.Uniformi("texture", 0);
