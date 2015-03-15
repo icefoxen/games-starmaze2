@@ -20,7 +20,6 @@ namespace Starmaze.Game
 			var sprite = new Sprite(this, atlas, anim);
 			sprite.AddAnimation(anim2);
 			sprite.CurrentAnim = 0;
-			Components.Add(sprite);
 			RenderState = new SpriteRenderState(this, sprite, scale: new Vector2(3f, 3f));
 
 			var t = TextDrawer.RenderString("The quick white fox jumps over the zephyr-blessed dragon", OpenTK.Graphics.Color4.White, fontSize: 36);

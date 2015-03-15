@@ -75,6 +75,14 @@ namespace Starmaze.Game
 					return LoadInputController(act, json);
 				case "Starmaze.Engine.Body":
 					return LoadBody(act, json);
+				case "Starmaze.Engine.RenderState":
+					return LoadRenderState(act, json);
+				case "Starmaze.Engine.ModelRenderState":
+					return LoadModelRenderState(act, json);
+				case "Starmaze.Engine.BillboardRenderState":
+					return LoadBillboardRenderState(act, json);
+				case "Starmaze.Engine.SpriteRenderState":
+					return LoadSpriteRenderState(act, json);
 				default:
 					var msg = String.Format("Don't know how to load component type:: {0}", typ);
 					throw new JsonSerializationException(msg);
@@ -115,6 +123,31 @@ namespace Starmaze.Game
 						var cc = c as Body;
 						Log.Assert(cc != null, "This should never happen!");
 						return SaveBody(cc);
+					}
+
+				case "Starmaze.Engine.RenderState":
+					{
+						var rend = c as RenderState;
+						Log.Assert(rend != null, "This should never happen!");
+						return SaveRenderState(rend);
+					}
+				case "Starmaze.Engine.ModelRenderState":
+					{
+						var rend = c as ModelRenderState;
+						Log.Assert(rend != null, "This should never happen!");
+						return SaveModelRenderState(rend);
+					}
+				case "Starmaze.Engine.BillboardRenderState":
+					{
+						var rend = c as BillboardRenderState;
+						Log.Assert(rend != null, "This should never happen!");
+						return SaveBillboardRenderState(rend);
+					}
+				case "Starmaze.Engine.SpriteRenderState":
+					{
+						var rend = c as SpriteRenderState;
+						Log.Assert(rend != null, "This should never happen!");
+						return SaveSpriteRenderState(rend);
 					}
 				default:
 					var msg = String.Format("Don't know how to save component type: {0}", typ);
@@ -215,69 +248,19 @@ namespace Starmaze.Game
 			return json;
 		}
 
+		public static T Foo<T>()
+		{
+			Log.Message("Foo! {0}", typeof(T));
+			return default(T);
+		}
+
 		public static RenderState LoadRenderState(Actor act, JObject json)
 		{
-			JToken tok;
-			var got = json.TryGetValue("type", out tok);
-			if (!got) {
-				var msg = String.Format("No type field when trying to load renderstate: {0}", json);
-				throw new JsonSerializationException(msg);
-			}
-			var typ = tok.Value<string>();
-			Log.Message("Loading renderstate of type: {0}", typ);
-			switch (typ) {
-				case "Starmaze.Engine.RenderState":
-					return LoadRenderStateSpecific(act, json);
-				case "Starmaze.Engine.ModelRenderState":
-					return LoadModelRenderState(act, json);
-				case "Starmaze.Engine.BillboardRenderState":
-					return LoadBillboardRenderState(act, json);
-				case "Starmaze.Engine.SpriteRenderState":
-					return LoadSpriteRenderState(act, json);
-				default:
-					var msg = String.Format("Don't know how to save renderstate type: {0}", typ);
-					throw new JsonSerializationException(msg);
-			}
+			var renderer = json["renderer"].Value<string>();
+			return new RenderState(act, renderer);
 		}
 
 		public static JObject SaveRenderState(RenderState r)
-		{
-			var typ = r.GetType().ToString();
-			Log.Message("Saving renderstate of type: {0}", typ);
-			switch (typ) {
-				case "Starmaze.Engine.RenderState":
-					return SaveRenderStateSpecific(r);
-				case "Starmaze.Engine.ModelRenderState":
-					{
-						var rend = r as ModelRenderState;
-						Log.Assert(rend != null, "This should never happen!");
-						return SaveModelRenderState(rend);
-					}
-				case "Starmaze.Engine.BillboardRenderState":
-					{
-						var rend = r as BillboardRenderState;
-						Log.Assert(rend != null, "This should never happen!");
-						return SaveBillboardRenderState(rend);
-					}
-				case "Starmaze.Engine.SpriteRenderState":
-					{
-						var rend = r as SpriteRenderState;
-						Log.Assert(rend != null, "This should never happen!");
-						return SaveSpriteRenderState(rend);
-					}
-				default:
-					var msg = String.Format("Don't know how to save renderstate type: {0}", typ);
-					throw new JsonSerializationException(msg);
-			}
-		}
-
-		public static RenderState LoadRenderStateSpecific(Actor act, JObject json)
-		{
-			var renderer = json["renderer"].Value<string>();
-			return new RenderState(renderer, act);
-		}
-
-		public static JObject SaveRenderStateSpecific(RenderState r)
 		{
 			Log.Assert(r != null);
 			var json = new JObject {
@@ -290,6 +273,7 @@ namespace Starmaze.Game
 		public static ModelRenderState LoadModelRenderState(Actor act, JObject json)
 		{
 			var model = Resources.TheResources.GetModel(json["model"].Value<string>());
+			// Should this take a model identifier rather than the vertexarray itself, hmmm?
 			return new ModelRenderState(act, model);
 		}
 
@@ -327,23 +311,89 @@ namespace Starmaze.Game
 		// XXX: Sprites are components...
 		public static SpriteRenderState LoadSpriteRenderState(Actor act, JObject json)
 		{
-			//var frames = new double[] { };
-			//var animation = new Animation();
-			//var textureatlas = new TextureAtlas();
-			//var sprite = new Sprite();
-			return null;
+			var frames = new double[] { };
+			var animation = LoadAnimations(json["animations"].Value<JArray>());
+			var textureatlas = LoadTextureAtlas(json["textureAtlas"].Value<JObject>());
+			var sprite = new Sprite(act, textureatlas, animation);
+			return new SpriteRenderState(act, sprite);
 		}
 
-		public static JObject SaveSpriteRenderState(RenderState r)
+		public static List<Animation> LoadAnimations(JArray json)
+		{
+			var anims = new List<Animation>();
+			foreach (var val in json) {
+				anims.Add(LoadAnimation(val.Value<JObject>()));
+			}
+			return anims;
+		}
+
+		public static Animation LoadAnimation(JObject json)
+		{
+			var delays = new List<double>();
+			foreach (var val in json["delays"].Value<JArray>()) {
+				delays.Add(val.Value<double>());
+			}
+			return new Animation(delays.ToArray());
+		}
+
+		public static TextureAtlas LoadTextureAtlas(JObject json)
+		{
+			var textureName = json["texture"].Value<string>();
+			var width = json["width"].Value<int>();
+			var height = json["height"].Value<int>();
+			var tex = Resources.TheResources.GetTexture(textureName);
+			var ta = new TextureAtlas(tex, width, height);
+			return ta;
+		}
+
+
+
+		public static JObject SaveSpriteRenderState(SpriteRenderState r)
 		{
 			Log.Assert(r != null);
 			var json = new JObject {
 				{ "type", r.GetType().ToString() },
 				{ "renderer", r.Renderer.GetType().Name },
-				// Oof...
+				{ "animations", SaveAnimations(r.Sprite.Animations) },
+				{ "textureAtlas", SaveTextureAtlas(r.Sprite.Atlas) },
 			};
 			return json;
 		}
+
+		public static JArray SaveAnimations(IEnumerable<Animation> a)
+		{
+			var j = new JArray();
+			foreach (var anim in a) {
+				j.Add(SaveAnimation(anim));
+			}
+			return j;
+		}
+
+		public static JObject SaveAnimation(Animation a)
+		{
+			Log.Assert(a != null);
+			var arr = new JArray(a.Delays);
+			var json = new JObject {
+				{ "type", a.GetType().ToString() },
+				{ "delays", arr },
+			};
+			return json;
+		}
+
+
+		public static JObject SaveTextureAtlas(TextureAtlas t)
+		{
+
+			Log.Assert(t != null);
+			var json = new JObject {
+				{ "type", t.GetType().ToString() },
+				{ "texture", "PlayerAssetAnimationTestSpriteSheetv3" },
+				{ "width", t.Width },
+				{ "height", t.Height },
+			};
+			return json;
+		}
+
 	}
 
 	[TestFixture]
