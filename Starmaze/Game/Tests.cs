@@ -315,8 +315,10 @@ namespace Starmaze.Game
 			var frames = new double[] { };
 			var animation = LoadAnimations(json["animations"].Value<JArray>());
 			var textureatlas = LoadTextureAtlas(json["textureAtlas"].Value<JObject>());
-			var sprite = new Sprite(act, textureatlas, animation);
-			return new SpriteRenderState(act, sprite);
+			var rotation = json["rotation"].Value<float>();
+			var scaleX = json["scaleX"].Value<float>();
+			var scaleY = json["scaleY"].Value<float>();
+			return new SpriteRenderState(act, textureatlas, animation, rotation, new Vector2?(new Vector2(scaleX, scaleY)));
 		}
 
 		public static List<Animation> LoadAnimations(JArray json)
@@ -355,8 +357,11 @@ namespace Starmaze.Game
 			var json = new JObject {
 				{ "type", r.GetType().ToString() },
 				{ "renderer", r.Renderer.GetType().Name },
-				{ "animations", SaveAnimations(r.Sprite.Animations) },
-				{ "textureAtlas", SaveTextureAtlas(r.Sprite.Atlas) },
+				{ "animations", SaveAnimations(r.Animations) },
+				{ "textureAtlas", SaveTextureAtlas(r.Atlas) },
+				{ "rotation", r.Rotation },
+				{ "scaleX", r.Scale.X },
+				{ "scaleY", r.Scale.Y },
 			};
 			return json;
 		}

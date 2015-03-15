@@ -51,25 +51,62 @@ namespace Starmaze.Engine
 		}
 	}
 
+
+	/// <summary>
+	/// Renders an animated, textured billboard.
+	/// </summary>
 	public class SpriteRenderState : RenderState
 	{
-		public Sprite Sprite;
+		public TextureAtlas Atlas;
+		public List<Animation> Animations;
+		public int CurrentAnim;
 		public float Rotation;
 		public Vector2 Scale;
 
-		public SpriteRenderState(Actor act, Sprite sprite, float rotation = 0.0f, Vector2? scale = null) : base(act, "SpriteRenderer")
+		public SpriteRenderState(Actor act, TextureAtlas atlas, IEnumerable<Animation> anim, float rotation = 0.0f, Vector2? scale = null) : base(act, "SpriteRenderer")
 		{
-			Log.Assert(sprite != null);
-			Sprite = sprite;
+			Log.Assert(atlas != null);
+			Log.Assert(anim != null);
+			Atlas = atlas;
+			Animations = new List<Animation>(anim);
+			Log.Assert(Animations.Count > 0);
+			CurrentAnim = 0;
 			Rotation = rotation;
 			Scale = scale ?? Vector2.One;
 
 			HandledEvents = EventType.OnUpdate;
 		}
 
+		public SpriteRenderState(Actor owner, TextureAtlas atlas, Animation anim, float rotation = 0.0f, Vector2? scale = null)
+			: this(owner, atlas, new Animation[] { anim }, rotation, scale)
+		{
+		}
+
+		/// <summary>
+		/// Returns UV coordinates for this sprite's current animation frame.
+		/// </summary>
+		/// <returns>Vector4(x0, y0, w, h)</returns>
+		public Vector4 GetSourceTexcoords()
+		{
+			var anim = Animations[CurrentAnim];
+			var frame = anim.Frame;
+			var x = Atlas.OffsetX(frame);
+			var y = Atlas.OffsetY(CurrentAnim);
+			var w = Atlas.ItemWidth();
+			var h = Atlas.ItemHeight();
+			return new Vector4((float)x, (float)y, (float)w, (float)h);
+		}
+
+
+		public void AddAnimation(Animation anim)
+		{
+			Animations.Add(anim);
+		}
+
 		public override void OnUpdate(object sender, FrameEventArgs args)
 		{
-			Sprite.OnUpdate(sender, args);
+			var dt = args.Time;
+			Animations[CurrentAnim].Update(dt);
 		}
 	}
 
@@ -376,17 +413,16 @@ namespace Starmaze.Engine
 
 		protected override void RenderOne(ViewManager view, SpriteRenderState r)
 		{
-			var sprite = r.Sprite;
 			var pos = new Vector2((float)r.Owner.Body.Position.X, (float)r.Owner.Body.Position.Y);
 			var transform = new Transform(pos, r.Rotation, r.Scale);
 			var mat = transform.TransformMatrix(view.ProjectionMatrix);
 			shader.UniformMatrix("projection", mat);
 			shader.Uniformi("texture", 0);
-			var coords = sprite.GetBox();
+			var coords = r.GetSourceTexcoords();
 			shader.Uniformf("atlasCoords", coords.X, coords.Y, coords.Z, coords.W);
-			sprite.Atlas.Enable();
+			r.Atlas.Enable();
 			billboard.Draw();
-			sprite.Atlas.Disable();
+			r.Atlas.Disable();
 		}
 	}
 

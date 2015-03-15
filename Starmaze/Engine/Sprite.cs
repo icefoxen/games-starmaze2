@@ -102,54 +102,5 @@ namespace Starmaze.Engine
 			}
 		}
 	}
-
-	/// <summary>
-	/// An animated, textured billboard.
-	/// </summary>
-	public class Sprite
-	{
-		public TextureAtlas Atlas;
-		public List<Animation> Animations;
-		public int CurrentAnim;
-
-		public Sprite(Actor owner, TextureAtlas atlas, IEnumerable<Animation> anim)
-		{
-			Log.Assert(atlas != null);
-			Atlas = atlas;
-			Animations = new List<Animation>(anim);
-			Log.Assert(Animations.Count > 0);
-			CurrentAnim = 0;
-		}
-
-		public Sprite(Actor owner, TextureAtlas atlas, Animation anim) : this(owner, atlas, new Animation[] { anim })
-		{
-		}
-
-		public void AddAnimation(Animation anim)
-		{
-			Animations.Add(anim);
-		}
-
-		/// <summary>
-		/// Returns UV coordinates for this sprite's current animation frame.
-		/// </summary>
-		/// <returns>Box2(x0, y0, w, h)</returns>
-		public Vector4 GetBox()
-		{
-			var anim = Animations[CurrentAnim];
-			var frame = anim.Frame;
-			var x = Atlas.OffsetX(frame);
-			var y = Atlas.OffsetY(CurrentAnim);
-			var w = Atlas.ItemWidth();
-			var h = Atlas.ItemHeight();
-			return new Vector4((float)x, (float)y, (float)w, (float)h);
-		}
-
-		public void OnUpdate(object sender, FrameEventArgs args)
-		{
-			var dt = args.Time;
-			Animations[CurrentAnim].Update(dt);
-		}
-	}
 }
 
