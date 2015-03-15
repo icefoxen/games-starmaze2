@@ -141,6 +141,10 @@ namespace Starmaze
 
 		void SetupEvents()
 		{
+			if (this.Keyboard != null) {
+				this.Keyboard.KeyRepeat = false;
+			}
+
 			// We can just override methods and have the same effect, but doing it like this allows us
 			// a layer of indirection that will eventually let us do things like have a 
 			// menu screen more easily.
