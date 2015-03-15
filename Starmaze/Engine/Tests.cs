@@ -188,18 +188,5 @@ namespace Starmaze.Engine
 			var z = JsonConvert.DeserializeObject<Animation>(json);
 			Assert.NotNull(z);
 		}
-
-		[Test]
-		public void SpriteSerialTest()
-		{
-			var a = new Animation(6, 0.25);
-			var act = new Actor();
-			var ta = new TextureAtlas(Resources.TheResources.GetTexture("animtest"), 4, 4);
-			var sprite = new Sprite(act, ta, a);
-			var json = JsonConvert.SerializeObject(sprite);
-			Log.Message("Serialized sprite: {0}", json);
-			var z = JsonConvert.DeserializeObject<Sprite>(json);
-			Assert.NotNull(z);
-		}
 	}
 }

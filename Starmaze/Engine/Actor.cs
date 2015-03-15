@@ -12,7 +12,7 @@ namespace Starmaze.Engine
 		// Components.
 		public List<Component> Components;
 		// We handle the Body specially since it's common to want to get it directly
-		// But in the end it has to go in the Components set as well(?)
+		// But in the end it has to go in the Components set as well
 		Body _body;
 
 		public Body Body {
@@ -23,6 +23,20 @@ namespace Starmaze.Engine
 				Components.Remove(_body);
 				_body = value;
 				Components.Add(_body);
+			}
+		}
+
+		// Same with render state
+		RenderState _renderState;
+
+		public RenderState RenderState { 
+			get {
+				return _renderState;
+			} 
+			set {
+				Components.Remove(_renderState);
+				_renderState = value;
+				Components.Add(_renderState);
 			}
 		}
 
@@ -43,9 +57,10 @@ namespace Starmaze.Engine
 		public void AddComponent(Component c)
 		{
 			c.Owner = this;
-			var b = c as Body; // special caaaaase (it seemed like a good idea at the time)
-			if (b != null) {
-				Body = b;
+			if (c is Starmaze.Engine.Body) {
+				Body = c as Body;
+			} else if (c is RenderState) {
+				RenderState = c as RenderState;
 			} else {
 				Components.Add(c);
 			}
@@ -53,17 +68,8 @@ namespace Starmaze.Engine
 		// Other properties
 		public bool Alive = true;
 		public bool KeepOnRoomChange = false;
-		RenderState _renderState;
 
-		public RenderState RenderState { 
-			get {
-				return _renderState;
-			} 
-			set {
-				value.Actor = this;
-				_renderState = value;
-			}
-		}
+
 
 		public World World;
 

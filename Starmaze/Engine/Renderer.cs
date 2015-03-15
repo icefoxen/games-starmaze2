@@ -7,33 +7,15 @@ using OpenTK.Graphics.OpenGL;
 
 namespace Starmaze.Engine
 {
-	public class RenderState : IComparable<RenderState>
+	public class RenderState : Component, IComparable<RenderState>
 	{
 		public IRenderer Renderer;
-		Actor _actor;
 
-		public Actor Actor {
-			get {
-				return _actor;
-			}
-			set {
-				// Assertions here bogusly fail, for some reason.
-				_actor = value;
-				Body = _actor.Body;
-			}
-		}
-
-		public Body Body;
 		long OrderingNumber;
 
-		public RenderState(string renderclass, Actor act)
+		public RenderState(Actor act, string renderclass) : base(act)
 		{
 			Renderer = Resources.TheResources.GetRenderer(renderclass);
-			// Sort of nasty, but, sort of necessary for deserialization.
-			_actor = act;
-			if (act != null) {
-				Body = act.Body;
-			}
 			OrderingNumber = Util.GetSerial();
 		}
 
@@ -47,7 +29,7 @@ namespace Starmaze.Engine
 	{
 		public VertexArray Model;
 
-		public ModelRenderState(Actor act, VertexArray model) : base("StaticModelRenderer", act)
+		public ModelRenderState(Actor act, VertexArray model) : base(act, "StaticModelRenderer")
 		{
 			Log.Assert(model != null);
 			Model = model;
@@ -60,7 +42,7 @@ namespace Starmaze.Engine
 		public float Rotation;
 		public Vector2 Scale;
 
-		public BillboardRenderState(Actor act, Texture texture, float rotation = 0.0f, Vector2? scale = null) : base("BillboardRenderer", act)
+		public BillboardRenderState(Actor act, Texture texture, float rotation = 0.0f, Vector2? scale = null) : base(act, "BillboardRenderer")
 		{
 			Log.Assert(texture != null);
 			Texture = texture;
@@ -69,18 +51,62 @@ namespace Starmaze.Engine
 		}
 	}
 
+
+	/// <summary>
+	/// Renders an animated, textured billboard.
+	/// </summary>
 	public class SpriteRenderState : RenderState
 	{
-		public Sprite Sprite;
+		public TextureAtlas Atlas;
+		public List<Animation> Animations;
+		public int CurrentAnim;
 		public float Rotation;
 		public Vector2 Scale;
 
-		public SpriteRenderState(Actor act, Sprite sprite, float rotation = 0.0f, Vector2? scale = null) : base("SpriteRenderer", act)
+		public SpriteRenderState(Actor act, TextureAtlas atlas, IEnumerable<Animation> anim, float rotation = 0.0f, Vector2? scale = null) : base(act, "SpriteRenderer")
 		{
-			Log.Assert(sprite != null);
-			Sprite = sprite;
+			Log.Assert(atlas != null);
+			Log.Assert(anim != null);
+			Atlas = atlas;
+			Animations = new List<Animation>(anim);
+			Log.Assert(Animations.Count > 0);
+			CurrentAnim = 0;
 			Rotation = rotation;
 			Scale = scale ?? Vector2.One;
+
+			HandledEvents = EventType.OnUpdate;
+		}
+
+		public SpriteRenderState(Actor owner, TextureAtlas atlas, Animation anim, float rotation = 0.0f, Vector2? scale = null)
+			: this(owner, atlas, new Animation[] { anim }, rotation, scale)
+		{
+		}
+
+		/// <summary>
+		/// Returns UV coordinates for this sprite's current animation frame.
+		/// </summary>
+		/// <returns>Vector4(x0, y0, w, h)</returns>
+		public Vector4 GetSourceTexcoords()
+		{
+			var anim = Animations[CurrentAnim];
+			var frame = anim.Frame;
+			var x = Atlas.OffsetX(frame);
+			var y = Atlas.OffsetY(CurrentAnim);
+			var w = Atlas.ItemWidth();
+			var h = Atlas.ItemHeight();
+			return new Vector4((float)x, (float)y, (float)w, (float)h);
+		}
+
+
+		public void AddAnimation(Animation anim)
+		{
+			Animations.Add(anim);
+		}
+
+		public override void OnUpdate(object sender, FrameEventArgs args)
+		{
+			var dt = args.Time;
+			Animations[CurrentAnim].Update(dt);
 		}
 	}
 
@@ -322,7 +348,7 @@ namespace Starmaze.Engine
 		protected override void RenderOne(ViewManager view, RenderState r)
 		{
 			//Console.WriteLine("Drawing actor");
-			var pos = new Vector2((float)r.Body.Position.X, (float)r.Body.Position.Y);
+			var pos = new Vector2((float)r.Owner.Body.Position.X, (float)r.Owner.Body.Position.Y);
 			var transform = new Transform(pos, 0.0f);
 			var mat = transform.TransformMatrix(view.ProjectionMatrix);
 			shader.UniformMatrix("projection", mat);
@@ -340,7 +366,7 @@ namespace Starmaze.Engine
 
 		protected override void RenderOne(ViewManager view, ModelRenderState r)
 		{
-			var pos = new Vector2((float)r.Body.Position.X, (float)r.Body.Position.Y);
+			var pos = new Vector2((float)r.Owner.Body.Position.X, (float)r.Owner.Body.Position.Y);
 			var transform = new Transform(pos, 0.0f);
 			var mat = transform.TransformMatrix(view.ProjectionMatrix);
 			shader.UniformMatrix("projection", mat);
@@ -362,7 +388,7 @@ namespace Starmaze.Engine
 		protected override void RenderOne(ViewManager view, BillboardRenderState r)
 		{
 			// BUGGO: Is the billboard not centered here?
-			var pos = new Vector2((float)r.Body.Position.X, (float)r.Body.Position.Y);
+			var pos = new Vector2((float)r.Owner.Body.Position.X, (float)r.Owner.Body.Position.Y);
 			var transform = new Transform(pos, r.Rotation, r.Scale);
 			var mat = transform.TransformMatrix(view.ProjectionMatrix);
 			shader.UniformMatrix("projection", mat);
@@ -387,17 +413,16 @@ namespace Starmaze.Engine
 
 		protected override void RenderOne(ViewManager view, SpriteRenderState r)
 		{
-			var sprite = r.Sprite;
-			var pos = new Vector2((float)r.Body.Position.X, (float)r.Body.Position.Y);
-			var transform = new Transform(pos, 0.0f, new Vector2(5, 5));
+			var pos = new Vector2((float)r.Owner.Body.Position.X, (float)r.Owner.Body.Position.Y);
+			var transform = new Transform(pos, r.Rotation, r.Scale);
 			var mat = transform.TransformMatrix(view.ProjectionMatrix);
 			shader.UniformMatrix("projection", mat);
 			shader.Uniformi("texture", 0);
-			var coords = sprite.GetBox();
+			var coords = r.GetSourceTexcoords();
 			shader.Uniformf("atlasCoords", coords.X, coords.Y, coords.Z, coords.W);
-			sprite.Atlas.Enable();
+			r.Atlas.Enable();
 			billboard.Draw();
-			sprite.Atlas.Disable();
+			r.Atlas.Disable();
 		}
 	}
 

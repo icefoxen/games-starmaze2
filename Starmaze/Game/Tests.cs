@@ -24,15 +24,15 @@ namespace Starmaze.Game
 		public static JObject SaveActor(Actor a)
 		{
 			var json = new JObject {
-				{"type", a.GetType().ToString()},
-				{"keepOnRoomChange", a.KeepOnRoomChange},
+				{ "type", a.GetType().ToString() },
+				{ "keepOnRoomChange", a.KeepOnRoomChange },
 				//{"renderState", a.RenderState},
-				{"components", SaveComponents(a.Components)}
+				{ "components", SaveComponents(a.Components) }
 			};
 			return json;
 		}
 
-		public static IEnumerable<Component> LoadComponents(Actor act, JArray json)
+		static IEnumerable<Component> LoadComponents(Actor act, JArray json)
 		{
 			var l = new List<Component>();
 			foreach (var obj in json) {
@@ -41,7 +41,7 @@ namespace Starmaze.Game
 			return l;
 		}
 
-		public static JArray SaveComponents(IEnumerable<Component> components)
+		static JArray SaveComponents(IEnumerable<Component> components)
 		{
 			var json = new JArray();
 			foreach (var component in components) {
@@ -75,6 +75,14 @@ namespace Starmaze.Game
 					return LoadInputController(act, json);
 				case "Starmaze.Engine.Body":
 					return LoadBody(act, json);
+				case "Starmaze.Engine.RenderState":
+					return LoadRenderState(act, json);
+				case "Starmaze.Engine.ModelRenderState":
+					return LoadModelRenderState(act, json);
+				case "Starmaze.Engine.BillboardRenderState":
+					return LoadBillboardRenderState(act, json);
+				case "Starmaze.Engine.SpriteRenderState":
+					return LoadSpriteRenderState(act, json);
 				default:
 					var msg = String.Format("Don't know how to load component type:: {0}", typ);
 					throw new JsonSerializationException(msg);
@@ -85,6 +93,7 @@ namespace Starmaze.Game
 		{
 			var typ = c.GetType().ToString();
 			Log.Message("Saving component of type: {0}", typ);
+			// Using the 'is' keyword might be more auspicious?
 			switch (typ) {
 				case "Starmaze.Game.Life":
 					{
@@ -116,13 +125,38 @@ namespace Starmaze.Game
 						Log.Assert(cc != null, "This should never happen!");
 						return SaveBody(cc);
 					}
+
+				case "Starmaze.Engine.RenderState":
+					{
+						var rend = c as RenderState;
+						Log.Assert(rend != null, "This should never happen!");
+						return SaveRenderState(rend);
+					}
+				case "Starmaze.Engine.ModelRenderState":
+					{
+						var rend = c as ModelRenderState;
+						Log.Assert(rend != null, "This should never happen!");
+						return SaveModelRenderState(rend);
+					}
+				case "Starmaze.Engine.BillboardRenderState":
+					{
+						var rend = c as BillboardRenderState;
+						Log.Assert(rend != null, "This should never happen!");
+						return SaveBillboardRenderState(rend);
+					}
+				case "Starmaze.Engine.SpriteRenderState":
+					{
+						var rend = c as SpriteRenderState;
+						Log.Assert(rend != null, "This should never happen!");
+						return SaveSpriteRenderState(rend);
+					}
 				default:
 					var msg = String.Format("Don't know how to save component type: {0}", typ);
 					throw new JsonSerializationException(msg);
 			}
 		}
 
-		public static Body LoadBody(Actor act, JObject json)
+		static Body LoadBody(Actor act, JObject json)
 		{
 			var gravitating = json["gravitating"].Value<bool>();
 			var immobile = json["immobile"].Value<bool>();
@@ -130,18 +164,18 @@ namespace Starmaze.Game
 			return b;
 		}
 
-		public static JObject SaveBody(Body b)
+		static JObject SaveBody(Body b)
 		{
 			Log.Assert(b != null, "Shouldn't be possible!");
 			var json = new JObject {
-				{"type", b.GetType().ToString()},
-				{"gravitating", b.IsGravitating},
-				{"immobile", b.IsImmobile},
+				{ "type", b.GetType().ToString() },
+				{ "gravitating", b.IsGravitating },
+				{ "immobile", b.IsImmobile },
 			};
 			return json;
 		}
 
-		public static Life LoadLife(Actor act, JObject json)
+		static Life LoadLife(Actor act, JObject json)
 		{
 			var hpIn = json["hp"].Value<double>();
 			var maxLifeIn = json["maxLife"].Value<double>();
@@ -151,37 +185,37 @@ namespace Starmaze.Game
 			return l;
 		}
 
-		public static JObject SaveLife(Life l)
+		static JObject SaveLife(Life l)
 		{
 			Log.Assert(l != null, "Shouldn't be possible!");
 			var json = new JObject {
-				{"type", l.GetType().ToString()},
-				{"hp", l.CurrentLife},
-				{"maxLife", l.MaxLife},
-				{"damageAttenuation", l.DamageAttenuation},
-				{"damageReduction", l.DamageReduction},
+				{ "type", l.GetType().ToString() },
+				{ "hp", l.CurrentLife },
+				{ "maxLife", l.MaxLife },
+				{ "damageAttenuation", l.DamageAttenuation },
+				{ "damageReduction", l.DamageReduction },
 			};
 			return json;
 		}
 
-		public static TimedLife LoadTimedLife(Actor act, JObject json)
+		static TimedLife LoadTimedLife(Actor act, JObject json)
 		{
 			var maxTime = json["maxTime"].Value<double>();
 			var l = new TimedLife(act, maxTime);
 			return l;
 		}
 
-		public static JObject SaveTimedLife(TimedLife l)
+		static JObject SaveTimedLife(TimedLife l)
 		{
 			Log.Assert(l != null);
 			var json = new JObject {
-				{"type", l.GetType().ToString()},
-				{"maxTime", l.MaxTime},
+				{ "type", l.GetType().ToString() },
+				{ "maxTime", l.MaxTime },
 			};
 			return json;
 		}
 
-		public static Energy LoadEnergy(Actor act, JObject json)
+		static Energy LoadEnergy(Actor act, JObject json)
 		{
 			var maxEnergy = json["maxEnergy"].Value<double>();
 			var regenRate = json["regenRate"].Value<double>();
@@ -189,88 +223,50 @@ namespace Starmaze.Game
 			return e;
 		}
 
-		public static JObject SaveEnergy(Energy e)
+		static JObject SaveEnergy(Energy e)
 		{
 			Log.Assert(e != null);
 			var json = new JObject {
-				{"type", e.GetType().ToString()},
-				{"maxEnergy", e.MaxEnergy},
-				{"regenRate", e.RegenRate},
+				{ "type", e.GetType().ToString() },
+				{ "maxEnergy", e.MaxEnergy },
+				{ "regenRate", e.RegenRate },
 			};
 			return json;
 		}
 
-		public static InputController LoadInputController(Actor act, JObject json)
+		static InputController LoadInputController(Actor act, JObject json)
 		{
 			var c = new InputController(act);
 			return c;
 		}
 
-		public static JObject SaveInputController(InputController c)
+		static JObject SaveInputController(InputController c)
 		{
 			Log.Assert(c != null);
 			var json = new JObject {
-				{"type", c.GetType().ToString()},
+				{ "type", c.GetType().ToString() },
 			};
 			return json;
 		}
 
+		public static T Foo<T>()
+		{
+			Log.Message("Foo! {0}", typeof(T));
+			return default(T);
+		}
+
 		public static RenderState LoadRenderState(Actor act, JObject json)
 		{
-			JToken tok;
-			var got = json.TryGetValue("type", out tok);
-			if (!got) {
-				var msg = String.Format("No type field when trying to load component: {0}", json);
-				throw new JsonSerializationException(msg);
-			}
-			var typ = tok.Value<string>();
-			Log.Message("Loading renderstate of type: {0}", typ);
-			switch (typ) {
-				case "Starmaze.Engine.RenderState":
-					return null;
-				case "Starmaze.Engine.ModelRenderState":
-					return null;
-				case "Starmaze.Engine.BillboardRenderState":
-					return null;
-				case "Starmaze.Engine.SpriteRenderState":
-					return null;
-				default:
-					var msg = String.Format("Don't know how to save renderstate type: {0}", typ);
-					throw new JsonSerializationException(msg);
-			}
+			var renderer = json["renderer"].Value<string>();
+			return new RenderState(act, renderer);
 		}
 
 		public static JObject SaveRenderState(RenderState r)
 		{
-			var typ = r.GetType().ToString();
-			Log.Message("Saving renderstate of type: {0}", typ);
-			switch (typ) {
-				case "Starmaze.Engine.RenderState":
-					return null;
-				case "Starmaze.Engine.ModelRenderState":
-					return null;
-				case "Starmaze.Engine.BillboardRenderState":
-					return null;
-				case "Starmaze.Engine.SpriteRenderState":
-					return null;
-				default:
-					var msg = String.Format("Don't know how to save renderstate type: {0}", typ);
-					throw new JsonSerializationException(msg);
-			}
-		}
-
-		public static RenderState LoadRenderStateSpecific(Actor act, JObject json)
-		{
-			var renderer = json["renderer"].Value<string>();
-			return new RenderState(renderer, act);
-		}
-
-		public static JObject SaveRenderStateSpecific(RenderState r)
-		{
 			Log.Assert(r != null);
 			var json = new JObject {
-				{"type", r.GetType().ToString()},
-				{"renderer", r.Renderer.GetType().Name},
+				{ "type", r.GetType().ToString() },
+				{ "renderer", r.Renderer.GetType().Name },
 			};
 			return json;
 		}
@@ -278,15 +274,16 @@ namespace Starmaze.Game
 		public static ModelRenderState LoadModelRenderState(Actor act, JObject json)
 		{
 			var model = Resources.TheResources.GetModel(json["model"].Value<string>());
+			// Should this take a model identifier rather than the vertexarray itself, hmmm?
 			return new ModelRenderState(act, model);
 		}
 
-		public static JObject SaveModelRenderState(Actor act, RenderState r)
+		public static JObject SaveModelRenderState(RenderState r)
 		{
 			Log.Assert(r != null);
 			var json = new JObject {
-				{"type", r.GetType().ToString()},
-				{"renderer", r.Renderer.GetType().Name},
+				{ "type", r.GetType().ToString() },
+				{ "renderer", r.Renderer.GetType().Name },
 				// XXX: Ow, how do we turn a random VertexArray into a string?!
 			};
 			return json;
@@ -305,32 +302,104 @@ namespace Starmaze.Game
 		{
 			Log.Assert(r != null);
 			var json = new JObject {
-				{"type", r.GetType().ToString()},
-				{"renderer", r.Renderer.GetType().Name},
+				{ "type", r.GetType().ToString() },
+				{ "renderer", r.Renderer.GetType().Name },
 				// XXX: Ow, how do we turn a random Texture into a string?!  It could be dynamic...
 			};
 			return json;
 		}
 
+		// XXX: Sprites are components...
 		public static SpriteRenderState LoadSpriteRenderState(Actor act, JObject json)
 		{
-			//var frames = new double[] { };
-			//var animation = new Animation();
-			//var textureatlas = new TextureAtlas();
-			//var sprite = new Sprite();
-			return null;
+			var frames = new double[] { };
+			var animation = LoadAnimations(json["animations"].Value<JArray>());
+			var textureatlas = LoadTextureAtlas(json["textureAtlas"].Value<JObject>());
+			var rotation = json["rotation"].Value<float>();
+			var scaleX = json["scaleX"].Value<float>();
+			var scaleY = json["scaleY"].Value<float>();
+			return new SpriteRenderState(act, textureatlas, animation, rotation, new Vector2?(new Vector2(scaleX, scaleY)));
 		}
 
-		public static JObject SaveSpriteRenderState(RenderState r)
+		public static List<Animation> LoadAnimations(JArray json)
+		{
+			var anims = new List<Animation>();
+			foreach (var val in json) {
+				anims.Add(LoadAnimation(val.Value<JObject>()));
+			}
+			return anims;
+		}
+
+		public static Animation LoadAnimation(JObject json)
+		{
+			var delays = new List<double>();
+			foreach (var val in json["delays"].Value<JArray>()) {
+				delays.Add(val.Value<double>());
+			}
+			return new Animation(delays.ToArray());
+		}
+
+		public static TextureAtlas LoadTextureAtlas(JObject json)
+		{
+			var textureName = json["texture"].Value<string>();
+			var width = json["width"].Value<int>();
+			var height = json["height"].Value<int>();
+			var tex = Resources.TheResources.GetTexture(textureName);
+			var ta = new TextureAtlas(tex, width, height);
+			return ta;
+		}
+
+
+
+		public static JObject SaveSpriteRenderState(SpriteRenderState r)
 		{
 			Log.Assert(r != null);
 			var json = new JObject {
-				{"type", r.GetType().ToString()},
-				{"renderer", r.Renderer.GetType().Name},
-				// Oof...
+				{ "type", r.GetType().ToString() },
+				{ "renderer", r.Renderer.GetType().Name },
+				{ "animations", SaveAnimations(r.Animations) },
+				{ "textureAtlas", SaveTextureAtlas(r.Atlas) },
+				{ "rotation", r.Rotation },
+				{ "scaleX", r.Scale.X },
+				{ "scaleY", r.Scale.Y },
 			};
 			return json;
 		}
+
+		public static JArray SaveAnimations(IEnumerable<Animation> a)
+		{
+			var j = new JArray();
+			foreach (var anim in a) {
+				j.Add(SaveAnimation(anim));
+			}
+			return j;
+		}
+
+		public static JObject SaveAnimation(Animation a)
+		{
+			Log.Assert(a != null);
+			var arr = new JArray(a.Delays);
+			var json = new JObject {
+				{ "type", a.GetType().ToString() },
+				{ "delays", arr },
+			};
+			return json;
+		}
+
+
+		public static JObject SaveTextureAtlas(TextureAtlas t)
+		{
+
+			Log.Assert(t != null);
+			var json = new JObject {
+				{ "type", t.GetType().ToString() },
+				{ "texture", "PlayerAssetAnimationTestSpriteSheetv3" },
+				{ "width", t.Width },
+				{ "height", t.Height },
+			};
+			return json;
+		}
+
 	}
 
 	[TestFixture]

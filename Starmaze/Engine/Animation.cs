@@ -7,8 +7,8 @@ namespace Starmaze.Engine
 	public class TextureAtlas
 	{
 		readonly Texture Tex;
-		readonly int Width;
-		readonly int Height;
+		public readonly int Width;
+		public readonly int Height;
 
 		public TextureAtlas(Texture tex, int width, int height)
 		{
@@ -67,6 +67,8 @@ namespace Starmaze.Engine
 	/// <summary>
 	/// A sequence of delays that keeps track of a state; it is utterly independent of 
 	/// what it is actually animating.
+	/// XXX: This can't animate scales or rotations!  Boooo.
+	/// It can't specify particular frames to jump to, either.  Also boo.
 	/// </summary>
 	public class Animation
 	{
@@ -79,12 +81,6 @@ namespace Starmaze.Engine
 		public int Frame;
 		public double[] Delays;
 		double LastUpdate;
-
-		[Newtonsoft.Json.JsonConstructor]
-		public Animation()
-		{
-
-		}
 
 		public Animation(double[] frames)
 		{
@@ -104,56 +100,6 @@ namespace Starmaze.Engine
 				LastUpdate -= Delays[Frame];
 				Frame = (Frame + 1) % MaxFrame;
 			}
-		}
-	}
-
-	/// <summary>
-	/// An animated, textured billboard.
-	/// </summary>
-	public class Sprite : Component
-	{
-		public TextureAtlas Atlas;
-		List<Animation> Animations;
-		public int CurrentAnim;
-
-		public Sprite(Actor owner, TextureAtlas atlas, IEnumerable<Animation> anim) : base(owner)
-		{
-			Log.Assert(atlas != null);
-			Atlas = atlas;
-			Animations = new List<Animation>(anim);
-			Log.Assert(Animations.Count > 0);
-			CurrentAnim = 0;
-			HandledEvents = EventType.OnUpdate;
-		}
-
-		public Sprite(Actor owner, TextureAtlas atlas, Animation anim) : this(owner, atlas, new Animation[] { anim })
-		{
-		}
-
-		public void AddAnimation(Animation anim)
-		{
-			Animations.Add(anim);
-		}
-
-		/// <summary>
-		/// Returns UV coordinates for this sprite's current animation frame.
-		/// </summary>
-		/// <returns>Box2(x0, y0, w, h)</returns>
-		public Vector4 GetBox()
-		{
-			var anim = Animations[CurrentAnim];
-			var frame = anim.Frame;
-			var x = Atlas.OffsetX(frame);
-			var y = Atlas.OffsetY(CurrentAnim);
-			var w = Atlas.ItemWidth();
-			var h = Atlas.ItemHeight();
-			return new Vector4((float)x, (float)y, (float)w, (float)h);
-		}
-
-		public override void OnUpdate(object sender, FrameEventArgs args)
-		{
-			var dt = args.Time;
-			Animations[CurrentAnim].Update(dt);
 		}
 	}
 }
