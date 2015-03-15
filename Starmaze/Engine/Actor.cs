@@ -57,9 +57,10 @@ namespace Starmaze.Engine
 		public void AddComponent(Component c)
 		{
 			c.Owner = this;
-			var b = c as Body; // special caaaaase (it seemed like a good idea at the time)
-			if (b != null) {
-				Body = b;
+			if (c is Starmaze.Engine.Body) {
+				Body = c as Body;
+			} else if (c is RenderState) {
+				RenderState = c as RenderState;
 			} else {
 				Components.Add(c);
 			}

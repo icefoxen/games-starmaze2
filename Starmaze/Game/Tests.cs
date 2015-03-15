@@ -93,6 +93,7 @@ namespace Starmaze.Game
 		{
 			var typ = c.GetType().ToString();
 			Log.Message("Saving component of type: {0}", typ);
+			// Using the 'is' keyword might be more auspicious?
 			switch (typ) {
 				case "Starmaze.Game.Life":
 					{
