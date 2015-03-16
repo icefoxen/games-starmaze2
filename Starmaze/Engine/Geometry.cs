@@ -30,7 +30,6 @@ namespace Starmaze.Engine
 		/// Gets the bottom left corner.
 		/// </summary>
 		/// <value>The bottom left corner.</value>
-		[JsonConverter(typeof(OTKVector2dConverter))]
 		public Vector2d P0 { 
 			get {
 				return new Vector2d(X0, Y0);
@@ -41,7 +40,6 @@ namespace Starmaze.Engine
 		/// Gets the top right corner.
 		/// </summary>
 		/// <value>The top right corner.</value>
-		[JsonConverter(typeof(OTKVector2dConverter))]
 		public Vector2d P1 {
 			get {
 				return new Vector2d(X1, Y1);
@@ -152,7 +150,6 @@ namespace Starmaze.Engine
 		public double X1;
 		public double Y1;
 
-		[JsonConstructor]
 		public Line(double x0, double y0, double x1, double y1)
 		{
 			X0 = x0;
@@ -257,7 +254,6 @@ namespace Starmaze.Engine
 
 	public class BoxGeom : Geom
 	{
-		[JsonProperty]
 		BBox bbox;
 
 		public BoxGeom(double x0, double y0, double x1, double y1)
@@ -265,7 +261,6 @@ namespace Starmaze.Engine
 			bbox = new BBox(x0, y0, x1, y1);
 		}
 
-		[JsonConstructor]
 		public BoxGeom(BBox bbox)
 		{
 			this.bbox = bbox;

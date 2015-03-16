@@ -116,14 +116,12 @@ namespace Starmaze
 			// textures and shaders and such...
 			Resources.Init();
 			var map = BuildTestLevel();
-			//var player = new Player();
 			var actCfg = Resources.TheResources.GetJson("player");
-			Log.Message("Player config: {0}", actCfg);
 			var player = Starmaze.Game.SaveLoad.LoadActor(actCfg);
-			Log.Message("Player: {0}", player);
+			player.Body.AddGeom(new BoxGeom(new BBox(-5, -15, 5, 5)));
 			View = new ViewManager(Util.LogicalScreenWidth, Util.LogicalScreenWidth / Options.AspectRatio);
 			Camera = new FollowCam(player, Util.LogicalScreenWidth, Util.LogicalScreenWidth / Options.AspectRatio);
-			World = new World(player, map, "TestZone", "TestRoom2");
+			World = new World(player, map, "TestZone", "TestRoom1");
 			Gui = new GUI();
 			World.AddActor(Gui.guiActor);
 			SetupEvents();

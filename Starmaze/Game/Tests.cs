@@ -160,8 +160,18 @@ namespace Starmaze.Game
 		{
 			var gravitating = json["gravitating"].Value<bool>();
 			var immobile = json["immobile"].Value<bool>();
+			var facing = 0;
+			var rotation = 0;
+			var position = 0;
+			var velocity = 0;
+			var geometry = 0;
 			var b = new Body(act, gravitating, immobile);
 			return b;
+		}
+
+		static BBox LoadBBox(JObject json)
+		{
+
 		}
 
 		static JObject SaveBody(Body b)
@@ -171,6 +181,19 @@ namespace Starmaze.Game
 				{ "type", b.GetType().ToString() },
 				{ "gravitating", b.IsGravitating },
 				{ "immobile", b.IsImmobile },
+			};
+			return json;
+		}
+
+		static JObject SaveBBox(BBox b)
+		{
+			Log.Assert(b != null, "Shouldn't be possible!");
+			var json = new JObject {
+				{ "type", b.GetType().ToString() },
+				{ "top", b.Top },
+				{ "bottom", b.Bottom },
+				{ "left", b.Left },
+				{ "right", b.Right },
 			};
 			return json;
 		}
