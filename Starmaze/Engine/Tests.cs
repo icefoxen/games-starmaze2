@@ -35,14 +35,27 @@ namespace Starmaze.Engine
 	[TestFixture]
 	public class SoundTests
 	{
-		Sound s;
+		Sound s;		
+		JsonSerializerSettings jset;
+		GameWindow g;
+
 		[SetUp]
-		public void Prep(){
+		public void Prep()
+		{
+			Log.LogToConsole = true;
+			// Create a dummy GameWindow, which creates an OpenGL context so that if necessary a test
+			// can load a shader, model, whatever
+			if (g == null) {
+				g = new GameWindow();
+			}
+			if (!Resources.IsInitialized) {
+				Resources.Init();
+			}
 			s = new Sound();
 		}
 		[Test]
 		public void PlaySound(){
-			s.PlaySound("../sounds/Powers_Air_Wave_Large.wav");
+			s.PlaySound(Resources.TheResources.GetSound("Powers_Air_Wave_Large.wav"));
 
 		}
 	}

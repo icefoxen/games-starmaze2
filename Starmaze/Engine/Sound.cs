@@ -24,13 +24,15 @@ namespace Starmaze.Engine
 			player.Play();
 		}
 
-		public void PlaySound(string filename)
+		public void PlaySound(ISampleProvider input)
 		{
 
-			AudioFileReader input = new AudioFileReader(filename);
+			//AudioFileReader input = new AudioFileReader(filename);
 			//WaveOut wav = new WaveOut();
 			//wav.Init(input);
-			mixer.AddMixerInput((IWaveProvider) input);
+
+			//mixer.AddMixerInput((IWaveProvider) input);
+			mixer.AddMixerInput( input);
 		}
 
 			

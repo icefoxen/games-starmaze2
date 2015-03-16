@@ -8,6 +8,7 @@ using System.IO;
 using System.Reflection;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
+using NAudio.Wave;
 
 namespace Starmaze.Engine
 {
@@ -19,6 +20,7 @@ namespace Starmaze.Engine
 		Dictionary<string, Texture> TextureCache;
 		Dictionary<string, Shader> ShaderCache;
 		Dictionary<string, VertexArray> ModelCache;
+		Dictionary<string, ISampleProvider> SoundCache;
 
 		public ResourceLoader()
 		{
@@ -35,6 +37,8 @@ namespace Starmaze.Engine
 			TextureCache = new Dictionary<string, Texture>();
 			ShaderCache = new Dictionary<string, Shader>();
 			ModelCache = new Dictionary<string, VertexArray>();
+			SoundCache = new Dictionary<string, ISampleProvider>();
+
 		}
 
 		TVal Get<TKey,TVal>(Dictionary<TKey,TVal> cache, Func<TKey,TVal> loader, TKey name)
@@ -149,6 +153,20 @@ namespace Starmaze.Engine
 			var model = (VertexArray)method.Invoke(null, null);
 			return model;
 		}
+
+
+		ISampleProvider LoadSound(string name){
+			var fullPath = System.IO.Path.Combine(ResourceRoot, "sounds", name);
+			AudioFileReader input = new AudioFileReader(fullPath);
+			ISampleProvider sound = input.ToSampleProvider();
+			return sound;
+
+		}
+		public ISampleProvider GetSound(string name){
+			return Get(SoundCache, LoadSound, name);
+		}
+
+
 
 		/// <summary>
 		/// Preload any resources that take a long time to load; ie, all of them.
