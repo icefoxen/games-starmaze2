@@ -50,16 +50,6 @@ namespace Starmaze.Engine
 			jset = new JsonSerializerSettings { PreserveReferencesHandling = PreserveReferencesHandling.Objects };
 		}
 
-		[Test]
-		public void VectorSerialTest()
-		{
-			Vector2d testvector = new Vector2d(4.0, 5.0);
-			string testJSON = JsonConvert.SerializeObject(testvector, new OTKVector2dConverter());
-			Log.Message("{0}", testJSON);
-			Vector2d vectorRT = JsonConvert.DeserializeObject<Vector2d>(testJSON);
-			Log.Message("{0}", vectorRT);
-			Assert.True(testvector == vectorRT);
-		}
 		// The Assert.True(true) in these is a little ingenuous, but these tests are mainly
 		// there to see if the serialization runs at all, not whether it runs correctly.
 		// If it hits an error before getting to the assert, the test is failed.

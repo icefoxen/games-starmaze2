@@ -25,9 +25,7 @@ namespace Starmaze.Engine
 	{
 		HashSet<Geom> Geometry;
 		//Custom converters are used for vector2d because otherwise circular references happen.
-		[JsonConverter(typeof(OTKVector2dConverter))]
 		public Vector2d Position;
-		[JsonConverter(typeof(OTKVector2dConverter))]
 		public Vector2d Velocity;
 		public Facing Facing;
 		public double Rotation;

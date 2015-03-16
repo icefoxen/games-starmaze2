@@ -82,7 +82,6 @@
     <Compile Include="Engine\WorldMap.cs" />
     <Compile Include="Engine\Component.cs" />
     <Compile Include="Engine\Tests.cs" />
-    <Compile Include="Engine\Serialize.cs" />
     <Compile Include="Engine\Camera.cs" />
     <Compile Include="Engine\Postproc.cs" />
     <Compile Include="Log.cs" />
