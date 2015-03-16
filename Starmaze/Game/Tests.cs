@@ -92,6 +92,19 @@ namespace Starmaze.Game
 		public static JObject SaveComponent(Component c)
 		{
 			var typ = c.GetType().ToString();
+			/*
+			var t = c.GetType();
+			var props = t.GetProperties();
+			foreach(var p in props) {
+				var attrs = p.Attributes;
+				var getter = p.GetMethod;
+
+				var parms = getter.GetParameters();
+				foreach(var parm in parms) {
+					parm.
+				}
+			}
+			*/
 			Log.Message("Saving component of type: {0}", typ);
 			// Using the 'is' keyword might be more auspicious?
 			switch (typ) {
@@ -160,18 +173,18 @@ namespace Starmaze.Game
 		{
 			var gravitating = json["gravitating"].Value<bool>();
 			var immobile = json["immobile"].Value<bool>();
-			var facing = 0;
-			var rotation = 0;
-			var position = 0;
-			var velocity = 0;
-			var geometry = 0;
+			//var facing = 0;
+			//var rotation = 0;
+			//var position = 0;
+			//var velocity = 0;
+			//var geometry = 0;
 			var b = new Body(act, gravitating, immobile);
 			return b;
 		}
 
 		static BBox LoadBBox(JObject json)
 		{
-
+			return null;
 		}
 
 		static JObject SaveBody(Body b)
