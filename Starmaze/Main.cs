@@ -183,11 +183,11 @@ namespace Starmaze
 		{
 			World.Update(e);
 			Camera.Update(e.Time);
+            Gui.DrawString("TESTING"); 
 			if (fpsTimer.ElapsedMilliseconds > (fpsInterval * 1000)) {
 				fpsTimer.Restart();
 				Log.Message("FPS: {0}", frames / fpsInterval);
-                Gui.DrawString("FPS:" + (frames / fpsInterval));
-            
+                //Gui.DrawString("FPS:" + (frames / fpsInterval));            
 				frames = 0;
 			}
 		}
@@ -197,8 +197,8 @@ namespace Starmaze
 			Graphics.ClearScreen();
 			View.CenterOn(Camera.CurrentPos);
 			World.Draw(View);
-           
-            Gui.Draw();           
+          
+            Gui.Draw(Camera.CurrentPos);           
 			
 			SwapBuffers();
 			frames += 1;

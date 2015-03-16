@@ -2,37 +2,44 @@ using System;
 using System.Text;
 using OpenTK;
 using OpenTK.Graphics;
-using OpenTK.Graphics.OpenGL;
-using OpenTK.Input;
 using Starmaze.Engine;
 using System.Drawing;
+using System.Collections.Generic;
 
 namespace Starmaze.Game
 {
 	public class GUI
 	{
 		Texture texture;
-		Bitmap bmp;
-		float fontsize = 20;
 		public Actor guiActor;
-		string textToDraw;
 
 		public GUI()
 		{
-			bmp = new Bitmap(256, 256, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+			Bitmap bmp = new Bitmap(256, 256, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
 			guiActor = new Actor();
-			guiActor.Body = new Body(guiActor, true,false);
-			BillboardRenderState billBRState = new BillboardRenderState(guiActor, new Texture(bmp));
-			billBRState.Scale = new Vector2(5, 2);
-			guiActor.RenderState = billBRState;
-			textToDraw = "";
+			guiActor.Body = new Body(guiActor,false,true);
+            guiActor.Body.MoveTo(new Vector2d(0,0));
             texture = new Texture(bmp);
+			//BillboardRenderState billBRState = new BillboardRenderState(guiActor, texture);
+            GUIRenderState billBRState = new GUIRenderState(guiActor, texture);
+			
+            billBRState.Scale = new Vector2(5, 2);
+			guiActor.RenderState = billBRState;
+            
+            
 			//DrawString("The quick brown\n fox jumps over the lazy dog \njumps over the lazy dog", new PointF());
 		}
 
-		public void Draw()
+		public void Draw(Vector2d cameraOffset)
 		{
-            ((BillboardRenderState)guiActor.RenderState).Texture = texture;
+            //Need to figure out a proper way to keep GUI in place based
+            //on the cameras offset. Calculate the difference of the camera offset 
+            //each frame and move the GUI in the opposite direction 
+           // guiActor.Body.MoveBy(-1 * cameraOffset);
+            //((BillboardRenderState)guiActor.RenderState).Texture = texture;
+            ((GUIRenderState)guiActor.RenderState).Texture = texture;
+           
+            //guiActor.Body.MoveTo();
 		}
 
 		/// <summary>
@@ -45,37 +52,39 @@ namespace Starmaze.Game
 		public void DrawString(string text)
 		{          
 			//textToDraw += text;
-			texture = TextDrawer.RenderString(text, Color4.White);
+			texture = TextDrawer.RenderString(text, Color4.White,12);
 		}
-
 
 		public void LoadString(string name)
 		{
 			texture = Resources.TheResources.GetStringTexture(name);
 		}
 
-		public Texture generateTextTexture()
-		{
-			Vector2 size = getTextSize();
-			bmp = new Bitmap((int)size.X, (int)size.Y);
-			using (System.Drawing.Graphics graphics = System.Drawing.Graphics.FromImage(bmp)) {
-				graphics.FillRectangle(new SolidBrush(Color.Empty), 0, 0, bmp.Width, bmp.Height);
-				graphics.DrawString(textToDraw, new Font(FontFamily.GenericMonospace, fontsize), Brushes.White, new PointF());
-				graphics.Flush();
-				graphics.Dispose();
-			}
-			textToDraw = "";
-			return new Texture(bmp);
-		}
-
-		public Vector2 getTextSize()
-		{
-			System.Drawing.Graphics graphics = System.Drawing.Graphics.FromImage(bmp);
-			//Finds the size that the text would take up on the screen (width, height)
-			SizeF size = graphics.MeasureString(textToDraw, new Font(FontFamily.GenericSerif, fontsize));
-			Vector2 vector2 = new Vector2((float)SMath.RoundUpToPowerOf2(size.Width), (float)SMath.RoundUpToPowerOf2(size.Height));
-			return vector2;
-		}
 	}
 
+    public class GUIActors
+    {
+        //the body's position
+        //the actors texture
+        List<Actor> actors;
+
+        public GUIActors()
+        {
+            
+        }
+
+        //Once the GUIRenderer is working properly will update this
+        //and start using multiple gui actors to be able to show
+        //multiple text messages on screen
+        public void addNewGUI(Vector2d pos,Texture texture){
+            Bitmap bmp = new Bitmap(256, 256, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+            Actor guiActor = new Actor();
+            guiActor.Body = new Body(guiActor, false, true);
+            //Set the actors position
+            guiActor.Body.MoveTo(pos);
+            BillboardRenderState billBRState = new BillboardRenderState(guiActor, texture);
+            billBRState.Scale = new Vector2(5, 2);
+            guiActor.RenderState = billBRState;            
+        }
+    }
 }

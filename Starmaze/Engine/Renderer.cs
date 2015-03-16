@@ -50,7 +50,22 @@ namespace Starmaze.Engine
 			Scale = scale ?? Vector2.One;
 		}
 	}
+    public class GUIRenderState : RenderState
+	{
+		public Texture Texture;
+		public float Rotation;
+		public Vector2 Scale;
 
+        public GUIRenderState(Actor act, Texture texture, float rotation = 0.0f, Vector2? scale = null)
+            : base(act, "GUIRenderer")
+		{
+			Log.Assert(texture != null);
+			Texture = texture;
+			Rotation = rotation;
+			Scale = scale ?? Vector2.One;
+		}
+	}
+     
 
 	/// <summary>
 	/// Renders an animated, textured billboard.
@@ -399,6 +414,46 @@ namespace Starmaze.Engine
 			r.Texture.Disable();
 		}
 	}
+
+    public class GUIRenderer : Renderer<GUIRenderState>
+    {
+        VertexArray billboard;
+
+        public GUIRenderer()
+            : base()
+        {
+            shader = Resources.TheResources.GetShader("default-tex");
+            discipline = GLDiscipline.DEFAULT;
+            billboard = Resources.TheResources.GetModel("Billboard");
+        }
+
+        protected override void RenderOne(ViewManager view, GUIRenderState r)
+        {
+            // BUGGO: Is the billboard not centered here?
+            var pos = new Vector2((float)r.Owner.Body.Position.X, (float)r.Owner.Body.Position.Y);
+            var transform = new Transform(pos, r.Rotation, r.Scale);
+            var mat = transform.TransformMatrix(ProjectionMatrix());
+            shader.UniformMatrix("projection", mat);
+            // This is, inconveniently, not the texture handle but in fact the texture unit offset.
+            shader.Uniformi("texture", 0);
+            r.Texture.Enable();
+            billboard.Draw();
+            r.Texture.Disable();
+        }
+
+        Matrix4 ProjectionMatrix()
+		{
+            float width =Util.LogicalScreenWidth;
+            float height = width; 
+            //=Util.LogicalScreenWidth / Options.AspectRatio;
+            //Need to grab 
+			Vector2 VisibleSize = new Vector2(width, height);
+			// XXX: Right now these values are pretty arbitrary.
+			float ZNear = 0.0f;
+			float ZFar = 10.0f;
+            return Matrix4.CreateOrthographic(width, height, ZNear, ZFar);
+		}
+    }
 
 	public class SpriteRenderer : Renderer<SpriteRenderState>
 	{
