@@ -21,17 +21,18 @@ namespace Starmaze.Game
 		{
 			bmp = new Bitmap(256, 256, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
 			guiActor = new Actor();
-			guiActor.Body = new Body(guiActor, false, true);
+			guiActor.Body = new Body(guiActor, true,false);
 			BillboardRenderState billBRState = new BillboardRenderState(guiActor, new Texture(bmp));
 			billBRState.Scale = new Vector2(5, 2);
 			guiActor.RenderState = billBRState;
-			textToDraw = "";  
+			textToDraw = "";
+            texture = new Texture(bmp);
 			//DrawString("The quick brown\n fox jumps over the lazy dog \njumps over the lazy dog", new PointF());
 		}
 
 		public void Draw()
 		{
-			((BillboardRenderState)guiActor.RenderState).Texture = texture;
+            ((BillboardRenderState)guiActor.RenderState).Texture = texture;
 		}
 
 		/// <summary>
@@ -41,11 +42,12 @@ namespace Starmaze.Game
 		/// <param name="brush">The <see cref="System.Drawing.Brush"/> that will be used for the color of text.</param>
 		/// <param name="point">The location of the text (at least it should be)
 		/// The origin (0, 0) lies at the top-left corner of the backing store.</param>
-		public void DrawString(string text, PointF point)
+		public void DrawString(string text)
 		{          
-			textToDraw += text;
-			texture = generateTextTexture();
+			//textToDraw += text;
+			texture = TextDrawer.RenderString(text, Color4.White);
 		}
+
 
 		public void LoadString(string name)
 		{
@@ -75,17 +77,5 @@ namespace Starmaze.Game
 			return vector2;
 		}
 	}
-	/* TODO: Remove?
-	public class TextMap
-	{
-		string text;
-		PointF position;
 
-		public TextMap(string _text, PointF _pos)
-		{
-			text = _text;
-			position = _pos;
-		}
-	}
-	*/
 }
