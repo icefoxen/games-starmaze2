@@ -9,6 +9,199 @@ using Starmaze.Engine;
 
 namespace Starmaze.Game
 {
+	public interface ISaveLoadable
+	{
+		void PostLoad();
+
+		void PreSave();
+	}
+
+	public interface ISaveLoad<T> where T : ISaveLoadable
+	{
+		T Load(JObject json, object accessory);
+
+		JObject Save(T thing);
+
+		string[] Props { get; }
+	}
+
+	public class LifeSaver : ISaveLoad<Life>
+	{
+		public string[] Props { get; set; }
+
+		public LifeSaver()
+		{
+			Props = new string[] {
+				"CurrentLife",
+				"MaxLife",
+				"DamageAttenuation",
+				"DamageReduction",
+			};
+		}
+
+		public Life Load(JObject json, object accessory)
+		{
+			var act = accessory as Actor;
+			Log.Assert(act != null, "Aiee!");
+			var l = new Life(act, 0);
+			var typ = l.GetType();
+			foreach (var propName in Props) {
+				var property = typ.GetProperty(propName);
+				var loadedValue = json[propName].ToObject(property.PropertyType);
+				Log.Message("Setting property {0} to {1}", property, loadedValue);
+				property.SetValue(l, loadedValue);
+			}
+			l.PostLoad();
+			return l;
+		}
+
+		public JObject Save(Life l)
+		{
+			Log.Assert(l != null, "Shouldn't be possible!");
+			l.PreSave();
+			var typ = l.GetType();
+			var json = new JObject();
+			/*
+			foreach (var field in typ.GetFields()) {
+				Log.Message("Field: {0}", field);
+			}
+			foreach (var prop in typ.GetProperties()) {
+				Log.Message("Prop: {0}", prop);
+			}
+			*/
+			foreach (var propName in Props) {
+				//var field = typ.GetField(propName);
+				//var val = field.GetValue(l);
+				var property = typ.GetProperty(propName);
+				var val = property.GetValue(l);
+				Log.Message("Saving field {0}, value {1}", property, val);
+				// TODO: We need to know what type val is and serialize it as well
+				// This is just to test the overall shape.
+				//json.Add(propName, JObject.FromObject(val));
+				json[propName] = new JValue(val);
+				var jsonVal = json[propName];
+				Log.Assert(jsonVal != null, "Json missing value {0}", propName);
+				Log.Message("Got from json: {0}", jsonVal);
+				var loadedValue = jsonVal.ToObject(property.PropertyType);
+				property.SetValue(l, loadedValue);
+				//var loadedValue = json[propName].ToObject(field.FieldType);
+				//field.SetValue(l, loadedValue);
+			}
+			json.Add("type", typ.ToString());
+			return json;
+		}
+	}
+
+	public class LifeConverter : Newtonsoft.Json.JsonConverter
+	{
+		public override bool CanRead { get { return true; } }
+
+		public override bool CanWrite { get { return true; } }
+
+		public string[] Props = new string[] {
+			"CurrentLife",
+			"MaxLife",
+			"DamageAttenuation",
+			"DamageReduction",
+		};
+
+		public override bool CanConvert(Type objectType)
+		{
+			return objectType == typeof(Life);
+		}
+
+		public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+		{
+			var json = JObject.ReadFrom(reader);
+			//var act = existingValue as Actor;
+			//Log.Assert(act != null, "Aiee!");
+			// XXX: Another hole to plug...
+			Actor act = null;
+			var l = new Life(act, 0);
+			var typ = l.GetType();
+			foreach (var propName in Props) {
+				var property = typ.GetProperty(propName);
+				var loadedValue = json[propName].ToObject(property.PropertyType);
+				Log.Message("Setting property {0} to {1}", property, loadedValue);
+				property.SetValue(l, loadedValue);
+			}
+			l.PostLoad();
+			return l;
+		}
+
+		public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+		{
+			var l = value as Life;
+			Log.Assert(l != null, "Shouldn't be possible!");
+			l.PreSave();
+			var typ = l.GetType();
+			var json = new JObject();
+			/*
+			foreach (var field in typ.GetFields()) {
+				Log.Message("Field: {0}", field);
+			}
+			foreach (var prop in typ.GetProperties()) {
+				Log.Message("Prop: {0}", prop);
+			}
+			*/
+			foreach (var propName in Props) {
+				//var field = typ.GetField(propName);
+				//var val = field.GetValue(l);
+				var property = typ.GetProperty(propName);
+				var val = property.GetValue(l);
+				Log.Message("Saving field {0}, value {1}", property, val);
+				// TODO: We need to know what type val is and serialize it as well
+				// This is just to test the overall shape.
+				//json.Add(propName, JObject.FromObject(val));
+				json[propName] = new JValue(val);
+				var jsonVal = json[propName];
+				Log.Assert(jsonVal != null, "Json missing value {0}", propName);
+				Log.Message("Got from json: {0}", jsonVal);
+				var loadedValue = jsonVal.ToObject(property.PropertyType);
+				property.SetValue(l, loadedValue);
+				//var loadedValue = json[propName].ToObject(field.FieldType);
+				//field.SetValue(l, loadedValue);
+			}
+			json.Add("$type", typ.ToString());
+			json.WriteTo(writer);
+		}
+	}
+
+	public class SaveLoadThing
+	{
+		Dictionary<Type, ISaveLoad<ISaveLoadable>> SLDict;
+
+		public SaveLoadThing()
+		{
+			SLDict = new Dictionary<Type, ISaveLoad<ISaveLoadable>> {
+				{typeof(Life), (ISaveLoad<ISaveLoadable>) new LifeSaver()}
+			};
+		}
+
+		public JObject Save(ISaveLoadable o)
+		{
+			var typ = o.GetType();
+			ISaveLoad<ISaveLoadable> saver;
+			if (!SLDict.TryGetValue(typ, out saver)) {
+				var msg = String.Format("Could not find saver for type {0}", typ);
+				throw new Exception(msg);
+			}
+			return saver.Save(o);
+		}
+
+		public ISaveLoadable Load(JObject json, object accessory)
+		{
+			var typeName = json["type"].Value<string>();
+			var typ = Type.GetType(typeName);
+			ISaveLoad<ISaveLoadable> loader;
+			if (!SLDict.TryGetValue(typ, out loader)) {
+				var msg = String.Format("Could not find loader for type {0}", typeName);
+				throw new Exception(msg);
+			}
+			return loader.Load(json, accessory);
+		}
+	}
+
 	static class SaveLoad
 	{
 		public static Actor LoadActor(JObject json)
@@ -344,7 +537,6 @@ namespace Starmaze.Game
 			};
 			return json;
 		}
-
 		// XXX: Sprites are components...
 		public static SpriteRenderState LoadSpriteRenderState(Actor act, JObject json)
 		{
@@ -442,6 +634,7 @@ namespace Starmaze.Game
 	public class SerializationTests
 	{
 		GameWindow g;
+		JsonSerializerSettings jset;
 
 		[SetUp]
 		public void Prep()
@@ -455,6 +648,57 @@ namespace Starmaze.Game
 			if (!Resources.IsInitialized) {
 				Resources.Init();
 			}
+
+
+			jset = new JsonSerializerSettings { 
+				TypeNameHandling =  TypeNameHandling.Auto,
+				Converters =  { new LifeConverter()} 
+			};
+		}
+
+		[Test]
+		public void TestJsonNetSaveLoad()
+		{
+			var dummy = new Actor();
+			var a = new Life(dummy, 10, 15, 3, 5);
+			var json = JsonConvert.SerializeObject(a, jset);
+			Log.Message("Saved Life: {0}", json);
+			// See, the problem here is, if we don't know the type of the object
+			// then it won't look at the object's bloody type field and try to find out!
+			var z1 = JsonConvert.DeserializeObject(json, typeof(Life), jset);
+			Log.Message("Type of result: {0}", z1.GetType());
+			Log.Message("Loaded Life: {0}", z1);
+			var z2 = JsonConvert.DeserializeObject<Life>(json, jset);
+			Log.Message("Type of result: {0}", z2.GetType());
+			Log.Message("Loaded Life: {0}", z2);
+
+			Assert.True(true);
+		}
+
+		[Test]
+		public void TestDraconicSaveLoad()
+		{
+			/*
+			SaveLoadThing sl = new SaveLoadThing();
+			var dummy = new Actor();
+			var a = new Life(dummy, 20, 30, 0.8, 2);
+			var json = sl.Save(a);
+			Log.Message("Saved life: {0}", json);
+			var z = sl.Load(json, dummy);
+			Log.Message("Loaded life: {0}", z);
+Saving field Double MaxLife, value 30
+			Assert.True(true);
+			*/
+
+			var ls = new LifeSaver();
+			var dummy = new Actor();
+			var a = new Life(dummy, 20, 30, 0.8, 2);
+			var json = ls.Save(a);
+			Log.Message("Saved life: {0}", json);
+			var z = ls.Load(json, dummy);
+			Log.Message("Loaded life: {0}", z);
+			Assert.True(true);
+
 		}
 
 		[Test]

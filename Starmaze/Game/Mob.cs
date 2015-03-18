@@ -34,7 +34,7 @@ namespace Starmaze.Game
 		}
 	}
 	//end Timer
-	public class Life : Component
+	public class Life : Component, ISaveLoadable
 	{
 		public double CurrentLife { get; set; }
 
@@ -94,6 +94,14 @@ namespace Starmaze.Game
 		public override string ToString()
 		{
 			return string.Format("Life(CurrentLife: {0}, MaxLife: {1}, DamageAttenuation: {2}, DamageReduction: {3})", CurrentLife, MaxLife, DamageAttenuation, DamageReduction);
+		}
+
+		public void PostLoad()
+		{
+		}
+
+		public void PreSave()
+		{
 		}
 	}
 	//end Life component
