@@ -537,10 +537,9 @@ namespace Starmaze.Game
 			};
 			return json;
 		}
-		// XXX: Sprites are components...
+
 		public static SpriteRenderState LoadSpriteRenderState(Actor act, JObject json)
 		{
-			var frames = new double[] { };
 			var animation = LoadAnimations(json["animations"].Value<JArray>());
 			var textureatlas = LoadTextureAtlas(json["textureAtlas"].Value<JObject>());
 			var rotation = json["rotation"].Value<float>();
@@ -577,8 +576,6 @@ namespace Starmaze.Game
 			return ta;
 		}
 
-
-
 		public static JObject SaveSpriteRenderState(SpriteRenderState r)
 		{
 			Log.Assert(r != null);
@@ -614,7 +611,6 @@ namespace Starmaze.Game
 			return json;
 		}
 
-
 		public static JObject SaveTextureAtlas(TextureAtlas t)
 		{
 
@@ -627,7 +623,6 @@ namespace Starmaze.Game
 			};
 			return json;
 		}
-
 	}
 
 	[TestFixture]
