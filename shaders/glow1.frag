@@ -19,7 +19,7 @@ void main()
 	// This is just a simple boxcar filter... a gaussian distribution might be nicer.
 	for(int i = -convolutionRadius; i <= convolutionRadius; i++) {
 		float offsetAmount = texelSize * i;
-		colorAccumulator += texture2D(texture, theTexcoord + vec2(offsetAmount, 0));
+		colorAccumulator += texture(texture, theTexcoord + vec2(offsetAmount, 0));
 	}
 	colorAccumulator /= convolutionSize;
 
@@ -27,6 +27,6 @@ void main()
 	//outputColor = vec4(0, 1, 1, 1);
 
 
-    //outputColor = vec4(texture2D(texture, theTexcoord).rgb, 1);
+    //outputColor = vec4(texture(texture, theTexcoord).rgb, 1);
     //outputColor = outputColor.bgra;
 }
