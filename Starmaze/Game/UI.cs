@@ -13,19 +13,17 @@ namespace Starmaze.Game
 		Texture texture;
 		public Actor guiActor;
 
-		public GUI()
+		public GUI(double width, double height)
 		{
 			Bitmap bmp = new Bitmap(256, 256, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
 			guiActor = new Actor();
 			guiActor.Body = new Body(guiActor,false,true);
             guiActor.Body.MoveTo(new Vector2d(0,0));
             texture = new Texture(bmp);
-			//BillboardRenderState billBRState = new BillboardRenderState(guiActor, texture);
-            GUIRenderState billBRState = new GUIRenderState(guiActor, texture);
-			
-            billBRState.Scale = new Vector2(5, 2);
-			guiActor.RenderState = billBRState;
-            
+			GUIRenderState gRenderState = new GUIRenderState(guiActor, texture);
+
+            gRenderState.Scale = new Vector2(5, 2);
+            guiActor.RenderState = gRenderState;            
             
 			//DrawString("The quick brown\n fox jumps over the lazy dog \njumps over the lazy dog", new PointF());
 		}
@@ -35,11 +33,8 @@ namespace Starmaze.Game
             //Need to figure out a proper way to keep GUI in place based
             //on the cameras offset. Calculate the difference of the camera offset 
             //each frame and move the GUI in the opposite direction 
-           // guiActor.Body.MoveBy(-1 * cameraOffset);
-            //((BillboardRenderState)guiActor.RenderState).Texture = texture;
             ((GUIRenderState)guiActor.RenderState).Texture = texture;
            
-            //guiActor.Body.MoveTo();
 		}
 
 		/// <summary>
