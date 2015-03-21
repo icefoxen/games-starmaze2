@@ -37,7 +37,6 @@ namespace Starmaze.Game
 				"DamageAttenuation",
 				"DamageReduction",
 			};
-			Type = typeof(Life);
 		}
 
 		public ISaveLoadable Load(JObject json, object accessory)
@@ -93,7 +92,7 @@ namespace Starmaze.Game
 		}
 	}
 
-	public class LifeConverter : Newtonsoft.Json.Converters.CustomCreationConverter<Component>
+	public class LifeConverter : JsonConverter
 	{
 		public override bool CanRead { get { return true; } }
 
@@ -251,7 +250,7 @@ namespace Starmaze.Game
 		public SaveLoadThing()
 		{
 			SLDict = new Dictionary<Type, ISaveLoad> {
-				{typeof(Life), new LifeSaver()}
+				{ typeof(Life), new LifeSaver() }
 			};
 		}
 
@@ -730,8 +729,8 @@ namespace Starmaze.Game
 
 
 			jset = new JsonSerializerSettings { 
-				TypeNameHandling =  TypeNameHandling.All,
-				Converters =  { new LifeConverter()} 
+				TypeNameHandling = TypeNameHandling.All,
+				Converters = { new LifeConverter() } 
 			};
 		}
 

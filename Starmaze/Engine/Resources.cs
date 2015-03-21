@@ -13,6 +13,12 @@ using OpenTK.Graphics.OpenGL;
 
 namespace Starmaze.Engine
 {
+	/// <summary>
+	/// The resource loader does three things:
+	/// 1) Provide a uniform interface to access assets from anywhere,
+	/// 2) Provide a resource cache so we don't load the same texture or such more than once
+	/// 3) Provide a way to get a particular asset as quickly as possible once it's loaded.
+	/// </summary>
 	public class ResourceLoader : IDisposable
 	{
 
@@ -43,6 +49,17 @@ namespace Starmaze.Engine
 			JsonCache = new Dictionary<string, JObject>();
 		}
 
+		/// <summary>
+		/// The concept with the cache is not only that we don't want to load things multiple times,
+		/// but that we want each access to be as quick as possible.  Things can *always* be pre-cached
+		/// at game-load or level-load time, but we want each actual access to be as fast as possible.
+		/// Hence using exceptions rather than TryGetValue in Get(); throwing down a try/catch block
+		/// that doesn't get used is probably faster than a potentially-mispredicted branch with TryGetValue.
+		/// <param name="cache">Cache dict.</param>
+		/// <param name="loader">Loader function.</param>
+		/// <param name="name">Asset name.</param>
+		/// <typeparam name="TKey">Cache key</typeparam>
+		/// <typeparam name="TVal">Cache value</typeparam>
 		TVal Get<TKey,TVal>(Dictionary<TKey,TVal> cache, Func<TKey,TVal> loader, TKey name)
 		{
 			try {
@@ -79,9 +96,9 @@ namespace Starmaze.Engine
 						var renderer = (IRenderer)Activator.CreateInstance(subclass);
 						rendererMap.Add(subclass.Name, renderer);
 					}
-				} catch (System.Reflection.TargetInvocationException e) {
+				} catch (TargetInvocationException e) {
 					// The renderer constructor threw an exception
-					throw e.InnerException;
+					throw new InvalidProgramException(string.Format("Unable to preload renderer {0}", subclass), e.InnerException);
 				}
 			}
 
