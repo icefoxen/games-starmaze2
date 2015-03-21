@@ -57,7 +57,7 @@ namespace Starmaze.Engine
 		public Vector2 Scale;
 
 		public GUIRenderState(Actor act, Texture texture, float rotation = 0.0f, Vector2? scale = null)
-            : base(act, "GUIRenderer")
+			: base(act, "GUIRenderer")
 		{
 			Log.Assert(texture != null);
 			Texture = texture;
@@ -406,7 +406,7 @@ namespace Starmaze.Engine
 			var mat = transform.TransformMatrix(view.ProjectionMatrix);
 			shader.UniformMatrix("projection", mat);
 			// This is, inconveniently, not the texture handle but in fact the texture unit offset.
-			shader.Uniformi("texture", 0);
+			shader.Uniformi("tex", 0);
 			r.Texture.Enable();
 			billboard.Draw();
 			r.Texture.Disable();
@@ -418,7 +418,7 @@ namespace Starmaze.Engine
 		VertexArray billboard;
 
 		public GUIRenderer()
-            : base()
+			: base()
 		{
 			shader = Resources.TheResources.GetShader("default-tex");
 			discipline = GLDiscipline.DEFAULT;
@@ -433,7 +433,7 @@ namespace Starmaze.Engine
 			var mat = transform.TransformMatrix(ProjectionMatrix());
 			shader.UniformMatrix("projection", mat);
 			// This is, inconveniently, not the texture handle but in fact the texture unit offset.
-			shader.Uniformi("texture", 0);
+			shader.Uniformi("tex", 0);
 			r.Texture.Enable();
 			billboard.Draw();
 			r.Texture.Disable();
@@ -470,7 +470,7 @@ namespace Starmaze.Engine
 			var transform = new Transform(pos, r.Rotation, r.Scale);
 			var mat = transform.TransformMatrix(view.ProjectionMatrix);
 			shader.UniformMatrix("projection", mat);
-			shader.Uniformi("texture", 0);
+			shader.Uniformi("tex", 0);
 			var coords = r.GetSourceTexcoords();
 			shader.Uniformf("atlasCoords", coords.X, coords.Y, coords.Z, coords.W);
 			r.Atlas.Enable();
@@ -560,7 +560,7 @@ namespace Starmaze.Engine
 			var mat = transform.TransformMatrix(view.ProjectionMatrix);
 			shader.UniformMatrix("projection", mat);
 			// This is, inconveniently, not the texture handle but in fact the texture unit offset.
-			shader.Uniformi("texture", 0);
+			shader.Uniformi("tex", 0);
 			tex.Enable();
 			billboard.Draw();
 			tex.Disable();

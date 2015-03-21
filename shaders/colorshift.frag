@@ -1,4 +1,4 @@
-#version 120
+s#version 120
 // Fragment shader
 
 uniform sampler2D tex;

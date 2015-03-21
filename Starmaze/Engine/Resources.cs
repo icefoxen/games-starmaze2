@@ -98,7 +98,7 @@ namespace Starmaze.Engine
 					}
 				} catch (TargetInvocationException e) {
 					// The renderer constructor threw an exception
-					throw new InvalidProgramException(string.Format("Unable to preload renderer {0}", subclass), e.InnerException);
+					throw new InvalidProgramException(string.Format("Unable to preload renderer {0}\n{1}", subclass, e.InnerException), e.InnerException);
 				}
 			}
 

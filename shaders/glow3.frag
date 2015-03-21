@@ -2,16 +2,16 @@
 
 smooth in vec4 theColor;
 smooth in vec2 theTexcoord;
-uniform sampler2D texture;
-uniform sampler2D glowTexture;
+uniform sampler2D tex;
+uniform sampler2D glowTex;
 
 out vec4 outputColor;
 
 void main()
 {
-	vec4 baseColor = texture(texture, theTexcoord);
-	vec4 glowColor = texture(glowTexture, theTexcoord);
+	vec4 baseColor = texture(tex, theTexcoord);
+	vec4 glowColor = texture(glowTex, theTexcoord);
     outputColor = vec4((baseColor + glowColor).rgb, 1);
-    //outputColor = vec4(texture(texture, theTexcoord).rgb, 1);
+    //outputColor = vec4(texture(tex, theTexcoord).rgb, 1);
     //outputColor = outputColor.bgra;
 }
