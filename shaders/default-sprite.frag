@@ -3,11 +3,11 @@
 smooth in vec4 theColor;
 smooth in vec2 theTexcoord;
 
-uniform sampler2D texture;
+uniform sampler2D tex;
 
 out vec4 outputColor;
 
 void main()
 {
-    outputColor = texture2D(texture, theTexcoord);
+    outputColor = texture(tex, theTexcoord);
 }

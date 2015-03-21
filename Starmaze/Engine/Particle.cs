@@ -235,7 +235,6 @@ namespace Starmaze.Engine
 	{
 
 		ParticleGroup group;
-		ParticleRenderer renderer;
 		ParticleEmitter emitter;
 		ParticleController controller;
 
@@ -244,7 +243,6 @@ namespace Starmaze.Engine
 			HandledEvents = EventType.OnUpdate;
 
 			group = new ParticleGroup();
-			renderer = new ParticleRenderer();
 			emitter = new ParticleEmitter(emitDelay: emitDelay);
 			controller = new ParticleController();
 		}

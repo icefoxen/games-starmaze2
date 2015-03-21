@@ -4,7 +4,7 @@ in vec2 position;
 in vec4 color;
 in vec2 texcoord;
 uniform vec4 atlasCoords;
-uniform sampler2D texture;
+uniform sampler2D tex;
 
 smooth out vec4 theColor;
 smooth out vec2 theTexcoord;
