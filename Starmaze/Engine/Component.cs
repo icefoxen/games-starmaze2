@@ -17,7 +17,7 @@ namespace Starmaze.Engine
 	/// <summary>
 	/// Base class for all Components.  Actors are made of Components.
 	/// </summary>
-	public class Component
+	public class Component : Starmaze.Game.ISaveLoadable
 	{
 		public Actor Owner;
 		public EventType HandledEvents;
@@ -78,6 +78,16 @@ namespace Starmaze.Engine
 		}
 
 		public virtual void OnDeath(object sender, EventArgs args)
+		{
+
+		}
+
+		public virtual void PreSave()
+		{
+
+		}
+
+		public virtual void PostLoad()
 		{
 
 		}

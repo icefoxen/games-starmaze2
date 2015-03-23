@@ -25,17 +25,18 @@ namespace Starmaze.Game
 		string[] Props { get; }
 	}
 
-	public class LifeSaver : ISaveLoad
+	public class GenericSaver : ISaveLoad
 	{
+
 		public string[] Props { get; set; }
 
-		public LifeSaver()
+		public Type TargetType;
+
+		public GenericSaver(Type target)
 		{
+			TargetType = target;
 			Props = new string[] {
-				"CurrentLife",
-				"MaxLife",
-				"DamageAttenuation",
-				"DamageReduction",
+
 			};
 		}
 
@@ -43,16 +44,19 @@ namespace Starmaze.Game
 		{
 			var act = accessory as Actor;
 			Log.Assert(act != null, "Aiee!");
-			var l = new Life(act, 0);
+			var l = TargetType.TypeInitializer.Invoke(new object[] { act });
+			var isl = l as ISaveLoadable;
+			//var l = new Life(act, 0);
 			var typ = l.GetType();
 			foreach (var propName in Props) {
 				var property = typ.GetProperty(propName);
+				Log.Assert(property != null, "Property {0} not found on object of type {1}!", propName, typ);
 				var loadedValue = json[propName].ToObject(property.PropertyType);
 				Log.Message("Setting property {0} to {1}", property, loadedValue);
 				property.SetValue(l, loadedValue);
 			}
-			l.PostLoad();
-			return l;
+			isl.PostLoad();
+			return isl;
 		}
 
 		public JObject Save(ISaveLoadable l)
@@ -61,14 +65,6 @@ namespace Starmaze.Game
 			l.PreSave();
 			var typ = l.GetType();
 			var json = new JObject();
-			/*
-			foreach (var field in typ.GetFields()) {
-				Log.Message("Field: {0}", field);
-			}
-			foreach (var prop in typ.GetProperties()) {
-				Log.Message("Prop: {0}", prop);
-			}
-			*/
 			foreach (var propName in Props) {
 				//var field = typ.GetField(propName);
 				//var val = field.GetValue(l);
@@ -79,18 +75,200 @@ namespace Starmaze.Game
 				// This is just to test the overall shape.
 				//json.Add(propName, JObject.FromObject(val));
 				json[propName] = new JValue(val);
-				var jsonVal = json[propName];
-				Log.Assert(jsonVal != null, "Json missing value {0}", propName);
-				Log.Message("Got from json: {0}", jsonVal);
-				var loadedValue = jsonVal.ToObject(property.PropertyType);
-				property.SetValue(l, loadedValue);
-				//var loadedValue = json[propName].ToObject(field.FieldType);
-				//field.SetValue(l, loadedValue);
 			}
 			json.Add("type", typ.ToString());
 			return json;
 		}
+
+		public bool IsJValue(Type t)
+		{
+			return t == typeof(long) || t == typeof(int) || t == typeof(decimal) || t == typeof(char) ||
+			t == typeof(ulong) || t == typeof(float) || t == typeof(double) || t == typeof(DateTime) ||
+			t == typeof(DateTimeOffset) || t == typeof(bool) || t == typeof(string) || t == typeof(Guid) ||
+			t == typeof(TimeSpan) || t == typeof(Uri);
+		}
+
+
+		public bool IsSaveable(Type t)
+		{
+			return IsJValue(t) || SaveFuncs.ContainsKey(t);
+		}
+
+		public JObject SaveThing(object o)
+		{
+			var typ = o.GetType();
+			if (IsJValue(typ)) {
+				return new JObject(o);
+			} else {
+				return DispatchSave(o, typ);
+			}
+		}
+
+		Dictionary<Type, Func<object, JValue>> SaveFuncs;
+
+		public JObject DispatchSave(object o, Type typ)
+		{
+			return new JObject();
+		}
+
+		public JObject SaveProperties(object o, string[] props)
+		{
+			var typ = o.GetType();
+			var json = new JObject();
+			foreach (var propName in props) {
+				//var field = typ.GetField(propName);
+				//var val = field.GetValue(l);
+				var property = typ.GetProperty(propName);
+				var val = property.GetValue(o);
+				Log.Message("Saving field {0}, value {1}", property, val);
+				var propType = property.PropertyType;
+				if (IsJValue(propType)) {
+					json[propName] = new JValue(val);
+				} else if (IsSaveable(propType)) {
+					json[propName] = SaveThing(val);
+				} else {
+					var msg = String.Format("Can't save object of type {0} of property {1} on object {2}", propType, propName, typ);
+					throw new JsonSerializationException(msg);
+				}
+			}
+			json.Add("type", typ.ToString());
+			return json;
+		}
+
+		public void LoadProperties(object o, string[] props, JObject json)
+		{
+			var isl = o as ISaveLoadable;
+			var typ = o.GetType();
+			foreach (var propName in Props) {
+				var property = typ.GetProperty(propName);
+				Log.Assert(property != null, "Property {0} not found on object of type {1}!", propName, typ);
+				var loadedValue = json[propName].ToObject(property.PropertyType);
+				Log.Message("Setting property {0} to {1}", property, loadedValue);
+				property.SetValue(o, loadedValue);
+			}
+		}
+
+		public JValue SaveJSONNative(object val)
+		{
+			return new JValue(val);
+		}
 	}
+
+	public class TryFour
+	{
+		Dictionary<Type, Func<object, JObject>> SaveFuncs;
+
+		public TryFour()
+		{
+			SaveFuncs = new Dictionary<Type, Func<object, JObject>> {
+
+			};
+		}
+
+		public bool IsJValue(Type t)
+		{
+			return t == typeof(long) || t == typeof(int) || t == typeof(decimal) || t == typeof(char) ||
+			t == typeof(ulong) || t == typeof(float) || t == typeof(double) || t == typeof(DateTime) ||
+			t == typeof(DateTimeOffset) || t == typeof(bool) || t == typeof(string) || t == typeof(Guid) ||
+			t == typeof(TimeSpan) || t == typeof(Uri);
+		}
+
+
+		public bool IsSaveable(Type t)
+		{
+			return IsJValue(t) || SaveFuncs.ContainsKey(t);
+		}
+
+		public JObject SaveThing(object o)
+		{
+			var typ = o.GetType();
+			if (IsJValue(typ)) {
+				return new JObject(o);
+			} else {
+				return DispatchSave(o, typ);
+			}
+		}
+
+
+		JObject DispatchSave(object o, Type typ)
+		{
+			Func<object, JObject> saveFunc;
+			if (SaveFuncs.TryGetValue(typ, out saveFunc)) {
+				return saveFunc(o);
+			} else {
+				var msg = String.Format("Could not find function to save type {0}", typ);
+				throw new JsonSerializationException(msg);
+			}
+		}
+
+		public JObject SaveProperties(object o, string[] props)
+		{
+			var typ = o.GetType();
+			var json = new JObject();
+			foreach (var propName in props) {
+				//var field = typ.GetField(propName);
+				//var val = field.GetValue(l);
+				var property = typ.GetProperty(propName);
+				var val = property.GetValue(o);
+				Log.Message("Saving field {0}, value {1}", property, val);
+				var propType = property.PropertyType;
+				if (IsJValue(propType)) {
+					json[propName] = new JValue(val);
+				} else if (IsSaveable(propType)) {
+					json[propName] = SaveThing(val);
+				} else {
+					var msg = String.Format("Can't save object of type {0} of property {1} on object {2}", propType, propName, typ);
+					throw new JsonSerializationException(msg);
+				}
+			}
+			json.Add("type", typ.ToString());
+			return json;
+		}
+
+		public void LoadProperties(object o, string[] props, JObject json)
+		{
+			var isl = o as ISaveLoadable;
+			var typ = o.GetType();
+			foreach (var propName in props) {
+				var property = typ.GetProperty(propName);
+				Log.Assert(property != null, "Property {0} not found on object of type {1}!", propName, typ);
+				var loadedValue = json[propName].ToObject(property.PropertyType);
+				Log.Message("Setting property {0} to {1}", property, loadedValue);
+				property.SetValue(o, loadedValue);
+			}
+		}
+
+		public JValue SaveJSONNative(object val)
+		{
+			return new JValue(val);
+		}
+	}
+
+	public class LifeSaver : GenericSaver
+	{
+
+		public LifeSaver() : base(typeof(Life))
+		{
+			Props = new string[] {
+				"CurrentLife",
+				"MaxLife",
+				"DamageAttenuation",
+				"DamageReduction",
+			};
+		}
+	}
+
+	public class BodySaver : GenericSaver
+	{
+		public BodySaver() : base(typeof(Body))
+		{
+			Props = new string[] {
+				"IsGravitating",
+				"IsImmobile",
+			};
+		}
+	}
+
 
 	public class LifeConverter : JsonConverter
 	{
@@ -250,7 +428,8 @@ namespace Starmaze.Game
 		public SaveLoadThing()
 		{
 			SLDict = new Dictionary<Type, ISaveLoad> {
-				{ typeof(Life), new LifeSaver() }
+				{ typeof(Life), new LifeSaver() },
+				{ typeof(Body), new BodySaver() },
 			};
 		}
 
@@ -267,15 +446,13 @@ namespace Starmaze.Game
 
 		public T Load<T>(JObject json, object accessory)
 		{
-			return (T)Load(json, accessory, typeof(T));
+			return (T)Load(json, accessory);
 		}
 
-		public ISaveLoadable Load(JObject json, object accessory, Type type)
+		public ISaveLoadable Load(JObject json, object accessory)
 		{
 			var typeName = json["type"].Value<string>();
 			var typ = Type.GetType(typeName);
-			// Might be a better way to ensure this but I can't think of one.
-			Log.Assert(type == typ);
 			ISaveLoad loader;
 			if (!SLDict.TryGetValue(typ, out loader)) {
 				var msg = String.Format("Could not find loader for type {0}", typeName);
@@ -755,9 +932,8 @@ namespace Starmaze.Game
 		}
 
 		[Test]
-		public void TestDraconicSaveLoad()
+		public void DraconicLifeSaveLoadTest()
 		{
-
 			SaveLoadThing sl = new SaveLoadThing();
 			var dummy = new Actor();
 			var a = new Life(dummy, 20, 30, 0.8, 2);
@@ -766,7 +942,19 @@ namespace Starmaze.Game
 			var z = sl.Load<Life>(json, dummy);
 			Log.Message("Loaded life: {0}", z);
 			Assert.True(true);
+		}
 
+		[Test]
+		public void DraconicBodySaveLoadTest()
+		{
+			SaveLoadThing sl = new SaveLoadThing();
+			var dummy = new Actor();
+			var a = new Body(dummy, true, false);
+			var json = sl.Save(a);
+			Log.Message("Saved body: {0}", json);
+			var z = sl.Load(json, dummy);
+			Log.Message("Loaded body: {0}", z);
+			Assert.True(true);
 		}
 
 		[Test]
