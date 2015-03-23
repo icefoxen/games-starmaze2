@@ -11,22 +11,12 @@ namespace Starmaze.Game
 	public class GUI
 	{
 		Texture texture;
-		public Actor guiActor;
-        List<GUIActor> guiActorList;
+        System.Collections.Hashtable guiHash;
+        int count = 0;
 
 		public GUI(double width, double height)
 		{
-            guiActorList = new List<GUIActor>();
-
-			Bitmap bmp = new Bitmap(256, 256, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
-			guiActor = new Actor();
-			guiActor.Body = new Body(guiActor,false,true);
-            guiActor.Body.MoveTo(new Vector2d(0,0));
-            texture = new Texture(bmp);
-			GUIRenderState gRenderState = new GUIRenderState(guiActor, texture);
-
-            gRenderState.Scale = new Vector2(2.5f,1);
-            guiActor.RenderState = gRenderState;          
+            guiHash = new System.Collections.Hashtable();        
         }
 
 		public void Draw(Vector2d cameraOffset)
@@ -34,7 +24,9 @@ namespace Starmaze.Game
             //Need to figure out a proper way to keep GUI in place based
             //on the cameras offset. Calculate the difference of the camera offset 
             //each frame and move the GUI in the opposite direction 
-            ((GUIRenderState)guiActor.RenderState).Texture = texture;
+            
+            
+            //((GUIRenderState)guiActor.RenderState).Texture = texture;
 		}
 
 
@@ -46,13 +38,7 @@ namespace Starmaze.Game
         /// <param name="fontsize"></param>
         public void DrawString(string text, Vector2d pos,int fontsize =24)
         {
-            //For now this is my refernce for the positions
-            //left -65
-            //right 90
-            //top 70
-            //bottom -80
-            texture = TextDrawer.RenderString(text, Color4.White, fontsize);
-            guiActor.Body.MoveTo(pos);
+           
         }
 
 		public void LoadString(string name)
@@ -60,23 +46,50 @@ namespace Starmaze.Game
 			texture = Resources.TheResources.GetStringTexture(name);
 		}
 
-        public GUIActor CreateGUIActor(World world, Vector2d pos, string text="", int fontsize = 24)
+        /// <summary>
+        /// Creates a GUI Text object.
+        /// </summary>
+        /// <param name="world"></param>
+        /// <param name="pos"></param>
+        /// <param name="text"></param>
+        /// <param name="fontsize"></param>
+        /// <returns>The key for the GUIText created. The key can be used as the editGUIText parameter key to edit the GUIActor</returns>
+        public string CreateGUIText(World world, Vector2d pos, string text = "", int fontsize = 24)
         {
-            GUIActor gActor = new GUIActor(world,pos,text,fontsize);
+            GUIText gActor = new GUIText(world, pos, text, fontsize);
 
-            guiActorList.Add(gActor);
+            string key = ""+pos.X +""+ pos.Y;
+            guiHash.Add(key, gActor);
 
-            return gActor;
+            return key;
+        }
+
+        /// <summary>
+        /// Allows us to edit any of GUI Text simply by giving the appropriate key.
+        /// 
+        /// </summary>
+        /// <param name="key">The key value</param>
+        /// <param name="text">The text to draw on the screen</param>
+        /// <param name="fontsize"></param>
+        public void editGUIText(string key, string text, int fontsize = 24)
+        {
+           
+            if (guiHash.ContainsKey(key))
+            {
+                ((GUIText)guiHash[key]).DrawString(text, fontsize);
+            }
         }
 
 	}
 
-    public class GUIActor
+
+    //An object that 
+    public class GUIText
     {
         Actor actor;
         Texture texture;
 
-        public GUIActor(World world, Vector2d pos, string text = "", int fontsize = 24)
+        public GUIText(World world, Vector2d pos, string text = "", int fontsize = 24)
         {
             //Set up Actor
             actor = new Actor();
@@ -95,8 +108,12 @@ namespace Starmaze.Game
 
         public void DrawString(string text, int fontsize = 24)
         {
-            //textToDraw += text;
-            texture = TextDrawer.RenderString(text, Color4.White, fontsize);
+            //For now this is a refernce for the positions of gui texts, may vary based on fontsize
+            //left -65
+            //right 90
+            //top 70
+            //bottom -80
+            ((GUIRenderState)actor.RenderState).Texture = TextDrawer.RenderString(text, Color4.White, fontsize);
         }
     }  
 }
