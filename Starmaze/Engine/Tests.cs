@@ -56,6 +56,8 @@ namespace Starmaze.Engine
 		[Test]
 		public void PlaySound(){
 			s.PlaySound(Resources.TheResources.GetSound("Powers_Air_Wave_Large.wav"));
+			s.PlaySound(Resources.TheResources.GetSound("Powers_Air_Wave_Small.wav"));
+			Assert.True(true);
 
 		}
 	}
