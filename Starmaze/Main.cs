@@ -123,7 +123,8 @@ namespace Starmaze
 			Camera = new FollowCam(player, Util.LogicalScreenWidth, Util.LogicalScreenWidth / Options.AspectRatio);
 			World = new World(player, map, "TestZone", "TestRoom1");
             Gui = new GUI(Util.LogicalScreenWidth, Util.LogicalScreenWidth / Options.AspectRatio);
-			World.AddActor(Gui.guiActor);
+            Gui.CreateGUIActor(World, new Vector2d(-60, 0), "Test");
+            World.AddActor(Gui.guiActor);
 			SetupEvents();
 
 			fpsTimer.Start();
@@ -181,11 +182,13 @@ namespace Starmaze
 		{
 			World.Update(e);
 			Camera.Update(e.Time);
-            Gui.DrawString("TESTING"); 
+            
+            //Gui.DrawString("TESTING",new Vector2d(0,-80));
+          
 			if (fpsTimer.ElapsedMilliseconds > (fpsInterval * 1000)) {
 				fpsTimer.Restart();
 				Log.Message("FPS: {0}", frames / fpsInterval);
-                //Gui.DrawString("FPS:" + (frames / fpsInterval));            
+                Gui.DrawString("FPS:" + (frames / fpsInterval),new Vector2d(-55,70),60);            
 				frames = 0;
 			}
 		}
