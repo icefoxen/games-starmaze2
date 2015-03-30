@@ -1,5 +1,6 @@
 using System;
 using Starmaze.Engine;
+using Newtonsoft.Json;
 using OpenTK;
 using OpenTK.Input;
 
@@ -33,16 +34,24 @@ namespace Starmaze.Game
 		}
 	}
 	//end Timer
-	public class Life : Component
+	public class Life : Component, ISaveLoadable
 	{
-		double CurrentLife { get; set; }
+		public double CurrentLife { get; set; }
 
-		double MaxLife { get; set; }
-		//Multiplier to damage taken
-		double DamageAttenuation { get; set; }
-		//subtractive damage reduction
-		//Applied BEFORE attenuation
-		double DamageReduction { get; set; }
+		public double MaxLife { get; set; }
+
+		/// <summary>
+		/// Multiplier to damage taken, generally <1.0
+		/// </summary>
+		/// <value>The damage attenuation.</value>
+		public double DamageAttenuation { get; set; }
+
+		/// <summary>
+		/// subtractive damage reduction
+		/// Applied BEFORE attenuation
+		/// </summary>
+		/// <value>The damage reduction.</value>
+		public double DamageReduction { get; set; }
 
 		public Life(Actor owner, double hpsIn, double maxLifeIn = -1.0f, double attenuationIn = 1.0f, double reductionIn = 0.0f) : base(owner)
 		{
@@ -81,15 +90,28 @@ namespace Starmaze.Game
 			string output = String.Format("Took {0} out of {1} damage, life is now {2}.", attenuatedDamage, damage, CurrentLife);
 			Log.Message(output);
 		}
+
+		public override string ToString()
+		{
+			return string.Format("Life(CurrentLife: {0}, MaxLife: {1}, DamageAttenuation: {2}, DamageReduction: {3})", CurrentLife, MaxLife, DamageAttenuation, DamageReduction);
+		}
+
+		public void PostLoad()
+		{
+		}
+
+		public void PreSave()
+		{
+		}
 	}
 	//end Life component
 	public class Energy : Component
 	{
-		double MaxEnergy { get; set; }
+		public double MaxEnergy { get; set; }
 
 		double CurrentEnergy { get; set; }
 
-		double RegenRate { get; set; }
+		public double RegenRate { get; set; }
 
 		public Energy(Actor owner, double maxEnergy = 100f, double regenRate = 10f) : base(owner)
 		{
@@ -125,7 +147,7 @@ namespace Starmaze.Game
 	{
 		double Time { get; set; }
 
-		double MaxTime { get; set; }
+		public double MaxTime { get; set; }
 
 		public TimedLife(Actor owner, double time) : base(owner)
 		{

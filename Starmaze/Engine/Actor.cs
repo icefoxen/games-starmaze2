@@ -12,10 +12,9 @@ namespace Starmaze.Engine
 		// Components.
 		public List<Component> Components;
 		// We handle the Body specially since it's common to want to get it directly
-		// But in the end it has to go in the Components set as well(?)
+		// But in the end it has to go in the Components set as well
 		Body _body;
 
-		[Newtonsoft.Json.JsonIgnore]
 		public Body Body {
 			get {
 				return _body;
@@ -27,12 +26,18 @@ namespace Starmaze.Engine
 			}
 		}
 
-		[System.Runtime.Serialization.OnDeserialized]
-		protected void PostDeserialize(System.Runtime.Serialization.StreamingContext context)
-		{
-			Log.Message("Deserializing actor");
-			var body = GetComponent<Body>();
-			Body = body;
+		// Same with render state
+		RenderState _renderState;
+
+		public RenderState RenderState { 
+			get {
+				return _renderState;
+			} 
+			set {
+				Components.Remove(_renderState);
+				_renderState = value;
+				Components.Add(_renderState);
+			}
 		}
 
 		public T GetComponent<T>() where T : Component
@@ -46,11 +51,26 @@ namespace Starmaze.Engine
 			Log.Warn(true, "Could not find component {0} in actor, returning default", typeof(T));
 			return default(T);
 		}
-
+		// BUGGO: Might need some kind of callback to let the World know that a new component exists
+		// and thus needs to be notified of events?  OR, this just can't be called after the actor
+		// has been added to the World.  Either way!  It's basically here for purposes of deserialization.
+		public void AddComponent(Component c)
+		{
+			c.Owner = this;
+			if (c is Starmaze.Engine.Body) {
+				Body = c as Body;
+			} else if (c is RenderState) {
+				RenderState = c as RenderState;
+			} else {
+				Components.Add(c);
+			}
+		}
 		// Other properties
 		public bool Alive = true;
 		public bool KeepOnRoomChange = false;
-		public RenderState RenderState;
+
+
+
 		public World World;
 
 		public Actor()
@@ -76,6 +96,12 @@ namespace Starmaze.Engine
 			foreach (var c in Components) {
 				c.UnregisterEvents(w);
 			}
+		}
+
+		public override string ToString()
+		{
+			var cstring = String.Join(", ", Components);
+			return string.Format("Actor({0})", cstring);
 		}
 	}
 }

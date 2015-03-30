@@ -7,21 +7,16 @@ using OpenTK.Graphics.OpenGL;
 
 namespace Starmaze.Engine
 {
-	public class RenderState : IComparable<RenderState>
+	public class RenderState : Component, IComparable<RenderState>
 	{
 		public IRenderer Renderer;
-		public Body Body;
 		long OrderingNumber;
 
-		public RenderState(string renderclass, Actor act)
+		public RenderState(Actor act, string renderclass) : base(act)
 		{
 			Renderer = Resources.TheResources.GetRenderer(renderclass);
-			Log.Assert(act != null);
-			Log.Assert(act.Body != null);
-			Body = act.Body;
 			OrderingNumber = Util.GetSerial();
 		}
-
 
 		public int CompareTo(RenderState other)
 		{
@@ -33,7 +28,7 @@ namespace Starmaze.Engine
 	{
 		public VertexArray Model;
 
-		public ModelRenderState(Actor act, VertexArray model) : base("StaticModelRenderer", act)
+		public ModelRenderState(Actor act, VertexArray model) : base(act, "StaticModelRenderer")
 		{
 			Log.Assert(model != null);
 			Model = model;
@@ -43,22 +38,88 @@ namespace Starmaze.Engine
 	public class BillboardRenderState : RenderState
 	{
 		public Texture Texture;
+		public float Rotation;
+		public Vector2 Scale;
 
-		public BillboardRenderState(Actor act, Texture texture) : base("BillboardRenderer", act)
+		public BillboardRenderState(Actor act, Texture texture, float rotation = 0.0f, Vector2? scale = null) : base(act, "BillboardRenderer")
 		{
 			Log.Assert(texture != null);
 			Texture = texture;
+			Rotation = rotation;
+			Scale = scale ?? Vector2.One;
 		}
 	}
 
+	public class GUIRenderState : RenderState
+	{
+		public Texture Texture;
+		public float Rotation;
+		public Vector2 Scale;
+
+		public GUIRenderState(Actor act, Texture texture, float rotation = 0.0f, Vector2? scale = null)
+			: base(act, "GUIRenderer")
+		{
+			Log.Assert(texture != null);
+			Texture = texture;
+			Rotation = rotation;
+			Scale = scale ?? Vector2.One;
+		}
+	}
+
+	/// <summary>
+	/// Renders an animated, textured billboard.
+	/// </summary>
 	public class SpriteRenderState : RenderState
 	{
-		public Sprite Sprite;
+		public TextureAtlas Atlas;
+		public List<Animation> Animations;
+		public int CurrentAnim;
+		public float Rotation;
+		public Vector2 Scale;
 
-		public SpriteRenderState(Actor act, Sprite sprite) : base("SpriteRenderer", act)
+		public SpriteRenderState(Actor act, TextureAtlas atlas, IEnumerable<Animation> anim, float rotation = 0.0f, Vector2? scale = null) : base(act, "SpriteRenderer")
 		{
-			Log.Assert(sprite != null);
-			Sprite = sprite;
+			Log.Assert(atlas != null);
+			Log.Assert(anim != null);
+			Atlas = atlas;
+			Animations = new List<Animation>(anim);
+			Log.Assert(Animations.Count > 0);
+			CurrentAnim = 0;
+			Rotation = rotation;
+			Scale = scale ?? Vector2.One;
+
+			HandledEvents = EventType.OnUpdate;
+		}
+
+		public SpriteRenderState(Actor owner, TextureAtlas atlas, Animation anim, float rotation = 0.0f, Vector2? scale = null)
+			: this(owner, atlas, new Animation[] { anim }, rotation, scale)
+		{
+		}
+
+		/// <summary>
+		/// Returns UV coordinates for this sprite's current animation frame.
+		/// </summary>
+		/// <returns>Vector4(x0, y0, w, h)</returns>
+		public Vector4 GetSourceTexcoords()
+		{
+			var anim = Animations[CurrentAnim];
+			var frame = anim.Frame;
+			var x = Atlas.OffsetX(frame);
+			var y = Atlas.OffsetY(CurrentAnim);
+			var w = Atlas.ItemWidth();
+			var h = Atlas.ItemHeight();
+			return new Vector4((float)x, (float)y, (float)w, (float)h);
+		}
+
+		public void AddAnimation(Animation anim)
+		{
+			Animations.Add(anim);
+		}
+
+		public override void OnUpdate(object sender, FrameEventArgs args)
+		{
+			var dt = args.Time;
+			Animations[CurrentAnim].Update(dt);
 		}
 	}
 
@@ -90,7 +151,6 @@ namespace Starmaze.Engine
 				RenderState.Remove(fml);
 			}
 		}
-
 		// XXX: Are these right?
 		public void Add(T r)
 		{
@@ -208,7 +268,6 @@ namespace Starmaze.Engine
 
 		protected GLDiscipline discipline;
 		protected Shader shader;
-
 		protected RenderBatch<T> RenderBatch;
 
 		public Renderer()
@@ -224,8 +283,6 @@ namespace Starmaze.Engine
 			Graphics.TheGLTracking.SetDiscipline(discipline);
 			Graphics.TheGLTracking.SetShader(shader);
 		}
-
-
 
 		public virtual void Render(ViewManager view)
 		{
@@ -264,7 +321,6 @@ namespace Starmaze.Engine
 		{
 			RenderBatch.Remove(r);
 		}
-
 
 		/// <summary>
 		/// Renderers sort themselves first by their Z order, then in an arbitrary but consistent order.
@@ -305,7 +361,7 @@ namespace Starmaze.Engine
 		protected override void RenderOne(ViewManager view, RenderState r)
 		{
 			//Console.WriteLine("Drawing actor");
-			var pos = new Vector2((float)r.Body.Position.X, (float)r.Body.Position.Y);
+			var pos = new Vector2((float)r.Owner.Body.Position.X, (float)r.Owner.Body.Position.Y);
 			var transform = new Transform(pos, 0.0f);
 			var mat = transform.TransformMatrix(view.ProjectionMatrix);
 			shader.UniformMatrix("projection", mat);
@@ -323,7 +379,7 @@ namespace Starmaze.Engine
 
 		protected override void RenderOne(ViewManager view, ModelRenderState r)
 		{
-			var pos = new Vector2((float)r.Body.Position.X, (float)r.Body.Position.Y);
+			var pos = new Vector2((float)r.Owner.Body.Position.X, (float)r.Owner.Body.Position.Y);
 			var transform = new Transform(pos, 0.0f);
 			var mat = transform.TransformMatrix(view.ProjectionMatrix);
 			shader.UniformMatrix("projection", mat);
@@ -344,15 +400,56 @@ namespace Starmaze.Engine
 
 		protected override void RenderOne(ViewManager view, BillboardRenderState r)
 		{
-			var pos = new Vector2((float)r.Body.Position.X, (float)r.Body.Position.Y);
-			var transform = new Transform(pos, 0.0f);
+			// BUGGO: Is the billboard not centered here?
+			var pos = new Vector2((float)r.Owner.Body.Position.X, (float)r.Owner.Body.Position.Y);
+			var transform = new Transform(pos, r.Rotation, r.Scale);
 			var mat = transform.TransformMatrix(view.ProjectionMatrix);
 			shader.UniformMatrix("projection", mat);
 			// This is, inconveniently, not the texture handle but in fact the texture unit offset.
-			shader.Uniformi("texture", 0);
+			shader.Uniformi("tex", 0);
 			r.Texture.Enable();
 			billboard.Draw();
 			r.Texture.Disable();
+		}
+	}
+
+	public class GUIRenderer : Renderer<GUIRenderState>
+	{
+		VertexArray billboard;
+
+		public GUIRenderer()
+			: base()
+		{
+			shader = Resources.TheResources.GetShader("default-tex");
+			discipline = GLDiscipline.DEFAULT;
+			billboard = Resources.TheResources.GetModel("Billboard");
+		}
+
+		protected override void RenderOne(ViewManager view, GUIRenderState r)
+		{
+			// BUGGO: Is the billboard not centered here?
+			var pos = new Vector2((float)r.Owner.Body.Position.X, (float)r.Owner.Body.Position.Y);
+			var transform = new Transform(pos, r.Rotation, r.Scale);
+			var mat = transform.TransformMatrix(ProjectionMatrix());
+			shader.UniformMatrix("projection", mat);
+			// This is, inconveniently, not the texture handle but in fact the texture unit offset.
+			shader.Uniformi("tex", 0);
+			r.Texture.Enable();
+			billboard.Draw();
+			r.Texture.Disable();
+		}
+
+		Matrix4 ProjectionMatrix()
+		{
+			float width = Util.LogicalScreenWidth;
+			float height = width; 
+			//=Util.LogicalScreenWidth / Options.AspectRatio;
+			//Need to grab 
+			//Vector2 VisibleSize = new Vector2(width, height);
+			// XXX: Right now these values are pretty arbitrary.
+			float ZNear = 0.0f;
+			float ZFar = 10.0f;
+			return Matrix4.CreateOrthographic(width, height, ZNear, ZFar);
 		}
 	}
 
@@ -369,17 +466,16 @@ namespace Starmaze.Engine
 
 		protected override void RenderOne(ViewManager view, SpriteRenderState r)
 		{
-			var sprite = r.Sprite;
-			var pos = new Vector2((float)r.Body.Position.X, (float)r.Body.Position.Y);
-			var transform = new Transform(pos, 0.0f, new Vector2(5, 5));
+			var pos = new Vector2((float)r.Owner.Body.Position.X, (float)r.Owner.Body.Position.Y);
+			var transform = new Transform(pos, r.Rotation, r.Scale);
 			var mat = transform.TransformMatrix(view.ProjectionMatrix);
 			shader.UniformMatrix("projection", mat);
-			shader.Uniformi("texture", 0);
-			var coords = sprite.GetBox();
+			shader.Uniformi("tex", 0);
+			var coords = r.GetSourceTexcoords();
 			shader.Uniformf("atlasCoords", coords.X, coords.Y, coords.Z, coords.W);
-			sprite.Atlas.Enable();
+			r.Atlas.Enable();
 			billboard.Draw();
-			sprite.Atlas.Disable();
+			r.Atlas.Disable();
 		}
 	}
 
@@ -440,6 +536,34 @@ namespace Starmaze.Engine
 				Rects[i].Draw();
 			}
 
+		}
+	}
+
+	public class TextRenderer : Renderer<RenderState>
+	{
+		public Texture tex;
+		VertexArray billboard;
+
+		public TextRenderer() : base()
+		{
+			shader = Resources.TheResources.GetShader("default-tex");
+			discipline = GLDiscipline.DEFAULT;
+			tex = Resources.TheResources.GetTexture("playertest");
+			billboard = Resources.TheResources.GetModel("Billboard");
+
+		}
+
+		public void RenderText(ViewManager view, Vector2 _pos, Vector2 _scale)
+		{
+			var pos = _pos;
+			var transform = new Transform(pos, 0.0f, _scale);
+			var mat = transform.TransformMatrix(view.ProjectionMatrix);
+			shader.UniformMatrix("projection", mat);
+			// This is, inconveniently, not the texture handle but in fact the texture unit offset.
+			shader.Uniformi("tex", 0);
+			tex.Enable();
+			billboard.Draw();
+			tex.Disable();
 		}
 	}
 }

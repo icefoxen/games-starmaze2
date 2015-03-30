@@ -25,26 +25,31 @@ namespace Starmaze.Engine
 	{
 		HashSet<Geom> Geometry;
 		//Custom converters are used for vector2d because otherwise circular references happen.
-		[JsonConverter(typeof(OTKVector2dConverter))]
 		public Vector2d Position;
-		[JsonConverter(typeof(OTKVector2dConverter))]
 		public Vector2d Velocity;
-		public Facing Facing;
-		public double Rotation;
-		public double Mass;
+
+		public Facing Facing  { get; set; }
+
+		public double Rotation  { get; set; }
+
+		public double Mass  { get; set; }
+
 		/// <summary>
 		/// Whether or not the body is on the ground.
 		/// </summary>
 		public bool IsOnGround;
+
 		/// <summary>
 		/// Whether or not gravity affects the body
 		/// </summary>
-		public bool IsGravitating;
+		public bool IsGravitating { get; set; }
+
 		/// <summary>
 		/// Whether or not the body is immobile.
 		/// Immobile things _never_ move, and the immobile state never changes(?).
 		/// </summary>
-		public bool IsImmobile;
+		public bool IsImmobile { get; set; }
+
 		/// <summary>
 		/// Force that has accumulated on the body each tick, potentially from multiple sources.
 		/// </summary>

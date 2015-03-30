@@ -6,12 +6,20 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Reflection;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
 using NAudio.Wave;
 
 namespace Starmaze.Engine
 {
+	/// <summary>
+	/// The resource loader does three things:
+	/// 1) Provide a uniform interface to access assets from anywhere,
+	/// 2) Provide a resource cache so we don't load the same texture or such more than once
+	/// 3) Provide a way to get a particular asset as quickly as possible once it's loaded.
+	/// </summary>
 	public class ResourceLoader : IDisposable
 	{
 
@@ -21,6 +29,8 @@ namespace Starmaze.Engine
 		Dictionary<string, Shader> ShaderCache;
 		Dictionary<string, VertexArray> ModelCache;
 		Dictionary<string, ISampleProvider> SoundCache;
+		Dictionary<string, Texture> TextCache;
+		Dictionary<string, JObject> JsonCache;
 
 		public ResourceLoader()
 		{
@@ -38,9 +48,20 @@ namespace Starmaze.Engine
 			ShaderCache = new Dictionary<string, Shader>();
 			ModelCache = new Dictionary<string, VertexArray>();
 			SoundCache = new Dictionary<string, ISampleProvider>();
-
+			TextCache = new Dictionary<string, Texture>();
+			JsonCache = new Dictionary<string, JObject>();
 		}
-
+		/// <summary>
+		/// The concept with the cache is not only that we don't want to load things multiple times,
+		/// but that we want each access to be as quick as possible.  Things can *always* be pre-cached
+		/// at game-load or level-load time, but we want each actual access to be as fast as possible.
+		/// Hence using exceptions rather than TryGetValue in Get(); throwing down a try/catch block
+		/// that doesn't get used is probably faster than a potentially-mispredicted branch with TryGetValue.
+		/// <param name="cache">Cache dict.</param>
+		/// <param name="loader">Loader function.</param>
+		/// <param name="name">Asset name.</param>
+		/// <typeparam name="TKey">Cache key</typeparam>
+		/// <typeparam name="TVal">Cache value</typeparam>
 		TVal Get<TKey,TVal>(Dictionary<TKey,TVal> cache, Func<TKey,TVal> loader, TKey name)
 		{
 			try {
@@ -67,7 +88,6 @@ namespace Starmaze.Engine
 		{
 
 			var subclasses = Util.GetImplementorsOf(typeof(IRenderer));
-			var t = typeof(IRenderer);
 			// We go through all subclasses of Renderer, instantiate one of each, and 
 			// associate each with its name, and that gets us the string -> Renderer mapping.
 			Console.WriteLine("Preloading renderers...");
@@ -78,9 +98,9 @@ namespace Starmaze.Engine
 						var renderer = (IRenderer)Activator.CreateInstance(subclass);
 						rendererMap.Add(subclass.Name, renderer);
 					}
-				} catch (System.Reflection.TargetInvocationException e) {
+				} catch (TargetInvocationException e) {
 					// The renderer constructor threw an exception
-					throw e.InnerException;
+					throw new InvalidProgramException(string.Format("Unable to preload renderer {0}\n{1}", subclass, e.InnerException), e.InnerException);
 				}
 			}
 
@@ -125,6 +145,17 @@ namespace Starmaze.Engine
 			return t;
 		}
 
+		public Texture GetStringTexture(string r)
+		{
+			return Get(TextCache, LoadStringTexture, r);
+		}
+
+		Texture LoadStringTexture(string s)
+		{
+			Log.Message("Loading string texture {0}", s);
+			return TextDrawer.RenderString(s, Color4.White);
+		}
+
 		public Shader GetShader(string r)
 		{
 			return Get(ShaderCache, LoadShader, r);
@@ -154,6 +185,37 @@ namespace Starmaze.Engine
 			return model;
 		}
 
+		Animation LoadAnimation(JArray json)
+		{
+			var l = new List<double>();
+			foreach (var item in json) {
+				l.Add(item.Value<double>());
+			}
+			var anim = new Animation(l.ToArray());
+			return anim;
+		}
+
+TextureAtlas LoadTextureAtlas(JObject json)
+		{
+			var texname = json["texture"].Value<string>();
+			var texture = Resources.TheResources.GetTexture(texname);
+			var width = json["width"].Value<int>();
+			var height = json["height"].Value<int>();
+			return new TextureAtlas(texture, width, height);
+		}
+
+		public JObject GetJson(string file)
+		{
+			var fullPath = System.IO.Path.Combine(ResourceRoot, "config", file + ".cfg");
+			Log.Message("Loading config file {0}", fullPath);
+			return Get(JsonCache, LoadJson, fullPath);
+		}
+
+		JObject LoadJson(string file)
+		{
+			var json = JObject.Parse(File.ReadAllText(file));
+			return json;
+		}
 
 		ISampleProvider LoadSound(string name){
 			var fullPath = System.IO.Path.Combine(ResourceRoot, "sounds", name);

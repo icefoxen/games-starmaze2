@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
@@ -1081,6 +1082,34 @@ namespace Starmaze.Engine
 				new Vector2d(x0 + w, y0),
 			};
 			PolygonUniformOutlined(positions, color, outlinecolor);
+		}
+	}
+
+
+	public static class TextDrawer
+	{
+		public static Texture RenderString(string s, Color4 color, int fontSize = 24)
+		{
+			var textColor = Util.FromColor4(color);
+			var font = new Font(FontFamily.GenericMonospace, fontSize, FontStyle.Bold);
+			var dummy = new Bitmap(1, 1);
+			SizeF size;
+			using (var graphics = System.Drawing.Graphics.FromImage(dummy)) {
+				// We need this stupid dummy drawing context because System.Drawing.Graphics is sorta lame and assumes 
+				// you never need to know how big a string is _before_ allocating memory for it.
+				// The alternative is adding a dependency on Windows.Forms, so, forget that.
+				size = graphics.MeasureString(s, font);
+			}
+			// BUGGO: This squishes the drawn text into a square shape no matter what shape it is!
+			var pow2Width = (int)SMath.RoundUpToPowerOf2(size.Width);
+			var pow2Height = (int)SMath.RoundUpToPowerOf2(size.Height);
+			var bitmap = new Bitmap(pow2Width, pow2Height, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+			using (var graphics = System.Drawing.Graphics.FromImage(bitmap)) {
+				graphics.FillRectangle(new SolidBrush(Color.Transparent), 0, 0, pow2Width, pow2Height);
+				graphics.DrawString(s, font, new SolidBrush(textColor), 0, 0);
+				graphics.Flush();
+			}
+			return new Texture(bitmap);
 		}
 	}
 }

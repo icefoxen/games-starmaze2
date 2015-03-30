@@ -85,12 +85,12 @@
     <Compile Include="Engine\WorldMap.cs" />
     <Compile Include="Engine\Component.cs" />
     <Compile Include="Engine\Tests.cs" />
-    <Compile Include="Engine\Serialize.cs" />
     <Compile Include="Engine\Camera.cs" />
     <Compile Include="Engine\Postproc.cs" />
     <Compile Include="Engine\Sound.cs" />
     <Compile Include="Log.cs" />
-    <Compile Include="Engine\Sprite.cs" />
+    <Compile Include="Game\Tests.cs" />
+    <Compile Include="Engine\Animation.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

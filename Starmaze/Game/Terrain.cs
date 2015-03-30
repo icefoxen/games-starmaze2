@@ -40,19 +40,6 @@ namespace Starmaze.Game
 	/// </summary>
 	public class BoxBlock : Terrain
 	{
-
-		[Newtonsoft.Json.JsonConstructor]
-		public BoxBlock()
-		{
-			Log.Message("Building boxblock with specific constructor.");
-		}
-		/*
-		[System.Runtime.Serialization.OnDeserialized]
-		protected override void PostDeserialize(System.Runtime.Serialization.StreamingContext context)
-		{
-			Log.Message("Rawr!");
-		}
-		*/
 		public BoxBlock(BBox bbox, Color4 color)
 		{
 			Log.Message("Creating new BoxBlock: {0} {1}", bbox, color);

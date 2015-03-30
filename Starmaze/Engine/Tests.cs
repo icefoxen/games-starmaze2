@@ -1,14 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using Newtonsoft.Json;
+using NUnit.Framework;
 using OpenTK;
 using OpenTK.Graphics;
-using NUnit.Framework;
-using Newtonsoft.Json;
 
 //using Starmaze;
 using Starmaze.Game;
-
-
 
 namespace Starmaze.Engine
 {
@@ -31,7 +29,6 @@ namespace Starmaze.Engine
 		}
 	}
 	*/
-
 	[TestFixture]
 	public class SoundTests
 	{
@@ -83,15 +80,6 @@ namespace Starmaze.Engine
 			jset = new JsonSerializerSettings { PreserveReferencesHandling = PreserveReferencesHandling.Objects };
 		}
 
-		[Test]
-		public void VectorSerialTest()
-		{
-			Vector2d testvector = new Vector2d(4.0, 5.0);
-			string testJSON = JsonConvert.SerializeObject(testvector, new OTKVector2dConverter());
-			Vector2d vectorRT = JsonConvert.DeserializeObject<Vector2d>(testJSON);
-			Assert.True(testvector == vectorRT);
-		}
-
 		// The Assert.True(true) in these is a little ingenuous, but these tests are mainly
 		// there to see if the serialization runs at all, not whether it runs correctly.
 		// If it hits an error before getting to the assert, the test is failed.
@@ -103,7 +91,7 @@ namespace Starmaze.Engine
 			Log.Message("Empty actor: {0}", json);
 			var z = JsonConvert.DeserializeObject<Actor>(json);
 
-			Assert.True(true);
+			Assert.NotNull(z);
 		}
 
 		[Test]
@@ -115,7 +103,7 @@ namespace Starmaze.Engine
 			var json = JsonConvert.SerializeObject(a, jset);
 			Log.Message("Actor with component: {0}", json);
 			var z = JsonConvert.DeserializeObject<Actor>(json);
-			Assert.True(true);
+			Assert.NotNull(z);
 		}
 
 		[Test]
@@ -125,7 +113,7 @@ namespace Starmaze.Engine
 			var json = JsonConvert.SerializeObject(a, jset);
 			Log.Message("BBox: {0}", json);
 			var z = JsonConvert.DeserializeObject<BBox>(json);
-			Assert.True(true);
+			Assert.NotNull(z);
 		}
 
 		[Test]
@@ -135,7 +123,7 @@ namespace Starmaze.Engine
 			var json = JsonConvert.SerializeObject(a, jset);
 			Log.Message("Line: {0}", json);
 			var z = JsonConvert.DeserializeObject<Line>(json);
-			Assert.True(true);
+			Assert.NotNull(z);
 		}
 
 		[Test]
@@ -145,7 +133,7 @@ namespace Starmaze.Engine
 			var json = JsonConvert.SerializeObject(a, jset);
 			Log.Message("Box geom: {0}", json);
 			var z = JsonConvert.DeserializeObject<BoxGeom>(json);
-			Assert.True(true);
+			Assert.NotNull(z);
 		}
 		//
 		//Terrain.cs
@@ -153,30 +141,29 @@ namespace Starmaze.Engine
 		[Test]
 		public void BoxBlockSerialTest()
 		{
-
+			/*
 			BoxBlock a = new BoxBlock(new BBox(0.0, 1.0, 2.0, 2.0), Color4.AliceBlue);
 			var json = JsonConvert.SerializeObject(a, jset);
 			Log.Message("Box block: {0}", json);
-			var z = JsonConvert.DeserializeObject<BoxBlock>(json,new ActorConverter());
+			var z = JsonConvert.DeserializeObject<BoxBlock>(json, new ActorConverter());
 			//using(
 			var postJson = JsonConvert.SerializeObject(z, jset);
 			Log.Message("Box block: {0}", postJson);
-
-			Assert.True(a.Body.Position==z.Body.Position);
-			Assert.True(true);
+			Assert.True(a.Body.Position == z.Body.Position);
+*/
+			Assert.True(false);
 		}
-
 		//
 		//Worldmap.cs
 		//
 		[Test]
 		public void EmptyRoomSerialTest()
 		{
-			Room a = new Room("", new Actor[]{ new Actor() });
+			Room a = new Room("", new Actor[] { new Actor() });
 			var json = JsonConvert.SerializeObject(a, jset);
 			Log.Message("Serialized empty room: {0}", json);
 			var z = JsonConvert.DeserializeObject<Room>(json);
-			Assert.True(true);
+			Assert.NotNull(z);
 		}
 
 		[Test]
@@ -200,7 +187,7 @@ namespace Starmaze.Engine
 				new BoxBlock(new BBox(40, -35, 45, 35), Color4.Blue),
 			};
 			var room1 = new Room("TestRoom1", actors1);*/
-			Assert.True(true);
+			Assert.NotNull(z);
 		}
 
 		[Test]
@@ -210,6 +197,16 @@ namespace Starmaze.Engine
 			var j = JsonConvert.SerializeObject(a, jset);
 			Log.Message("Serialized game options: {0}", j);
 			Assert.True(true);
+		}
+
+		[Test]
+		public void AnimationSerialTest()
+		{
+			var a = new Animation(6, 0.25);
+			var json = JsonConvert.SerializeObject(a);
+			Log.Message("Serialized animation: {0}", json);
+			var z = JsonConvert.DeserializeObject<Animation>(json);
+			Assert.NotNull(z);
 		}
 	}
 }

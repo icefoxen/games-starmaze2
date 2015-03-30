@@ -66,7 +66,6 @@ namespace Starmaze.Engine
 	public class Texture : IDisposable
 	{
 		public int[] Handle;
-
 		public readonly byte[] TestTextureData = new byte[] {
 			255, 255, 255, 255,
 			255, 0, 0, 255,
@@ -94,19 +93,18 @@ namespace Starmaze.Engine
 				}
 
 				BitmapData data = bitmaps[i].LockBits(new System.Drawing.Rectangle(0, 0, bitmaps[i].Width, bitmaps[i].Height),
-					                  ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+				                                      ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
 
 				EnableOne(i);
 				//BitmapData data = bitmap.LockBits(new System.Drawing.Rectangle(0, 0, bitmap.Width, bitmap.Height),
 				//	ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
 				GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, data.Width, data.Height, 0,
-					OpenTK.Graphics.OpenGL.PixelFormat.Bgra, PixelType.UnsignedByte, data.Scan0);
+				              OpenTK.Graphics.OpenGL.PixelFormat.Bgra, PixelType.UnsignedByte, data.Scan0);
 				bitmaps[i].UnlockBits(data);
 			}
 
 			Disable();
 		}
-
 		// XXX: Could make a multitexture version of this, but, not necessary right now.
 		public Texture(byte[] data, int width, int height)
 		{
@@ -117,7 +115,7 @@ namespace Starmaze.Engine
 			}
 			SetupNewTexture(1);
 			GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, 2, 2, 0,
-				OpenTK.Graphics.OpenGL.PixelFormat.Rgba, PixelType.UnsignedByte, data);
+			              OpenTK.Graphics.OpenGL.PixelFormat.Rgba, PixelType.UnsignedByte, data);
 			Disable();
 		}
 
@@ -143,7 +141,7 @@ namespace Starmaze.Engine
 
 			WithEachTexture(() => {
 				GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, width, height, 0, 
-					OpenTK.Graphics.OpenGL.PixelFormat.Rgba, PixelType.UnsignedByte, IntPtr.Zero);
+				              OpenTK.Graphics.OpenGL.PixelFormat.Rgba, PixelType.UnsignedByte, IntPtr.Zero);
 			}
 			);
 		}
@@ -215,7 +213,6 @@ namespace Starmaze.Engine
 			GL.BindTexture(TextureTarget.Texture2D, 0);
 		}
 
-
 		/// <summary>
 		/// This is a bit of a hack, since having multitexture things together in one texture would be nicer.
 		/// But this isn't always possible, so, here we are.
@@ -279,7 +276,6 @@ namespace Starmaze.Engine
 		}
 	}
 
-
 	/// <summary>
 	/// An object that specifies to render the scene to the given texture, with the given shader.
 	/// </summary>
@@ -294,12 +290,12 @@ namespace Starmaze.Engine
 			Enable();
 			for (int i = 0; i < dest.Handle.Length; i++) {
 				GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0,
-					TextureTarget.Texture2D, dest.Handle[i], 0);
+				                        TextureTarget.Texture2D, dest.Handle[i], 0);
 			}
 			var status = GL.CheckFramebufferStatus(FramebufferTarget.Framebuffer);
 			// TODO: More rigorous error checking?
 			Log.Assert(status == FramebufferErrorCode.FramebufferComplete, 
-				"Something went wrong creating framebuffer for postprocessing step: {0}", status);
+			           "Something went wrong creating framebuffer for postprocessing step: {0}", status);
 			Disable();
 		}
 
@@ -358,25 +354,22 @@ namespace Starmaze.Engine
 		}
 	}
 
-
 	public class VertexLayout
 	{
 		public readonly VertexMember[] Members;
 		public readonly int ElementCount;
 		public readonly int ByteCount;
-
 		public static readonly VertexLayout ColorVertex = 
 			new VertexLayout(new VertexMember[] {
-				new VertexMember("position", 2),
-				new VertexMember("color", 4)
-			});
-
+			new VertexMember("position", 2),
+			new VertexMember("color", 4)
+		});
 		public static readonly VertexLayout TextureVertex = 
 			new VertexLayout(new VertexMember[] {
-				new VertexMember("position", 2),
-				new VertexMember("color", 4),
-				new VertexMember("texcoord", 2),
-			});
+			new VertexMember("position", 2),
+			new VertexMember("color", 4),
+			new VertexMember("texcoord", 2),
+		});
 
 		public VertexLayout(VertexMember[] members)
 		{
@@ -402,7 +395,6 @@ namespace Starmaze.Engine
 			throw new KeyNotFoundException(msg);
 		}
 	}
-
 	/* Honestly something like this is how I imagined VertexList's working in the first place.
 	 * But I'm sick of messing with things that work, and I'm not entirely sure how the type effects
 	 * would propegate out to shaders and such, so I'm just gonna leave this here and 
@@ -439,8 +431,6 @@ namespace Starmaze.Engine
 
 	}
 	*/
-
-
 	/// <summary>
 	/// Represents a collection of vertices of a particular type.
 	/// On its own, does nothing, just had a bunch of floats and a layout description for a VertexArray
@@ -455,8 +445,8 @@ namespace Starmaze.Engine
 			get {
 				// Sanity check.
 				Log.Assert(Vertexes.Count % Layout.ElementCount == 0, 
-					"Failed sanity check for number of vertex elements, have {0} extra",
-					Vertexes.Count % Layout.ElementCount
+				           "Failed sanity check for number of vertex elements, have {0} extra",
+				           Vertexes.Count % Layout.ElementCount
 				);
 				return Vertexes.Count / Layout.ElementCount;
 			}
@@ -483,7 +473,7 @@ namespace Starmaze.Engine
 		public void AddVertex(float[] vert)
 		{
 			Log.Assert(vert.Length == Layout.ElementCount, 
-				"Got {0} elements for vertex, expected {1}", vert.Length, Layout.ElementCount);
+			           "Got {0} elements for vertex, expected {1}", vert.Length, Layout.ElementCount);
 			Vertexes.AddRange(vert);
 		}
 
@@ -492,13 +482,12 @@ namespace Starmaze.Engine
 			var numVerts = verts.Length / Layout.ElementCount;
 			var leftoverVerts = verts.Length % Layout.ElementCount;
 			Log.Assert(leftoverVerts == 0,
-				"Got {0} elements, that makes {1} vertexes, but has {2} elements left over",
-				verts.Length, numVerts, leftoverVerts
+			           "Got {0} elements, that makes {1} vertexes, but has {2} elements left over",
+			           verts.Length, numVerts, leftoverVerts
 			);
 
 			Vertexes.AddRange(verts);
 		}
-
 		// Convenience functions for creating common vertex types.
 		public void AddColorVertex(Vector2 pos, Color4 color)
 		{
@@ -554,7 +543,7 @@ namespace Starmaze.Engine
 	// the shaders all include a common header file, buuuuut...
 	public class VertexArray : IDisposable
 	{
-		VertexList Vertexes;
+		//VertexList Vertexes;
 		VertexLayout Layout;
 		IList<uint> indices;
 		int vao;
@@ -573,7 +562,7 @@ namespace Starmaze.Engine
 			Log.Assert(shader != null);
 			Log.Assert(vertexes != null);
 
-			Vertexes = vertexes;
+			//Vertexes = vertexes;
 			Layout = vertexes.Layout;
 			indices = idxs;
 			usageHint = usage;
@@ -598,7 +587,6 @@ namespace Starmaze.Engine
 			GL.BindVertexArray(0);
 
 		}
-
 		// Implementing tedious disposal-tracking semantics, see
 		// http://gregbee.ch/blog/implementing-and-using-the-idisposable-interface
 		// and
@@ -652,7 +640,7 @@ namespace Starmaze.Engine
 			// Not the fastest way, but the easiest.
 			var vertexData = verts.ToArray();
 			GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(verts.LengthInBytes),
-				vertexData, usageHint);
+			              vertexData, usageHint);
 		}
 
 		void AddIndicesToBuffer(IList<uint> indices)
@@ -662,7 +650,7 @@ namespace Starmaze.Engine
 			// IList doesn't have ToArray, irritatingly.
 			indices.CopyTo(indexArray, 0);
 			GL.BufferData(BufferTarget.ElementArrayBuffer, (IntPtr)(indexArray.Length * sizeof(int)),
-				indexArray, BufferUsageHint.StaticRead);
+			              indexArray, BufferUsageHint.StaticRead);
 		}
 
 		void SetupVertexPointers(Shader shader, VertexList vertexes)
@@ -675,7 +663,7 @@ namespace Starmaze.Engine
 				var location = shader.VertexAttributeLocation(vertexMember.Name);
 				GL.EnableVertexAttribArray(location);
 				GL.VertexAttribPointer(location, vertexMember.Count, VertexAttribPointerType.Float, 
-					false, Layout.ByteCount, byteOffset);
+				                       false, Layout.ByteCount, byteOffset);
 				byteOffset += vertexMember.Count * VertexMember.ElementBytes;
 			}
 		}
@@ -697,9 +685,9 @@ namespace Starmaze.Engine
 	public class GLDiscipline
 	{
 		public static readonly GLDiscipline DEFAULT = new GLDiscipline(
-			                                              new Tuple<BlendingFactorSrc, BlendingFactorDest>(
-				                                              BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha)
-		                                              );
+			new Tuple<BlendingFactorSrc, BlendingFactorDest>(
+			BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha)
+		);
 		// XXX: The tuple here is a little janky.
 		Tuple<BlendingFactorSrc, BlendingFactorDest> blendFunc;
 
@@ -839,6 +827,5 @@ namespace Starmaze.Engine
 			GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 		}
 	}
-
 }
 

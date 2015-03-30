@@ -15,14 +15,11 @@ namespace Starmaze.Content
 		//Controller = new RoamAIController;
 		//PhysicsObject = CrawlerPhysicsObject;
 		//Render = rchace.getRenderer(CrawlerReder);
-		Life life;
-
 		CrawlerEnemy()
 		{
-			life = new Life(this, 3f, 3f, 1f, 8f);
+			AddComponent(new Life(this, 3f, 3f, 1f, 8f));
 
 		}
-
 		/*
 		public override void OnDeath()
 		{
@@ -39,79 +36,65 @@ namespace Starmaze.Content
 	class TrooperEnemy : Actor
 	{
 		//TODO: Incomplete port of python TrooperEnemy
-		Game.Life life;
-
 		TrooperEnemy()
 		{
 			//s.bulletOffset = (30,0)
-			life = new Life(this, 100);
+			AddComponent(new Life(this, 100));
 		}
 	}
 
 	class ArcherEnemy : Actor
 	{
 		//TODO: Incomplete port of python ArcherEnemy
-		Game.Life life;
-
 		ArcherEnemy()
 		{
 			//s.bulletOffset = (25, 0)
-			life = new Life(this, 20);
+			AddComponent(new Life(this, 20));
 		}
 	}
 
 	class FloaterEnemy : Actor
 	{
 		//TODO: Incomplete port of python FloaterEnemy
-		Game.Life life;
-
 		FloaterEnemy()
 		{
-			life = new Life(this, 20);
+			AddComponent(new Life(this, 20));
 		}
 	}
 
 	class EliteEnemy : Actor
 	{
-		//TODO: Incompelte port of python EliteEnemy
-		Game.Life life;
-
+		//TODO: Incomplete port of python EliteEnemy
 		EliteEnemy()
 		{
-			life = new Life(this, 10);
+			AddComponent(new Life(this, 10));
 		}
 	}
 
 	class HeavyEnemy : Actor
 	{
 		//TODO: Incomplete port of the python HeavyEnemy
-		Game.Life life;
-
 		HeavyEnemy()
 		{
-			life = new Life(this, 10);
+			AddComponent(new Life(this, 10));
 		}
 	}
 
 	class DragonEnemy : Actor
 	{
 		//TODO: Incomplete port of the python DragonEnemy
-		Game.Life life;
-
 		DragonEnemy()
 		{
-			life = new Life(this, 10);
+			AddComponent(new Life(this, 10));
 		}
 	}
 
 	class AnnihilatorEnemy : Actor
 	{
 		//TODO: Incomplete port of the python Enemy
-		Game.Life life;
-
 		AnnihilatorEnemy()
 		{
-			life = new Life(this, 10);
+			AddComponent(new Life(this, 10));
 		}
 	}
 }

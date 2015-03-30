@@ -100,15 +100,17 @@ namespace Starmaze.Engine
 		public double Angle;
 		public Color4 Color;
 		public Vector2d Velocity;
-		public double Age;
+		public double Life;
+		readonly double MaxLife;
 
-		public Particle(Vector2d pos, double angle, Color4 color, Vector2d vel, double age)
+		public Particle(Vector2d pos, double angle, Color4 color, Vector2d vel, double life)
 		{
 			Position = pos;
 			Angle = angle;
 			Color = color;
 			Velocity = vel;
-			Age = age;
+			MaxLife = life;
+			Life = life;
 		}
 	}
 
@@ -119,11 +121,12 @@ namespace Starmaze.Engine
 	// XXX: Removing particles while maintaining draw order might become a little wonky.
 	public class ParticleGroup
 	{
+		const int DefaultParticleCache = 1024;
 		public List<Particle> Particles;
 
-		public ParticleGroup()
+		public ParticleGroup(int cacheSize = DefaultParticleCache)
 		{
-			Particles = new List<Particle>();
+			Particles = new List<Particle>(cacheSize);
 		}
 
 		public void AddParticle(Vector2d pos, double angle, Color4 color, Vector2d vel, double age = 0.0)
@@ -145,6 +148,7 @@ namespace Starmaze.Engine
 		public void Update(double dt, ParticleGroup group)
 		{
 			// OPT: This could prolly be more efficient.
+			// But a core i5 handles 50k particles without much sweat, so, no sweat.
 			for (int i = 0; i < group.Particles.Count; i++) {
 				var p = group.Particles[i];
 				var vel = Vector2d.Zero;
@@ -152,7 +156,7 @@ namespace Starmaze.Engine
 				Vector2d.Multiply(ref p.Velocity, dt, out vel);
 				Vector2d.Add(ref p.Position, ref vel, out pos);
 				p.Position = pos;
-				p.Age += dt;
+				p.Life -= dt;
 				group.Particles[i] = p;
 			}
 		}
@@ -177,12 +181,18 @@ namespace Starmaze.Engine
 
 			Graphics.TheGLTracking.SetShader(shader);
 			shader.UniformMatrix("projection", view.ProjectionMatrix);
+			shader.Uniformf("offset", 0f, 0);
+			shader.Uniformf("colorOffset", 1f, 0f, 0f, 1f);
+			array.Draw();
+			/*
 			foreach (var p in group.Particles) {
 				var pos = new Vector2((float)p.Position.X, (float)p.Position.Y);
 				shader.Uniformf("offset", (float)p.Position.X, (float)p.Position.Y);
 				shader.Uniformf("colorOffset", p.Color.R, p.Color.G, p.Color.B, p.Color.A);
 				array.Draw();
 			}
+			*/
+
 
 		}
 	}
@@ -225,7 +235,6 @@ namespace Starmaze.Engine
 	{
 
 		ParticleGroup group;
-		ParticleRenderer renderer;
 		ParticleEmitter emitter;
 		ParticleController controller;
 
@@ -234,7 +243,6 @@ namespace Starmaze.Engine
 			HandledEvents = EventType.OnUpdate;
 
 			group = new ParticleGroup();
-			renderer = new ParticleRenderer();
 			emitter = new ParticleEmitter(emitDelay: emitDelay);
 			controller = new ParticleController();
 		}
