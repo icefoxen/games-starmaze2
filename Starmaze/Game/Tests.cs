@@ -901,7 +901,7 @@ namespace Starmaze.Game
 				g = new GameWindow();
 			}
 			if (!Resources.IsInitialized) {
-				Resources.Init();
+				Resources.Init(new GameOptions());
 			}
 
 

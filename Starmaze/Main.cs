@@ -122,7 +122,7 @@ namespace Starmaze
 			Graphics.Init();
 			// Has to be called after the Graphics setup if it's going to be preloading
 			// textures and shaders and such...
-			Resources.Init();
+			Resources.Init(Options);
 			var map = BuildTestLevel();
 			var actCfg = Resources.TheResources.GetJson("player");
 			var player = Starmaze.Game.SaveLoad.LoadActor(actCfg);

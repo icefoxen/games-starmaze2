@@ -46,16 +46,25 @@ namespace Starmaze.Engine
 				g = new GameWindow();
 			}
 			if (!Resources.IsInitialized) {
-				Resources.Init();
+				Resources.Init(new GameOptions());
 			}
 			s = new Sound();
 		}
 		[Test]
 		public void PlaySound(){
 			s.PlaySound(Resources.TheResources.GetSound("Powers_Air_Wave_Large.wav"));
+			Assert.True(true);
+		}
+		[Test]
+		public void PlayTwoSounds(){
+			s.PlaySound(Resources.TheResources.GetSound("Powers_Air_Wave_Large.wav"));
 			s.PlaySound(Resources.TheResources.GetSound("Powers_Air_Wave_Small.wav"));
 			Assert.True(true);
-
+		}
+		[Test]
+		public void PlayBrokenSound(){
+			s.PlaySound(Resources.TheResources.GetSound("ResampleTester.wav"));
+			Assert.True(true);
 		}
 	}
 
@@ -75,7 +84,7 @@ namespace Starmaze.Engine
 				g = new GameWindow();
 			}
 			if (!Resources.IsInitialized) {
-				Resources.Init();
+				Resources.Init(new GameOptions());
 			}
 			jset = new JsonSerializerSettings { PreserveReferencesHandling = PreserveReferencesHandling.Objects };
 		}

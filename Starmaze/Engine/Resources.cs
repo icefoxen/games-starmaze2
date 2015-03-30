@@ -218,6 +218,7 @@ TextureAtlas LoadTextureAtlas(JObject json)
 		}
 
 		ISampleProvider LoadSound(string name){
+			//samples = Starmaze.MainClass
 			var fullPath = System.IO.Path.Combine(ResourceRoot, "sounds", name);
 			AudioFileReader input = new AudioFileReader(fullPath);
 			ISampleProvider sound = input.ToSampleProvider();
@@ -307,7 +308,7 @@ TextureAtlas LoadTextureAtlas(JObject json)
 		// Except with explicit initialization because latency matters.
 		// And explicit destruction because that matters too.
 		static ResourceLoader _TheResources;
-
+		public static GameOptions Options;
 		public static ResourceLoader TheResources {
 			get {
 				Log.Assert(_TheResources != null, "Attempting to get null Resources object");
@@ -321,7 +322,7 @@ TextureAtlas LoadTextureAtlas(JObject json)
 			}
 		}
 
-		public static ResourceLoader Init()
+		public static ResourceLoader Init(GameOptions Options)
 		{
 			if (_TheResources != null) {
 				// XXX: Better exception type
