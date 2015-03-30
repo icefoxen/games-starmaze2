@@ -34,7 +34,7 @@ namespace Starmaze.Game
 		}
 	}
 	//end Timer
-	public class Life : Component, ISaveLoadable
+	public class Life : Component
 	{
 		public double CurrentLife { get; set; }
 

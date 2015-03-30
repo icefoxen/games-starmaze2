@@ -10,7 +10,7 @@ namespace Starmaze.Engine
 	public class Actor
 	{
 		// Components.
-		public List<Component> Components;
+		public List<Component> Components { get; set; }
 		// We handle the Body specially since it's common to want to get it directly
 		// But in the end it has to go in the Components set as well
 		Body _body;

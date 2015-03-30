@@ -17,7 +17,7 @@ namespace Starmaze.Engine
 	/// <summary>
 	/// Base class for all Components.  Actors are made of Components.
 	/// </summary>
-	public class Component : Starmaze.Game.ISaveLoadable
+	public class Component
 	{
 		public Actor Owner;
 		public EventType HandledEvents;
