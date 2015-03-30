@@ -117,14 +117,15 @@ namespace Starmaze
 			Resources.Init();
 			var map = BuildTestLevel();
 			var actCfg = Resources.TheResources.GetJson("player");
-			var player = Starmaze.Game.SaveLoad.LoadActor(actCfg);
-			player.Body.AddGeom(new BoxGeom(new BBox(-5, -15, 5, 5)));
+			var player = new Player();
+			//var player = Starmaze.Game.SaveLoad.LoadActor(actCfg);
+			//player.Body.AddGeom(new BoxGeom(new BBox(-5, -15, 5, 5)));
 			View = new ViewManager(Util.LogicalScreenWidth, Util.LogicalScreenWidth / Options.AspectRatio);
 			Camera = new FollowCam(player, Util.LogicalScreenWidth, Util.LogicalScreenWidth / Options.AspectRatio);
 			World = new World(player, map, "TestZone", "TestRoom1");
-            Gui = new GUI(Util.LogicalScreenWidth, Util.LogicalScreenWidth / Options.AspectRatio);
-            Gui.CreateGUIText(World, new Vector2d(-60, 0), "Test");
-            Gui.CreateGUIText(World, new Vector2d(-55, 70), "FPS");
+			Gui = new GUI(Util.LogicalScreenWidth, Util.LogicalScreenWidth / Options.AspectRatio);
+			Gui.CreateGUIText(World, new Vector2d(-60, 0), "Test");
+			Gui.CreateGUIText(World, new Vector2d(-55, 70), "FPS");
 			SetupEvents();
 
 			fpsTimer.Start();
@@ -183,13 +184,13 @@ namespace Starmaze
 			World.Update(e);
 			Camera.Update(e.Time);
             
-            //Gui.DrawString("TESTING",new Vector2d(0,-80));
+			//Gui.DrawString("TESTING",new Vector2d(0,-80));
           
 			if (fpsTimer.ElapsedMilliseconds > (fpsInterval * 1000)) {
 				fpsTimer.Restart();
 				Log.Message("FPS: {0}", frames / fpsInterval);
-                Gui.editGUIText("" +-55+""+70, "FPS:" + (frames / fpsInterval));
-                //Gui.DrawString("FPS:" + (frames / fpsInterval),new Vector2d(-55,70),60);            
+				Gui.editGUIText("" + -55 + "" + 70, "FPS:" + (frames / fpsInterval));
+				//Gui.DrawString("FPS:" + (frames / fpsInterval),new Vector2d(-55,70),60);            
 				frames = 0;
 			}
 		}
@@ -200,7 +201,7 @@ namespace Starmaze
 			View.CenterOn(Camera.CurrentPos);
 			World.Draw(View);
           
-            Gui.Draw(Camera.CurrentPos);           
+			Gui.Draw(Camera.CurrentPos);           
 			
 			SwapBuffers();
 			frames += 1;
