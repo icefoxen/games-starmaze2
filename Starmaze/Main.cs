@@ -28,6 +28,10 @@ namespace Starmaze
 		public GameWindowFlags WindowMode;
 		public KeyboardBinding KeyBinding;
 
+		public float SoundVolume;
+		public int SoundSampleRate;
+		public int SoundChannels;
+
 		public GameOptions()
 		{
 			ResolutionW = 1024;
@@ -35,6 +39,10 @@ namespace Starmaze
 			Vsync = VSyncMode.On;
 			WindowMode = GameWindowFlags.Default;
 			KeyBinding = new KeyboardBinding(new KeyConfig());
+
+			SoundVolume = 100f;
+			SoundSampleRate = 44100;
+			SoundChannels = 2;
 		}
 
 		public static GameOptions OptionsFromFile(string fileName = "settings.cfg")
