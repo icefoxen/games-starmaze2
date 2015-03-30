@@ -16,112 +16,46 @@ namespace Starmaze.Game
 		void PreSave();
 	}
 
-	public class TryFour
+
+	public interface IAssetConverter
 	{
-		Dictionary<Type, Func<object, JObject>> SaveFuncs;
-		Dictionary<Type, Func<JObject, object>> LoadFuncs;
+		ISaveLoadable Load(JObject json);
 
-		public TryFour()
+		JObject Save(ISaveLoadable thing);
+	}
+
+
+	public class LifeAssetConverter : IAssetConverter
+	{
+		readonly string[] props = {
+			"CurrentLife",
+			"MaxLife",
+			"DamageAttenuation",
+			"DamageReduction",
+		};
+
+		public JObject Save(ISaveLoadable o)
 		{
-			SaveFuncs = new Dictionary<Type, Func<object, JObject>> {
-				{ typeof(Life), SaveLife },
-			};
-
-			LoadFuncs = new Dictionary<Type, Func<JObject, object>> {
-				{ typeof(Life), LoadLife },
-			};
+			o.PreSave();
+			return SaveLoad.SaveProperties(o, props);
 		}
 
-		JObject SaveLife(object o)
+		public ISaveLoadable Load(JObject json)
 		{
-			var props = new string[] {
-				"CurrentLife",
-				"MaxLife",
-				"DamageAttenuation",
-				"DamageReduction",
-			};
-			return SaveProperties(o, props);
-		}
-
-		object LoadLife(JObject json)
-		{
-			var props = new string[] {
-				"CurrentLife",
-				"MaxLife",
-				"DamageAttenuation",
-				"DamageReduction",
-			};
 			var l = new Life(null, 0);
-			LoadProperties(l, props, json);
+			SaveLoad.LoadProperties(l, props, json);
+			l.PostLoad();
 			return l;
 		}
+	}
 
-		public bool IsJValue(Type t)
-		{
-			return t == typeof(long) || t == typeof(int) || t == typeof(decimal) || t == typeof(char) ||
-			t == typeof(ulong) || t == typeof(float) || t == typeof(double) || t == typeof(DateTime) ||
-			t == typeof(DateTimeOffset) || t == typeof(bool) || t == typeof(string) || t == typeof(Guid) ||
-			t == typeof(TimeSpan) || t == typeof(Uri);
-		}
+	public static class SaveLoad
+	{
+		static Dictionary<Type, IAssetConverter> SaveLoaders = new Dictionary<Type, IAssetConverter> {
+			{ typeof(Life), new LifeAssetConverter() },
+		};
 
-
-		public bool IsSaveable(Type t)
-		{
-			return IsJValue(t) || SaveFuncs.ContainsKey(t);
-		}
-
-		public JObject Save(object o)
-		{
-			var typ = o.GetType();
-			if (IsJValue(typ)) {
-				return new JObject(o);
-			} else {
-				return DispatchSave(o, typ);
-			}
-		}
-
-		public object Load(JObject json)
-		{
-			var typeName = json["type"].Value<string>();
-			Log.Assert(typeName != null);
-			var typ = Type.GetType(typeName);
-			Log.Assert(typ != null);
-			if (IsJValue(typ)) {
-				return null; // XXX: Hmmm.
-			} else {
-				return DispatchLoad(json, typ);
-			}
-		}
-
-		public T Load<T>(JObject json)
-		{
-			return (T)Load(json);
-		}
-
-
-		JObject DispatchSave(object o, Type typ)
-		{
-			Func<object, JObject> saveFunc;
-			if (SaveFuncs.TryGetValue(typ, out saveFunc)) {
-				return saveFunc(o);
-			} else {
-				var msg = String.Format("Could not find function to save type {0}", typ);
-				throw new JsonSerializationException(msg);
-			}
-		}
-
-		object DispatchLoad(JObject o, Type typ)
-		{
-			Func<JObject, object> loadFunc;
-			if (LoadFuncs.TryGetValue(typ, out loadFunc)) {
-				return loadFunc(o);
-			} else {
-				var msg = String.Format("Could not find function to load type {0}", typ);
-				throw new JsonSerializationException(msg);
-			}
-		}
-
-		public JObject SaveProperties(object o, string[] props)
+		public static JObject SaveProperties(ISaveLoadable o, string[] props)
 		{
 			var typ = o.GetType();
 			var json = new JObject();
@@ -135,7 +69,10 @@ namespace Starmaze.Game
 				if (IsJValue(propType)) {
 					json[propName] = new JValue(val);
 				} else if (IsSaveable(propType)) {
-					json[propName] = Save(val);
+					// This cast is a little screwy and unpleasant, and I'm not sure it's the right thing.
+					var isl = val as ISaveLoadable;
+					Log.Assert(isl != null, "This should never happen???");
+					json[propName] = Save(isl);
 				} else {
 					var msg = String.Format("Can't save object of type {0} of property {1} on object {2}", propType, propName, typ);
 					throw new JsonSerializationException(msg);
@@ -145,9 +82,8 @@ namespace Starmaze.Game
 			return json;
 		}
 
-		public void LoadProperties(object o, string[] props, JObject json)
+		public static void LoadProperties(ISaveLoadable o, string[] props, JObject json)
 		{
-			var isl = o as ISaveLoadable;
 			var typ = o.GetType();
 			foreach (var propName in props) {
 				var property = typ.GetProperty(propName);
@@ -158,21 +94,81 @@ namespace Starmaze.Game
 			}
 		}
 
-		public JValue SaveJSONNative(object val)
+
+
+		static bool IsJValue(Type t)
+		{
+			return t == typeof(long) || t == typeof(int) || t == typeof(decimal) || t == typeof(char) ||
+			t == typeof(ulong) || t == typeof(float) || t == typeof(double) || t == typeof(DateTime) ||
+			t == typeof(DateTimeOffset) || t == typeof(bool) || t == typeof(string) || t == typeof(Guid) ||
+			t == typeof(TimeSpan) || t == typeof(Uri);
+		}
+
+
+		static bool IsSaveable(Type t)
+		{
+			return IsJValue(t) || SaveLoaders.ContainsKey(t);
+		}
+
+		public static JObject Save(ISaveLoadable o)
+		{
+			var typ = o.GetType();
+			if (IsJValue(typ)) {
+				return new JObject(o);
+			} else {
+				return DispatchSave(o, typ);
+			}
+		}
+
+		public static ISaveLoadable Load(JObject json)
+		{
+			var typeName = json["type"].Value<string>();
+			Log.Assert(typeName != null);
+			var typ = Type.GetType(typeName);
+			Log.Assert(typ != null);
+			return DispatchLoad(json, typ);
+//			if (IsJValue(typ)) {
+//				return null; // XXX: Hmmm.
+//			} else {
+//				return DispatchLoad(json, typ);
+//			}
+		}
+
+		public static T Load<T>(JObject json)
+		{
+			return (T)Load(json);
+		}
+
+
+		static JObject DispatchSave(ISaveLoadable o, Type typ)
+		{
+			IAssetConverter saveLoader;
+			if (SaveLoaders.TryGetValue(typ, out saveLoader)) {
+				return saveLoader.Save(o);
+			} else {
+				var msg = String.Format("Could not find function to save type {0}", typ);
+				throw new JsonSerializationException(msg);
+			}
+		}
+
+		static ISaveLoadable DispatchLoad(JObject o, Type typ)
+		{
+			IAssetConverter saveLoader;
+			if (SaveLoaders.TryGetValue(typ, out saveLoader)) {
+				return saveLoader.Load(o);
+			} else {
+				var msg = String.Format("Could not find function to load type {0}", typ);
+				throw new JsonSerializationException(msg);
+			}
+		}
+
+		public static JValue SaveJSONNative(object val)
 		{
 			return new JValue(val);
 		}
 	}
 
 	/*
-	public interface ISaveLoad
-	{
-		ISaveLoadable Load(JObject json, object accessory);
-
-		JObject Save(ISaveLoadable thing);
-
-		string[] Props { get; }
-	}
 
 
 	public class GenericSaver : ISaveLoad
@@ -377,7 +373,6 @@ namespace Starmaze.Game
 	public class SerializationTests
 	{
 		GameWindow g;
-		JsonSerializerSettings jset;
 
 		[SetUp]
 		public void Prep()
@@ -394,34 +389,14 @@ namespace Starmaze.Game
 		}
 
 		[Test]
-		public void TestJsonNetSaveLoad()
-		{
-			var dummy = new Actor();
-			var a = new Life(dummy, 10, 15, 3, 5);
-			var json = JsonConvert.SerializeObject(a, jset);
-
-			Log.Message("Saved Life: {0}", json);
-			// See, the problem here is, if we don't know the type of the object
-			// then it won't look at the object's bloody type field and try to find out!
-			var z1 = JsonConvert.DeserializeObject(json, jset);
-			Log.Message("Type of result: {0}", z1.GetType());
-			Log.Message("Loaded Life: {0}", z1);
-			var z2 = JsonConvert.DeserializeObject<Life>(json, jset);
-			Log.Message("Type of result: {0}", z2.GetType());
-			Log.Message("Loaded Life: {0}", z2);
-
-			Assert.True(true);
-		}
-
-		[Test]
 		public void DraconicLifeSaveLoadTest()
 		{
-			var sl = new TryFour();
+			//var sl = new TryFour();
 			var dummy = new Actor();
 			var a = new Life(dummy, 20, 30, 0.8, 2);
-			var json = sl.Save(a);
+			var json = SaveLoad.Save(a);
 			Log.Message("Saved life: {0}", json);
-			var z = sl.Load(json);
+			var z = SaveLoad.Load(json);
 			Log.Message("Loaded life: {0}", z);
 			Assert.True(true);
 		}
