@@ -37,7 +37,9 @@ namespace Starmaze.Engine
 		}
 
 		private ISampleProvider CorrectChannels(ISampleProvider input){
-			if (input.WaveFormat.Channels == mixer.WaveFormat.Channels)
+			var inputChannels = input.WaveFormat.Channels;
+			var mixerChannels = mixer.WaveFormat.Channels;
+			if (inputChannels == mixerChannels)
 			{
 				return input;
 			}
@@ -45,14 +47,17 @@ namespace Starmaze.Engine
 			{
 				return new MonoToStereoSampleProvider(input);
 			}
-			throw new NotImplementedException("Not yet implemented this channel count conversion");
+			throw new NotImplementedException(string.Format("Mixer channel count conversion not implemented, wanted {0}, got {1}", inputChannels, mixerChannels));
 		}
 		private ISampleProvider CorrectSampleRate(ISampleProvider input){		
-			if (input.WaveFormat.SampleRate == format.SampleRate) {
+			var inputSampleRate = input.WaveFormat.SampleRate;
+			var mixerSampleRate = format.SampleRate;
+
+			if (inputSampleRate == mixerSampleRate) {
 				//todo: fix this shit
 				return input;
 			}
-			throw new Exception("NOT THE RIGHT SAMPLE RATE");
+			throw new Exception(string.Format("Mixer received incorrect sample rate, wanted {0}, got {1}", inputSampleRate, mixerSampleRate));
 		}
 	}
 }
