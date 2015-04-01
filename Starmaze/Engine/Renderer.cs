@@ -9,8 +9,9 @@ namespace Starmaze.Engine
 {
 	public class RenderState : Component, IComparable<RenderState>
 	{
-		public IRenderer Renderer;
-		long OrderingNumber;
+		public IRenderer Renderer { get; set; }
+
+		readonly long OrderingNumber;
 
 		public RenderState(Actor act, string renderclass) : base(act)
 		{
@@ -71,11 +72,15 @@ namespace Starmaze.Engine
 	/// </summary>
 	public class SpriteRenderState : RenderState
 	{
-		public TextureAtlas Atlas;
-		public List<Animation> Animations;
-		public int CurrentAnim;
-		public float Rotation;
-		public Vector2 Scale;
+		public TextureAtlas Atlas { get; set; }
+
+		public List<Animation> Animations { get; set; }
+
+		public int CurrentAnim { get; set; }
+
+		public float Rotation { get; set; }
+
+		public Vector2 Scale { get; set; }
 
 		public SpriteRenderState(Actor act, TextureAtlas atlas, IEnumerable<Animation> anim, float rotation = 0.0f, Vector2? scale = null) : base(act, "SpriteRenderer")
 		{
@@ -123,30 +128,30 @@ namespace Starmaze.Engine
 		}
 	}
 
-    public class ParticleRenderState : RenderState
-    {
-        /* XXX
+	public class ParticleRenderState : RenderState
+	{
+		/* XXX
          * So I am consolidating the particle system to see if I can fit 
         the particle system in the render system. So I do not know the impact it can have
          * on render speed
          */
-        //public ParticleGroup group;
-        public ParticleEmitter emitter;
-        public ParticleController controller;
-        public float Rotation;
-        public Vector2 Scale;
+		//public ParticleGroup group;
+		public ParticleEmitter emitter;
+		public ParticleController controller;
+		public float Rotation;
+		public Vector2 Scale;
 
-        public ParticleRenderState(Actor act,double emitDelay = 0.1, float rotation = 0.0f, Vector2? scale = null)
-            : base(act, "ParticleRenderer")
+		public ParticleRenderState(Actor act, double emitDelay = 0.1, float rotation = 0.0f, Vector2? scale = null)
+			: base(act, "ParticleRenderer")
 		{
-            //group = new ParticleGroup();
-            emitter = new ParticleEmitter(emitDelay);
-            controller = new ParticleController();
-            Rotation = rotation;
-            Scale = scale ?? Vector2.One;
+			//group = new ParticleGroup();
+			emitter = new ParticleEmitter(emitDelay);
+			controller = new ParticleController();
+			Rotation = rotation;
+			Scale = scale ?? Vector2.One;
 		}
 
-    }
+	}
 
 	public class RenderBatch<T> where T : RenderState
 	{
@@ -592,35 +597,35 @@ namespace Starmaze.Engine
 		}
 	}
 
-    /// <summary>
-    /// An object that draws a ParticleGroup.
-    /// </summary>
-    public class ParticleRenderer : Renderer<ParticleRenderState>
-    {
-        Shader shader;
-        VertexArray array;
+	/// <summary>
+	/// An object that draws a ParticleGroup.
+	/// </summary>
+	public class ParticleRenderer : Renderer<ParticleRenderState>
+	{
+		Shader shader;
+		VertexArray array;
 
-        public ParticleRenderer()
-        {
-            shader = Resources.TheResources.GetShader("particle-default");
-            array = Resources.TheResources.GetModel("Particle");
-        }
+		public ParticleRenderer()
+		{
+			shader = Resources.TheResources.GetShader("particle-default");
+			array = Resources.TheResources.GetModel("Particle");
+		}
 
 
-        protected override void RenderOne(ViewManager view, ParticleRenderState r)
-        {
+		protected override void RenderOne(ViewManager view, ParticleRenderState r)
+		{
 
-            var pos = new Vector2((float)r.Owner.Body.Position.X, (float)r.Owner.Body.Position.Y);
-            var transform = new Transform(pos, r.Rotation, r.Scale);
-            var mat = transform.TransformMatrix(view.ProjectionMatrix);
+			var pos = new Vector2((float)r.Owner.Body.Position.X, (float)r.Owner.Body.Position.Y);
+			var transform = new Transform(pos, r.Rotation, r.Scale);
+			var mat = transform.TransformMatrix(view.ProjectionMatrix);
 
-            shader.UniformMatrix("projection", view.ProjectionMatrix);
-            shader.Uniformf("offset", 0f, 0);
-            shader.Uniformf("colorOffset", 1f, 0f, 0f, 1f);
-            array.Draw();
-        }
+			shader.UniformMatrix("projection", view.ProjectionMatrix);
+			shader.Uniformf("offset", 0f, 0);
+			shader.Uniformf("colorOffset", 1f, 0f, 0f, 1f);
+			array.Draw();
+		}
 
-        /*
+		/*
             foreach (var p in group.Particles) {
                 var pos = new Vector2((float)p.Position.X, (float)p.Position.Y);
                 shader.Uniformf("offset", (float)p.Position.X, (float)p.Position.Y);
@@ -641,6 +646,6 @@ namespace Starmaze.Engine
             billboard.Draw();
             r.Atlas.Disable();
         } */
-    }
+	}
 }
 

@@ -8,9 +8,9 @@ namespace Starmaze.Engine
 {
 	public interface IAssetConverter
 	{
-		object Load(JObject json);
+		object Load(JToken json);
 
-		JObject Save(object thing);
+		JToken Save(object thing);
 	}
 
 
@@ -18,7 +18,7 @@ namespace Starmaze.Engine
 	public class Vector2dAssetConverter : IAssetConverter
 	{
 		// Vector2d X and Y aren't properties, so things get a little weird.
-		public JObject Save(object o)
+		public JToken Save(object o)
 		{
 			var obj = (Vector2d)o;
 			var json = SaveLoad.JObjectOfType(o);
@@ -27,15 +27,34 @@ namespace Starmaze.Engine
 			return json;
 		}
 
-		public object Load(JObject json)
+		public object Load(JToken json)
 		{
 			var obj = new Vector2d();
 			obj.X = json["X"].Value<double>();
 			obj.Y = json["Y"].Value<double>();
 			return obj;
 		}
+	}
 
+	public class Vector2AssetConverter : IAssetConverter
+	{
+		// Vector2d X and Y aren't properties, so things get a little weird.
+		public JToken Save(object o)
+		{
+			var obj = (Vector2)o;
+			var json = SaveLoad.JObjectOfType(o);
+			json["X"] = obj.X;
+			json["Y"] = obj.Y;
+			return json;
+		}
 
+		public object Load(JToken json)
+		{
+			var obj = new Vector2();
+			obj.X = json["X"].Value<float>();
+			obj.Y = json["Y"].Value<float>();
+			return obj;
+		}
 	}
 
 
@@ -53,13 +72,13 @@ namespace Starmaze.Engine
 			"IsImmobile",
 		};
 
-		public JObject Save(object o)
+		public JToken Save(object o)
 		{
 			SaveLoad.PreSaveIfPossible(o);
 			return SaveLoad.SaveProperties(o, props);
 		}
 
-		public object Load(JObject json)
+		public object Load(JToken json)
 		{
 			var obj = new Body(null);
 			SaveLoad.LoadProperties(obj, props, json);
@@ -72,7 +91,7 @@ namespace Starmaze.Engine
 
 	public class ActorAssetConverter : IAssetConverter
 	{
-		public JObject Save(object o)
+		public JToken Save(object o)
 		{
 			SaveLoad.PreSaveIfPossible(o);
 			var act = o as Actor;
@@ -82,7 +101,7 @@ namespace Starmaze.Engine
 			return json;
 		}
 
-		public object Load(JObject json)
+		public object Load(JToken json)
 		{
 			var obj = new Actor();
 			var components = SaveLoad.LoadList<Component>(json["Components"].Value<JArray>());
@@ -94,17 +113,104 @@ namespace Starmaze.Engine
 		}
 	}
 
+	public class TextureAtlasAssetConverter : IAssetConverter
+	{
+		readonly string[] props = {
+			"Width",
+			"Height",
+		};
+
+		public JToken Save(object o)
+		{
+			// BUGGO: Need some way to turn an arbitrary texture into a texture name.
+			// The problem then is dynamic textures!
+			//Log.Assert(false, "Saving a texture can't really be done right now I fear...");
+			SaveLoad.PreSaveIfPossible(o);
+			var json = SaveLoad.SaveProperties(o, props);
+			json["Texture"] = "playertest";
+			return json;
+		}
+
+		public object Load(JToken json)
+		{
+			var texName = json["Texture"].Value<string>();
+			var tex = Resources.TheResources.GetTexture(texName);
+			var obj = new TextureAtlas(tex, 1, 1);
+			SaveLoad.LoadProperties(obj, props, json);
+			SaveLoad.PostLoadIfPossible(obj);
+			return obj;
+		}
+	}
+
+	public class AnimationAssetConverter : IAssetConverter
+	{
+
+		public JToken Save(object o)
+		{
+			SaveLoad.PreSaveIfPossible(o);
+			var anim = o as Animation;
+			Log.Assert(anim != null, "Shouldn't be possible");
+			var json = SaveLoad.JObjectOfType(o);
+			json["Delays"] = SaveLoad.SaveList<double>(anim.Delays);
+			return json;
+		}
+
+		public object Load(JToken json)
+		{
+			var framesArray = json["Delays"].Value<JArray>();
+			Log.Message("Frames: {0}", framesArray);
+			var delays = SaveLoad.LoadList<double>(framesArray);
+			var arr = new List<double>(delays).ToArray();
+			var obj = new Animation(arr);
+			SaveLoad.PostLoadIfPossible(obj);
+			return obj;
+		}
+	}
+
+	public class SpriteRenderStateAssetConverter : IAssetConverter
+	{
+		readonly string[] props = {
+			"Rotation",
+			"Scale",
+		};
+
+		public JToken Save(object o)
+		{
+			SaveLoad.PreSaveIfPossible(o);
+			var sprite = o as SpriteRenderState;
+			Log.Assert(sprite != null, "Should be impossible");
+			var json = SaveLoad.SaveProperties(o, props);
+			json["TextureAtlas"] = SaveLoad.Save(sprite.Atlas);
+			json["Animations"] = SaveLoad.SaveList<Animation>(sprite.Animations);
+			return json;
+		}
+
+		public object Load(JToken json)
+		{
+			var atlas = SaveLoad.Load(json["TextureAtlas"].Value<JObject>()) as TextureAtlas;
+			var anim = SaveLoad.LoadList<Animation>(json["Animations"].Value<JArray>());
+			Log.Assert(anim != null);
+			var obj = new SpriteRenderState(null, atlas, anim);
+			SaveLoad.LoadProperties(obj, props, json);
+			SaveLoad.PostLoadIfPossible(obj);
+			return obj;
+		}
+	}
+
 	public static class SaveLoad
 	{
 		// XXX: Dependency inversion here, try to fix someday.
 		static readonly Dictionary<Type, IAssetConverter> AssetConverters = new Dictionary<Type, IAssetConverter> {
-			
+			{ typeof(Vector2), new Vector2AssetConverter() },
+			{ typeof(Vector2d), new Vector2dAssetConverter() },
+			{ typeof(Body), new BodyAssetConverter() },
+			{ typeof(Actor), new ActorAssetConverter() },
+			{ typeof(SpriteRenderState), new SpriteRenderStateAssetConverter() },
+			{ typeof(Animation), new AnimationAssetConverter() },
+			{ typeof(TextureAtlas), new TextureAtlasAssetConverter() },
 			{ typeof(Starmaze.Game.Life), new Starmaze.Game.LifeAssetConverter() },
 			{ typeof(Starmaze.Game.Energy), new Starmaze.Game.EnergyAssetConverter() },
-			{ typeof(Body), new BodyAssetConverter() },
-			{ typeof(Vector2d), new Vector2dAssetConverter() },
 			{ typeof(Starmaze.Game.InputController), new Starmaze.Game.InputControllerAssetConverter() },
-			{ typeof(Actor), new ActorAssetConverter() },
 			{ typeof(Starmaze.Game.TimedLife), new Starmaze.Game.TimedLifeAssetConverter() },
 			{ typeof(Starmaze.Game.Gun), new Starmaze.Game.GunAssetConverter() },
 		};
@@ -146,7 +252,7 @@ namespace Starmaze.Engine
 			return json;
 		}
 
-		public static void LoadProperties(object o, string[] props, JObject json)
+		public static void LoadProperties(object o, string[] props, JToken json)
 		{
 			var typ = o.GetType();
 			foreach (var propName in props) {
@@ -173,7 +279,7 @@ namespace Starmaze.Engine
 			var list = new List<T>();
 			foreach (var item in json) {
 				Log.Message("Item: {0}", item);
-				var jobj = item as JObject;
+				var jobj = item as JToken;
 				Log.Assert(jobj != null, "Should never happen...");
 				var c = Load<T>(jobj);
 				list.Add(c);
@@ -214,17 +320,17 @@ namespace Starmaze.Engine
 			return IsJValue(t) || AssetConverters.ContainsKey(t);
 		}
 
-		public static JObject Save(object o)
+		public static JToken Save(object o)
 		{
 			var typ = o.GetType();
 			if (IsJValue(typ)) {
-				return new JObject(o);
+				return new JValue(o);
 			} else {
 				return DispatchSave(o, typ);
 			}
 		}
 
-		public static object Load(JObject json)
+		public static object Load(JToken json)
 		{
 			var typeName = json["type"].Value<string>();
 			Log.Assert(typeName != null);
@@ -238,9 +344,13 @@ namespace Starmaze.Engine
 			//			}
 		}
 
-		public static T Load<T>(JObject json)
+		public static T Load<T>(JToken json)
 		{
-			return (T)Load(json);
+			if (IsJValue(typeof(T))) {
+				return json.Value<T>();
+			} else {
+				return (T)Load(json);
+			}
 		}
 
 		public static JObject JObjectOfType(object o)
@@ -253,7 +363,7 @@ namespace Starmaze.Engine
 		}
 
 
-		static JObject DispatchSave(object o, Type typ)
+		static JToken DispatchSave(object o, Type typ)
 		{
 			IAssetConverter saveLoader;
 			if (AssetConverters.TryGetValue(typ, out saveLoader)) {
@@ -264,7 +374,7 @@ namespace Starmaze.Engine
 			}
 		}
 
-		static object DispatchLoad(JObject o, Type typ)
+		static object DispatchLoad(JToken o, Type typ)
 		{
 			IAssetConverter saveLoader;
 			if (AssetConverters.TryGetValue(typ, out saveLoader)) {

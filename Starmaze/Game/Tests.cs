@@ -98,6 +98,14 @@ namespace Starmaze.Game
 			a.AddComponent(new Life(a, 15));
 			a.AddComponent(new TimedLife(a, 15));
 			a.AddComponent(new Gun(a));
+
+			var tex = Resources.TheResources.GetTexture("PlayerAssetAnimationTestSpriteSheetv3");
+			var atlas = new TextureAtlas(tex, 16, 1);
+			var anim = new Animation(10, 0.2);
+			var anim2 = new Animation(2, 0.2);
+			a.AddComponent(new SpriteRenderState(a, atlas, new Animation[] { anim, anim2 }, scale: new Vector2(3f, 3f)));
+
+
 			var json = SaveLoad.Save(a);
 			Log.Message("Saved non-empty actor: {0}", json);
 			var z = SaveLoad.Load(json);

@@ -7,8 +7,10 @@ namespace Starmaze.Engine
 	public class TextureAtlas
 	{
 		readonly Texture Tex;
-		public readonly int Width;
-		public readonly int Height;
+
+		public int Width { get; set; }
+
+		public int Height { get; set; }
 
 		public TextureAtlas(Texture tex, int width, int height)
 		{

@@ -15,13 +15,13 @@ namespace Starmaze.Game
 			"DamageReduction",
 		};
 
-		public JObject Save(object o)
+		public JToken Save(object o)
 		{
 			SaveLoad.PreSaveIfPossible(o);
 			return SaveLoad.SaveProperties(o, props);
 		}
 
-		public object Load(JObject json)
+		public object Load(JToken json)
 		{
 			var obj = new Life(null, 0);
 			SaveLoad.LoadProperties(obj, props, json);
@@ -37,13 +37,13 @@ namespace Starmaze.Game
 			"MaxTime",
 		};
 
-		public JObject Save(object o)
+		public JToken Save(object o)
 		{
 			SaveLoad.PreSaveIfPossible(o);
 			return SaveLoad.SaveProperties(o, props);
 		}
 
-		public object Load(JObject json)
+		public object Load(JToken json)
 		{
 			var obj = new TimedLife(null, 1);
 			SaveLoad.LoadProperties(obj, props, json);
@@ -58,13 +58,13 @@ namespace Starmaze.Game
 			"FireOffset",
 		};
 
-		public JObject Save(object o)
+		public JToken Save(object o)
 		{
 			SaveLoad.PreSaveIfPossible(o);
 			return SaveLoad.SaveProperties(o, props);
 		}
 
-		public object Load(JObject json)
+		public object Load(JToken json)
 		{
 			var obj = new Gun(null);
 			SaveLoad.LoadProperties(obj, props, json);
@@ -80,13 +80,13 @@ namespace Starmaze.Game
 			"RegenRate",
 		};
 
-		public JObject Save(object o)
+		public JToken Save(object o)
 		{
 			SaveLoad.PreSaveIfPossible(o);
 			return SaveLoad.SaveProperties(o, props);
 		}
 
-		public object Load(JObject json)
+		public object Load(JToken json)
 		{
 			var obj = new Energy(null);
 			SaveLoad.LoadProperties(obj, props, json);
@@ -97,13 +97,13 @@ namespace Starmaze.Game
 
 	public class InputControllerAssetConverter : IAssetConverter
 	{
-		public JObject Save(object o)
+		public JToken Save(object o)
 		{
 			SaveLoad.PreSaveIfPossible(o);
 			return SaveLoad.JObjectOfType(o);
 		}
 
-		public object Load(JObject json)
+		public object Load(JToken json)
 		{
 			var obj = new InputController(null);
 			SaveLoad.PostLoadIfPossible(obj);
