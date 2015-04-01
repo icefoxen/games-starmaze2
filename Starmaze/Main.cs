@@ -124,7 +124,7 @@ namespace Starmaze
 			World = new World(player, map, "TestZone", "TestRoom1");
 			Gui = new GUI(Util.LogicalScreenWidth, Util.LogicalScreenWidth / Options.AspectRatio);
 			Gui.CreateGUIText(World, new Vector2d(-60, 0), "Test");
-			Gui.CreateGUIText(World, new Vector2d(-55, 70), "FPS");
+			Gui.CreateGUIText(World, new Vector2d(-55, 70), "FPS: 00");
 			SetupEvents();
 
 			fpsTimer.Start();
@@ -173,6 +173,7 @@ namespace Starmaze
 				World.HandleKeyUp(keyaction);
 			}
 		}
+
 		// XXX: This FPS counter is a little hacky, make it better.
 		Stopwatch fpsTimer = new Stopwatch();
 		const double fpsInterval = 5;
@@ -188,7 +189,7 @@ namespace Starmaze
 			if (fpsTimer.ElapsedMilliseconds > (fpsInterval * 1000)) {
 				fpsTimer.Restart();
 				Log.Message("FPS: {0}", frames / fpsInterval);
-				Gui.editGUIText("" + -55 + "" + 70, "FPS:" + (frames / fpsInterval));
+				Gui.editGUIText("" + -55 + "" + 70, String.Format("FPS: {0:00}", (frames / fpsInterval)));
 				//Gui.DrawString("FPS:" + (frames / fpsInterval),new Vector2d(-55,70),60);            
 				frames = 0;
 			}
