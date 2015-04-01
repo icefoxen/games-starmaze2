@@ -43,6 +43,49 @@ namespace Starmaze.Game
 		}
 	}
 
+	public class TimedLifeAssetConverter : IAssetConverter
+	{
+		readonly string[] props = {
+			"Time",
+			"MaxTime",
+		};
+
+		public JObject Save(object o)
+		{
+			SaveLoad.PreSaveIfPossible(o);
+			return SaveLoad.SaveProperties(o, props);
+		}
+
+		public object Load(JObject json)
+		{
+			var obj = new TimedLife(null, 1);
+			SaveLoad.LoadProperties(obj, props, json);
+			SaveLoad.PostLoadIfPossible(obj);
+			return obj;
+		}
+	}
+
+	public class GunAssetConverter : IAssetConverter
+	{
+		readonly string[] props = {
+			"FireOffset",
+		};
+
+		public JObject Save(object o)
+		{
+			SaveLoad.PreSaveIfPossible(o);
+			return SaveLoad.SaveProperties(o, props);
+		}
+
+		public object Load(JObject json)
+		{
+			var obj = new Gun(null);
+			SaveLoad.LoadProperties(obj, props, json);
+			SaveLoad.PostLoadIfPossible(obj);
+			return obj;
+		}
+	}
+
 	public class EnergyAssetConverter : IAssetConverter
 	{
 		readonly string[] props = {
@@ -99,7 +142,6 @@ namespace Starmaze.Game
 		public JObject Save(object o)
 		{
 			var obj = (Vector2d)o;
-			Log.Assert(obj != null);
 			var json = SaveLoad.JObjectOfType(o);
 			json["X"] = obj.X;
 			json["Y"] = obj.Y;
@@ -164,6 +206,8 @@ namespace Starmaze.Game
 			{ typeof(Vector2d), new Vector2dAssetConverter() },
 			{ typeof(InputController), new InputControllerAssetConverter() },
 			{ typeof(Actor), new ActorAssetConverter() },
+			{ typeof(TimedLife), new TimedLifeAssetConverter() },
+			{ typeof(Gun), new GunAssetConverter() },
 		};
 
 		public static JObject SaveProperties(object o, string[] props)
@@ -174,6 +218,7 @@ namespace Starmaze.Game
 				//var field = typ.GetField(propName);
 				//var val = field.GetValue(l);
 				var property = typ.GetProperty(propName);
+				Log.Assert(property != null, "Saving: Property {0} does not exist on type {1} (is the name correct?  Is it public?)", propName, typ);
 				var val = property.GetValue(o);
 				Log.Message("Saving field {0}, value {1}", property, val);
 				var propType = property.PropertyType;
@@ -188,6 +233,19 @@ namespace Starmaze.Game
 			}
 			return json;
 		}
+
+		public static void LoadProperties(object o, string[] props, JObject json)
+		{
+			var typ = o.GetType();
+			foreach (var propName in props) {
+				var property = typ.GetProperty(propName);
+				Log.Assert(property != null, "Loading: Property {0} not found on object of type {1}!", propName, typ);
+				var loadedValue = json[propName].ToObject(property.PropertyType);
+				Log.Message("Setting property {0} to {1}", property, loadedValue);
+				property.SetValue(o, loadedValue);
+			}
+		}
+
 
 		public static JArray SaveList<T>(IEnumerable<T> lst)
 		{
@@ -228,19 +286,6 @@ namespace Starmaze.Game
 				preSaveMethod.Invoke(o, null);
 			}
 		}
-
-		public static void LoadProperties(object o, string[] props, JObject json)
-		{
-			var typ = o.GetType();
-			foreach (var propName in props) {
-				var property = typ.GetProperty(propName);
-				Log.Assert(property != null, "Property {0} not found on object of type {1}!", propName, typ);
-				var loadedValue = json[propName].ToObject(property.PropertyType);
-				Log.Message("Setting property {0} to {1}", property, loadedValue);
-				property.SetValue(o, loadedValue);
-			}
-		}
-
 
 
 		static bool IsJValue(Type t)
@@ -414,6 +459,8 @@ namespace Starmaze.Game
 			body.AddGeom(new BoxGeom(new BBox(-5, -15, 5, 5)));
 			a.AddComponent(new InputController(a));
 			a.AddComponent(new Life(a, 15));
+			a.AddComponent(new TimedLife(a, 15));
+			a.AddComponent(new Gun(a));
 			var json = SaveLoad.Save(a);
 			Log.Message("Saved non-empty actor: {0}", json);
 			var z = SaveLoad.Load(json);

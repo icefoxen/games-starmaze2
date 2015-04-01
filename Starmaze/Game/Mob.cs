@@ -145,7 +145,7 @@ namespace Starmaze.Game
 	//end Energy component
 	public class TimedLife : Component
 	{
-		double Time { get; set; }
+		public double Time { get; set; }
 
 		public double MaxTime { get; set; }
 
@@ -161,9 +161,7 @@ namespace Starmaze.Game
 		{
 			var dt = e.Time;
 			Time -= dt;
-			if (Time <= 0) {
-				Owner.Alive = false;
-			}
+			Owner.Alive &= Time > 0;
 		}
 	}
 	// Check out this awesomeness: http://gameprogrammingpatterns.com/state.html
@@ -172,11 +170,11 @@ namespace Starmaze.Game
 	/// </summary>
 	public class Gun : Component
 	{
-		public Vector2d fireOffset;
+		public Vector2d FireOffset { get; set; }
 
 		public Gun(Actor owner) : base(owner)
 		{
-			fireOffset = Vector2d.Zero;
+			FireOffset = Vector2d.Zero;
 		}
 	}
 
