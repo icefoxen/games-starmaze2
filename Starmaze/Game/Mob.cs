@@ -96,13 +96,6 @@ namespace Starmaze.Game
 			return string.Format("Life(CurrentLife: {0}, MaxLife: {1}, DamageAttenuation: {2}, DamageReduction: {3})", CurrentLife, MaxLife, DamageAttenuation, DamageReduction);
 		}
 
-		public void PostLoad()
-		{
-		}
-
-		public void PreSave()
-		{
-		}
 	}
 	//end Life component
 	public class Energy : Component
