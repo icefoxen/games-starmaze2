@@ -218,7 +218,9 @@ TextureAtlas LoadTextureAtlas(JObject json)
 		}
 
 		ISampleProvider LoadSound(string name){
-			//samples = Starmaze.MainClass
+			var samples = Resources.Options.SoundSampleRate;
+			var channels = Resources.Options.SoundChannels;
+
 			var fullPath = System.IO.Path.Combine(ResourceRoot, "sounds", name);
 			AudioFileReader input = new AudioFileReader(fullPath);
 			ISampleProvider sound = input.ToSampleProvider();
@@ -229,6 +231,7 @@ TextureAtlas LoadTextureAtlas(JObject json)
 			return Get(SoundCache, LoadSound, name);
 		}
 
+		//public ISampleProvider CorrectSampleRate()
 
 
 		/// <summary>
