@@ -322,13 +322,14 @@ TextureAtlas LoadTextureAtlas(JObject json)
 			}
 		}
 
-		public static ResourceLoader Init(GameOptions Options)
+		public static ResourceLoader Init(GameOptions GOptions)
 		{
 			if (_TheResources != null) {
 				// XXX: Better exception type
 				throw new Exception("Bogusly re-init'ing ResourceLoader");
 			}
 			_TheResources = new ResourceLoader();
+			Options = GOptions;
 			_TheResources.Preload();
 			return _TheResources;
 		}
