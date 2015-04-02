@@ -34,7 +34,7 @@ namespace Starmaze.Game
 		}
 	}
 	//end Timer
-	public class Life : Component, ISaveLoadable
+	public class Life : Component
 	{
 		public double CurrentLife { get; set; }
 
@@ -96,13 +96,6 @@ namespace Starmaze.Game
 			return string.Format("Life(CurrentLife: {0}, MaxLife: {1}, DamageAttenuation: {2}, DamageReduction: {3})", CurrentLife, MaxLife, DamageAttenuation, DamageReduction);
 		}
 
-		public void PostLoad()
-		{
-		}
-
-		public void PreSave()
-		{
-		}
 	}
 	//end Life component
 	public class Energy : Component
@@ -145,7 +138,7 @@ namespace Starmaze.Game
 	//end Energy component
 	public class TimedLife : Component
 	{
-		double Time { get; set; }
+		public double Time { get; set; }
 
 		public double MaxTime { get; set; }
 
@@ -161,9 +154,7 @@ namespace Starmaze.Game
 		{
 			var dt = e.Time;
 			Time -= dt;
-			if (Time <= 0) {
-				Owner.Alive = false;
-			}
+			Owner.Alive &= Time > 0;
 		}
 	}
 	// Check out this awesomeness: http://gameprogrammingpatterns.com/state.html
@@ -172,11 +163,11 @@ namespace Starmaze.Game
 	/// </summary>
 	public class Gun : Component
 	{
-		public Vector2d fireOffset;
+		public Vector2d FireOffset { get; set; }
 
 		public Gun(Actor owner) : base(owner)
 		{
-			fireOffset = Vector2d.Zero;
+			FireOffset = Vector2d.Zero;
 		}
 	}
 

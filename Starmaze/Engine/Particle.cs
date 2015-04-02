@@ -145,19 +145,20 @@ namespace Starmaze.Engine
 
 		}
 
-		public void Update(double dt, ParticleGroup group)
+		public void Update(double dt,ref List<Particle> list)
 		{
 			// OPT: This could prolly be more efficient.
 			// But a core i5 handles 50k particles without much sweat, so, no sweat.
-			for (int i = 0; i < group.Particles.Count; i++) {
-				var p = group.Particles[i];
+            for (int i = 0; i < list.Count; i++)
+            {
+                var p = list[i];
 				var vel = Vector2d.Zero;
 				var pos = Vector2d.Zero;
 				Vector2d.Multiply(ref p.Velocity, dt, out vel);
 				Vector2d.Add(ref p.Position, ref vel, out pos);
 				p.Position = pos;
 				p.Life -= dt;
-				group.Particles[i] = p;
+                list[i] = p;
 			}
 		}
 	}
@@ -165,37 +166,7 @@ namespace Starmaze.Engine
 	/// <summary>
 	/// An object that draws a ParticleGroup.
 	/// </summary>
-	public class ParticleRenderer
-	{
-		Shader shader;
-		VertexArray array;
-
-		public ParticleRenderer()
-		{
-			shader = Resources.TheResources.GetShader("particle-default");
-			array = Resources.TheResources.GetModel("Particle");
-		}
-
-		public void Draw(ViewManager view, ParticleGroup group)
-		{
-
-			Graphics.TheGLTracking.SetShader(shader);
-			shader.UniformMatrix("projection", view.ProjectionMatrix);
-			shader.Uniformf("offset", 0f, 0);
-			shader.Uniformf("colorOffset", 1f, 0f, 0f, 1f);
-			array.Draw();
-			/*
-			foreach (var p in group.Particles) {
-				var pos = new Vector2((float)p.Position.X, (float)p.Position.Y);
-				shader.Uniformf("offset", (float)p.Position.X, (float)p.Position.Y);
-				shader.Uniformf("colorOffset", p.Color.R, p.Color.G, p.Color.B, p.Color.A);
-				array.Draw();
-			}
-			*/
-
-
-		}
-	}
+	
 
 	/// <summary>
 	/// A thing that regularly adds particles to a ParticleGroup.
@@ -207,13 +178,22 @@ namespace Starmaze.Engine
 		double emitDelay;
 		Random rand;
 
-		public ParticleEmitter(double emitDelay = 0.1)
-		{
-			rand = new Random();
-			this.emitDelay = emitDelay;
-		}
+        const int DefaultParticleCache = 1024;
+		public List<Particle> Particles;
 
-		public void Update(double dt, ParticleGroup group)
+        public ParticleEmitter(double emitDelay = 0.1, int cacheSize = DefaultParticleCache)
+        {
+            rand = new Random();
+            this.emitDelay = emitDelay;
+            Particles = new List<Particle>(cacheSize);
+        }
+
+		public void AddParticle(Vector2d pos, double angle, Color4 color, Vector2d vel, double age = 0.0)
+		{
+			Particles.Add(new Particle(pos, angle, color, vel, age));
+		}		
+
+		public void Update(double dt)
 		{
 			lastTime += dt;
 			while (lastTime >= nextTime) {
@@ -221,7 +201,7 @@ namespace Starmaze.Engine
 				var xOffset = rand.NextDouble() * 0.02;
 				var yOffset = rand.NextDouble() * 0.02;
 
-				group.AddParticle(Vector2d.Zero, 0.0, Color4.Maroon, new Vector2d(xOffset, yOffset));
+				AddParticle(Vector2d.Zero, 0.0, Color4.Maroon, new Vector2d(xOffset, yOffset));
 			}
 		}
 	}
@@ -234,24 +214,34 @@ namespace Starmaze.Engine
 	class ParticleComponent : Component
 	{
 
-		ParticleGroup group;
+/*		ParticleGroup group;
 		ParticleEmitter emitter;
 		ParticleController controller;
+        */
+        Actor actor;
 
-		public ParticleComponent(Actor owner, double emitDelay = 0.1) : base(owner)
+		public ParticleComponent(Actor owner, World world, double emitDelay = 0.1) : base(owner)
 		{
 			HandledEvents = EventType.OnUpdate;
 
-			group = new ParticleGroup();
+			/*group = new ParticleGroup();
 			emitter = new ParticleEmitter(emitDelay: emitDelay);
-			controller = new ParticleController();
+			controller = new ParticleController();*/
+            actor = new Actor();
+            actor.Body = owner.Body;
+            ParticleRenderState renderstate = new ParticleRenderState(actor, emitDelay);
+            actor.RenderState = renderstate;
+            world.AddActor(actor);
 		}
 
 		public override void OnUpdate(object sender, FrameEventArgs e)
 		{
-			var dt = e.Time;
-			emitter.Update(dt, group);
-			controller.Update(dt, group);
+            var dt = e.Time;
+            ParticleEmitter emitter = ((ParticleRenderState)actor.RenderState).emitter;
+            emitter.Update(dt);
+            ((ParticleRenderState)actor.RenderState).controller.Update(dt, ref emitter.Particles);
+			//emitter.Update(dt, group);
+			//controller.Update(dt, group);
 		}
 	}
 }

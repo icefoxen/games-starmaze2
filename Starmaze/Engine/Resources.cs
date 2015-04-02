@@ -34,11 +34,8 @@ namespace Starmaze.Engine
 
 		public ResourceLoader()
 		{
-			var basePath = Environment.GetEnvironmentVariable("STARMAZE_HOME");
-			if (basePath == null) {
-				// This gets the location of the .exe, essentially.
-				basePath = AppDomain.CurrentDomain.BaseDirectory;
-			}
+			// BUGGO: This should be initialized from GameOptions, maybe?
+			var basePath = Environment.GetEnvironmentVariable("STARMAZE_HOME") ?? AppDomain.CurrentDomain.BaseDirectory;
 			// BUGGO: Still a bit ugly, since in the current build system the .exe is not
 			// in the resource path root.
 			basePath = System.IO.Path.Combine(basePath, "..");

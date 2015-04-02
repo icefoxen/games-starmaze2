@@ -91,6 +91,8 @@
     <Compile Include="Log.cs" />
     <Compile Include="Game\Tests.cs" />
     <Compile Include="Engine\Animation.cs" />
+    <Compile Include="Engine\AssetConverter.cs" />
+    <Compile Include="Game\AssetConverters.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
