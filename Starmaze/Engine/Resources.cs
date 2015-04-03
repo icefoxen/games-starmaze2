@@ -11,7 +11,7 @@ using Newtonsoft.Json.Linq;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
 using NAudio.Wave;
-
+using NAudio.Wave.SampleProviders;
 namespace Starmaze.Engine
 {
 	/// <summary>
@@ -215,12 +215,13 @@ TextureAtlas LoadTextureAtlas(JObject json)
 		}
 
 		ISampleProvider LoadSound(string name){
-			var samples = Resources.Options.SoundSampleRate;
-			var channels = Resources.Options.SoundChannels;
+			var req_samples = Resources.Options.SoundSampleRate;
+			var req_channels = Resources.Options.SoundChannels;
 
 			var fullPath = System.IO.Path.Combine(ResourceRoot, "sounds", name);
 			AudioFileReader input = new AudioFileReader(fullPath);
 			ISampleProvider sound = input.ToSampleProvider();
+			sound = CorrectSoundFile(sound);
 			return sound;
 
 		}
@@ -228,7 +229,12 @@ TextureAtlas LoadTextureAtlas(JObject json)
 			return Get(SoundCache, LoadSound, name);
 		}
 
-		//public ISampleProvider CorrectSampleRate()
+		public ISampleProvider CorrectSoundFile(ISampleProvider soundIn){
+
+			var resampler = new WdlResamplingSampleProvider(soundIn,Resources.Options.SoundSampleRate);
+			return (ISampleProvider)resampler;
+
+		}
 
 
 		/// <summary>
