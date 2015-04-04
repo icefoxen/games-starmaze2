@@ -631,12 +631,9 @@ namespace Starmaze.Engine
                 shader.Uniformf("colorOffset", 1f, 0f, 0f, 1f);
                 r.texture.Enable();
                 model.Draw();
-            }
-
-            foreach (var p in r.emitter.Particles)
-            {               
                 r.texture.Disable();
             }
+
 			//array.Draw();
 		}
 

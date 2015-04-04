@@ -27,7 +27,7 @@ namespace Starmaze.Engine
 		public event EventHandler<InputAction> OnKeyUp;
 		public event EventHandler<EventArgs> OnDeath;
 
-		public ParticleGroup grp;
+//		public ParticleGroup grp;
 		ParticleController cont;
 		ParticleRenderer rend;
 		ParticleEmitter emit;
@@ -46,7 +46,7 @@ namespace Starmaze.Engine
 			ChangeRoom(Map[initialZone][initialRoom]);
 			AddActor(player);
 
-			grp = new ParticleGroup();
+//			grp = new ParticleGroup();
 			cont = new ParticleController();
 			rend = new ParticleRenderer();
 			emit = new ParticleEmitter(0.001);
