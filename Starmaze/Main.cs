@@ -123,10 +123,10 @@ namespace Starmaze
 			Camera = new FollowCam(player, Util.LogicalScreenWidth, Util.LogicalScreenWidth / Options.AspectRatio);
 			World = new World(player, map, "TestZone", "TestRoom1");
 			Gui = new GUI(Util.LogicalScreenWidth, Util.LogicalScreenWidth / Options.AspectRatio);
-			Gui.CreateGUIText(World, new Vector2d(-60, 0), "Test");
 			Gui.CreateGUIText(World, new Vector2d(-55, 70), "FPS: 00");
 			SetupEvents();
 
+            player.AddComponent(new ParticleComponent(player,World));
 			fpsTimer.Start();
 		}
 

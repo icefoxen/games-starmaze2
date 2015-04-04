@@ -137,16 +137,17 @@ namespace Starmaze.Engine
          */
 		//public ParticleGroup group;
 		public ParticleEmitter emitter;
-		public ParticleController controller;
 		public float Rotation;
 		public Vector2 Scale;
+        public Texture texture;
 
-		public ParticleRenderState(Actor act, double emitDelay = 0.1, float rotation = 0.0f, Vector2? scale = null)
+		public ParticleRenderState(Actor act, Texture tex, double emitDelay = 0.1, float rotation = 0.0f, Vector2? scale = null)
 			: base(act, "ParticleRenderer")
 		{
 			//group = new ParticleGroup();
+            texture = tex;
+            Log.Assert(texture != null);
 			emitter = new ParticleEmitter(emitDelay);
-			controller = new ParticleController();
 			Rotation = rotation;
 			Scale = scale ?? Vector2.One;
 		}
@@ -598,35 +599,50 @@ namespace Starmaze.Engine
 	}
 
 	/// <summary>
-	/// An object that draws a ParticleGroup.
+	/// An object that draws a Particle List.
 	/// </summary>
 	public class ParticleRenderer : Renderer<ParticleRenderState>
 	{
-		Shader shader;
-		VertexArray array;
+		VertexArray model;
 
 		public ParticleRenderer()
 		{
 			shader = Resources.TheResources.GetShader("particle-default");
-			array = Resources.TheResources.GetModel("Particle");
+            model = Resources.TheResources.GetModel("Billboard");
 		}
 
 
 		protected override void RenderOne(ViewManager view, ParticleRenderState r)
 		{
 
-			var pos = new Vector2((float)r.Owner.Body.Position.X, (float)r.Owner.Body.Position.Y);
-			var transform = new Transform(pos, r.Rotation, r.Scale);
-			var mat = transform.TransformMatrix(view.ProjectionMatrix);
+           /* var pos = new Vector2((float)r.Owner.Body.Position.X, (float)r.Owner.Body.Position.Y);
+            var transform = new Transform(pos, r.Rotation, r.Scale);
+            var mat = transform.TransformMatrix(view.ProjectionMatrix);
+            */
+            //give each particle its own texture and apply the shader (enable, disable it)
+            foreach (var p in r.emitter.Particles)
+            {
+                var pos = new Vector2((float)p.Position.X, (float)p.Position.Y);
+                var transform = new Transform(pos, r.Rotation, r.Scale);
+                var mat = transform.TransformMatrix(view.ProjectionMatrix);
 
-			shader.UniformMatrix("projection", view.ProjectionMatrix);
-			shader.Uniformf("offset", 0f, 0);
-			shader.Uniformf("colorOffset", 1f, 0f, 0f, 1f);
-			array.Draw();
+                shader.UniformMatrix("projection", mat);
+                shader.Uniformf("offset", 0f, 0);
+                shader.Uniformf("colorOffset", 1f, 0f, 0f, 1f);
+                r.texture.Enable();
+                model.Draw();
+            }
+
+            foreach (var p in r.emitter.Particles)
+            {               
+                r.texture.Disable();
+            }
+			//array.Draw();
 		}
 
-		/*
-            foreach (var p in group.Particles) {
+        /*
+            foreach (var p in group.Particles)
+            {
                 var pos = new Vector2((float)p.Position.X, (float)p.Position.Y);
                 shader.Uniformf("offset", (float)p.Position.X, (float)p.Position.Y);
                 shader.Uniformf("colorOffset", p.Color.R, p.Color.G, p.Color.B, p.Color.A);
@@ -646,6 +662,6 @@ namespace Starmaze.Engine
             billboard.Draw();
             r.Atlas.Disable();
         } */
-	}
+    }
 }
 
