@@ -230,44 +230,28 @@ namespace Starmaze.Engine
         public float deltaScale = 0.0f;
         public Vector2d velocity;
 
-		public ParticleComponent(Actor owner, World world, double emitDelay = 0.1) : base(owner)
-		{
-			HandledEvents = EventType.OnUpdate;
-            actor = new Actor();
-            actor.Body = owner.Body;
-            controller = new ParticleController(actor.Body.Position, new Vector2d(100f, 100f));
-
-            Texture texture = Resources.TheResources.GetTexture("dot");
-            ParticleRenderState renderstate = new ParticleRenderState(actor, texture, emitDelay,0f,new Vector2(0.5f,0.5f));
-            actor.RenderState = renderstate;
-            world.AddActor(actor);
-
-              position = Vector2d.Zero;
-            maxLifeTime = 1f;
-            startScale = 1f;
-            deltaScale = 0f;
-            velocity = Vector2d.One;
-		}
-
-        public ParticleComponent(Actor owner, World world, Vector2d _pos, Vector2d _minVelocity, double emitDelay = 0.1,
+        public ParticleComponent(Actor owner, World world, Vector2d _velocity, double emitDelay = 0.1,
             float _maxLifeTime=1f, float _startScale=1f, float _deltaScale=0f) : base(owner)
 		{
 			HandledEvents = EventType.OnUpdate;
             actor = new Actor();
-            actor.Body = owner.Body;
-            controller = new ParticleController(actor.Body.Position, new Vector2d(100f, 100f));
+            actor.Body = new Body(actor);
 
-            Texture texture = Resources.TheResources.GetTexture("dot");
-            ParticleRenderState renderstate = new ParticleRenderState(actor, texture, emitDelay,0f,new Vector2(0.5f,0.5f));
-            actor.RenderState = renderstate;
-            world.AddActor(actor);
-
-             position=_pos;
-            velocity = _minVelocity;
+            velocity = _velocity;
             maxLifeTime = _maxLifeTime;
             startScale = _startScale;
             deltaScale = _deltaScale;
+
+            controller = new ParticleController(owner.Body.Position, velocity, maxLifeTime, startScale, deltaScale);
+
+            Texture texture = Resources.TheResources.GetTexture("dot");
+            ParticleRenderState renderstate = new ParticleRenderState(actor, texture, emitDelay,0f,new Vector2(0.1f,0.1f));
+            actor.RenderState = renderstate;
+            world.AddActor(actor);
+
+            
 		}
+
 		public override void OnUpdate(object sender, FrameEventArgs e)
 		{
             var dt = e.Time;

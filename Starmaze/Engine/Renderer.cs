@@ -135,7 +135,6 @@ namespace Starmaze.Engine
         the particle system in the render system. So I do not know the impact it can have
          * on render speed
          */
-		//public ParticleGroup group;
 		public ParticleEmitter emitter;
 		public float Rotation;
 		public Vector2 Scale;
@@ -144,7 +143,6 @@ namespace Starmaze.Engine
 		public ParticleRenderState(Actor act, Texture tex, double emitDelay = 0.1, float rotation = 0.0f, Vector2? scale = null)
 			: base(act, "ParticleRenderer")
 		{
-			//group = new ParticleGroup();
             texture = tex;
             Log.Assert(texture != null);
 			emitter = new ParticleEmitter(emitDelay);
@@ -235,6 +233,7 @@ namespace Starmaze.Engine
 			//}
 		}
 
+       
 		public void Remove(Actor act)
 		{
 			var rs = act.RenderState;
