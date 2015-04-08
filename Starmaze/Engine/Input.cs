@@ -40,7 +40,7 @@ namespace Starmaze.Engine
 
 	public class KeyboardBinding
 	{
-		InputAction[] Keys;
+		public InputAction[] Keys;
 
 		public KeyboardBinding(KeyConfig config)
 		{
