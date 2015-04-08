@@ -22,6 +22,7 @@ namespace Starmaze.Engine
 	//		T Load(string resourceName);
 	//      T LoadDynamic(string resourceName);
 	//
+	//      // Or should this just be an Enumerate method that returns all the resource names this thing can load?
 	//		void Preload(Dictionary<string, T> cache);
 	//	}
 

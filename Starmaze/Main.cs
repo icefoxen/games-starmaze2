@@ -45,13 +45,23 @@ namespace Starmaze
 			SoundChannels = 2;
 		}
 
+		/// <summary>
+		/// Loads a GameOptions object from a file.
+		/// The file must be in the same directory as the executable.
+		/// Uses json.net instead of our schmancy homebrew object-loader, and you know, that's *fine*.  It's okay.
+		/// In this simple case, it works great.
+		/// </summary>
+		/// <returns>The options file.</returns>
+		/// <param name="fileName">File name.</param>
 		public static GameOptions OptionsFromFile(string fileName = "settings.cfg")
 		{
-			if (File.Exists(fileName) == false) {
+			var exePath = AppDomain.CurrentDomain.BaseDirectory;
+			var fullFilePath = System.IO.Path.Combine(exePath, fileName);
+			if (File.Exists(fullFilePath) == false) {
 				Log.Message("Unable to open settings file, loading default settings.");
 				return new GameOptions();
 			} else {
-				string json = File.ReadAllText(fileName);
+				string json = File.ReadAllText(fullFilePath);
 				GameOptions options = JsonConvert.DeserializeObject<GameOptions>(json);
 				Log.Message("Loading game options from settings file: {0}", json);
 				return options;
@@ -61,8 +71,10 @@ namespace Starmaze
 
 		public static void OptionsToFile(GameOptions options, string fileName = "settings.cfg")
 		{
+			var exePath = AppDomain.CurrentDomain.BaseDirectory;
+			var fullFilePath = System.IO.Path.Combine(exePath, fileName);
 			var optionString = JsonConvert.SerializeObject(options);
-			File.WriteAllText(fileName, optionString);
+			File.WriteAllText(fullFilePath, optionString);
 		}
 	}
 
@@ -134,7 +146,7 @@ namespace Starmaze
 			Gui.CreateGUIText(World, new Vector2d(-55, 70), "FPS: 00");
 			SetupEvents();
 
-            player.AddComponent(new ParticleComponent(player,World,new Vector2d(100.0,100.0)));
+			player.AddComponent(new ParticleComponent(player, World, new Vector2d(100.0, 100.0)));
 			fpsTimer.Start();
 		}
 
