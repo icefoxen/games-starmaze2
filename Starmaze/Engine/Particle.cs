@@ -102,8 +102,9 @@ namespace Starmaze.Engine
 		public Vector2d Velocity;
 		public double Life;
 		readonly double MaxLife;
+        public float scale;
 
-		public Particle(Vector2d pos, double angle, Color4 color, Vector2d vel, double life)
+        public Particle(Vector2d pos, double angle, Color4 color, Vector2d vel, double life, float s=1f)
 		{
 			Position = pos;
 			Angle = angle;
@@ -111,6 +112,7 @@ namespace Starmaze.Engine
 			Velocity = vel;
 			MaxLife = life;
 			Life = life;
+            scale = s;
 		}
 	}
 
@@ -136,24 +138,45 @@ namespace Starmaze.Engine
 	}
 
 	/// <summary>
-	/// Updates the motion and state for a ParticleGroup
+    /// Updates the motion and state for a  List of Particles. Handles the Logic
 	/// </summary>
 	public class ParticleController
 	{
-		public ParticleController()
-		{
+        public Vector2d position;
+        public float maxLifeTime = 1.0f;
+        public float startScale = 1.0f;
+        public float deltaScale = 0.0f;
+        public Vector2d velocity;
 
+        public ParticleController()
+        {
+            position = Vector2d.Zero;
+            maxLifeTime = 1f;
+            startScale = 1f;
+            deltaScale = 0f;
+            velocity = Vector2d.One;
+        }
+
+        public ParticleController(Vector2d _pos, Vector2d _minVelocity, Vector2d _maxVelocity,
+            float _maxLifeTime=1f, float _startScale=1f, float _deltaScale=0f)
+		{
+            position=_pos;
+            velocity = _minVelocity;
+            maxLifeTime = _maxLifeTime;
+            startScale = _startScale;
+            deltaScale = _deltaScale;
 		}
 
 		public void Update(double dt,ref List<Particle> list)
 		{
 			// OPT: This could prolly be more efficient.
 			// But a core i5 handles 50k particles without much sweat, so, no sweat.
+            Random rand = new Random();
             for (int i = 0; i < list.Count; i++)
             {
                 var p = list[i];
-				var vel = Vector2d.Zero;
-				var pos = Vector2d.Zero;
+				var vel = velocity*rand.NextDouble();
+				var pos = position;
 				Vector2d.Multiply(ref p.Velocity, dt, out vel);
 				Vector2d.Add(ref p.Position, ref vel, out pos);
 				p.Position = pos;
@@ -169,14 +192,19 @@ namespace Starmaze.Engine
 	
 
 	/// <summary>
-	/// A thing that regularly adds particles to a ParticleGroup.
+	/// A thing that regularly adds particles to a List of Particles.
 	/// </summary>
 	public class ParticleEmitter
 	{
+        //Properties for 
 		double lastTime = 0.0;
 		double nextTime = 0.0;
 		double emitDelay;
 		Random rand;
+
+        private float totalTime = 0.0f;
+        private float spawnPerSecond;
+        private int maxParticles;
 
         const int DefaultParticleCache = 1024;
 		public List<Particle> Particles;
@@ -198,8 +226,8 @@ namespace Starmaze.Engine
 			lastTime += dt;
 			while (lastTime >= nextTime) {
 				nextTime += emitDelay;
-				var xOffset = rand.NextDouble() * 0.02;
-				var yOffset = rand.NextDouble() * 0.02;
+				var xOffset = rand.NextDouble() * 0.2;
+				var yOffset = rand.NextDouble() * 0.2;
 
 				AddParticle(Vector2d.Zero, 0.0, Color4.Maroon, new Vector2d(xOffset, yOffset));
 			}
@@ -214,22 +242,19 @@ namespace Starmaze.Engine
 	class ParticleComponent : Component
 	{
 
-/*		ParticleGroup group;
-		ParticleEmitter emitter;
-		ParticleController controller;
-        */
         Actor actor;
-
+        ParticleController controller = new ParticleController();
 		public ParticleComponent(Actor owner, World world, double emitDelay = 0.1) : base(owner)
 		{
 			HandledEvents = EventType.OnUpdate;
 
 			/*group = new ParticleGroup();
 			emitter = new ParticleEmitter(emitDelay: emitDelay);
-			controller = new ParticleController();*/
+			*/
             actor = new Actor();
             actor.Body = owner.Body;
-            ParticleRenderState renderstate = new ParticleRenderState(actor, emitDelay);
+            Texture texture = Resources.TheResources.GetTexture("dot");
+            ParticleRenderState renderstate = new ParticleRenderState(actor, texture, emitDelay,0f,new Vector2(0.5f,0.5f));
             actor.RenderState = renderstate;
             world.AddActor(actor);
 		}
@@ -239,10 +264,13 @@ namespace Starmaze.Engine
             var dt = e.Time;
             ParticleEmitter emitter = ((ParticleRenderState)actor.RenderState).emitter;
             emitter.Update(dt);
-            ((ParticleRenderState)actor.RenderState).controller.Update(dt, ref emitter.Particles);
-			//emitter.Update(dt, group);
-			//controller.Update(dt, group);
+            controller.Update(dt, ref emitter.Particles);
 		}
+
+        public int particleCount()
+        {
+            return ((ParticleRenderState)actor.RenderState).emitter.Particles.Count;
+        }
 	}
 }
 
