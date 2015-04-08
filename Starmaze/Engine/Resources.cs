@@ -12,8 +12,19 @@ using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
+
 namespace Starmaze.Engine
 {
+	//	public interface IResourceLoader<T>
+	//	{
+	//		string ResourceRoot { get; set; }
+	//
+	//		T Load(string resourceName);
+	//      T LoadDynamic(string resourceName);
+	//
+	//		void Preload(Dictionary<string, T> cache);
+	//	}
+
 	/// <summary>
 	/// The resource loader does three things:
 	/// 1) Provide a uniform interface to access assets from anywhere,
@@ -22,7 +33,6 @@ namespace Starmaze.Engine
 	/// </summary>
 	public class ResourceLoader : IDisposable
 	{
-
 		string ResourceRoot;
 		Dictionary<string, IRenderer> RendererCache;
 		Dictionary<string, Texture> TextureCache;
@@ -48,6 +58,7 @@ namespace Starmaze.Engine
 			TextCache = new Dictionary<string, Texture>();
 			JsonCache = new Dictionary<string, JObject>();
 		}
+
 		/// <summary>
 		/// The concept with the cache is not only that we don't want to load things multiple times,
 		/// but that we want each access to be as quick as possible.  Things can *always* be pre-cached
@@ -135,11 +146,20 @@ namespace Starmaze.Engine
 
 		Texture LoadTexture(string file)
 		{
-			var fullPath = System.IO.Path.Combine(ResourceRoot, "images", file + ".png");
-			Log.Message("Loading image {0}", fullPath);
-			Bitmap bitmap = new Bitmap(fullPath);
-			var t = new Texture(bitmap);
-			return t;
+			var resourceNameParts = file.Split(new []{ ':' }, 2);
+			if (resourceNameParts.Length > 1 && resourceNameParts[0] == "dynamic") {
+				var t = typeof(Starmaze.Content.Images);
+				var method = t.GetMethod(resourceNameParts[1]);
+				Log.Message("Loading dynamic texture {0}", method.Name);
+				var tex = (Texture)method.Invoke(null, null);
+				return tex;
+			} else {
+				var fullPath = System.IO.Path.Combine(ResourceRoot, "images", file + ".png");
+				Log.Message("Loading image {0}", fullPath);
+				Bitmap bitmap = new Bitmap(fullPath);
+				var tex = new Texture(bitmap);
+				return tex;
+			}
 		}
 
 		public Texture GetStringTexture(string r)
@@ -182,24 +202,24 @@ namespace Starmaze.Engine
 			return model;
 		}
 
-		Animation LoadAnimation(JArray json)
-		{
-			var l = new List<double>();
-			foreach (var item in json) {
-				l.Add(item.Value<double>());
-			}
-			var anim = new Animation(l.ToArray());
-			return anim;
-		}
-
-TextureAtlas LoadTextureAtlas(JObject json)
-		{
-			var texname = json["texture"].Value<string>();
-			var texture = Resources.TheResources.GetTexture(texname);
-			var width = json["width"].Value<int>();
-			var height = json["height"].Value<int>();
-			return new TextureAtlas(texture, width, height);
-		}
+		//		Animation LoadAnimation(JArray json)
+		//		{
+		//			var l = new List<double>();
+		//			foreach (var item in json) {
+		//				l.Add(item.Value<double>());
+		//			}
+		//			var anim = new Animation(l.ToArray());
+		//			return anim;
+		//		}
+		//
+		//		TextureAtlas LoadTextureAtlas(JObject json)
+		//		{
+		//			var texname = json["texture"].Value<string>();
+		//			var texture = Resources.TheResources.GetTexture(texname);
+		//			var width = json["width"].Value<int>();
+		//			var height = json["height"].Value<int>();
+		//			return new TextureAtlas(texture, width, height);
+		//		}
 
 		public JObject GetJson(string file)
 		{
@@ -214,7 +234,8 @@ TextureAtlas LoadTextureAtlas(JObject json)
 			return json;
 		}
 
-		ISampleProvider LoadSound(string name){
+		ISampleProvider LoadSound(string name)
+		{
 			var req_samples = Resources.Options.SoundSampleRate;
 			var req_channels = Resources.Options.SoundChannels;
 
@@ -225,13 +246,16 @@ TextureAtlas LoadTextureAtlas(JObject json)
 			return sound;
 
 		}
-		public ISampleProvider GetSound(string name){
+
+		public ISampleProvider GetSound(string name)
+		{
 			return Get(SoundCache, LoadSound, name);
 		}
 
-		public ISampleProvider CorrectSoundFile(ISampleProvider soundIn){
+		public ISampleProvider CorrectSoundFile(ISampleProvider soundIn)
+		{
 
-			var resampler = new WdlResamplingSampleProvider(soundIn,Resources.Options.SoundSampleRate);
+			var resampler = new WdlResamplingSampleProvider(soundIn, Resources.Options.SoundSampleRate);
 			return (ISampleProvider)resampler;
 
 		}
@@ -315,6 +339,7 @@ TextureAtlas LoadTextureAtlas(JObject json)
 		// And explicit destruction because that matters too.
 		static ResourceLoader _TheResources;
 		public static GameOptions Options;
+
 		public static ResourceLoader TheResources {
 			get {
 				Log.Assert(_TheResources != null, "Attempting to get null Resources object");

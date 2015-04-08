@@ -136,6 +136,18 @@ namespace Starmaze.Content
 			}
 			return new VertexArray(shader, bb, idxs: indices);
 		}
+
+		public static Texture TestTexture()
+		{
+			byte[] testTextureData = new byte[] {
+				255, 255, 255, 255,
+				255, 0, 0, 255,
+				0, 255, 0, 255,
+				0, 0, 255, 255,
+			};
+			var t = new Texture(testTextureData, 2, 2);
+			return t;
+		}
 	}
 }
 
