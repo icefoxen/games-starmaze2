@@ -66,6 +66,11 @@ namespace Starmaze.Engine
 			s.PlaySound(Resources.TheResources.GetSound("ResampleTester.wav"));
 			Assert.True(true);
 		}
+		[Test]
+		public void PlayMissingSound(){
+			s.PlaySound(Resources.TheResources.GetSound("JOZXYQK.wav"));
+			Assert.True(true);
+		}
 	}
 
 	[TestFixture]
