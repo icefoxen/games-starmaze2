@@ -45,6 +45,9 @@
     <Reference Include="Newtonsoft.Json">
       <HintPath>..\data\Newtonsoft.Json.dll</HintPath>
     </Reference>
+    <Reference Include="NAudio">
+      <HintPath>..\data\NAudio.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Engine\Input.cs" />
@@ -84,6 +87,7 @@
     <Compile Include="Engine\Tests.cs" />
     <Compile Include="Engine\Camera.cs" />
     <Compile Include="Engine\Postproc.cs" />
+    <Compile Include="Engine\Sound.cs" />
     <Compile Include="Log.cs" />
     <Compile Include="Game\Tests.cs" />
     <Compile Include="Engine\Animation.cs" />
