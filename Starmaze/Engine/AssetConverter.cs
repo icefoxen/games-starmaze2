@@ -197,6 +197,61 @@ namespace Starmaze.Engine
 		}
 	}
 
+	public class RoomAssetConverter : IAssetConverter
+	{
+		readonly string[] props = {
+			"Name",
+		};
+
+		public JToken Save(object o)
+		{
+			SaveLoad.PreSaveIfPossible(o);
+			var room = o as Room;
+			Log.Assert(room != null, "Should be impossible");
+			var json = SaveLoad.SaveProperties(o, props);
+			json["Actors"] = SaveLoad.SaveList<Actor>(room.Actors);
+			return json;
+		}
+
+		public object Load(JToken json)
+		{
+			var actors = SaveLoad.LoadList<Actor>(json["Actors"].Value<JArray>());
+			Log.Assert(actors != null);
+			var obj = new Room("", actors);
+			SaveLoad.LoadProperties(obj, props, json);
+			obj.Actors = actors;
+			SaveLoad.PostLoadIfPossible(obj);
+			return obj;
+		}
+	}
+
+	public class ZoneAssetConverter : IAssetConverter
+	{
+		readonly string[] props = {
+			"Name",
+		};
+
+		public JToken Save(object o)
+		{
+			var zone = o as Zone;
+			Log.Assert(zone != null, "Should be impossible");
+			SaveLoad.PreSaveIfPossible(o);
+			var json = SaveLoad.SaveProperties(o, props);
+			json["Rooms"] = SaveLoad.SaveList<Room>(zone.GetRooms());
+			return json;
+		}
+
+		public object Load(JToken json)
+		{
+			var rooms = SaveLoad.LoadList<Room>(json["Rooms"].Value<JArray>());
+			Log.Assert(rooms != null);
+			var obj = new Zone("", rooms);
+			SaveLoad.LoadProperties(obj, props, json);
+			SaveLoad.PostLoadIfPossible(obj);
+			return obj;
+		}
+	}
+
 	public static class SaveLoad
 	{
 		// XXX: Dependency inversion here, try to fix someday.
@@ -208,6 +263,8 @@ namespace Starmaze.Engine
 			{ typeof(SpriteRenderState), new SpriteRenderStateAssetConverter() },
 			{ typeof(Animation), new AnimationAssetConverter() },
 			{ typeof(TextureAtlas), new TextureAtlasAssetConverter() },
+			{ typeof(Room), new RoomAssetConverter() },
+			{ typeof(Zone), new ZoneAssetConverter() },
 			{ typeof(Starmaze.Game.Life), new Starmaze.Game.LifeAssetConverter() },
 			{ typeof(Starmaze.Game.Energy), new Starmaze.Game.EnergyAssetConverter() },
 			{ typeof(Starmaze.Game.InputController), new Starmaze.Game.InputControllerAssetConverter() },

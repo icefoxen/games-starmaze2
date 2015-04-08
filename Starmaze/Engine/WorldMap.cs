@@ -10,19 +10,9 @@ namespace Starmaze.Engine
 	/// </summary>
 	public class Zone
 	{
-		public string Name;
-		public Dictionary<string, Room> Rooms;
+		public string Name { get; set; }
 
-		/// <summary>
-		/// An indexer to make it easier to retrieve rooms.  Just go Zone[roomname].
-		/// </summary>
-		/// <param name="room">Room name.</param>
-		public Room this [string room] {
-			get {
-				Log.Assert(Rooms.ContainsKey(room), "Zone {0} does not contain room {1}!", Name, room);
-				return Rooms[room];
-			}
-		}
+		public Dictionary<string, Room> Rooms { get; set; }
 
 		public Zone(string name)
 		{
@@ -41,6 +31,22 @@ namespace Starmaze.Engine
 		{
 			Rooms.Add(room.Name, room);
 		}
+
+		public IEnumerable<Room> GetRooms()
+		{
+			return Rooms.Values;
+		}
+
+		/// <summary>
+		/// An indexer to make it easier to retrieve rooms.  Just go zone[roomname].
+		/// </summary>
+		/// <param name="room">Room name.</param>
+		public Room this [string room] {
+			get {
+				Log.Assert(Rooms.ContainsKey(room), "Zone {0} does not contain room {1}!", Name, room);
+				return Rooms[room];
+			}
+		}
 	}
 
 	/// <summary>
@@ -54,8 +60,9 @@ namespace Starmaze.Engine
 	public class Room
 	{
 		//public Zone Zone;
-		public string Name;
-		IEnumerable<Actor> Actors;
+		public string Name { get; set; }
+
+		public IEnumerable<Actor> Actors { get; set; }
 		//IEnumerable<Actor> StaticFrozen;
 		//IEnumerable<Actor> DynamicFrozen;
 		//IEnumerable<Actor> DynamicLive;

@@ -4,6 +4,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using OpenTK;
+using OpenTK.Graphics;
 using Starmaze.Engine;
 
 namespace Starmaze.Game
@@ -110,6 +111,48 @@ namespace Starmaze.Game
 			Log.Message("Saved non-empty actor: {0}", json);
 			var z = SaveLoad.Load(json);
 			Log.Message("Loaded non-empty actor: {0}", z);
+			Assert.True(true);
+		}
+
+		[Test]
+		public void RoomAssetConverterTest()
+		{
+			var actors = new Actor[] {
+				new Actor(),
+				new Actor(),
+			};
+			var a = new Room("TestRoom1", actors);
+
+			var json = SaveLoad.Save(a);
+			Log.Message("Saved room: {0}", json);
+			var z = SaveLoad.Load(json);
+			Log.Message("Loaded room: {0}", z);
+			Assert.True(true);
+		}
+
+		[Test]
+		public void ZoneAssetConverterTest()
+		{
+			var zone = new Zone("TestZone");
+			var actors1 = new Actor[] {
+				new Actor(),
+				new Actor(),
+			};
+			var actors2 = new Actor[] {
+				new Actor(),
+				new Actor(),
+			};
+			var room1 = new Room("TestRoom1", actors1);
+			var room2 = new Room("TestRoom2", actors2);
+			zone.AddRoom(room1);
+			zone.AddRoom(room2);
+
+			var a = zone;
+
+			var json = SaveLoad.Save(a);
+			Log.Message("Saved zone: {0}", json);
+			var z = SaveLoad.Load(json);
+			Log.Message("Loaded zone: {0}", z);
 			Assert.True(true);
 		}
 	}
