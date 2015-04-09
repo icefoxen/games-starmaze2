@@ -5,6 +5,8 @@ using Starmaze.Engine;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Input;
+using FarseerPhysics;
+using FarseerPhysics.Dynamics;
 
 namespace Starmaze.Engine
 {
@@ -21,16 +23,23 @@ namespace Starmaze.Engine
 		HashSet<Actor> Actors;
 		HashSet<Actor> ActorsToAdd;
 		HashSet<Actor> ActorsToRemove;
+		FarseerPhysics.Dynamics.World world;
+		FarseerPhysics.Dynamics.Body body;
+		FarseerPhysics.Collision.Shapes.Shape shape;
+		FarseerPhysics.Dynamics.Fixture fixture;
+		FarseerPhysics.Dynamics.Body body2;
+		FarseerPhysics.Collision.Shapes.Shape shape2;
+		FarseerPhysics.Dynamics.Fixture fixture2;
 
 		public event EventHandler<FrameEventArgs> OnUpdate;
 		public event EventHandler<InputAction> OnKeyDown;
 		public event EventHandler<InputAction> OnKeyUp;
 		public event EventHandler<EventArgs> OnDeath;
-
-//		public ParticleGroup grp;
+		//		public ParticleGroup grp;
 		ParticleController cont;
 		ParticleRenderer rend;
 		ParticleEmitter emit;
+		Actor player;
 
 		public World(Actor player, WorldMap map, string initialZone, string initialRoom)
 		{
@@ -45,11 +54,22 @@ namespace Starmaze.Engine
 			Map = map;
 			ChangeRoom(Map[initialZone][initialRoom]);
 			AddActor(player);
+			this.player = player;
 
 //			grp = new ParticleGroup();
 			cont = new ParticleController();
 			rend = new ParticleRenderer();
 			emit = new ParticleEmitter(0.001);
+
+			world = new FarseerPhysics.Dynamics.World(new Microsoft.Xna.Framework.Vector2(0, -1f));
+			body = new FarseerPhysics.Dynamics.Body(world);
+			body.BodyType = BodyType.Dynamic;
+			shape = new FarseerPhysics.Collision.Shapes.CircleShape(5, 1);
+			fixture = body.CreateFixture(shape);
+
+			body2 = FarseerPhysics.Factories.BodyFactory.CreateRectangle(world, 20, 1, 1);
+			body2.BodyType = BodyType.Static;
+			body2.Position = new Microsoft.Xna.Framework.Vector2(0, -10f);
 		}
 
 		/// <summary>
@@ -112,6 +132,9 @@ namespace Starmaze.Engine
 		{
 			var dt = e.Time;
 			Space.Update(dt);
+			world.Step((float)dt);
+			player.Body.Position = new Vector2d(body.Position.X, body.Position.Y);
+			Log.Message("Body position: {0}", body.Position);
 			// If nothing is listening for an event it will be null
 			if (OnUpdate != null) {
 				OnUpdate(this, e);
@@ -125,7 +148,7 @@ namespace Starmaze.Engine
 
 			ActorsToAdd.Clear();
 			ActorsToRemove.Clear();
-			
+
 			//emit.Update(dt, grp);
 			//cont.Update(dt, grp);
 		}

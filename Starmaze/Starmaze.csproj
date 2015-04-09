@@ -48,6 +48,9 @@
     <Reference Include="NAudio">
       <HintPath>..\data\NAudio.dll</HintPath>
     </Reference>
+    <Reference Include="FarseerPhysics">
+      <HintPath>..\data\FarseerPhysics.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Engine\Input.cs" />
