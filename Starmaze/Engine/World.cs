@@ -23,13 +23,7 @@ namespace Starmaze.Engine
 		HashSet<Actor> Actors;
 		HashSet<Actor> ActorsToAdd;
 		HashSet<Actor> ActorsToRemove;
-		FarseerPhysics.Dynamics.World world;
-		FarseerPhysics.Dynamics.Body body;
-		FarseerPhysics.Collision.Shapes.Shape shape;
-		FarseerPhysics.Dynamics.Fixture fixture;
-		FarseerPhysics.Dynamics.Body body2;
-		FarseerPhysics.Collision.Shapes.Shape shape2;
-		FarseerPhysics.Dynamics.Fixture fixture2;
+		FarseerPhysics.Dynamics.World PhysicsWorld;
 
 		public event EventHandler<FrameEventArgs> OnUpdate;
 		public event EventHandler<InputAction> OnKeyDown;
@@ -40,6 +34,7 @@ namespace Starmaze.Engine
 		ParticleRenderer rend;
 		ParticleEmitter emit;
 		Actor player;
+		FarseerPhysics.Dynamics.Body bod;
 
 		public World(Actor player, WorldMap map, string initialZone, string initialRoom)
 		{
@@ -48,10 +43,10 @@ namespace Starmaze.Engine
 			ActorsToRemove = new HashSet<Actor>();
 			Space = new Space();
 
-			// BUGGO: This should use a real resolution.
-			RenderManager = new RenderManager(1024, 768);
-
 			Map = map;
+			// ChangeRoom() calls ClearWorld() which handles a lot of our initialization.
+			// OPT: Someday might be a good idea to just empty data structures instead of
+			// freeing and re-allocating them.
 			ChangeRoom(Map[initialZone][initialRoom]);
 			AddActor(player);
 			this.player = player;
@@ -60,16 +55,6 @@ namespace Starmaze.Engine
 			cont = new ParticleController();
 			rend = new ParticleRenderer();
 			emit = new ParticleEmitter(0.001);
-
-			world = new FarseerPhysics.Dynamics.World(new Microsoft.Xna.Framework.Vector2(0, -1f));
-			body = new FarseerPhysics.Dynamics.Body(world);
-			body.BodyType = BodyType.Dynamic;
-			shape = new FarseerPhysics.Collision.Shapes.CircleShape(5, 1);
-			fixture = body.CreateFixture(shape);
-
-			body2 = FarseerPhysics.Factories.BodyFactory.CreateRectangle(world, 20, 1, 1);
-			body2.BodyType = BodyType.Static;
-			body2.Position = new Microsoft.Xna.Framework.Vector2(0, -10f);
 		}
 
 		/// <summary>
@@ -82,6 +67,7 @@ namespace Starmaze.Engine
 			Space = new Space();
 			// BUGGO: This should use a real resolution.
 			RenderManager = new RenderManager(1024, 768);
+			PhysicsWorld = new FarseerPhysics.Dynamics.World(Util.Gravity);
 
 			Actors = new HashSet<Actor>();
 			ActorsToAdd = new HashSet<Actor>();
@@ -116,7 +102,8 @@ namespace Starmaze.Engine
 			Actors.Add(a);
 			a.World = this;
 			RenderManager.Add(a);
-			Space.Add(a.Body);
+			a.Body.AddToWorld(PhysicsWorld);
+			//Space.Add(a.Body);
 			a.RegisterEvents(this);
 		}
 
@@ -124,7 +111,8 @@ namespace Starmaze.Engine
 		{
 			Actors.Remove(a);
 			RenderManager.Remove(a);
-			Space.Remove(a.Body);
+			PhysicsWorld.RemoveBody(a.Body.PBody);
+			//Space.Remove(a.Body);
 			a.UnregisterEvents(this);
 		}
 
@@ -132,9 +120,7 @@ namespace Starmaze.Engine
 		{
 			var dt = e.Time;
 			Space.Update(dt);
-			world.Step((float)dt);
-			player.Body.Position = new Vector2d(body.Position.X, body.Position.Y);
-			Log.Message("Body position: {0}", body.Position);
+			PhysicsWorld.Step((float)dt);
 			// If nothing is listening for an event it will be null
 			if (OnUpdate != null) {
 				OnUpdate(this, e);

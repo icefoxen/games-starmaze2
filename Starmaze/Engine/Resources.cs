@@ -25,7 +25,6 @@ namespace Starmaze.Engine
 	//      // Or should this just be an Enumerate method that returns all the resource names this thing can load?
 	//		void Preload(Dictionary<string, T> cache);
 	//	}
-
 	/// <summary>
 	/// The resource loader does three things:
 	/// 1) Provide a uniform interface to access assets from anywhere,
@@ -147,7 +146,7 @@ namespace Starmaze.Engine
 
 		Texture LoadTexture(string file)
 		{
-			var resourceNameParts = file.Split(new []{ ':' }, 2);
+			var resourceNameParts = file.Split(new [] { ':' }, 2);
 			if (resourceNameParts.Length > 1 && resourceNameParts[0] == "dynamic") {
 				var t = typeof(Starmaze.Content.Images);
 				var method = t.GetMethod(resourceNameParts[1]);
@@ -202,7 +201,6 @@ namespace Starmaze.Engine
 			var model = (VertexArray)method.Invoke(null, null);
 			return model;
 		}
-
 		//		Animation LoadAnimation(JArray json)
 		//		{
 		//			var l = new List<double>();
@@ -221,7 +219,6 @@ namespace Starmaze.Engine
 		//			var height = json["height"].Value<int>();
 		//			return new TextureAtlas(texture, width, height);
 		//		}
-
 		public JObject GetJson(string file)
 		{
 			var fullPath = System.IO.Path.Combine(ResourceRoot, "config", file + ".cfg");
@@ -237,8 +234,8 @@ namespace Starmaze.Engine
 
 		ISampleProvider LoadSound(string name)
 		{
-			var req_samples = Resources.Options.SoundSampleRate;
-			var req_channels = Resources.Options.SoundChannels;
+			//var req_samples = Resources.Options.SoundSampleRate;
+			//var req_channels = Resources.Options.SoundChannels;
 
 			var fullPath = System.IO.Path.Combine(ResourceRoot, "sounds", name);
 			AudioFileReader input = new AudioFileReader(fullPath);
@@ -260,7 +257,6 @@ namespace Starmaze.Engine
 			return (ISampleProvider)resampler;
 
 		}
-
 
 		/// <summary>
 		/// Preload any resources that take a long time to load; ie, all of them.

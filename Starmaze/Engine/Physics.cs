@@ -2,6 +2,10 @@ using System;
 using System.Collections.Generic;
 using OpenTK;
 using Newtonsoft.Json;
+using FarseerPhysics;
+using Dyn = FarseerPhysics.Dynamics;
+using Col = FarseerPhysics.Collision;
+using Xna = Microsoft.Xna.Framework;
 
 namespace Starmaze.Engine
 {
@@ -19,6 +23,52 @@ namespace Starmaze.Engine
 		Left = -1,
 		Right = 1,
 		None = 0
+	}
+
+	public class FBody : Component
+	{
+		public Col.Shapes.Shape Shape { get; set; }
+
+		public Dyn.BodyType BodyType { get; set; }
+
+		public Dyn.Body PBody { get; set; }
+
+		public Facing Facing { get; set; }
+		// Wrappers for Body attributes
+		// OPT: Aieee, wrapping and unwrapping the XNA vectors on every wossname is kinda awful.
+		// Oh well, live with it for now.
+		public Vector2d Position { get {
+				return new Vector2d(PBody.Position.X, PBody.Position.Y);
+			} set {
+				PBody.Position = new Xna.Vector2((float)value.X, (float)value.Y);
+			} }
+
+		public FBody(Actor owner, Dyn.BodyType bodyType = Dyn.BodyType.Dynamic) : base(owner)
+		{
+			Shape = FBody.RectShape(10, 5);
+			BodyType = bodyType;
+		}
+
+		public void AddToWorld(Dyn.World world)
+		{
+			PBody = new Dyn.Body(world, userdata: this);
+			PBody.CreateFixture(Shape);
+			PBody.BodyType = BodyType;
+		}
+
+		static Col.Shapes.PolygonShape RectShape(float width, float height)
+		{
+			var halfWidth = width / 2f;
+			var halfHeight = height / 2f;
+			var verts = new FarseerPhysics.Common.Vertices(4);
+			// XXX: Winding?  Currently it's clockwise.
+			verts.Add(new Microsoft.Xna.Framework.Vector2(-halfWidth, -halfHeight));
+			verts.Add(new Microsoft.Xna.Framework.Vector2(-halfWidth, halfHeight));
+			verts.Add(new Microsoft.Xna.Framework.Vector2(halfWidth, halfHeight));
+			verts.Add(new Microsoft.Xna.Framework.Vector2(halfWidth, -halfHeight));
+			return new Col.Shapes.PolygonShape(verts, 1f);
+
+		}
 	}
 
 	public class Body : Component
@@ -133,7 +183,6 @@ namespace Starmaze.Engine
 				geom.Translate(offset);
 			}
 		}
-
 		// XXX: Placeholder.
 		public void HandleCollision(Body other, Intersection intersection)
 		{
@@ -152,7 +201,6 @@ namespace Starmaze.Engine
 				*/
 			}
 		}
-
 	}
 
 	/// <summary>

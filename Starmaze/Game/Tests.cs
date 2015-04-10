@@ -92,9 +92,9 @@ namespace Starmaze.Game
 		public void ActorAssetConverterTest()
 		{
 			var a = new Actor();
-			var body = new Body(a);
+			var body = new FBody(a);
 			a.Body = body;
-			body.AddGeom(new BoxGeom(new BBox(-5, -15, 5, 5)));
+			//body.AddGeom(new BoxGeom(new BBox(-5, -15, 5, 5)));
 			a.AddComponent(new InputController(a));
 			a.AddComponent(new Life(a, 15));
 			a.AddComponent(new TimedLife(a, 15));

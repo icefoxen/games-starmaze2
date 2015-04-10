@@ -8,8 +8,8 @@ namespace Starmaze.Game
 	{
 		public Player()
 		{
-			Body = new Body(this);
-			Body.AddGeom(new BoxGeom(new BBox(-5, -15, 5, 5)));
+			Body = new FBody(this);
+			//Body.AddGeom(new BoxGeom(new BBox(-5, -15, 5, 5)));
 			AddComponent(new InputController(this));
 			AddComponent(new Life(this, 10));
 

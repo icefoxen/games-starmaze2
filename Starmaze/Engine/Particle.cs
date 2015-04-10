@@ -102,9 +102,9 @@ namespace Starmaze.Engine
 		public Vector2d Velocity;
 		public double Life;
 		readonly double MaxLife;
-        public float scale;
+		public float scale;
 
-        public Particle(Vector2d pos, double angle, Color4 color, Vector2d vel, double life, float s=1f)
+		public Particle(Vector2d pos, double angle, Color4 color, Vector2d vel, double life, float s=1f)
 		{
 			Position = pos;
 			Angle = angle;
@@ -112,58 +112,57 @@ namespace Starmaze.Engine
 			Velocity = vel;
 			MaxLife = life;
 			Life = life;
-            scale = s;
+			scale = s;
            
 		}
 	}
 
 	/// <summary>
-    /// Updates the motion and state for a  List of Particles. Handles the Logic
+	/// Updates the motion and state for a  List of Particles. Handles the Logic
 	/// </summary>
 	public class ParticleController
 	{
-        public Vector2d position;
-        public float maxLifeTime = 1.0f;
-        public float startScale = 1.0f;
-        public float deltaScale = 0.0f;
-        public Vector2d velocity;
+		public Vector2d position;
+		public float maxLifeTime = 1.0f;
+		public float startScale = 1.0f;
+		public float deltaScale = 0.0f;
+		public Vector2d velocity;
 
-        public ParticleController()
-        {
-            position = Vector2d.Zero;
-            maxLifeTime = 1f;
-            startScale = 1f;
-            deltaScale = 0f;
-            velocity = Vector2d.One;
-        }
-
-        public ParticleController(Vector2d _pos, Vector2d _Velocity,
-            float _maxLifeTime=1f, float _startScale=1f, float _deltaScale=0f)
+		public ParticleController()
 		{
-            position=_pos;
-            velocity = _Velocity;
-            maxLifeTime = _maxLifeTime;
-            startScale = _startScale;
-            deltaScale = _deltaScale;
+			position = Vector2d.Zero;
+			maxLifeTime = 1f;
+			startScale = 1f;
+			deltaScale = 0f;
+			velocity = Vector2d.One;
 		}
 
-		public void Update(double dt,ref List<Particle> list)
+		public ParticleController(Vector2d _pos, Vector2d _Velocity,
+		                          float _maxLifeTime=1f, float _startScale=1f, float _deltaScale=0f)
+		{
+			position = _pos;
+			velocity = _Velocity;
+			maxLifeTime = _maxLifeTime;
+			startScale = _startScale;
+			deltaScale = _deltaScale;
+		}
+
+		public void Update(double dt, ref List<Particle> list)
 		{
 			// OPT: This could prolly be more efficient.
 			// But a core i5 handles 50k particles without much sweat, so, no sweat.
-            Random rand = new Random();
-            for (int i = 0; i < list.Count; i++)
-            {
-                var p = list[i];
-				var vel = velocity*rand.NextDouble()*dt;
+			Random rand = new Random();
+			for (int i = 0; i < list.Count; i++) {
+				var p = list[i];
+				var vel = velocity * rand.NextDouble() * dt;
 				var pos = position;
 				Vector2d.Multiply(ref p.Velocity, ref vel, out vel);
 				Vector2d.Add(ref p.Position, ref vel, out pos);
 				p.Position = pos;
 				p.Life -= dt;
-                list[i] = p;
+				list[i] = p;
 			}
-           // Log.Message(String.Format("Particle ({0}) V {0}", list[0].Position, list[0].Velocity));
+			// Log.Message(String.Format("Particle ({0}) V {0}", list[0].Position, list[0].Velocity));
 		
 		}
 	}
@@ -178,28 +177,27 @@ namespace Starmaze.Engine
 	/// </summary>
 	public class ParticleEmitter
 	{
-        //Properties for 
+		//Properties for 
 		double lastTime = 0.0;
 		double nextTime = 0.0;
 		double emitDelay;
 		Random rand;
-        private int maxParticles;
-
-        const int DefaultParticleCache = 1024;
+		private int maxParticles;
+		const int DefaultParticleCache = 1024;
 		public List<Particle> Particles;
 
-        public ParticleEmitter(double emitDelay = 0.1, int cacheSize = DefaultParticleCache)
-        {
-            rand = new Random();
-            this.emitDelay = emitDelay;
-            Particles = new List<Particle>(cacheSize);
-        }
+		public ParticleEmitter(double emitDelay = 0.1, int cacheSize = DefaultParticleCache)
+		{
+			rand = new Random();
+			this.emitDelay = emitDelay;
+			Particles = new List<Particle>(cacheSize);
+		}
 
 		public void AddParticle(Vector2d pos, double angle, Color4 color, Vector2d vel, double age = 0.0)
 		{
 			Particles.Add(new Particle(pos, angle, color, vel, age));
-            //Log.Message(String.Format("Particle ({0}) V {0}", pos, vel));
-		}		
+			//Log.Message(String.Format("Particle ({0}) V {0}", pos, vel));
+		}
 
 		public void Update(double dt)
 		{
@@ -222,48 +220,48 @@ namespace Starmaze.Engine
 	class ParticleComponent : Component
 	{
 
-        Actor actor;
-        ParticleController controller;
-        public Vector2d position;
-        public float maxLifeTime = 1.0f;
-        public float startScale = 1.0f;
-        public float deltaScale = 0.0f;
-        public Vector2d velocity;
+		Actor actor;
+		ParticleController controller;
+		public Vector2d position;
+		public float maxLifeTime = 1.0f;
+		public float startScale = 1.0f;
+		public float deltaScale = 0.0f;
+		public Vector2d velocity;
 
-        public ParticleComponent(Actor owner, World world, Vector2d _velocity, double emitDelay = 0.1,
-            float _maxLifeTime=1f, float _startScale=1f, float _deltaScale=0f) : base(owner)
+		public ParticleComponent(Actor owner, World world, Vector2d _velocity, double emitDelay = 0.1,
+		                         float _maxLifeTime=1f, float _startScale=1f, float _deltaScale=0f) : base(owner)
 		{
 			HandledEvents = EventType.OnUpdate;
-            actor = new Actor();
-            actor.Body = new Body(actor);
+			actor = new Actor();
+			actor.Body = new FBody(actor);
 
-            velocity = _velocity;
-            maxLifeTime = _maxLifeTime;
-            startScale = _startScale;
-            deltaScale = _deltaScale;
+			velocity = _velocity;
+			maxLifeTime = _maxLifeTime;
+			startScale = _startScale;
+			deltaScale = _deltaScale;
 
-            controller = new ParticleController(owner.Body.Position, velocity, maxLifeTime, startScale, deltaScale);
+			//controller = new ParticleController(owner.Body.Position, velocity, maxLifeTime, startScale, deltaScale);
 
-            Texture texture = Resources.TheResources.GetTexture("dot");
-            ParticleRenderState renderstate = new ParticleRenderState(actor, texture, emitDelay,0f,new Vector2(0.1f,0.1f));
-            actor.RenderState = renderstate;
-            world.AddActor(actor);
+			Texture texture = Resources.TheResources.GetTexture("dot");
+			ParticleRenderState renderstate = new ParticleRenderState(actor, texture, emitDelay, 0f, new Vector2(0.1f, 0.1f));
+			actor.RenderState = renderstate;
+			world.AddActor(actor);
 
             
 		}
 
 		public override void OnUpdate(object sender, FrameEventArgs e)
 		{
-            var dt = e.Time;
-            ParticleEmitter emitter = ((ParticleRenderState)actor.RenderState).emitter;
-            emitter.Update(dt);
-            controller.Update(dt, ref emitter.Particles);
+			var dt = e.Time;
+			ParticleEmitter emitter = ((ParticleRenderState)actor.RenderState).emitter;
+			emitter.Update(dt);
+			controller.Update(dt, ref emitter.Particles);
 		}
 
-        public int particleCount()
-        {
-            return ((ParticleRenderState)actor.RenderState).emitter.Particles.Count;
-        }
+		public int particleCount()
+		{
+			return ((ParticleRenderState)actor.RenderState).emitter.Particles.Count;
+		}
 	}
 }
 

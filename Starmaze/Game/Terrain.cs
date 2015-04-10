@@ -43,8 +43,8 @@ namespace Starmaze.Game
 		public BoxBlock(BBox bbox, Color4 color)
 		{
 			Log.Message("Creating new BoxBlock: {0} {1}", bbox, color);
-			Body = new Body(this, immobile: true);
-			Body.AddGeom(new BoxGeom(bbox));
+			Body = new FBody(this, bodyType: FarseerPhysics.Dynamics.BodyType.Static);
+			//Body.AddGeom(new BoxGeom(bbox));
 
 			// BUGGO: Since the Actor gets the model and such themselves, instead of
 			// it being handled by the Resources system, they aren't freed properly on game end.

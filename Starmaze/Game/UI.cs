@@ -29,7 +29,6 @@ namespace Starmaze.Game
 			//((GUIRenderState)guiActor.RenderState).Texture = texture;
 		}
 
-
 		/// <summary>
 		/// 
 		/// </summary>
@@ -79,10 +78,7 @@ namespace Starmaze.Game
 				guiHash[key].DrawString(text, fontsize);
 			}
 		}
-
 	}
-
-
 	//An object that
 	public class GUIText
 	{
@@ -93,9 +89,9 @@ namespace Starmaze.Game
 		{
 			//Set up Actor
 			actor = new Actor();
-			actor.Body = new Body(actor, false, true);
+			//actor.Body = new Body(actor, false, true);
 			//Set the actors position
-			actor.Body.MoveTo(pos);
+			//actor.Body.MoveTo(pos);
 
 			//Set up the GUIRenderState for the Actor
 			texture = TextDrawer.RenderString(text, Color4.White, fontsize);

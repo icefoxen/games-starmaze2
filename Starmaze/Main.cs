@@ -27,7 +27,6 @@ namespace Starmaze
 		public VSyncMode Vsync;
 		public GameWindowFlags WindowMode;
 		public KeyboardBinding KeyBinding;
-
 		public float SoundVolume;
 		public int SoundSampleRate;
 		public int SoundChannels;
@@ -138,7 +137,7 @@ namespace Starmaze
 			var map = BuildTestLevel();
 			var actCfg = Resources.TheResources.GetJson("player");
 			var player = SaveLoad.Load<Actor>(actCfg);
-			player.Body.AddGeom(new BoxGeom(new BBox(-5, -15, 5, 5)));
+			//player.Body.AddGeom(new BoxGeom(new BBox(-5, -15, 5, 5)));
 			View = new ViewManager(Util.LogicalScreenWidth, Util.LogicalScreenWidth / Options.AspectRatio);
 			Camera = new FollowCam(player, Util.LogicalScreenWidth, Util.LogicalScreenWidth / Options.AspectRatio);
 			World = new World(player, map, "TestZone", "TestRoom1");
@@ -176,7 +175,7 @@ namespace Starmaze
 		void HandleKeyDown(object sender, OpenTK.Input.KeyboardKeyEventArgs e)
 		{
 			if (e.Key == OpenTK.Input.Key.Escape ||
-			    (e.Key == OpenTK.Input.Key.F4 && e.Alt)) {
+				(e.Key == OpenTK.Input.Key.F4 && e.Alt)) {
 				Exit();
 			} else if (!e.IsRepeat) {
 				var keyaction = Options.KeyBinding.Action(e.Key);
@@ -193,7 +192,6 @@ namespace Starmaze
 				World.HandleKeyUp(keyaction);
 			}
 		}
-
 		// XXX: This FPS counter is a little hacky, make it better.
 		Stopwatch fpsTimer = new Stopwatch();
 		const double fpsInterval = 5;
