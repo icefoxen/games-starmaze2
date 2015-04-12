@@ -9,14 +9,17 @@ namespace Starmaze
 	public static class Log
 	{
 		// Screw singletons.
-		static string LogFileName = "log.txt";
+		const string LogFileName = "log.txt";
 		public static bool LogToConsole = false;
+		static string FullPath;
 
 		public static void Init()
 		{
+			var exePath = AppDomain.CurrentDomain.BaseDirectory;
+			FullPath = System.IO.Path.Combine(exePath, LogFileName);
 			// Clear old log if it exists.
-			if (File.Exists(LogFileName)) {
-				File.Delete(LogFileName);
+			if (File.Exists(FullPath)) {
+				File.Delete(FullPath);
 			}
 			SetLogToConsole();
 			// By default we just write the log file to the same place as the exe.
@@ -89,8 +92,8 @@ namespace Starmaze
 		public static void Message(string message, params object[] args)
 		{
 			var text = String.Format(message, args);
-			File.AppendAllText(LogFileName, text);
-			File.AppendAllText(LogFileName, Environment.NewLine);
+			File.AppendAllText(FullPath, text);
+			File.AppendAllText(FullPath, Environment.NewLine);
 			// We always write to the log file, but optionally write to console as well.
 			if (LogToConsole) {
 				Console.WriteLine(text);
