@@ -30,7 +30,7 @@ namespace Starmaze.Engine
 //		public ParticleGroup grp;
 		ParticleController cont;
 		ParticleRenderer rend;
-		ParticleEmitter emit;
+		//ParticleEmitter emit;
 
 		public World(Actor player, WorldMap map, string initialZone, string initialRoom)
 		{
@@ -49,7 +49,7 @@ namespace Starmaze.Engine
 //			grp = new ParticleGroup();
 			cont = new ParticleController();
 			rend = new ParticleRenderer();
-			emit = new ParticleEmitter(0.001);
+			//emit = new ParticleEmitter(0.001);
 		}
 
 		/// <summary>

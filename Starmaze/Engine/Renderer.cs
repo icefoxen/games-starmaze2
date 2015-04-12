@@ -135,17 +135,17 @@ namespace Starmaze.Engine
         the particle system in the render system. So I do not know the impact it can have
          * on render speed
          */
-		public ParticleEmitter emitter;
+		public List<Particle> particleList;
 		public float Rotation;
 		public Vector2 Scale;
         public Texture texture;
 
-		public ParticleRenderState(Actor act, Texture tex, double emitDelay = 0.1, float rotation = 0.0f, Vector2? scale = null)
+        public ParticleRenderState(Actor act, Texture tex, Color4 color, List<Particle> list,Vector2? scale = null,float rotation = 0.0f)
 			: base(act, "ParticleRenderer")
 		{
             texture = tex;
             Log.Assert(texture != null);
-			emitter = new ParticleEmitter(emitDelay);
+            particleList = list;
 			Rotation = rotation;
 			Scale = scale ?? Vector2.One;
 		}
@@ -619,15 +619,15 @@ namespace Starmaze.Engine
             var mat = transform.TransformMatrix(view.ProjectionMatrix);
             */
             //give each particle its own texture and apply the shader (enable, disable it)
-            foreach (var p in r.emitter.Particles)
+            foreach (var p in r.particleList)
             {
                 var pos = new Vector2((float)p.Position.X, (float)p.Position.Y);
                 var transform = new Transform(pos, r.Rotation, r.Scale);
                 var mat = transform.TransformMatrix(view.ProjectionMatrix);
-
+                
                 shader.UniformMatrix("projection", mat);
                 shader.Uniformf("offset", 0f, 0);
-                shader.Uniformf("colorOffset", 1f, 0f, 0f, 1f);
+                shader.Uniformf("colorOffset", p.Color.R, p.Color.G, p.Color.B, p.Color.A);
                 r.texture.Enable();
                 model.Draw();
                 r.texture.Disable();

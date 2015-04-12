@@ -146,7 +146,7 @@ namespace Starmaze
 			Gui.CreateGUIText(World, new Vector2d(-55, 70), "FPS: 00");
 			SetupEvents();
 
-			player.AddComponent(new ParticleComponent(player, World, new Vector2d(100.0, 100.0)));
+            player.AddComponent(new ParticleComponent(player, World,2,Color4.White, 0.1,3f,100, 0f));
 			fpsTimer.Start();
 		}
 
