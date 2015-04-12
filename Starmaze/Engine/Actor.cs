@@ -38,6 +38,13 @@ namespace Starmaze.Engine
 			}
 		}
 
+		/// <summary>
+		/// Returns a component of a particular type from the actor.
+		/// Note that this really doesn't deal with having multiple components of the same type in the actor.
+		/// If no component, returns default.
+		/// </summary>
+		/// <returns>The component.</returns>
+		/// <typeparam name="T">Component type.</typeparam>
 		public T GetComponent<T>() where T : Component
 		{
 			foreach (var c in Components) {

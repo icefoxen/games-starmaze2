@@ -187,15 +187,19 @@ namespace Starmaze.Game
 
 			switch (a) {
 				case InputAction.MoveUp:
+					Owner.Body.PBody.ApplyLinearImpulse(new Microsoft.Xna.Framework.Vector2(0, 500));
 					//Owner.Body.AddVelocity(new Vector2d(0, 5));
 					break;
 				case InputAction.MoveDown:
+					Owner.Body.PBody.ApplyLinearImpulse(new Microsoft.Xna.Framework.Vector2(0, -500));
 					//Owner.Body.AddVelocity(new Vector2d(0, -5));
 					break;
 				case InputAction.MoveLeft:
+					Owner.Body.PBody.ApplyLinearImpulse(new Microsoft.Xna.Framework.Vector2(-500, 0));
 					//Owner.Body.AddVelocity(new Vector2d(-5, 0));
 					break;
 				case InputAction.MoveRight:
+					Owner.Body.PBody.ApplyLinearImpulse(new Microsoft.Xna.Framework.Vector2(500, 0));
 					//Owner.Body.AddVelocity(new Vector2d(5, 0));
 					break;
 			}

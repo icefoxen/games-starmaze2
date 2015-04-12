@@ -137,10 +137,9 @@ namespace Starmaze.Engine
 			velocity = Vector2d.One;
 		}
 
-		public ParticleController(Vector2d _pos, Vector2d _Velocity,
+		public ParticleController(Vector2d _Velocity,
 		                          float _maxLifeTime=1f, float _startScale=1f, float _deltaScale=0f)
 		{
-			position = _pos;
 			velocity = _Velocity;
 			maxLifeTime = _maxLifeTime;
 			startScale = _startScale;
@@ -155,7 +154,7 @@ namespace Starmaze.Engine
 			for (int i = 0; i < list.Count; i++) {
 				var p = list[i];
 				var vel = velocity * rand.NextDouble() * dt;
-				var pos = position;
+				Vector2d pos;
 				Vector2d.Multiply(ref p.Velocity, ref vel, out vel);
 				Vector2d.Add(ref p.Position, ref vel, out pos);
 				p.Position = pos;
@@ -240,7 +239,7 @@ namespace Starmaze.Engine
 			startScale = _startScale;
 			deltaScale = _deltaScale;
 
-			//controller = new ParticleController(owner.Body.Position, velocity, maxLifeTime, startScale, deltaScale);
+			controller = new ParticleController(velocity, maxLifeTime, startScale, deltaScale);
 
 			Texture texture = Resources.TheResources.GetTexture("dot");
 			ParticleRenderState renderstate = new ParticleRenderState(actor, texture, emitDelay, 0f, new Vector2(0.1f, 0.1f));

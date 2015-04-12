@@ -21,8 +21,8 @@ namespace Starmaze.Engine
 		RenderManager RenderManager;
 		Space Space;
 		HashSet<Actor> Actors;
-		HashSet<Actor> ActorsToAdd;
-		HashSet<Actor> ActorsToRemove;
+		List<Actor> ActorsToAdd;
+		List<Actor> ActorsToRemove;
 		FarseerPhysics.Dynamics.World PhysicsWorld;
 
 		public event EventHandler<FrameEventArgs> OnUpdate;
@@ -38,19 +38,20 @@ namespace Starmaze.Engine
 
 		public World(Actor player, WorldMap map, string initialZone, string initialRoom)
 		{
-			Actors = new HashSet<Actor>();
-			ActorsToAdd = new HashSet<Actor>();
-			ActorsToRemove = new HashSet<Actor>();
-			Space = new Space();
-
+			// ClearWorld handles a lot of our initialization
+			ClearWorld();
 			Map = map;
-			// ChangeRoom() calls ClearWorld() which handles a lot of our initialization.
-			// OPT: Someday might be a good idea to just empty data structures instead of
-			// freeing and re-allocating them.
 			ChangeRoom(Map[initialZone][initialRoom]);
 			AddActor(player);
+			player.Body = new FBody(player);
 			this.player = player;
 
+//			var act = new Actor();
+//			act.Body = new FBody(act, bodyType: BodyType.Static);
+//			act.Body.Position = new Vector2d(0, -30);
+//			act.RenderState = new ModelRenderState(act, Starmaze.Content.Images.FilledRectCenter(0, 0, 10, 5, Color4.Red));
+//			AddActor(act);
+//
 //			grp = new ParticleGroup();
 			cont = new ParticleController();
 			rend = new ParticleRenderer();
@@ -62,6 +63,8 @@ namespace Starmaze.Engine
 		/// Used when moving from one room to another,
 		/// when we switch out all objects for new ones.
 		/// </summary>
+		// OPT: Someday might be a good idea to just empty data structures instead of
+		// freeing and re-allocating them.
 		public void ClearWorld()
 		{
 			Space = new Space();
@@ -70,8 +73,8 @@ namespace Starmaze.Engine
 			PhysicsWorld = new FarseerPhysics.Dynamics.World(Util.Gravity);
 
 			Actors = new HashSet<Actor>();
-			ActorsToAdd = new HashSet<Actor>();
-			ActorsToRemove = new HashSet<Actor>();
+			ActorsToAdd = new List<Actor>();
+			ActorsToRemove = new List<Actor>();
 		}
 
 		public void ChangeRoom(Room newRoom)
@@ -102,8 +105,10 @@ namespace Starmaze.Engine
 			Actors.Add(a);
 			a.World = this;
 			RenderManager.Add(a);
-			a.Body.AddToWorld(PhysicsWorld);
-			//Space.Add(a.Body);
+			//Log.Message("Body: {0}, actor {1}, physics world: {2}", a.Body, a, PhysicsWorld);
+			if (a.Body != null) {
+				a.Body.AddToWorld(PhysicsWorld);
+			}
 			a.RegisterEvents(this);
 		}
 
@@ -111,15 +116,16 @@ namespace Starmaze.Engine
 		{
 			Actors.Remove(a);
 			RenderManager.Remove(a);
-			PhysicsWorld.RemoveBody(a.Body.PBody);
-			//Space.Remove(a.Body);
+			if (a.Body != null) {
+				a.Body.RemoveFromWorld(PhysicsWorld);
+			}
 			a.UnregisterEvents(this);
 		}
 
 		public void Update(FrameEventArgs e)
 		{
 			var dt = e.Time;
-			Space.Update(dt);
+			//Space.Update(dt);
 			PhysicsWorld.Step((float)dt);
 			// If nothing is listening for an event it will be null
 			if (OnUpdate != null) {

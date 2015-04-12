@@ -44,6 +44,7 @@ namespace Starmaze.Game
 		{
 			Log.Message("Creating new BoxBlock: {0} {1}", bbox, color);
 			Body = new FBody(this, bodyType: FarseerPhysics.Dynamics.BodyType.Static);
+			Body.Shape = FBody.RectShape((float)bbox.Left, (float)bbox.Bottom, (float)bbox.Right, (float)bbox.Top);
 			//Body.AddGeom(new BoxGeom(bbox));
 
 			// BUGGO: Since the Actor gets the model and such themselves, instead of

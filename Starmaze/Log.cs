@@ -15,22 +15,12 @@ namespace Starmaze
 
 		public static void Init()
 		{
-			var exePath = AppDomain.CurrentDomain.BaseDirectory;
-			FullPath = System.IO.Path.Combine(exePath, LogFileName);
+			FullPath = Util.BasePath(LogFileName);
 			// Clear old log if it exists.
 			if (File.Exists(FullPath)) {
 				File.Delete(FullPath);
 			}
 			SetLogToConsole();
-			// By default we just write the log file to the same place as the exe.
-			/*
-			var basePath = Environment.GetEnvironmentVariable("STARMAZE_HOME");
-			if (basePath == null) {
-				// This gets the location of the .exe, essentially.
-				basePath = AppDomain.CurrentDomain.BaseDirectory;
-			}
-			basePath = System.IO.Path.Combine(basePath, "..");
-*/
 		}
 
 		/// <summary>

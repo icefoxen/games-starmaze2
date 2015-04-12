@@ -73,7 +73,6 @@ namespace Starmaze.Game
 		/// <param name="fontsize"></param>
 		public void editGUIText(string key, string text, int fontsize = 24)
 		{
-           
 			if (guiHash.ContainsKey(key)) {
 				guiHash[key].DrawString(text, fontsize);
 			}
