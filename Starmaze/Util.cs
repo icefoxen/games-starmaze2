@@ -79,5 +79,17 @@ namespace Starmaze
 			// Really now?  Really?
 			return Color.FromArgb((int)(c.A * 255), (int)(c.R * 255), (int)(c.G * 255), (int)(c.B * 255));
 		}
+
+		/// <summary>
+		/// Returns the path of the .exe file, which we use for all path offsets.
+		/// Optionally takes a string and returns a that filename appended to the path.
+		/// </summary>
+		/// <returns>The path.</returns>
+		/// <param name="rest">Rest.</param>
+		public static string BasePath(string filename = "")
+		{
+			var exePath = AppDomain.CurrentDomain.BaseDirectory;
+			return System.IO.Path.Combine(exePath, filename);
+		}
 	}
 }

@@ -45,10 +45,7 @@ namespace Starmaze.Engine
 		public ResourceLoader()
 		{
 			// BUGGO: This should be initialized from GameOptions, maybe?
-			var basePath = Environment.GetEnvironmentVariable("STARMAZE_HOME") ?? AppDomain.CurrentDomain.BaseDirectory;
-			// BUGGO: Still a bit ugly, since in the current build system the .exe is not
-			// in the resource path root.
-			basePath = System.IO.Path.Combine(basePath, "..");
+			var basePath = Util.BasePath("..");
 			ResourceRoot = basePath;
 			RendererCache = new Dictionary<string, IRenderer>();
 			TextureCache = new Dictionary<string, Texture>();
