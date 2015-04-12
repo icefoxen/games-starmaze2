@@ -120,8 +120,8 @@ namespace Starmaze.Engine
             velocityMagnitude = magnitude;
 			Color = color;
             Angle = angle;
-            MaxLife = life * 100;
-            Life = life*100;
+            MaxLife = life;
+            Life = life;
             scale = s;
 		}
 	}
@@ -183,14 +183,11 @@ namespace Starmaze.Engine
                 var pos = position;
                // Vector2d.Multiply(ref vel, ref _gravity, out vel);
               
-  
-           
-                //Final Step
+                //Final Step - add the calculated Velocity the particle's position
                 Vector2d.Add(ref p.Position, ref vel, out pos);
                 p.Position = pos;
                 p.Life -= dt;
-                list[i] = p;             
-                    
+                list[i] = p;
 			}
 
             
@@ -284,6 +281,7 @@ namespace Starmaze.Engine
             var dt = e.Time;
             //ParticleEmitter emitter = ((ParticleRenderState)actor.RenderState).emitter;
             Update(dt);
+            ((ParticleRenderState)actor.RenderState).particleList = Particles;
             controller.Update(dt, ref Particles);
 		}
 
@@ -315,9 +313,8 @@ namespace Starmaze.Engine
             while (lastTime >= nextTime)
             {
                 nextTime += emitDelay;
-                var xOffset = rand.NextDouble() * 0.2;
-                var yOffset = rand.NextDouble() * 0.2;
-
+                /*var xOffset = rand.NextDouble() * 0.2;
+                var yOffset = rand.NextDouble() * 0.2;*/
                 EmitByShape();
                 //AddParticle(Vector2d.Zero, 0.0,color, new Vector2d(xOffset, yOffset), lifetime);
             }
