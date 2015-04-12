@@ -6,6 +6,10 @@ Starmaze/Starmaze.userprefs
 *~
 *.pyc
 env
-Starmaze/log.txt
-Starmaze/settings.cfg
+build/*.exe
+build/*.dll
+build/*.mdb
+build/*.config
+build/log.txt
+build/settings.cfg
 *.ide
