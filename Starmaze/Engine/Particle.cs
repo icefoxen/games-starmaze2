@@ -105,14 +105,8 @@ namespace Starmaze.Engine
 		public double Life;
 		public readonly double MaxLife;
         public float scale;
+        public Vector2d velocity;
 
-        public Vector2d Velocity
-        {
-            get
-            {
-                return Angle * velocityMagnitude;
-            }
-        }
 
         public Particle(Vector2d pos, double magnitude, Color4 color, Vector2d angle, double life=5f, float s=1f)
 		{
@@ -123,9 +117,11 @@ namespace Starmaze.Engine
             MaxLife = life;
             Life = life;
             scale = s;
-		}
+            velocity = Angle * velocityMagnitude; 
+        }
 	}
 
+   
 	/// <summary>
     /// Updates the motion and state for a  List of Particles. Handles the Logic
 	/// </summary>
@@ -177,14 +173,15 @@ namespace Starmaze.Engine
 
                 //1. Applying gravity
                 var _gravity =-1*Vector2d.UnitY*(gravity);
-                _gravity *= (p.Life/p.MaxLife);
+               // _gravity *= (p.Life/p.MaxLife);
+                p.velocity += _gravity * dt;
                 //*(velocity * rand.NextDouble() * dt);
-                var vel = p.Velocity*dt;
+                var speed = p.velocity*dt;
                 var pos = position;
-               // Vector2d.Multiply(ref vel, ref _gravity, out vel);
+               //Vector2d.Multiply(ref vel, ref _gravity, out vel);
               
                 //Final Step - add the calculated Velocity the particle's position
-                Vector2d.Add(ref p.Position, ref vel, out pos);
+                Vector2d.Add(ref p.Position, ref speed, out pos);
                 p.Position = pos;
                 p.Life -= dt;
                 list[i] = p;
@@ -235,14 +232,15 @@ namespace Starmaze.Engine
             public EmitType type;
             public float radius, length, width;
             public int start_angle, end_angle;
-            public EmitShape(EmitType type = EmitType.Circle, float radius = 1f, float length = 1f, float width = 1f)
+
+            public EmitShape(EmitType type = EmitType.Cone, float radius = 1f, int start_angle = 0, int end_angle = 359, float length = 1f, float width = 1f)
             {
                 this.type = type;
                 this.radius = radius;
                 this.length = length;
                 this.width = width;
-                this.start_angle = 0;
-                this.end_angle = 360;
+                this.start_angle = start_angle;
+                this.end_angle = end_angle;
             }
         }
 
@@ -266,7 +264,7 @@ namespace Starmaze.Engine
             rand = new Random();
             this.emitDelay = emitDelay;
             Particles = new List<Particle>(MaxParticles);
-            emitter_shape = new EmitShape(EmitType.Circle, 20f);
+            emitter_shape = new EmitShape(EmitType.Circle,5f);
 
             controller = new ParticleController(owner.Body.Position, velocityMagnitude, maxLifeTime, gravity, startScale, deltaScale);
 
