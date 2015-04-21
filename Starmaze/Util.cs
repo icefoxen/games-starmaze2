@@ -17,8 +17,8 @@ namespace Starmaze
 		public const int GlMinorVersion = 3;
 		public const int LogicalScreenWidth = 160;
 		public const string SettingsFileName = "settings.cfg";
-
 		public static readonly Version StarmazeVersion = new Version(0, 1);
+		public static readonly Microsoft.Xna.Framework.Vector2 Gravity = new Microsoft.Xna.Framework.Vector2(0, -5f);
 
 		public static bool IsPowerOf2(int i)
 		{
@@ -64,7 +64,6 @@ namespace Starmaze
 				yield return i;
 			}
 		}
-
 		// BUGGO: There's really no way to do this in C#?
 		public static T[] FillArray<T>(int length, T initItem)
 		{
@@ -81,5 +80,16 @@ namespace Starmaze
 			return Color.FromArgb((int)(c.A * 255), (int)(c.R * 255), (int)(c.G * 255), (int)(c.B * 255));
 		}
 
+		/// <summary>
+		/// Returns the path of the .exe file, which we use for all path offsets.
+		/// Optionally takes a string and returns a that filename appended to the path.
+		/// </summary>
+		/// <returns>The path.</returns>
+		/// <param name="rest">Rest.</param>
+		public static string BasePath(string filename = "")
+		{
+			var exePath = AppDomain.CurrentDomain.BaseDirectory;
+			return System.IO.Path.Combine(exePath, filename);
+		}
 	}
 }

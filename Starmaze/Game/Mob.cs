@@ -95,7 +95,6 @@ namespace Starmaze.Game
 		{
 			return string.Format("Life(CurrentLife: {0}, MaxLife: {1}, DamageAttenuation: {2}, DamageReduction: {3})", CurrentLife, MaxLife, DamageAttenuation, DamageReduction);
 		}
-
 	}
 	//end Life component
 	public class Energy : Component
@@ -188,16 +187,20 @@ namespace Starmaze.Game
 
 			switch (a) {
 				case InputAction.MoveUp:
-					Owner.Body.AddVelocity(new Vector2d(0, 5));
+					Owner.Body.PBody.ApplyLinearImpulse(new Microsoft.Xna.Framework.Vector2(0, 500));
+					//Owner.Body.AddVelocity(new Vector2d(0, 5));
 					break;
 				case InputAction.MoveDown:
-					Owner.Body.AddVelocity(new Vector2d(0, -5));
+					Owner.Body.PBody.ApplyLinearImpulse(new Microsoft.Xna.Framework.Vector2(0, -500));
+					//Owner.Body.AddVelocity(new Vector2d(0, -5));
 					break;
 				case InputAction.MoveLeft:
-					Owner.Body.AddVelocity(new Vector2d(-5, 0));
+					Owner.Body.PBody.ApplyLinearImpulse(new Microsoft.Xna.Framework.Vector2(-500, 0));
+					//Owner.Body.AddVelocity(new Vector2d(-5, 0));
 					break;
 				case InputAction.MoveRight:
-					Owner.Body.AddVelocity(new Vector2d(5, 0));
+					Owner.Body.PBody.ApplyLinearImpulse(new Microsoft.Xna.Framework.Vector2(500, 0));
+					//Owner.Body.AddVelocity(new Vector2d(5, 0));
 					break;
 			}
 		}

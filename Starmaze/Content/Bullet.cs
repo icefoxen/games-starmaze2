@@ -18,8 +18,8 @@ namespace Starmaze.Content
 			life = new TimedLife(this, 1f);
 
 			double xImpulse = 300 * (int)Body.Facing;
-			double yImpulse = 0f;
-			Body.AddImpulse(new Vector2d(xImpulse, yImpulse));
+			//double yImpulse = 0f;
+			//Body.AddImpulse(new Vector2d(xImpulse, yImpulse));
 
 			damage = 6f;
 			rotationSpeed = 10f;

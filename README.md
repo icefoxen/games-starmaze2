@@ -28,6 +28,8 @@ This is the main branch.
 ## Dependencies
 
 * OpenTK (DLL included in repo)
+* NAudio
+* Farseer physics engine
 * Should work both on MS .NET and Mono, C# version >= 4.0, .NET version 4.5
 
 ## Setting up a new dev environment
