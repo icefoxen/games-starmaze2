@@ -17,6 +17,7 @@ namespace Starmaze.Engine
 		Fire1,
 		Fire2,
 		Defend,
+		Jump,
 	}
 
 	public class KeyConfig

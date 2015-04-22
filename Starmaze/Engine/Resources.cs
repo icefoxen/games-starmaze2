@@ -15,7 +15,7 @@ using NAudio.Wave.SampleProviders;
 
 namespace Starmaze.Engine
 {
-	//	public interface IResourceLoader<T>
+	//	public interface IResourceSource<T>
 	//	{
 	//		string ResourceRoot { get; set; }
 	//
