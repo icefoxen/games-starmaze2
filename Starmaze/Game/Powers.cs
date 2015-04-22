@@ -5,7 +5,7 @@ using Starmaze.Engine;
 
 namespace Starmaze.Game
 {
-	public enum PowerOrdering : int
+	public enum PowerOrdering
 	{
 		None,
 		Beginnings,
@@ -121,12 +121,12 @@ namespace Starmaze.Game
 	public class PowerSet : Component
 	{
 		SortedList<PowerOrdering, IPower> Powers;
-		IPower CurrentPower;
+		public IPower CurrentPower;
 
 		public PowerSet(Actor owner) : base(owner)
 		{
 			Powers = new SortedList<PowerOrdering, IPower>();
-			HandledEvents = EventType.OnKeyDown | EventType.OnKeyUp | EventType.OnUpdate;
+			HandledEvents = EventType.OnUpdate | EventType.OnKeyDown | EventType.OnKeyUp;
 			var p = new NullPower();
 			AddPower(p);
 			SetCurrentPower(p);
@@ -134,6 +134,7 @@ namespace Starmaze.Game
 
 		public override void OnKeyDown(object sender, InputAction a)
 		{
+			Log.Message("Power key down: {0}", a);
 			switch (a) {
 				case InputAction.Fire1:
 					CurrentPower.Fire1KeyDown();
@@ -152,6 +153,7 @@ namespace Starmaze.Game
 
 		public override void OnKeyUp(object sender, InputAction a)
 		{
+			Log.Message("Power key up: {0}", a);
 			switch (a) {
 				case InputAction.Fire1:
 					CurrentPower.Fire1KeyUp();
@@ -170,11 +172,18 @@ namespace Starmaze.Game
 
 		public override void OnUpdate(object sender, FrameEventArgs args)
 		{
+			// XXX: Not updating powers that aren't current has potential
+			// implications for weapon cooldown times.
+			// One solution is to do it Iji style and reset all cooldowns
+			// when you swap powers.  Check how Cave Story does it.
 			CurrentPower.Update(args.Time);
 		}
 
 		public void AddPower(IPower p)
 		{
+			if (Powers.ContainsKey(PowerOrdering.None)) {
+				Powers.Remove(PowerOrdering.None);
+			}
 			Powers.Add(p.Ordering, p);
 		}
 
@@ -199,6 +208,7 @@ namespace Starmaze.Game
 			var currentOrder = (int)CurrentPower.Ordering;
 			var powerCount = (int)PowerOrdering.Count;
 			do {
+				// XXX: Double-check that modulo of a negative number works the way we want.
 				currentOrder = (currentOrder - 1) % powerCount;
 			} while(!Powers.ContainsKey((PowerOrdering)currentOrder));
 			SetCurrentPower(Powers[(PowerOrdering)currentOrder]);
