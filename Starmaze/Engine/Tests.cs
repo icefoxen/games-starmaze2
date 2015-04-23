@@ -39,6 +39,7 @@ namespace Starmaze.Engine
 		[SetUp]
 		public void Prep()
 		{
+			Log.Init();
 			Log.LogToConsole = true;
 			// Create a dummy GameWindow, which creates an OpenGL context so that if necessary a test
 			// can load a shader, model, whatever

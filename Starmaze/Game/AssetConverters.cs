@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using Newtonsoft.Json.Linq;
 using OpenTK;
 using Starmaze.Engine;
@@ -106,6 +107,29 @@ namespace Starmaze.Game
 		public object Load(JToken json)
 		{
 			var obj = new InputController(null);
+			SaveLoad.PostLoadIfPossible(obj);
+			return obj;
+		}
+	}
+
+	// TODO: Does not save/load powers properly yet.
+	public class PowerSetAssetConverter : IAssetConverter
+	{
+		public JToken Save(object o)
+		{
+			SaveLoad.PreSaveIfPossible(o);
+			var powerset = o as PowerSet;
+			Log.Assert(powerset != null, "Shouldn't be possible");
+			var json = SaveLoad.JObjectOfType(o);
+			json["PowerList"] = SaveLoad.SaveList<int>(powerset.PowerList);
+			return json;
+		}
+
+		public object Load(JToken json)
+		{
+			var obj = new PowerSet(null);
+			var components = SaveLoad.LoadList<int>(json["PowerList"].Value<JArray>());
+			obj.PowerList = components.ToArray();
 			SaveLoad.PostLoadIfPossible(obj);
 			return obj;
 		}

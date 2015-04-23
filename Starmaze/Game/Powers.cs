@@ -1,11 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using OpenTK;
 using Starmaze.Engine;
 
 namespace Starmaze.Game
 {
-	public enum PowerOrdering
+	public enum PowerIndex
 	{
 		None,
 		Beginnings,
@@ -21,7 +22,7 @@ namespace Starmaze.Game
 
 	public interface IPower
 	{
-		PowerOrdering Ordering { get; }
+		PowerIndex Ordering { get; }
 
 		void Fire1KeyDown();
 
@@ -55,7 +56,7 @@ namespace Starmaze.Game
 	/// </summary>
 	public class NullPower : IPower
 	{
-		public PowerOrdering Ordering { get { return PowerOrdering.None; } }
+		public PowerIndex Ordering { get { return PowerIndex.None; } }
 
 		public void Fire1KeyDown()
 		{
@@ -120,12 +121,13 @@ namespace Starmaze.Game
 	/// </summary>
 	public class PowerSet : Component
 	{
-		SortedList<PowerOrdering, IPower> Powers;
+		public SortedList<PowerIndex, IPower> Powers;
+
 		public IPower CurrentPower;
 
 		public PowerSet(Actor owner) : base(owner)
 		{
-			Powers = new SortedList<PowerOrdering, IPower>();
+			Powers = new SortedList<PowerIndex, IPower>();
 			HandledEvents = EventType.OnUpdate | EventType.OnKeyDown | EventType.OnKeyUp;
 			var p = new NullPower();
 			AddPower(p);
@@ -181,8 +183,8 @@ namespace Starmaze.Game
 
 		public void AddPower(IPower p)
 		{
-			if (Powers.ContainsKey(PowerOrdering.None)) {
-				Powers.Remove(PowerOrdering.None);
+			if (Powers.ContainsKey(PowerIndex.None)) {
+				Powers.Remove(PowerIndex.None);
 			}
 			Powers.Add(p.Ordering, p);
 		}
@@ -196,22 +198,54 @@ namespace Starmaze.Game
 		{
 			// This is a little bit nasty but should work.
 			var currentOrder = (int)CurrentPower.Ordering;
-			var powerCount = (int)PowerOrdering.Count;
+			var powerCount = (int)PowerIndex.Count;
 			do {
 				currentOrder = (currentOrder + 1) % powerCount;
-			} while(!Powers.ContainsKey((PowerOrdering)currentOrder));
-			SetCurrentPower(Powers[(PowerOrdering)currentOrder]);
+			} while(!Powers.ContainsKey((PowerIndex)currentOrder));
+			SetCurrentPower(Powers[(PowerIndex)currentOrder]);
 		}
 
 		public void PreviousPower()
 		{
 			var currentOrder = (int)CurrentPower.Ordering;
-			var powerCount = (int)PowerOrdering.Count;
+			var powerCount = (int)PowerIndex.Count;
 			do {
 				// XXX: Double-check that modulo of a negative number works the way we want.
 				currentOrder = (currentOrder - 1) % powerCount;
-			} while(!Powers.ContainsKey((PowerOrdering)currentOrder));
-			SetCurrentPower(Powers[(PowerOrdering)currentOrder]);
+			} while(!Powers.ContainsKey((PowerIndex)currentOrder));
+			SetCurrentPower(Powers[(PowerIndex)currentOrder]);
+		}
+
+		public override string ToString()
+		{
+			var powerNames = Powers.Values.Select(power => power.GetType().Name);
+			var powerStr = String.Join(", ", powerNames);
+			return string.Format("[PowerSet: Powers={0}]", powerStr);
+		}
+
+		// These methods are for saving and loading.
+		public int[] PowerList {
+			get {
+				var keys = Powers.Keys;
+				return keys.Cast<int>().ToArray();
+			}
+			set {
+				var powers = value.Select(powerNum => PowerFromIndex((PowerIndex)powerNum));
+				foreach (var p in powers) {
+					AddPower(p);
+				}
+			}
+		}
+
+		public IPower PowerFromIndex(PowerIndex p)
+		{
+			switch (p) {
+				case PowerIndex.Beginnings:
+					// XXX: Dependency inversion
+					return new Content.Beginnings.BeginningsPower();
+				default:
+					return new NullPower();
+			}
 		}
 	}
 }

@@ -15,7 +15,7 @@ namespace Starmaze
 
 		public static void Init()
 		{
-			FullPath = Util.BasePath(LogFileName);
+			FullPath = Util.BasePath(LogFileName) ?? "";
 			// Clear old log if it exists.
 			if (File.Exists(FullPath)) {
 				File.Delete(FullPath);

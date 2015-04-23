@@ -270,6 +270,7 @@ namespace Starmaze.Engine
 			{ typeof(Starmaze.Game.InputController), new Starmaze.Game.InputControllerAssetConverter() },
 			{ typeof(Starmaze.Game.TimedLife), new Starmaze.Game.TimedLifeAssetConverter() },
 			{ typeof(Starmaze.Game.Gun), new Starmaze.Game.GunAssetConverter() },
+			{ typeof(Starmaze.Game.PowerSet), new Starmaze.Game.PowerSetAssetConverter() },
 		};
 
 		public static void AddConverter(Type type, IAssetConverter converter)

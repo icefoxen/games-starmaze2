@@ -7,7 +7,7 @@ namespace Starmaze.Content.Beginnings
 {
 	public class BeginningsPower : IPower
 	{
-		public PowerOrdering Ordering { get { return PowerOrdering.Beginnings; } }
+		public PowerIndex Ordering { get { return PowerIndex.Beginnings; } }
 
 		public void Fire1KeyDown()
 		{

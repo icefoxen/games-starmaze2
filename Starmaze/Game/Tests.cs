@@ -17,6 +17,7 @@ namespace Starmaze.Game
 		[SetUp]
 		public void Prep()
 		{
+			Log.Init();
 			Log.LogToConsole = true;
 			// Create a dummy GameWindow, which creates an OpenGL context so that if necessary a test
 			// can load a shader, model, whatever
@@ -78,6 +79,18 @@ namespace Starmaze.Game
 		}
 
 		[Test]
+		public void PowerSetAssetConverterTest()
+		{
+			var dummy = new Actor();
+			var a = new PowerSet(dummy);
+			var json = SaveLoad.Save(a);
+			Log.Message("Saved power set: {0}", json);
+			var z = SaveLoad.Load(json);
+			Log.Message("Loaded power set: {0}", z);
+			Assert.True(true);
+		}
+
+		[Test]
 		public void EmptyActorAssetConverterTest()
 		{
 			var a = new Actor();
@@ -104,6 +117,7 @@ namespace Starmaze.Game
 			var atlas = new TextureAtlas(tex, 16, 1);
 			var anim = new Animation(10, 0.2);
 			var anim2 = new Animation(2, 0.2);
+			Log.Message("Resources initialized: {0}", Resources.IsInitialized);
 			a.AddComponent(new SpriteRenderState(a, atlas, new Animation[] { anim, anim2 }, scale: new Vector2(3f, 3f)));
 
 
