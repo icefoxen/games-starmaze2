@@ -14,7 +14,7 @@ namespace Starmaze.Engine
 
 		public List<Component> Components { get { return _components; } }
 
-		FBody _body;
+		Body _body;
 
 		/// <summary>
 		/// Essentially a cache.  Returns the Actor's Body component, or null if none.
@@ -22,7 +22,7 @@ namespace Starmaze.Engine
 		/// removed with RemoveComponent.
 		/// </summary>
 		/// <value>The body.</value>
-		public FBody Body {
+		public Body Body {
 			get {
 				return _body;
 			}
@@ -78,8 +78,8 @@ namespace Starmaze.Engine
 		public void AddComponent(Component c)
 		{
 			c.Owner = this;
-			if (c is Starmaze.Engine.FBody) {
-				_body = c as FBody;
+			if (c is Starmaze.Engine.Body) {
+				_body = c as Body;
 			} else if (c is RenderState) {
 				_renderState = c as RenderState;
 			}
@@ -89,7 +89,7 @@ namespace Starmaze.Engine
 		public void RemoveComponent(Component c)
 		{
 			c.Owner = null;
-			if (c is Starmaze.Engine.FBody) {
+			if (c is Starmaze.Engine.Body) {
 				_body = null;
 			} else if (c is RenderState) {
 				_renderState = null;

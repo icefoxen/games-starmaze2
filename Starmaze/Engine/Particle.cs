@@ -377,7 +377,7 @@ namespace Starmaze.Engine
 		{
 			HandledEvents = EventType.OnUpdate;
 			actor = new Actor();
-			actor.AddComponent(new FBody());
+			actor.AddComponent(new Body());
 
 			//Particle Controller Properties
 			this.velocityMagnitude = velocityMagnitude;

@@ -66,10 +66,10 @@ namespace Starmaze.Engine
 			"Velocity",
 			// BUGGO: This needs to be handled specially 'cause it's an enum.
 			//"Facing",
-			"Rotation",
-			"Mass",
-			"IsGravitating",
-			"IsImmobile",
+			//"Rotation",
+			//"Mass",
+			//"IsGravitating",
+			//"IsImmobile",
 		};
 
 		public JToken Save(object o)

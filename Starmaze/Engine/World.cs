@@ -19,7 +19,6 @@ namespace Starmaze.Engine
 		WorldMap Map;
 		Room CurrentRoom;
 		RenderManager RenderManager;
-		Space Space;
 		HashSet<Actor> Actors;
 		List<Actor> ActorsToAdd;
 		List<Actor> ActorsToRemove;
@@ -43,7 +42,7 @@ namespace Starmaze.Engine
 			Map = map;
 			ChangeRoom(Map[initialZone][initialRoom]);
 			AddActor(player);
-			player.AddComponent(new FBody());
+			player.AddComponent(new Body());
 			this.player = player;
 
 //			var act = new Actor();
@@ -67,7 +66,6 @@ namespace Starmaze.Engine
 		// freeing and re-allocating them.
 		public void ClearWorld()
 		{
-			Space = new Space();
 			// BUGGO: This should use a real resolution.
 			RenderManager = new RenderManager(1024, 768);
 			PhysicsWorld = new FarseerPhysics.Dynamics.World(Util.Gravity);

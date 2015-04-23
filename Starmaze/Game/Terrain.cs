@@ -43,8 +43,8 @@ namespace Starmaze.Game
 		public BoxBlock(BBox bbox, Color4 color)
 		{
 			Log.Message("Creating new BoxBlock: {0} {1}", bbox, color);
-			var body = new FBody(bodyType: FarseerPhysics.Dynamics.BodyType.Static);
-			body.Shape = FBody.RectShape((float)bbox.Left, (float)bbox.Bottom, (float)bbox.Right, (float)bbox.Top);
+			var body = new Body(bodyType: FarseerPhysics.Dynamics.BodyType.Static);
+			body.Shape = Body.RectShape((float)bbox.Left, (float)bbox.Bottom, (float)bbox.Right, (float)bbox.Top);
 			AddComponent(body);
 			//Body.AddGeom(new BoxGeom(bbox));
 
