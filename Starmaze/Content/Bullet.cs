@@ -15,7 +15,7 @@ namespace Starmaze.Content
 		public TrooperBullet(Actor firerIn) : base()
 		{
 			firer = firerIn;
-			life = new TimedLife(this, 1f);
+			life = new TimedLife(1f);
 
 			double xImpulse = 300 * (int)Body.Facing;
 			//double yImpulse = 0f;

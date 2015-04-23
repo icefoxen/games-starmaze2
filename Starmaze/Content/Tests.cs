@@ -35,8 +35,7 @@ namespace Starmaze.Content
 		[Test]
 		public void BeginningsPowerConverterTest()
 		{
-			var dummy = new Actor();
-			var a = new PowerSet(dummy);
+			var a = new PowerSet();
 			a.AddPower(new Beginnings.BeginningsPower());
 			var json = SaveLoad.Save(a);
 			Log.Message("Saved power set: {0}", json);

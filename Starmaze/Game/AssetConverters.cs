@@ -24,7 +24,7 @@ namespace Starmaze.Game
 
 		public object Load(JToken json)
 		{
-			var obj = new Life(null, 0);
+			var obj = new Life(0);
 			SaveLoad.LoadProperties(obj, props, json);
 			SaveLoad.PostLoadIfPossible(obj);
 			return obj;
@@ -46,7 +46,7 @@ namespace Starmaze.Game
 
 		public object Load(JToken json)
 		{
-			var obj = new TimedLife(null, 1);
+			var obj = new TimedLife(1);
 			SaveLoad.LoadProperties(obj, props, json);
 			SaveLoad.PostLoadIfPossible(obj);
 			return obj;
@@ -67,7 +67,7 @@ namespace Starmaze.Game
 
 		public object Load(JToken json)
 		{
-			var obj = new Gun(null);
+			var obj = new Gun();
 			SaveLoad.LoadProperties(obj, props, json);
 			SaveLoad.PostLoadIfPossible(obj);
 			return obj;
@@ -89,7 +89,7 @@ namespace Starmaze.Game
 
 		public object Load(JToken json)
 		{
-			var obj = new Energy(null);
+			var obj = new Energy();
 			SaveLoad.LoadProperties(obj, props, json);
 			SaveLoad.PostLoadIfPossible(obj);
 			return obj;
@@ -106,7 +106,7 @@ namespace Starmaze.Game
 
 		public object Load(JToken json)
 		{
-			var obj = new InputController(null);
+			var obj = new InputController();
 			SaveLoad.PostLoadIfPossible(obj);
 			return obj;
 		}
@@ -127,7 +127,7 @@ namespace Starmaze.Game
 
 		public object Load(JToken json)
 		{
-			var obj = new PowerSet(null);
+			var obj = new PowerSet();
 			var components = SaveLoad.LoadList<int>(json["PowerList"].Value<JArray>());
 			obj.PowerList = components.ToArray();
 			SaveLoad.PostLoadIfPossible(obj);

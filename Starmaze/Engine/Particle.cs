@@ -242,178 +242,180 @@ namespace Starmaze.Engine
 			//current_angle = start_angle * Math.PI / 180;
 
 			lastTime += dt;
-			for (int i = 0; i <= 360 && lastTime >= nextTime; i += 10, current_angle++)
-			//while (lastTime >= nextTime)
-            {
+			for (int i = 0; i <= 360 && lastTime >= nextTime; i += 10, current_angle++) {			//while (lastTime >= nextTime)
 
-                if (current_angle > end_angle - 1)
-                {
-                    current_angle = start_angle;
-                    nextTime += emitDelay; break;
-                }
+				if (current_angle > end_angle - 1) {
+					current_angle = start_angle;
+					nextTime += emitDelay;
+					break;
+				}
 
-                //angle = random.Next(start_angle, end_angle);
-                position = new Vector2d(radius * Math.Cos(current_angle * Math.PI / 180), radius * Math.Sin(current_angle * Math.PI / 180));
-                Vector2d.Normalize(ref position, out angleVec);
-                //Log.Message(String.Format("Particle Angle {0} , {1} , {2}", current_angle, position.X, position.Y));
-                AddParticle(position, velocityMagnitude, color, angleVec, maxLifeTime);
-            }
-        }
+				//angle = random.Next(start_angle, end_angle);
+				position = new Vector2d(radius * Math.Cos(current_angle * Math.PI / 180), radius * Math.Sin(current_angle * Math.PI / 180));
+				Vector2d.Normalize(ref position, out angleVec);
+				//Log.Message(String.Format("Particle Angle {0} , {1} , {2}", current_angle, position.X, position.Y));
+				AddParticle(position, velocityMagnitude, color, angleVec, maxLifeTime);
+			}
+		}
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="pos"></param>
-        /// <param name="velocityMagnitude"></param>
-        /// <param name="color"></param>
-        /// <param name="angle"></param>
-        /// <param name="age"></param>
-        protected override void AddParticle(Vector2d pos, double velocityMagnitude, Color4 color, Vector2d angle, double age = 1.0)
-        {
-            Particles.Add(new Particle(pos, velocityMagnitude, color, angle, age));
-            //Log.Message(String.Format("Particle ({0}) V {0}", pos, vel));
-        }
-    }
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="pos"></param>
+		/// <param name="velocityMagnitude"></param>
+		/// <param name="color"></param>
+		/// <param name="angle"></param>
+		/// <param name="age"></param>
+		protected override void AddParticle(Vector2d pos, double velocityMagnitude, Color4 color, Vector2d angle, double age = 1.0)
+		{
+			Particles.Add(new Particle(pos, velocityMagnitude, color, angle, age));
+			//Log.Message(String.Format("Particle ({0}) V {0}", pos, vel));
+		}
+	}
 
-    /// <summary>
-    /// 
-    /// </summary>
-    public class LineEmitter : ParticleEmitter
-    {
-        public float length;
-        public int angle;
+	/// <summary>
+	/// 
+	/// </summary>
+	public class LineEmitter : ParticleEmitter
+	{
+		public float length;
+		public int angle;
 
- /// <summary>
- /// 
- /// </summary>
- /// <param name="color"></param>
- /// <param name="velocityMagnitude"></param>
- /// <param name="emitDelay"></param>
- /// <param name="MaxParticles"></param>
- /// <param name="maxLifeTime"></param>
- /// <param name="length"></param>
- /// <param name="length"></param>
- /// <param name="end_angle"></param>
-        public LineEmitter(Color4 color, double velocityMagnitude = 1f, double emitDelay = 0.1, int MaxParticles = 1024, double maxLifeTime = 1f, float length = 1f, int angle = 0)
-        {
-            //Particle Emitter Properties
-            rand = new Random();
-            this.color = color;
-            this.velocityMagnitude = velocityMagnitude;
-            this.emitDelay = emitDelay;
-            this.maxLifeTime = maxLifeTime;
-            this.length = length;
-            this.angle = angle;
-            Particles = new List<Particle>(MaxParticles);
-        }
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="color"></param>
+		/// <param name="velocityMagnitude"></param>
+		/// <param name="emitDelay"></param>
+		/// <param name="MaxParticles"></param>
+		/// <param name="maxLifeTime"></param>
+		/// <param name="length"></param>
+		/// <param name="length"></param>
+		/// <param name="end_angle"></param>
+		public LineEmitter(Color4 color, double velocityMagnitude = 1f, double emitDelay = 0.1, int MaxParticles = 1024, double maxLifeTime = 1f, float length = 1f, int angle = 0)
+		{
+			//Particle Emitter Properties
+			rand = new Random();
+			this.color = color;
+			this.velocityMagnitude = velocityMagnitude;
+			this.emitDelay = emitDelay;
+			this.maxLifeTime = maxLifeTime;
+			this.length = length;
+			this.angle = angle;
+			Particles = new List<Particle>(MaxParticles);
+		}
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="dt"></param>
-        public override void Update(double dt)
-        {
-            Vector2d position = Vector2d.Zero, angleVec = Vector2d.Zero;
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="dt"></param>
+		public override void Update(double dt)
+		{
+			Vector2d position = Vector2d.Zero, angleVec = Vector2d.Zero;
 
-            //current_angle = start_angle * Math.PI / 180;
+			//current_angle = start_angle * Math.PI / 180;
 
-            lastTime += dt;
-            //for (int i = 0; i <= 360 && lastTime >= nextTime; i += 10, current_angle++)
-            while (lastTime >= nextTime)
-            {
-               nextTime += emitDelay; 
-               position = new Vector2d(length * Math.Cos(angle * Math.PI / 180), length * Math.Sin(angle * Math.PI / 180));
-                Vector2d.Normalize(ref position, out angleVec);
-                //Log.Message(String.Format("Particle Angle {0} , {1} , {2}", current_angle, position.X, position.Y));
-                AddParticle(position, velocityMagnitude, color, angleVec, maxLifeTime);
-            }
-        }
-        
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="pos"></param>
-        /// <param name="velocityMagnitude"></param>
-        /// <param name="color"></param>
-        /// <param name="angle"></param>
-        /// <param name="age"></param>
-        protected override void AddParticle(Vector2d pos, double velocityMagnitude, Color4 color, Vector2d angle, double age = 1.0)
-        {
-            Particles.Add(new Particle(pos, velocityMagnitude, color, angle, age));
-            //Log.Message(String.Format("Particle ({0}) V {0}", pos, vel));
-        }
+			lastTime += dt;
+			//for (int i = 0; i <= 360 && lastTime >= nextTime; i += 10, current_angle++)
+			while (lastTime >= nextTime) {
+				nextTime += emitDelay; 
+				position = new Vector2d(length * Math.Cos(angle * Math.PI / 180), length * Math.Sin(angle * Math.PI / 180));
+				Vector2d.Normalize(ref position, out angleVec);
+				//Log.Message(String.Format("Particle Angle {0} , {1} , {2}", current_angle, position.X, position.Y));
+				AddParticle(position, velocityMagnitude, color, angleVec, maxLifeTime);
+			}
+		}
 
-    }
-    /// <summary>
-    /// An object that draws a ParticleGroup.
-    /// </summary>
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="pos"></param>
+		/// <param name="velocityMagnitude"></param>
+		/// <param name="color"></param>
+		/// <param name="angle"></param>
+		/// <param name="age"></param>
+		protected override void AddParticle(Vector2d pos, double velocityMagnitude, Color4 color, Vector2d angle, double age = 1.0)
+		{
+			Particles.Add(new Particle(pos, velocityMagnitude, color, angle, age));
+			//Log.Message(String.Format("Particle ({0}) V {0}", pos, vel));
+		}
 
-    /// <summary>
-    /// A component that emits particles.
-    /// </summary>
-    // XXX: Exactly to integrate the ParticleRenderer with the Renderer pipeline is something I need to think about.
-    class ParticleComponent : Component
-    {
-        Actor actor;
-        ParticleController controller;
-        double maxLifeTime = 1.0f;
-        float startScale = 1.0f;
-        float deltaScale = 0.0f;
-        double velocityMagnitude;
-        double emitDelay;
-        int MaxParticles;
-        ParticleEmitter emitter;
+	}
 
-        public enum EmitterType : int
-        {
-            Cone, Circle, Square, Rectangle, Point, Line
-        }
+	/// <summary>
+	/// An object that draws a ParticleGroup.
+	/// </summary>
 
-        public ParticleComponent(Actor owner, World world, double velocityMagnitude, double emitDelay = 0.1, double maxLifeTime = 3f, int MaxParticles = 1024, float _startScale = 1f, float _deltaScale = 0f, float gravity = 1f)
-            : base(owner)
-        {
-            HandledEvents = EventType.OnUpdate;
-            actor = new Actor();
-            actor.Body = new FBody(actor);
+	/// <summary>
+	/// A component that emits particles.
+	/// </summary>
+	// XXX: Exactly to integrate the ParticleRenderer with the Renderer pipeline is something I need to think about.
+	class ParticleComponent : Component
+	{
+		Actor actor;
+		ParticleController controller;
+		double maxLifeTime = 1.0f;
+		float startScale = 1.0f;
+		float deltaScale = 0.0f;
+		double velocityMagnitude;
+		double emitDelay;
+		int MaxParticles;
+		ParticleEmitter emitter;
 
-            //Particle Controller Properties
-            this.velocityMagnitude = velocityMagnitude;
-            this.maxLifeTime = maxLifeTime;
-            this.startScale = _startScale;
-            this.deltaScale = _deltaScale;
-            this.emitDelay = emitDelay;
-            this.MaxParticles = MaxParticles;
-            //emitter = new CircleEmitter(color, velocityMagnitude, emitDelay, MaxParticles,maxLifeTime,3,0,180);
-            controller = new ParticleController(owner.Body.Position, maxLifeTime, gravity, startScale, deltaScale);
+		public enum EmitterType : int
+		{
+			Cone,
+			Circle,
+			Square,
+			Rectangle,
+			Point,
+			Line
+		}
 
-            world.AddActor(actor);
-        }
+		public ParticleComponent(World world, double velocityMagnitude, double emitDelay = 0.1, double maxLifeTime = 3f, int MaxParticles = 1024, float _startScale = 1f, float _deltaScale = 0f, float gravity = 1f)
+			: base()
+		{
+			HandledEvents = EventType.OnUpdate;
+			actor = new Actor();
+			actor.AddComponent(new FBody());
 
-         public void setupEmitter(EmitterType type, Color4 color, float radius=1f,int start_angle=0,int end_angle=360)
-         {
-             switch(type)
-             {
-                 case(EmitterType.Circle):
-                     emitter = new CircleEmitter(color, velocityMagnitude, emitDelay, MaxParticles, maxLifeTime, radius, start_angle, end_angle);
-                     break;
-                 case (EmitterType.Line):
-                     emitter = new LineEmitter(color, velocityMagnitude, emitDelay, MaxParticles, maxLifeTime, radius, start_angle);
-                     break;
-             }
-             Texture texture = Resources.TheResources.GetTexture("dot");
-             ParticleRenderState renderstate = new ParticleRenderState(actor, texture, color, emitter.Particles, new Vector2(0.1f, 0.1f));
-             actor.RenderState = renderstate;
+			//Particle Controller Properties
+			this.velocityMagnitude = velocityMagnitude;
+			this.maxLifeTime = maxLifeTime;
+			this.startScale = _startScale;
+			this.deltaScale = _deltaScale;
+			this.emitDelay = emitDelay;
+			this.MaxParticles = MaxParticles;
+			//emitter = new CircleEmitter(color, velocityMagnitude, emitDelay, MaxParticles,maxLifeTime,3,0,180);
+			controller = new ParticleController(actor.Body.Position, maxLifeTime, gravity, startScale, deltaScale);
+
+			world.AddActor(actor);
+		}
+
+		public void setupEmitter(EmitterType type, Color4 color, float radius = 1f, int start_angle = 0, int end_angle = 360)
+		{
+			switch (type) {
+				case(EmitterType.Circle):
+					emitter = new CircleEmitter(color, velocityMagnitude, emitDelay, MaxParticles, maxLifeTime, radius, start_angle, end_angle);
+					break;
+				case (EmitterType.Line):
+					emitter = new LineEmitter(color, velocityMagnitude, emitDelay, MaxParticles, maxLifeTime, radius, start_angle);
+					break;
+			}
+			Texture texture = Resources.TheResources.GetTexture("dot");
+			ParticleRenderState renderstate = new ParticleRenderState(texture, color, emitter.Particles, new Vector2(0.1f, 0.1f));
+			actor.AddComponent(renderstate);
             
-         }
+		}
 
-        public override void OnUpdate(object sender, FrameEventArgs e)
-        {
-            var dt = e.Time;
-            emitter.Update(dt);
-            ((ParticleRenderState)actor.RenderState).particleList = emitter.Particles;
-            controller.Update(dt, ref emitter.Particles);
-        }
+		public override void OnUpdate(object sender, FrameEventArgs e)
+		{
+			var dt = e.Time;
+			emitter.Update(dt);
+			((ParticleRenderState)actor.RenderState).particleList = emitter.Particles;
+			controller.Update(dt, ref emitter.Particles);
+		}
 
-    }
+	}
 }
 

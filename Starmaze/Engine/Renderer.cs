@@ -13,7 +13,7 @@ namespace Starmaze.Engine
 
 		readonly long OrderingNumber;
 
-		public RenderState(Actor act, string renderclass) : base(act)
+		public RenderState(string renderclass) : base()
 		{
 			Renderer = Resources.TheResources.GetRenderer(renderclass);
 			OrderingNumber = Util.GetSerial();
@@ -29,7 +29,7 @@ namespace Starmaze.Engine
 	{
 		public VertexArray Model;
 
-		public ModelRenderState(Actor act, VertexArray model) : base(act, "StaticModelRenderer")
+		public ModelRenderState(VertexArray model) : base("StaticModelRenderer")
 		{ 
 			Log.Assert(model != null);
 			Model = model;
@@ -42,7 +42,7 @@ namespace Starmaze.Engine
 		public float Rotation;
 		public Vector2 Scale;
 
-		public BillboardRenderState(Actor act, Texture texture, float rotation = 0.0f, Vector2? scale = null) : base(act, "BillboardRenderer")
+		public BillboardRenderState(Texture texture, float rotation = 0.0f, Vector2? scale = null) : base("BillboardRenderer")
 		{
 			Log.Assert(texture != null);
 			Texture = texture;
@@ -57,8 +57,8 @@ namespace Starmaze.Engine
 		public float Rotation;
 		public Vector2 Scale;
 
-		public GUIRenderState(Actor act, Texture texture, float rotation = 0.0f, Vector2? scale = null)
-			: base(act, "GUIRenderer")
+		public GUIRenderState(Texture texture, float rotation = 0.0f, Vector2? scale = null)
+			: base("GUIRenderer")
 		{
 			Log.Assert(texture != null);
 			Texture = texture;
@@ -82,7 +82,7 @@ namespace Starmaze.Engine
 
 		public Vector2 Scale { get; set; }
 
-		public SpriteRenderState(Actor act, TextureAtlas atlas, IEnumerable<Animation> anim, float rotation = 0.0f, Vector2? scale = null) : base(act, "SpriteRenderer")
+		public SpriteRenderState(TextureAtlas atlas, IEnumerable<Animation> anim, float rotation = 0.0f, Vector2? scale = null) : base("SpriteRenderer")
 		{
 			Log.Assert(atlas != null);
 			Log.Assert(anim != null);
@@ -96,8 +96,8 @@ namespace Starmaze.Engine
 			HandledEvents = EventType.OnUpdate;
 		}
 
-		public SpriteRenderState(Actor owner, TextureAtlas atlas, Animation anim, float rotation = 0.0f, Vector2? scale = null)
-			: this(owner, atlas, new Animation[] { anim }, rotation, scale)
+		public SpriteRenderState(TextureAtlas atlas, Animation anim, float rotation = 0.0f, Vector2? scale = null)
+			: this(atlas, new Animation[] { anim }, rotation, scale)
 		{
 		}
 
@@ -140,8 +140,8 @@ namespace Starmaze.Engine
 		public Vector2 Scale;
 		public Texture texture;
 
-		public ParticleRenderState(Actor act, Texture tex, Color4 color, List<Particle> list, Vector2? scale = null, float rotation = 0.0f)
-			: base(act, "ParticleRenderer")
+		public ParticleRenderState(Texture tex, Color4 color, List<Particle> list, Vector2? scale = null, float rotation = 0.0f)
+			: base("ParticleRenderer")
 		{
 			texture = tex;
 			Log.Assert(texture != null);

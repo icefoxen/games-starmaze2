@@ -94,9 +94,9 @@ namespace Starmaze.Game
 
 			//Set up the GUIRenderState for the Actor
 			texture = TextDrawer.RenderString(text, Color4.White, fontsize);
-			GUIRenderState guiRState = new GUIRenderState(actor, texture);
+			GUIRenderState guiRState = new GUIRenderState(texture);
 			guiRState.Scale = new Vector2(2.5f, 1);
-			actor.RenderState = guiRState;
+			actor.AddComponent(guiRState);
 
 			world.AddActor(actor);
 		}

@@ -43,8 +43,9 @@ namespace Starmaze.Game
 		public BoxBlock(BBox bbox, Color4 color)
 		{
 			Log.Message("Creating new BoxBlock: {0} {1}", bbox, color);
-			Body = new FBody(this, bodyType: FarseerPhysics.Dynamics.BodyType.Static);
-			Body.Shape = FBody.RectShape((float)bbox.Left, (float)bbox.Bottom, (float)bbox.Right, (float)bbox.Top);
+			var body = new FBody(bodyType: FarseerPhysics.Dynamics.BodyType.Static);
+			body.Shape = FBody.RectShape((float)bbox.Left, (float)bbox.Bottom, (float)bbox.Right, (float)bbox.Top);
+			AddComponent(body);
 			//Body.AddGeom(new BoxGeom(bbox));
 
 			// BUGGO: Since the Actor gets the model and such themselves, instead of
@@ -57,7 +58,7 @@ namespace Starmaze.Game
 			// XXX: Should we need to get a shader here?  We probably shouldn't.
 			var shader = Resources.TheResources.GetShader("default");
 			var model = vertModel.ToVertexArray(shader);
-			RenderState = new ModelRenderState(this, model);
+			AddComponent(new ModelRenderState(model));
 		}
 	}
 }

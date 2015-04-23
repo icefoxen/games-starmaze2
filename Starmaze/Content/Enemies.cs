@@ -17,7 +17,7 @@ namespace Starmaze.Content
 		//Render = rchace.getRenderer(CrawlerReder);
 		CrawlerEnemy()
 		{
-			AddComponent(new Life(this, 3f, 3f, 1f, 8f));
+			AddComponent(new Life(3f, 3f, 1f, 8f));
 
 		}
 		/*
@@ -39,7 +39,7 @@ namespace Starmaze.Content
 		TrooperEnemy()
 		{
 			//s.bulletOffset = (30,0)
-			AddComponent(new Life(this, 100));
+			AddComponent(new Life(100));
 		}
 	}
 
@@ -49,7 +49,7 @@ namespace Starmaze.Content
 		ArcherEnemy()
 		{
 			//s.bulletOffset = (25, 0)
-			AddComponent(new Life(this, 20));
+			AddComponent(new Life(20));
 		}
 	}
 
@@ -58,7 +58,7 @@ namespace Starmaze.Content
 		//TODO: Incomplete port of python FloaterEnemy
 		FloaterEnemy()
 		{
-			AddComponent(new Life(this, 20));
+			AddComponent(new Life(20));
 		}
 	}
 
@@ -67,7 +67,7 @@ namespace Starmaze.Content
 		//TODO: Incomplete port of python EliteEnemy
 		EliteEnemy()
 		{
-			AddComponent(new Life(this, 10));
+			AddComponent(new Life(10));
 		}
 	}
 
@@ -76,7 +76,7 @@ namespace Starmaze.Content
 		//TODO: Incomplete port of the python HeavyEnemy
 		HeavyEnemy()
 		{
-			AddComponent(new Life(this, 10));
+			AddComponent(new Life(10));
 		}
 	}
 
@@ -85,7 +85,7 @@ namespace Starmaze.Content
 		//TODO: Incomplete port of the python DragonEnemy
 		DragonEnemy()
 		{
-			AddComponent(new Life(this, 10));
+			AddComponent(new Life(10));
 		}
 	}
 
@@ -94,7 +94,7 @@ namespace Starmaze.Content
 		//TODO: Incomplete port of the python Enemy
 		AnnihilatorEnemy()
 		{
-			AddComponent(new Life(this, 10));
+			AddComponent(new Life(10));
 		}
 	}
 }

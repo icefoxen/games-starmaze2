@@ -32,8 +32,7 @@ namespace Starmaze.Game
 		[Test]
 		public void LifeAssetConverterTest()
 		{
-			var dummy = new Actor();
-			var a = new Life(dummy, 20, 30, 0.8, 2);
+			var a = new Life(20, 30, 0.8, 2);
 			var json = SaveLoad.Save(a);
 			Log.Message("Saved life: {0}", json);
 			var z = SaveLoad.Load(json);
@@ -44,8 +43,7 @@ namespace Starmaze.Game
 		[Test]
 		public void EnergyAssetConverterTest()
 		{
-			var dummy = new Actor();
-			var a = new Energy(dummy, 50, 5.3);
+			var a = new Energy(50, 5.3);
 			var json = SaveLoad.Save(a);
 			Log.Message("Saved energy: {0}", json);
 			var z = SaveLoad.Load(json);
@@ -56,8 +54,7 @@ namespace Starmaze.Game
 		[Test]
 		public void BodyAssetConverterTest()
 		{
-			var dummy = new Actor();
-			var a = new Body(dummy);
+			var a = new Body();
 			a.Position = new Vector2d(34, 5);
 			var json = SaveLoad.Save(a);
 			Log.Message("Saved body: {0}", json);
@@ -69,8 +66,7 @@ namespace Starmaze.Game
 		[Test]
 		public void InputControllerAssetConverterTest()
 		{
-			var dummy = new Actor();
-			var a = new InputController(dummy);
+			var a = new InputController();
 			var json = SaveLoad.Save(a);
 			Log.Message("Saved input controller: {0}", json);
 			var z = SaveLoad.Load(json);
@@ -81,8 +77,7 @@ namespace Starmaze.Game
 		[Test]
 		public void PowerSetAssetConverterTest()
 		{
-			var dummy = new Actor();
-			var a = new PowerSet(dummy);
+			var a = new PowerSet();
 			var json = SaveLoad.Save(a);
 			Log.Message("Saved power set: {0}", json);
 			var z = SaveLoad.Load(json);
@@ -105,20 +100,20 @@ namespace Starmaze.Game
 		public void ActorAssetConverterTest()
 		{
 			var a = new Actor();
-			var body = new FBody(a);
-			a.Body = body;
+			var body = new FBody();
+			a.AddComponent(body);
 			//body.AddGeom(new BoxGeom(new BBox(-5, -15, 5, 5)));
-			a.AddComponent(new InputController(a));
-			a.AddComponent(new Life(a, 15));
-			a.AddComponent(new TimedLife(a, 15));
-			a.AddComponent(new Gun(a));
+			a.AddComponent(new InputController());
+			a.AddComponent(new Life(15));
+			a.AddComponent(new TimedLife(15));
+			a.AddComponent(new Gun());
 
 			var tex = Resources.TheResources.GetTexture("PlayerAssetAnimationTestSpriteSheetv3");
 			var atlas = new TextureAtlas(tex, 16, 1);
 			var anim = new Animation(10, 0.2);
 			var anim2 = new Animation(2, 0.2);
 			Log.Message("Resources initialized: {0}", Resources.IsInitialized);
-			a.AddComponent(new SpriteRenderState(a, atlas, new Animation[] { anim, anim2 }, scale: new Vector2(3f, 3f)));
+			a.AddComponent(new SpriteRenderState(atlas, new Animation[] { anim, anim2 }, scale: new Vector2(3f, 3f)));
 
 
 			var json = SaveLoad.Save(a);

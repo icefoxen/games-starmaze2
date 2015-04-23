@@ -43,7 +43,7 @@ namespace Starmaze.Engine
 			Map = map;
 			ChangeRoom(Map[initialZone][initialRoom]);
 			AddActor(player);
-			player.Body = new FBody(player);
+			player.AddComponent(new FBody());
 			this.player = player;
 
 //			var act = new Actor();

@@ -53,7 +53,7 @@ namespace Starmaze.Game
 		/// <value>The damage reduction.</value>
 		public double DamageReduction { get; set; }
 
-		public Life(Actor owner, double hpsIn, double maxLifeIn = -1.0f, double attenuationIn = 1.0f, double reductionIn = 0.0f) : base(owner)
+		public Life(double hpsIn, double maxLifeIn = -1.0f, double attenuationIn = 1.0f, double reductionIn = 0.0f) : base()
 		{
 			CurrentLife = hpsIn;
 
@@ -105,7 +105,7 @@ namespace Starmaze.Game
 
 		public double RegenRate { get; set; }
 
-		public Energy(Actor owner, double maxEnergy = 100f, double regenRate = 10f) : base(owner)
+		public Energy(double maxEnergy = 100f, double regenRate = 10f) : base()
 		{
 			MaxEnergy = maxEnergy;
 			CurrentEnergy = maxEnergy / 2f;
@@ -141,7 +141,7 @@ namespace Starmaze.Game
 
 		public double MaxTime { get; set; }
 
-		public TimedLife(Actor owner, double time) : base(owner)
+		public TimedLife(double time) : base()
 		{
 			Time = time;
 			MaxTime = time;
@@ -164,7 +164,7 @@ namespace Starmaze.Game
 	{
 		public Vector2d FireOffset { get; set; }
 
-		public Gun(Actor owner) : base(owner)
+		public Gun() : base()
 		{
 			FireOffset = Vector2d.Zero;
 		}
@@ -176,7 +176,7 @@ namespace Starmaze.Game
 	public class InputController : Component
 	{
 
-		public InputController(Actor owner) : base(owner)
+		public InputController() : base()
 		{
 			HandledEvents = EventType.OnKeyDown | EventType.OnKeyUp;
 		}

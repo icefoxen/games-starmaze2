@@ -125,7 +125,7 @@ namespace Starmaze.Game
 
 		public IPower CurrentPower;
 
-		public PowerSet(Actor owner) : base(owner)
+		public PowerSet() : base()
 		{
 			Powers = new SortedList<PowerIndex, IPower>();
 			HandledEvents = EventType.OnUpdate | EventType.OnKeyDown | EventType.OnKeyUp;

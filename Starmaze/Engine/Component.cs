@@ -22,9 +22,8 @@ namespace Starmaze.Engine
 		public Actor Owner;
 		public EventType HandledEvents;
 
-		public Component(Actor owner)
+		public Component()
 		{
-			Owner = owner;
 			HandledEvents = EventType.None;
 		}
 		// It would be nice if these were unnecessary; we could just provide a list of events somehow

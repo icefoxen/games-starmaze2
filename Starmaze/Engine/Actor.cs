@@ -10,32 +10,50 @@ namespace Starmaze.Engine
 	public class Actor
 	{
 		// Components.
-		public List<Component> Components { get; set; }
+		public List<Component> _components;
+
+		public List<Component> Components { get { return _components; } }
 
 		FBody _body;
-		// XXX: This is dangerous 'cause it doesn't handle worlds properly.
+
+		/// <summary>
+		/// Essentially a cache.  Returns the Actor's Body component, or null if none.
+		/// Automatically set if AddComponent is used to add a Body, or cleared if it is
+		/// removed with RemoveComponent.
+		/// </summary>
+		/// <value>The body.</value>
 		public FBody Body {
 			get {
 				return _body;
 			}
-			set {
-				Components.Remove(_body);
-				_body = value;
-				Components.Add(_body);
-			}
 		}
-		// Same with render state
+
 		RenderState _renderState;
 
+		/// <summary>
+		/// Like Body, this returns the Actor's RenderState component, or null if none.
+		/// Automatically set if AddComponent is used to add a RenderState, or cleared if it is
+		/// removed with RemoveComponent.
+		/// </summary>
+		/// <value>The state of the render.</value>
 		public RenderState RenderState { 
 			get {
 				return _renderState;
 			} 
-			set {
-				Components.Remove(_renderState);
-				_renderState = value;
-				Components.Add(_renderState);
-			}
+		}
+		// Other properties
+		public bool Alive = true;
+		public bool KeepOnRoomChange = false;
+		public World World;
+
+		public Actor()
+		{
+			_components = new List<Component>();
+		}
+
+		public virtual void OnUpdate(object sender, EventArgs e)
+		{
+
 		}
 
 		/// <summary>
@@ -56,33 +74,27 @@ namespace Starmaze.Engine
 			Log.Warn(true, "Could not find component {0} in actor, returning default", typeof(T));
 			return default(T);
 		}
-		// BUGGO: Might need some kind of callback to let the World know that a new component exists
-		// and thus needs to be notified of events?  OR, this just can't be called after the actor
-		// has been added to the World.  Either way!  It's basically here for purposes of deserialization.
+
 		public void AddComponent(Component c)
 		{
 			c.Owner = this;
 			if (c is Starmaze.Engine.FBody) {
-				Body = c as FBody;
+				_body = c as FBody;
 			} else if (c is RenderState) {
-				RenderState = c as RenderState;
-			} else {
-				Components.Add(c);
+				_renderState = c as RenderState;
 			}
-		}
-		// Other properties
-		public bool Alive = true;
-		public bool KeepOnRoomChange = false;
-		public World World;
-
-		public Actor()
-		{
-			Components = new List<Component>();
+			Components.Add(c);
 		}
 
-		public virtual void OnUpdate(object sender, EventArgs e)
+		public void RemoveComponent(Component c)
 		{
-
+			c.Owner = null;
+			if (c is Starmaze.Engine.FBody) {
+				_body = null;
+			} else if (c is RenderState) {
+				_renderState = null;
+			}
+			Components.Remove(c);
 		}
 
 		public void RegisterEvents(World w)

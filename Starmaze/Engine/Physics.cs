@@ -52,7 +52,7 @@ namespace Starmaze.Engine
 			} 
 		}
 
-		public FBody(Actor owner, Vector2d? position = null, Dyn.BodyType bodyType = Dyn.BodyType.Dynamic) : base(owner)
+		public FBody(Vector2d? position = null, Dyn.BodyType bodyType = Dyn.BodyType.Dynamic) : base()
 		{
 			Shape = FBody.RectShape(10, 5);
 			BodyType = bodyType;
@@ -144,7 +144,7 @@ namespace Starmaze.Engine
 		/// </summary>
 		Vector2d impulse;
 
-		public Body(Actor owner, bool gravitating = true, bool immobile = false) : base(owner)
+		public Body(bool gravitating = true, bool immobile = false) : base()
 		{
 			Position = Vector2d.Zero;
 			Velocity = Vector2d.Zero;

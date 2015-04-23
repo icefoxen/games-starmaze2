@@ -80,7 +80,7 @@ namespace Starmaze.Engine
 
 		public object Load(JToken json)
 		{
-			var obj = new Body(null);
+			var obj = new Body();
 			SaveLoad.LoadProperties(obj, props, json);
 			SaveLoad.PostLoadIfPossible(obj);
 			return obj;
@@ -190,7 +190,7 @@ namespace Starmaze.Engine
 			var atlas = SaveLoad.Load(json["TextureAtlas"].Value<JObject>()) as TextureAtlas;
 			var anim = SaveLoad.LoadList<Animation>(json["Animations"].Value<JArray>());
 			Log.Assert(anim != null);
-			var obj = new SpriteRenderState(null, atlas, anim);
+			var obj = new SpriteRenderState(atlas, anim);
 			SaveLoad.LoadProperties(obj, props, json);
 			SaveLoad.PostLoadIfPossible(obj);
 			return obj;
