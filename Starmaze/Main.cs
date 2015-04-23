@@ -72,7 +72,6 @@ namespace Starmaze
 			var map = BuildTestLevel();
 			var actCfg = Resources.TheResources.GetJson("player");
 			var player = SaveLoad.Load<Actor>(actCfg);
-			player.AddComponent(new PowerSet(player));
 			//player.Body.AddGeom(new BoxGeom(new BBox(-5, -15, 5, 5)));
 			View = new ViewManager(Util.LogicalScreenWidth, Util.LogicalScreenWidth / Options.AspectRatio);
 			Camera = new FollowCam(player, Util.LogicalScreenWidth, Util.LogicalScreenWidth / Options.AspectRatio);
