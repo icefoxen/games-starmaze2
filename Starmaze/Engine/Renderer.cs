@@ -30,7 +30,7 @@ namespace Starmaze.Engine
 		public VertexArray Model;
 
 		public ModelRenderState(Actor act, VertexArray model) : base(act, "StaticModelRenderer")
-		{
+		{ 
 			Log.Assert(model != null);
 			Model = model;
 		}
@@ -138,14 +138,14 @@ namespace Starmaze.Engine
 		public List<Particle> particleList;
 		public float Rotation;
 		public Vector2 Scale;
-        public Texture texture;
+		public Texture texture;
 
-        public ParticleRenderState(Actor act, Texture tex, Color4 color, List<Particle> list,Vector2? scale = null,float rotation = 0.0f)
+		public ParticleRenderState(Actor act, Texture tex, Color4 color, List<Particle> list, Vector2? scale = null, float rotation = 0.0f)
 			: base(act, "ParticleRenderer")
 		{
-            texture = tex;
-            Log.Assert(texture != null);
-            particleList = list;
+			texture = tex;
+			Log.Assert(texture != null);
+			particleList = list;
 			Rotation = rotation;
 			Scale = scale ?? Vector2.One;
 		}
@@ -607,36 +607,35 @@ namespace Starmaze.Engine
 		public ParticleRenderer()
 		{
 			shader = Resources.TheResources.GetShader("particle-default");
-            model = Resources.TheResources.GetModel("Billboard");
+			model = Resources.TheResources.GetModel("Billboard");
 		}
 
 
 		protected override void RenderOne(ViewManager view, ParticleRenderState r)
 		{
 
-           /* var pos = new Vector2((float)r.Owner.Body.Position.X, (float)r.Owner.Body.Position.Y);
+			/* var pos = new Vector2((float)r.Owner.Body.Position.X, (float)r.Owner.Body.Position.Y);
             var transform = new Transform(pos, r.Rotation, r.Scale);
             var mat = transform.TransformMatrix(view.ProjectionMatrix);
             */
-            //give each particle its own texture and apply the shader (enable, disable it)
-            foreach (var p in r.particleList)
-            {
-                var pos = new Vector2((float)p.Position.X, (float)p.Position.Y);
-                var transform = new Transform(pos, r.Rotation, r.Scale);
-                var mat = transform.TransformMatrix(view.ProjectionMatrix);
+			//give each particle its own texture and apply the shader (enable, disable it)
+			foreach (var p in r.particleList) {
+				var pos = new Vector2((float)p.Position.X, (float)p.Position.Y);
+				var transform = new Transform(pos, r.Rotation, r.Scale);
+				var mat = transform.TransformMatrix(view.ProjectionMatrix);
                 
-                shader.UniformMatrix("projection", mat);
-                shader.Uniformf("offset", 0f, 0);
-                shader.Uniformf("colorOffset", p.Color.R, p.Color.G, p.Color.B, p.Color.A);
-                r.texture.Enable();
-                model.Draw();
-                r.texture.Disable();
-            }
+				shader.UniformMatrix("projection", mat);
+				shader.Uniformf("offset", 0f, 0);
+				shader.Uniformf("colorOffset", p.Color.R, p.Color.G, p.Color.B, p.Color.A);
+				r.texture.Enable();
+				model.Draw();
+				r.texture.Disable();
+			}
 
 			//array.Draw();
 		}
 
-        /*
+		/*
             foreach (var p in group.Particles)
             {
                 var pos = new Vector2((float)p.Position.X, (float)p.Position.Y);
@@ -658,6 +657,6 @@ namespace Starmaze.Engine
             billboard.Draw();
             r.Atlas.Disable();
         } */
-    }
+	}
 }
 
