@@ -387,7 +387,7 @@ namespace Starmaze.Engine
 			this.emitDelay = emitDelay;
 			this.MaxParticles = MaxParticles;
 			//emitter = new CircleEmitter(color, velocityMagnitude, emitDelay, MaxParticles,maxLifeTime,3,0,180);
-			controller = new ParticleController(actor.Body.Position, maxLifeTime, gravity, startScale, deltaScale);
+			controller = new ParticleController(new Vector2d(actor.Body.Position.X, actor.Body.Position.Y), maxLifeTime, gravity, startScale, deltaScale);
 
 			world.AddActor(actor);
 		}

@@ -43,21 +43,21 @@ namespace Starmaze.Engine
 		// Wrappers for Body attributes
 		// OPT: Aieee, wrapping and unwrapping the XNA vectors on every wossname is kinda awful.
 		// Oh well, live with it for now.
-		public Vector2d Position { 
+		public Vector2 Position { 
 			get {
-				return new Vector2d(PBody.Position.X, PBody.Position.Y);
+				return Util.ConvertVector2(PBody.Position);
 			}
 			set {
-				PBody.Position = new Xna.Vector2((float)value.X, (float)value.Y);
+				PBody.Position = Util.ConvertVector2(value);
 			} 
 		}
 
-		public Vector2d Velocity {
+		public Vector2 Velocity {
 			get {
-				return new Vector2d(PBody.LinearVelocity.X, PBody.LinearVelocity.Y);
+				return Util.ConvertVector2(PBody.LinearVelocity);
 			}
 			set {
-				PBody.LinearVelocity = new Xna.Vector2((float)value.X, (float)value.Y);
+				PBody.LinearVelocity = Util.ConvertVector2(value);
 			} 
 		}
 
@@ -70,17 +70,16 @@ namespace Starmaze.Engine
 			} 
 		}
 
-		public Body(Vector2d? position = null, Dyn.BodyType bodyType = Dyn.BodyType.Dynamic) : base()
+		public Body(Vector2? position = null, Dyn.BodyType bodyType = Dyn.BodyType.Dynamic) : base()
 		{
-			Shape = Body.RectShape(10, 5);
+			Shape = Body.RectShape(10, 20);
 			BodyType = bodyType;
 
-			
-			PBody = new Dyn.Body(DummyWorld, userdata: this);
+			var pos = position ?? Vector2.Zero;
+			Xna.Vector2 xpos = Util.ConvertVector2(pos);
+			PBody = new Dyn.Body(DummyWorld, position: xpos, userdata: this);
 			PBody.CreateFixture(Shape);
 			PBody.BodyType = BodyType;
-			var pos = position ?? Vector2d.Zero;
-			Position = pos;
 		}
 
 		/// <summary>

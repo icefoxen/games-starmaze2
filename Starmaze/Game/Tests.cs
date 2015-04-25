@@ -55,7 +55,7 @@ namespace Starmaze.Game
 		public void BodyAssetConverterTest()
 		{
 			var a = new Body();
-			a.Position = new Vector2d(34, 5);
+			a.Position = new Vector2(34, 5);
 			var json = SaveLoad.Save(a);
 			Log.Message("Saved body: {0}", json);
 			var z = SaveLoad.Load(json);

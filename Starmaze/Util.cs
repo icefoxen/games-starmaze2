@@ -91,5 +91,20 @@ namespace Starmaze
 			var exePath = AppDomain.CurrentDomain.BaseDirectory;
 			return System.IO.Path.Combine(exePath, filename);
 		}
+
+		public static OpenTK.Vector2 ConvertVector2(Microsoft.Xna.Framework.Vector2 vec)
+		{
+			return new OpenTK.Vector2(vec.X, vec.Y);
+		}
+
+		public static Microsoft.Xna.Framework.Vector2 ConvertVector2(OpenTK.Vector2d vec)
+		{
+			return new Microsoft.Xna.Framework.Vector2((float)vec.X, (float)vec.Y);
+		}
+
+		public static Microsoft.Xna.Framework.Vector2 ConvertVector2(OpenTK.Vector2 vec)
+		{
+			return new Microsoft.Xna.Framework.Vector2(vec.X, vec.Y);
+		}
 	}
 }
