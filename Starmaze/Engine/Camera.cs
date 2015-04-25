@@ -93,7 +93,7 @@ namespace Starmaze.Engine
 
 		public void Update(double dt)
 		{
-			var targetPos = Target.Body.Position;
+			var targetPos = new Vector2d(Target.Body.Position.X, Target.Body.Position.Y);
 			var delta = targetPos - CurrentPos;
 			var offset = delta * ScrollSpeed * dt;
 
