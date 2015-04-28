@@ -80,7 +80,10 @@ namespace Starmaze
 			//Gui.CreateGUIText(World, new Vector2d(-55, 70), "FPS: 00");
 			SetupEvents();
 
-			//player.AddComponent(new ParticleComponent(player, World, new Vector2d(100.0, 100.0)));
+            ParticleComponent p_component = new ParticleComponent(World,10f,1024,-3);
+            p_component.setupEmitter(new CircleEmitter(Color4.Red));
+            player.AddComponent(p_component);
+
 			fpsTimer.Start();
 		}
 
@@ -143,7 +146,6 @@ namespace Starmaze
 				fpsTimer.Restart();
 				Log.Message("FPS: {0}", frames / fpsInterval);
 				Gui.editGUIText("" + -55 + "" + 70, String.Format("FPS: {0:00}", (frames / fpsInterval)));
-				//Gui.DrawString("FPS:" + (frames / fpsInterval),new Vector2d(-55,70),60);            
 				frames = 0;
 			}
 		}
