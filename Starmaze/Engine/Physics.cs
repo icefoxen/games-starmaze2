@@ -39,6 +39,8 @@ namespace Starmaze.Engine
 
 		public Dyn.Body PBody { get; set; }
 
+		public Dyn.Fixture Fixture { get; set; }
+
 		public Facing Facing { get; set; }
 		// Wrappers for Body attributes
 		// OPT: Aieee, wrapping and unwrapping the XNA vectors on every wossname is kinda awful.
@@ -78,7 +80,7 @@ namespace Starmaze.Engine
 			var pos = position ?? Vector2.Zero;
 			Xna.Vector2 xpos = Util.ConvertVector2(pos);
 			PBody = new Dyn.Body(DummyWorld, position: xpos, userdata: this);
-			PBody.CreateFixture(Shape);
+			Fixture = PBody.CreateFixture(Shape, userData: this);
 			PBody.BodyType = BodyType;
 		}
 
@@ -97,7 +99,7 @@ namespace Starmaze.Engine
 		public void AddToWorld(Dyn.World world)
 		{
 			PBody = PBody.Clone(world: world);
-			PBody.CreateFixture(Shape);
+			Fixture = PBody.CreateFixture(Shape);
 			Log.Message("Added body to world, type {0}, actor {1}", PBody.BodyType, Owner);
 		}
 
