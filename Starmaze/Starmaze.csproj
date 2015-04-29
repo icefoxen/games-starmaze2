@@ -98,7 +98,6 @@
     <Compile Include="Game\AssetConverters.cs" />
     <Compile Include="GameOptions.cs" />
     <Compile Include="Content\Tests.cs" />
-    <Compile Include="Content\ActFact.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
