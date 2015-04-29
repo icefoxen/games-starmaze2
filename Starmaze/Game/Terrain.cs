@@ -3,38 +3,62 @@ using System.Collections.Generic;
 using Starmaze.Engine;
 using OpenTK;
 using OpenTK.Graphics;
-using FarseerPhysics.Dynamics;
 
 namespace Starmaze.Game
 {
+	/// <summary>
+	/// Base class for any terrain features.
+	/// </summary>
+	public class Terrain : Actor
+	{
+		public Terrain()
+		{
+		}
+	}
 
 	/// <summary>
 	/// A standalone feature that warps you somewhere else when you near it and
 	/// activate it.  Essentially a portal.  Each one is one-way, but they are generally
 	/// generated in pairs.
 	/// </summary>
-	public class GateTrigger : Component
+	public class Gate : Terrain
 	{
 		public string DestinationZone;
 		public string DestinationRoom;
 		public Vector2d DestinationLocation;
 
-		public GateTrigger(string destZone, string destRoom, Vector2d destLocation) : base()
+		public Gate(string destZone, string destRoom, Vector2d destLocation)
 		{
 			DestinationZone = destZone;
 			DestinationRoom = destRoom;
 			DestinationLocation = destLocation;
-			HandledEvents = EventType.OnCollision | EventType.OnSeparation;
 		}
+	}
 
-		public override bool OnCollision(Fixture f1, Fixture f2, FarseerPhysics.Dynamics.Contacts.Contact contact)
+	/// <summary>
+	/// An axis-aligned, rectangular block of terrain
+	/// </summary>
+	public class BoxBlock : Terrain
+	{
+		public BoxBlock(BBox bbox, Color4 color)
 		{
-			return base.OnCollision(f1, f2, contact);
-		}
+			Log.Message("Creating new BoxBlock: {0} {1}", bbox, color);
+			var body = new Body(bodyType: FarseerPhysics.Dynamics.BodyType.Static);
+			body.Shape = Body.RectShape((float)bbox.Left, (float)bbox.Bottom, (float)bbox.Right, (float)bbox.Top);
+			AddComponent(body);
+			//Body.AddGeom(new BoxGeom(bbox));
 
-		public override void OnSeparation(Fixture f1, Fixture f2)
-		{
-			base.OnSeparation(f1, f2);
+			// BUGGO: Since the Actor gets the model and such themselves, instead of
+			// it being handled by the Resources system, they aren't freed properly on game end.
+			var mb = new ModelBuilder();
+			var width = bbox.Dx;
+			var height = bbox.Dy;
+			mb.RectCorner(bbox.X0, bbox.Y0, width, height, color);
+			var vertModel = mb.Finish();
+			// XXX: Should we need to get a shader here?  We probably shouldn't.
+			var shader = Resources.TheResources.GetShader("default");
+			var model = vertModel.ToVertexArray(shader);
+			AddComponent(new ModelRenderState(model));
 		}
 	}
 }
