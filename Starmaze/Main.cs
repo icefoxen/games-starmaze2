@@ -80,8 +80,8 @@ namespace Starmaze
 			//Gui.CreateGUIText(World, new Vector2d(-55, 70), "FPS: 00");
 			SetupEvents();
 
-            ParticleComponent p_component = new ParticleComponent(World,10f,1024,-3);
-            p_component.setupEmitter(new CircleEmitter(Color4.Red));
+            ParticleComponent p_component = new ParticleComponent(World,10f);
+            p_component.setupEmitter(new LineEmitter(Color4.Red,50f,90,10f,0.1,2f));
             player.AddComponent(p_component);
 
 			fpsTimer.Start();

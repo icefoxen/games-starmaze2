@@ -214,7 +214,7 @@ namespace Starmaze.Engine
 		/// <param name="emitDelay"></param>
 		/// <param name="MaxParticles"></param>
 		/// <param name="maxLifeTime"></param>
-		public CircleEmitter(Color4 color, double velocityMagnitude = 1f, double emitDelay = 0.1, int MaxParticles = 1024, double maxLifeTime = 1f, float radius = 1f, int start_angle = 0, int end_angle = 360)
+		public CircleEmitter(Color4 color, float radius = 1f, int start_angle = 0, int end_angle = 360, double velocityMagnitude = 1f, double emitDelay = 0.1, int MaxParticles = 1024, double maxLifeTime = 1f)
 		{
 			//Particle Emitter Properties
 			rand = new Random();
@@ -277,7 +277,7 @@ namespace Starmaze.Engine
 		/// <param name="length"></param>
 		/// <param name="length"></param>
 		/// <param name="end_angle"></param>
-		public LineEmitter(Color4 color, double velocityMagnitude = 1f, double emitDelay = 0.1, double maxLifeTime = 1f, float length = 1f, int angle = 0)
+		public LineEmitter(Color4 color, float length = 1f, int angle = 0,double velocityMagnitude = 1f, double emitDelay = 0.1, double maxLifeTime = 1f)
 		{
 			//Particle Emitter Properties
 			rand = new Random();
@@ -303,7 +303,7 @@ namespace Starmaze.Engine
 			//for (int i = 0; i <= 360 && lastTime >= nextTime; i += 10, current_angle++)
 			while (lastTime >= nextTime) {
 				nextTime += emitDelay; 
-				position = new Vector2d(length * Math.Cos(angle * Math.PI / 180), length * Math.Sin(angle * Math.PI / 180));
+				position = new Vector2d( Math.Cos(angle * Math.PI / 180),  Math.Sin(angle * Math.PI / 180));
 				Vector2d.Normalize(ref position, out angleVec);
 				//Log.Message(String.Format("Particle Angle {0} , {1} , {2}", current_angle, position.X, position.Y));
                 particle_group.AddParticle(position, velocityMagnitude, color, angleVec, maxLifeTime);
@@ -311,6 +311,58 @@ namespace Starmaze.Engine
 		}
 
 	}
+
+    public class PointEmitter : ParticleEmitter
+    {
+        public float length;
+        public int angle;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="color"></param>
+        /// <param name="velocityMagnitude"></param>
+        /// <param name="emitDelay"></param>
+        /// <param name="MaxParticles"></param>
+        /// <param name="maxLifeTime"></param>
+        /// <param name="length"></param>
+        /// <param name="length"></param>
+        /// <param name="end_angle"></param>
+        public PointEmitter(Color4 color, double velocityMagnitude = 1f, double emitDelay = 0.1, double maxLifeTime = 1f, int angle = 0)
+        {
+            //Particle Emitter Properties
+            rand = new Random();
+            this.color = color;
+            this.velocityMagnitude = velocityMagnitude;
+            this.emitDelay = emitDelay;
+            this.maxLifeTime = maxLifeTime;
+            this.angle = angle;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="dt"></param>
+        public override void Update(double dt, ref ParticleGroup particle_group)
+        {
+            //Will Add Code Soon
+            /*Vector2d position = Vector2d.Zero, angleVec = Vector2d.Zero;
+
+            //current_angle = start_angle * Math.PI / 180;
+
+            lastTime += dt;
+            //for (int i = 0; i <= 360 && lastTime >= nextTime; i += 10, current_angle++)
+            while (lastTime >= nextTime)
+            {
+                nextTime += emitDelay;
+                position = new Vector2d(length * Math.Cos(angle * Math.PI / 180), length * Math.Sin(angle * Math.PI / 180));
+                Vector2d.Normalize(ref position, out angleVec);
+                //Log.Message(String.Format("Particle Angle {0} , {1} , {2}", current_angle, position.X, position.Y));
+                particle_group.AddParticle(position, velocityMagnitude, color, angleVec, maxLifeTime);
+            }*/
+        }
+
+    }
 
     /// <summary>
     /// 
