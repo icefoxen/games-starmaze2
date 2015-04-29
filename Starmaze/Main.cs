@@ -9,6 +9,7 @@ using OpenTK.Graphics.OpenGL;
 using OpenTK.Input;
 using Starmaze.Engine;
 using Starmaze.Game;
+using Starmaze.Content;
 
 namespace Starmaze
 {
@@ -42,16 +43,16 @@ namespace Starmaze
 		{
 			var zone = new Zone("TestZone");
 			var actors1 = new Actor[] {
-				new BoxBlock(new BBox(-40, -35, 40, -30), Color4.Blue),
-				new BoxBlock(new BBox(-40, 30, 40, 35), Color4.Blue),
-				new BoxBlock(new BBox(-45, -35, -40, 35), Color4.Blue),
-				new BoxBlock(new BBox(40, -35, 45, 35), Color4.Blue),
+				ActFact.BoxBlock(new BBox(-40, -35, 40, -30), Color4.Blue),
+				ActFact.BoxBlock(new BBox(-40, 30, 40, 35), Color4.Blue),
+				ActFact.BoxBlock(new BBox(-45, -35, -40, 35), Color4.Blue),
+				ActFact.BoxBlock(new BBox(40, -35, 45, 35), Color4.Blue),
 			};
 			var actors2 = new Actor[] {
-				new BoxBlock(new BBox(-40, -35, 40, -30), Color4.Yellow),
-				//new BoxBlock(new BBox(-40, 30, 40, 35), Color4.Yellow),
-				new BoxBlock(new BBox(-45, -35, -40, 35), Color4.Yellow),
-				new BoxBlock(new BBox(40, -35, 45, 35), Color4.Yellow),
+				ActFact.BoxBlock(new BBox(-40, -35, 40, -30), Color4.Yellow),
+				//ActFact.BoxBlock(new BBox(-40, 30, 40, 35), Color4.Yellow),
+				ActFact.BoxBlock(new BBox(-45, -35, -40, 35), Color4.Yellow),
+				ActFact.BoxBlock(new BBox(40, -35, 45, 35), Color4.Yellow),
 			};
 			var room1 = new Room("TestRoom1", actors1);
 			var room2 = new Room("TestRoom2", actors2);
@@ -71,7 +72,7 @@ namespace Starmaze
 			Resources.Init(Options);
 			var map = BuildTestLevel();
 			var actCfg = Resources.TheResources.GetJson("player");
-			var player = SaveLoad.Load<Actor>(actCfg);
+			var player = ActFact.Player();
 			//player.Body.AddGeom(new BoxGeom(new BBox(-5, -15, 5, 5)));
 			View = new ViewManager(Util.LogicalScreenWidth, Util.LogicalScreenWidth / Options.AspectRatio);
 			Camera = new FollowCam(player, Util.LogicalScreenWidth, Util.LogicalScreenWidth / Options.AspectRatio);
