@@ -80,6 +80,15 @@ namespace Starmaze.Engine
 			s.PlaySound(Resources.TheResources.GetSound("JOZXYQK.wav"));
 			Assert.True(true);
 		}
+
+
+		[Test]
+		public void PlaySoundWithVolume()
+		{
+			s.SetVolume(0.5f);
+			s.PlaySound(Resources.TheResources.GetSound("Powers_Air_Wave_Large.wav"));
+			Assert.True(true);
+		}
 	}
 
 	[TestFixture]

@@ -19,6 +19,9 @@ namespace Starmaze.Engine
 		Fire2,
 		Defend,
 		Jump,
+
+		SoundUp,
+		SoundDown,
 	}
 
 	public class KeyConfig
@@ -26,6 +29,7 @@ namespace Starmaze.Engine
 		//store name and the key of default input bidings
 		public readonly Key MoveLeft, MoveRight, MoveUp, MoveDown;
 		public readonly Key Fire1, Fire2, Defend;
+		public readonly Key SoundUp, SoundDown;
 
 		public KeyConfig()
 		{
@@ -37,6 +41,9 @@ namespace Starmaze.Engine
 			Fire1 = Key.C;
 			Fire2 = Key.X;
 			Defend = Key.Z;
+
+			SoundUp = Key.O;
+			SoundDown = Key.P;
 		}
 	}
 
@@ -58,6 +65,9 @@ namespace Starmaze.Engine
 			Keys[(int)config.Fire1] = InputAction.Fire1;
 			Keys[(int)config.Fire2] = InputAction.Fire2;
 			Keys[(int)config.Defend] = InputAction.Defend;
+
+			Keys[(int)config.SoundUp] = InputAction.SoundUp;
+			Keys[(int)config.SoundDown] = InputAction.SoundDown;
 		}
 
 		public InputAction Action(Key key)
