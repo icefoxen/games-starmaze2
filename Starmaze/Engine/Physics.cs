@@ -31,6 +31,8 @@ namespace Starmaze.Engine
 	/// </summary>
 	public class Body : Component
 	{
+		// A dummy world that is used to hold initially-created bodies before the actors
+		// are added to the scene.
 		protected static readonly Dyn.World DummyWorld = new Dyn.World(Xna.Vector2.Zero);
 
 		public Col.Shapes.Shape Shape { get; set; }
@@ -63,12 +65,12 @@ namespace Starmaze.Engine
 			} 
 		}
 
-		public double Rotation {
+		public float Rotation {
 			get {
-				return (double)PBody.Rotation;
+				return PBody.Rotation;
 			}
 			set {
-				PBody.Rotation = (float)value;
+				PBody.Rotation = value;
 			} 
 		}
 
