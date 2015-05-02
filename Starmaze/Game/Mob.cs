@@ -188,6 +188,7 @@ namespace Starmaze.Game
 			switch (a) {
 				case InputAction.MoveUp:
 					Owner.Body.PBody.ApplyLinearImpulse(new Microsoft.Xna.Framework.Vector2(0, 500));
+					Resources.Sound.PlaySound(Resources.TheResources.GetSound("Powers_Air_Wave_Small.wav"));
 					//Owner.Body.AddVelocity(new Vector2d(0, 5));
 					break;
 				case InputAction.MoveDown:

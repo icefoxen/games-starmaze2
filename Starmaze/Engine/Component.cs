@@ -1,6 +1,7 @@
 ﻿using System;
 using Newtonsoft.Json;
 using OpenTK;
+using Dyn = FarseerPhysics.Dynamics;
 
 namespace Starmaze.Engine
 {
@@ -12,6 +13,8 @@ namespace Starmaze.Engine
 		OnKeyDown = 1 << 1,
 		OnKeyUp = 1 << 2,
 		OnDeath = 1 << 3,
+		OnCollision = 1 << 4,
+		OnSeparation = 1 << 5,
 	}
 	// Other event types: OnRoomChange?  OnZoneChange?  Plus physics-based ones, of course...
 	/// <summary>
@@ -24,7 +27,7 @@ namespace Starmaze.Engine
 
 		public Component()
 		{
-			HandledEvents = EventType.None;
+			HandledEvents = EventType.None | EventType.OnCollision | EventType.OnSeparation;
 		}
 		// It would be nice if these were unnecessary; we could just provide a list of events somehow
 		// that each component cares about and the system would be smart enough to add/remove them itself.
@@ -43,6 +46,16 @@ namespace Starmaze.Engine
 			if (HandledEvents.HasFlag(EventType.OnDeath)) {
 				w.OnDeath += OnDeath;
 			}
+			if (HandledEvents.HasFlag(EventType.OnCollision)) {
+				Log.Assert(Owner != null);
+				Log.Assert(Owner.Body != null);
+				Owner.Body.Fixture.OnCollision += OnCollision;
+			}
+			if (HandledEvents.HasFlag(EventType.OnSeparation)) {
+				Log.Assert(Owner != null);
+				Log.Assert(Owner.Body != null);
+				Owner.Body.Fixture.OnSeparation += OnSeparation;
+			}
 		}
 
 		public void UnregisterEvents(World w)
@@ -58,6 +71,16 @@ namespace Starmaze.Engine
 			}
 			if (HandledEvents.HasFlag(EventType.OnDeath)) {
 				w.OnDeath -= OnDeath;
+			}
+			if (HandledEvents.HasFlag(EventType.OnCollision)) {
+				Log.Assert(Owner != null);
+				Log.Assert(Owner.Body != null);
+				Owner.Body.Fixture.OnCollision -= OnCollision;
+			}
+			if (HandledEvents.HasFlag(EventType.OnSeparation)) {
+				Log.Assert(Owner != null);
+				Log.Assert(Owner.Body != null);
+				Owner.Body.Fixture.OnSeparation -= OnSeparation;
 			}
 		}
 
@@ -79,6 +102,17 @@ namespace Starmaze.Engine
 		public virtual void OnDeath(object sender, EventArgs args)
 		{
 
+		}
+
+		public virtual bool OnCollision(Dyn.Fixture f1, Dyn.Fixture f2, Dyn.Contacts.Contact contact)
+		{
+			Log.Message("Collision happened: {0}, {1}, {2}", f1.Body.UserData, f2.Body.UserData, contact);
+			return true;
+		}
+
+		public virtual void OnSeparation(Dyn.Fixture f1, Dyn.Fixture f2)
+		{
+			Log.Message("Separation happend");
 		}
 
 		public virtual void PreSave()

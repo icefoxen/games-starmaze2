@@ -31,6 +31,8 @@ namespace Starmaze.Engine
 	/// </summary>
 	public class Body : Component
 	{
+		// A dummy world that is used to hold initially-created bodies before the actors
+		// are added to the scene.
 		protected static readonly Dyn.World DummyWorld = new Dyn.World(Xna.Vector2.Zero);
 
 		public Col.Shapes.Shape Shape { get; set; }
@@ -38,6 +40,8 @@ namespace Starmaze.Engine
 		public Dyn.BodyType BodyType { get; set; }
 
 		public Dyn.Body PBody { get; set; }
+
+		public Dyn.Fixture Fixture { get; set; }
 
 		public Facing Facing { get; set; }
 		// Wrappers for Body attributes
@@ -61,12 +65,12 @@ namespace Starmaze.Engine
 			} 
 		}
 
-		public double Rotation {
+		public float Rotation {
 			get {
-				return (double)PBody.Rotation;
+				return PBody.Rotation;
 			}
 			set {
-				PBody.Rotation = (float)value;
+				PBody.Rotation = value;
 			} 
 		}
 
@@ -78,7 +82,7 @@ namespace Starmaze.Engine
 			var pos = position ?? Vector2.Zero;
 			Xna.Vector2 xpos = Util.ConvertVector2(pos);
 			PBody = new Dyn.Body(DummyWorld, position: xpos, userdata: this);
-			PBody.CreateFixture(Shape);
+			Fixture = PBody.CreateFixture(Shape, userData: this);
 			PBody.BodyType = BodyType;
 		}
 
@@ -97,7 +101,7 @@ namespace Starmaze.Engine
 		public void AddToWorld(Dyn.World world)
 		{
 			PBody = PBody.Clone(world: world);
-			PBody.CreateFixture(Shape);
+			Fixture = PBody.CreateFixture(Shape);
 			Log.Message("Added body to world, type {0}, actor {1}", PBody.BodyType, Owner);
 		}
 
