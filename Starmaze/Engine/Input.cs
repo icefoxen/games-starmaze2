@@ -18,13 +18,14 @@ namespace Starmaze.Engine
 		Fire2,
 		Defend,
 		Jump,
+        ToggleFPS
 	}
 
 	public class KeyConfig
 	{
 		//store name and the key
 		public readonly Key MoveLeft, MoveRight, MoveUp, MoveDown;
-		public readonly Key Fire1, Fire2, Defend;
+        public readonly Key Fire1, Fire2, Defend, ToggleFPS;
 
 		public KeyConfig()
 		{
@@ -36,6 +37,7 @@ namespace Starmaze.Engine
 			Fire1 = Key.C;
 			Fire2 = Key.X;
 			Defend = Key.Z;
+            ToggleFPS = Key.F1;
 		}
 	}
 
@@ -56,8 +58,14 @@ namespace Starmaze.Engine
 			Keys[(int)config.Fire1] = InputAction.Fire1;
 			Keys[(int)config.Fire2] = InputAction.Fire2;
 			Keys[(int)config.Defend] = InputAction.Defend;
+            Keys[(int)config.ToggleFPS] = InputAction.ToggleFPS;
 		}
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
 		public InputAction Action(Key key)
 		{
 			return Keys[(int)key];

@@ -1,7 +1,7 @@
 using System;
-using System.Text;
 using OpenTK;
 using OpenTK.Graphics;
+using OpenTK.Input;
 using Starmaze.Engine;
 using System.Drawing;
 using System.Collections.Generic;
@@ -13,10 +13,15 @@ namespace Starmaze.Game
 		Texture texture;
 		// Generics remove the need to do all the casts.
 		Dictionary<string, GUIText> guiHash;
+        GUIText fps;
+        bool showFPS=false;
 
-		public GUI(double width, double height)
+		public GUI(double width, double height, World world, Vector2 fps_pos)
 		{
-			guiHash = new Dictionary<string, GUIText>();       
+			guiHash = new Dictionary<string, GUIText>();
+            fps = new GUIText(world, fps_pos, "FPS: 00", 24);
+            guiHash.Add("FPS", fps);
+
 		}
 
 		public void Draw(Vector2d cameraOffset)
@@ -53,7 +58,7 @@ namespace Starmaze.Game
 		/// <param name="text"></param>
 		/// <param name="fontsize"></param>
 		/// <returns>The key for the GUIText created. The key can be used as the editGUIText parameter key to edit the GUIActor</returns>
-		public string CreateGUIText(World world, Vector2d pos, string text = "", int fontsize = 24)
+		public string CreateGUIText(World world, Vector2 pos, string text = "", int fontsize = 24)
 		{
 			GUIText gActor = new GUIText(world, pos, text, fontsize);
 
@@ -77,6 +82,26 @@ namespace Starmaze.Game
 				guiHash[key].DrawString(text, fontsize);
 			}
 		}
+
+
+        public void updateFPS(string text,int fontsize = 24)
+        {
+
+            if (!showFPS)
+              {
+               return;  
+            }
+            fps.DrawString(text, fontsize);            
+        }
+
+        public void ToggleFPS(bool value)
+        {
+            if (!value)
+                return;
+            showFPS = !showFPS;
+
+            Log.Message("ShowFPS: {0}", showFPS);
+        }
 	}
 	//An object that
 	public class GUIText
@@ -84,13 +109,11 @@ namespace Starmaze.Game
 		Actor actor;
 		Texture texture;
 
-		public GUIText(World world, Vector2d pos, string text = "", int fontsize = 24)
+		public GUIText(World world, Vector2 pos, string text = "", int fontsize = 24)
 		{
 			//Set up Actor
-			actor = new Actor();
-			//actor.Body = new Body(actor, false, true);
-			//Set the actors position
-			//actor.Body.MoveTo(pos);
+            actor = new Actor();
+            actor.AddComponent(new Body());
 
 			//Set up the GUIRenderState for the Actor
 			texture = TextDrawer.RenderString(text, Color4.White, fontsize);

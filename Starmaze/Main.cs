@@ -76,9 +76,8 @@ namespace Starmaze
 			View = new ViewManager(Util.LogicalScreenWidth, Util.LogicalScreenWidth / Options.AspectRatio);
 			Camera = new FollowCam(player, Util.LogicalScreenWidth, Util.LogicalScreenWidth / Options.AspectRatio);
 			World = new World(player, map, "TestZone", "TestRoom1");
-			Gui = new GUI(Util.LogicalScreenWidth, Util.LogicalScreenWidth / Options.AspectRatio);
-			//Gui.CreateGUIText(World, new Vector2d(-55, 70), "FPS: 00");
-			SetupEvents();
+			Gui = new GUI(Util.LogicalScreenWidth, Util.LogicalScreenWidth / Options.AspectRatio,World, new Vector2(-55, 70));
+		    SetupEvents();
 
 			//player.AddComponent(new ParticleComponent(player, World, new Vector2d(100.0, 100.0)));
 			fpsTimer.Start();
@@ -112,11 +111,14 @@ namespace Starmaze
 			if (e.Key == OpenTK.Input.Key.Escape ||
 			    (e.Key == OpenTK.Input.Key.F4 && e.Alt)) {
 				Exit();
-			} else if (!e.IsRepeat) {
+			}
+            else if (!e.IsRepeat) {
 				var keyaction = Options.KeyBinding.Action(e.Key);
 				if (keyaction != InputAction.Unbound) {
 					World.HandleKeyDown(keyaction);
 				}
+                Gui.ToggleFPS(keyaction == InputAction.ToggleFPS);
+               
 			}
 		}
 
@@ -142,8 +144,7 @@ namespace Starmaze
 			if (fpsTimer.ElapsedMilliseconds > (fpsInterval * 1000)) {
 				fpsTimer.Restart();
 				Log.Message("FPS: {0}", frames / fpsInterval);
-				Gui.editGUIText("" + -55 + "" + 70, String.Format("FPS: {0:00}", (frames / fpsInterval)));
-				//Gui.DrawString("FPS:" + (frames / fpsInterval),new Vector2d(-55,70),60);            
+                Gui.updateFPS(String.Format("FPS: {0:00}",(frames / fpsInterval)));
 				frames = 0;
 			}
 		}
@@ -154,7 +155,7 @@ namespace Starmaze
 			View.CenterOn(Camera.CurrentPos);
 			World.Draw(View);
           
-			Gui.Draw(Camera.CurrentPos);           
+			//Gui.Draw(Camera.CurrentPos);           
 			
 			SwapBuffers();
 			frames += 1;
