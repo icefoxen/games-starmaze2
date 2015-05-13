@@ -105,7 +105,8 @@ namespace Starmaze.Engine
 		[Test]
 		public void PlaySoundWithVolume()
 		{
-			s.SetVolume(0.5f);
+			s.Volume = 0.5f;
+			//s.SetVolume(0.5f);
 			s.PlaySound(Resources.TheResources.GetSound("Powers_Air_Wave_Large.wav"));
 			Assert.True(true);
 		}
