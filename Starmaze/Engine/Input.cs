@@ -19,7 +19,7 @@ namespace Starmaze.Engine
 		Fire2,
 		Defend,
 		Jump,
-        ToggleFPS
+        ToggleFPS,
 		SoundUp,
 		SoundDown,
 	}
@@ -37,7 +37,6 @@ namespace Starmaze.Engine
 			MoveRight = Key.Right;
 			MoveUp = Key.Up;
 			MoveDown = Key.Down;
-
 			Fire1 = Key.C;
 			Fire2 = Key.X;
 			Defend = Key.Z;

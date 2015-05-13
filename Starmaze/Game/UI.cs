@@ -19,7 +19,7 @@ namespace Starmaze.Game
 		public GUI(double width, double height, World world, Vector2 fps_pos)
 		{
 			guiHash = new Dictionary<string, GUIText>();
-            fps = new GUIText(world, fps_pos, "FPS: 00", 24);
+            fps = new GUIText(world, fps_pos, " ", 24);
             guiHash.Add("FPS", fps);
 
 		}
@@ -89,18 +89,22 @@ namespace Starmaze.Game
 
             if (!showFPS)
               {
+                  fps.DrawString(" ", fontsize);  
                return;  
             }
             fps.DrawString(text, fontsize);            
         }
 
-        public void ToggleFPS(bool value)
+        /// <summary>
+        /// If key_pressed is true, the bool flag to show the FPS will be toggeled.
+        /// </summary>
+        /// <param name="key_pressed">The value if key to Toggle FPS was pressed or not</param>
+        public void ToggleFPS(bool key_pressed)
         {
-            if (!value)
+            //If the Value is true, then Toggle showFPS
+            if (!key_pressed)
                 return;
             showFPS = !showFPS;
-
-            Log.Message("ShowFPS: {0}", showFPS);
         }
 	}
 	//An object that
