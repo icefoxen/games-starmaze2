@@ -140,7 +140,7 @@ namespace Starmaze.Engine
 		public Vector2 Scale;
 		public Texture texture;
 
-		public ParticleRenderState(Texture tex, Color4 color, List<Particle> list, Vector2? scale = null, float rotation = 0.0f)
+		public ParticleRenderState(Texture tex, List<Particle> list, Vector2? scale = null, float rotation = 0.0f)
 			: base("ParticleRenderer")
 		{
 			texture = tex;
