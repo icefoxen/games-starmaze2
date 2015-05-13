@@ -7,6 +7,7 @@ using System.Collections;
 
 namespace Starmaze.Engine
 {
+	//A listing of the possible inputs that must be handled
 	public enum InputAction
 	{
 		Unbound,
@@ -19,13 +20,16 @@ namespace Starmaze.Engine
 		Defend,
 		Jump,
         ToggleFPS
+		SoundUp,
+		SoundDown,
 	}
 
 	public class KeyConfig
 	{
-		//store name and the key
+		//store name and the key of default input bidings
 		public readonly Key MoveLeft, MoveRight, MoveUp, MoveDown;
         public readonly Key Fire1, Fire2, Defend, ToggleFPS;
+		public readonly Key SoundUp, SoundDown;
 
 		public KeyConfig()
 		{
@@ -38,11 +42,14 @@ namespace Starmaze.Engine
 			Fire2 = Key.X;
 			Defend = Key.Z;
             ToggleFPS = Key.F1;
+			SoundUp = Key.O;
+			SoundDown = Key.P;
 		}
 	}
 
 	public class KeyboardBinding
 	{
+		//Actually connects actions and keybinds
 		public InputAction[] Keys;
 
 		public KeyboardBinding(KeyConfig config)
@@ -59,6 +66,8 @@ namespace Starmaze.Engine
 			Keys[(int)config.Fire2] = InputAction.Fire2;
 			Keys[(int)config.Defend] = InputAction.Defend;
             Keys[(int)config.ToggleFPS] = InputAction.ToggleFPS;
+			Keys[(int)config.SoundUp] = InputAction.SoundUp;
+			Keys[(int)config.SoundDown] = InputAction.SoundDown;
 		}
 
         /// <summary>

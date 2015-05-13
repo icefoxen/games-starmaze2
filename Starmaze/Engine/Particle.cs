@@ -149,18 +149,15 @@ namespace Starmaze.Engine
 			this.gravity = gravity;
 		}
 
-		public void Update(double dt, ref List<Particle> list)
+		public void Update(double dt, ref ParticleGroup group)
 		{
 			// OPT: This could prolly be more efficient.
 			// But a core i5 handles 50k particles without much sweat, so, no sweat.
-			Random rand = new Random();
+            List<Particle> list = group.Particles;
 
 			for (int i = list.Count - 1; i > -1; i--) {
 				var p = list[i];
-				if (p.Life <= 0) {
-					list.RemoveAt(i);
-					continue;
-				}
+
 				//***Calculate the factors that will affect velocty***
 				//1. Applying gravity
 				var _gravity = -1 * Vector2d.UnitY * (gravity);
@@ -175,6 +172,9 @@ namespace Starmaze.Engine
 				p.Position = pos;
 				p.Life -= dt;
 				list[i] = p;
+                
+			    if(p.Life<0)
+                    list=group.Remove(i);
 			}
 			// Log.Message(String.Format("Particle ({0}) V {0}", list[0].Position, list[0].Velocity));
 
@@ -192,11 +192,9 @@ namespace Starmaze.Engine
 		protected Random rand;
 		protected double emitDelay, velocityMagnitude, maxLifeTime;
 		public List<Particle> Particles;
-		protected Color4 color;
+        public Color4 color;
 
-		protected abstract void AddParticle(Vector2d pos, double velocityMagnitude, Color4 color, Vector2d angle, double age = 1.0);
-
-		public abstract void Update(double dt);
+		public abstract void Update(double dt, ref ParticleGroup particle_group);
 
 	}
 
@@ -216,7 +214,7 @@ namespace Starmaze.Engine
 		/// <param name="emitDelay"></param>
 		/// <param name="MaxParticles"></param>
 		/// <param name="maxLifeTime"></param>
-		public CircleEmitter(Color4 color, double velocityMagnitude = 1f, double emitDelay = 0.1, int MaxParticles = 1024, double maxLifeTime = 1f, float radius = 1f, int start_angle = 0, int end_angle = 360)
+		public CircleEmitter(Color4 color, float radius = 1f, int start_angle = 0, int end_angle = 360, double velocityMagnitude = 1f, double emitDelay = 0.1, int MaxParticles = 1024, double maxLifeTime = 1f)
 		{
 			//Particle Emitter Properties
 			rand = new Random();
@@ -235,7 +233,7 @@ namespace Starmaze.Engine
 		/// 
 		/// </summary>
 		/// <param name="dt"></param>
-		public override void Update(double dt)
+        public override void Update(double dt, ref ParticleGroup particle_group)
 		{
 			Vector2d position = Vector2d.Zero, angleVec = Vector2d.Zero;
 
@@ -254,23 +252,10 @@ namespace Starmaze.Engine
 				position = new Vector2d(radius * Math.Cos(current_angle * Math.PI / 180), radius * Math.Sin(current_angle * Math.PI / 180));
 				Vector2d.Normalize(ref position, out angleVec);
 				//Log.Message(String.Format("Particle Angle {0} , {1} , {2}", current_angle, position.X, position.Y));
-				AddParticle(position, velocityMagnitude, color, angleVec, maxLifeTime);
+                particle_group.AddParticle(position, velocityMagnitude, color, angleVec, maxLifeTime);
 			}
 		}
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="pos"></param>
-		/// <param name="velocityMagnitude"></param>
-		/// <param name="color"></param>
-		/// <param name="angle"></param>
-		/// <param name="age"></param>
-		protected override void AddParticle(Vector2d pos, double velocityMagnitude, Color4 color, Vector2d angle, double age = 1.0)
-		{
-			Particles.Add(new Particle(pos, velocityMagnitude, color, angle, age));
-			//Log.Message(String.Format("Particle ({0}) V {0}", pos, vel));
-		}
 	}
 
 	/// <summary>
@@ -292,7 +277,7 @@ namespace Starmaze.Engine
 		/// <param name="length"></param>
 		/// <param name="length"></param>
 		/// <param name="end_angle"></param>
-		public LineEmitter(Color4 color, double velocityMagnitude = 1f, double emitDelay = 0.1, int MaxParticles = 1024, double maxLifeTime = 1f, float length = 1f, int angle = 0)
+		public LineEmitter(Color4 color, float length = 1f, int angle = 0,double velocityMagnitude = 1f, double emitDelay = 0.1, double maxLifeTime = 1f)
 		{
 			//Particle Emitter Properties
 			rand = new Random();
@@ -302,14 +287,13 @@ namespace Starmaze.Engine
 			this.maxLifeTime = maxLifeTime;
 			this.length = length;
 			this.angle = angle;
-			Particles = new List<Particle>(MaxParticles);
 		}
 
 		/// <summary>
 		/// 
 		/// </summary>
 		/// <param name="dt"></param>
-		public override void Update(double dt)
+		public override void Update(double dt, ref ParticleGroup particle_group)
 		{
 			Vector2d position = Vector2d.Zero, angleVec = Vector2d.Zero;
 
@@ -319,29 +303,101 @@ namespace Starmaze.Engine
 			//for (int i = 0; i <= 360 && lastTime >= nextTime; i += 10, current_angle++)
 			while (lastTime >= nextTime) {
 				nextTime += emitDelay; 
-				position = new Vector2d(length * Math.Cos(angle * Math.PI / 180), length * Math.Sin(angle * Math.PI / 180));
+				position = new Vector2d( Math.Cos(angle * Math.PI / 180),  Math.Sin(angle * Math.PI / 180));
 				Vector2d.Normalize(ref position, out angleVec);
 				//Log.Message(String.Format("Particle Angle {0} , {1} , {2}", current_angle, position.X, position.Y));
-				AddParticle(position, velocityMagnitude, color, angleVec, maxLifeTime);
+                particle_group.AddParticle(position, velocityMagnitude, color, angleVec, maxLifeTime);
 			}
-		}
-
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="pos"></param>
-		/// <param name="velocityMagnitude"></param>
-		/// <param name="color"></param>
-		/// <param name="angle"></param>
-		/// <param name="age"></param>
-		protected override void AddParticle(Vector2d pos, double velocityMagnitude, Color4 color, Vector2d angle, double age = 1.0)
-		{
-			Particles.Add(new Particle(pos, velocityMagnitude, color, angle, age));
-			//Log.Message(String.Format("Particle ({0}) V {0}", pos, vel));
 		}
 
 	}
 
+    public class PointEmitter : ParticleEmitter
+    {
+        public float length;
+        public int angle;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="color"></param>
+        /// <param name="velocityMagnitude"></param>
+        /// <param name="emitDelay"></param>
+        /// <param name="MaxParticles"></param>
+        /// <param name="maxLifeTime"></param>
+        /// <param name="length"></param>
+        /// <param name="length"></param>
+        /// <param name="end_angle"></param>
+        public PointEmitter(Color4 color, double velocityMagnitude = 1f, double emitDelay = 0.1, double maxLifeTime = 1f, int angle = 0)
+        {
+            //Particle Emitter Properties
+            rand = new Random();
+            this.color = color;
+            this.velocityMagnitude = velocityMagnitude;
+            this.emitDelay = emitDelay;
+            this.maxLifeTime = maxLifeTime;
+            this.angle = angle;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="dt"></param>
+        public override void Update(double dt, ref ParticleGroup particle_group)
+        {
+            //Will Add Code Soon
+            /*Vector2d position = Vector2d.Zero, angleVec = Vector2d.Zero;
+
+            //current_angle = start_angle * Math.PI / 180;
+
+            lastTime += dt;
+            //for (int i = 0; i <= 360 && lastTime >= nextTime; i += 10, current_angle++)
+            while (lastTime >= nextTime)
+            {
+                nextTime += emitDelay;
+                position = new Vector2d(length * Math.Cos(angle * Math.PI / 180), length * Math.Sin(angle * Math.PI / 180));
+                Vector2d.Normalize(ref position, out angleVec);
+                //Log.Message(String.Format("Particle Angle {0} , {1} , {2}", current_angle, position.X, position.Y));
+                particle_group.AddParticle(position, velocityMagnitude, color, angleVec, maxLifeTime);
+            }*/
+        }
+
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public class ParticleGroup
+    {
+
+        public List<Particle> Particles;
+
+        public ParticleGroup(int MaxParticles)
+        {
+
+            Particles = new List<Particle>(MaxParticles);
+
+        }
+
+        public void AddParticle(Vector2d pos, double velocityMagnitude, Color4 color, Vector2d angle, double age = 1.0)
+        {
+            Particles.Add(new Particle(pos, velocityMagnitude, color, angle, age));
+            //Log.Message(String.Format("Particle ({0}) V {0}", pos, vel));
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="i">the Index to remove at</param>
+        /// <returns>the updated particle list with the removed item</returns>
+        public List<Particle> Remove(int i)
+        {
+            Particles[i] = Particles[Particles.Count - 1];
+            Particles.RemoveAt(Particles.Count - 1);
+            return Particles;
+        }
+
+    }
 	/// <summary>
 	/// An object that draws a ParticleGroup.
 	/// </summary>
@@ -354,25 +410,12 @@ namespace Starmaze.Engine
 	{
 		Actor actor;
 		ParticleController controller;
-		double maxLifeTime = 1.0f;
-		float startScale = 1.0f;
-		float deltaScale = 0.0f;
-		double velocityMagnitude;
-		double emitDelay;
-		int MaxParticles;
 		ParticleEmitter emitter;
+        ParticleGroup particle_group;
 
-		public enum EmitterType : int
-		{
-			Cone,
-			Circle,
-			Square,
-			Rectangle,
-			Point,
-			Line
-		}
-
-		public ParticleComponent(World world, double velocityMagnitude, double emitDelay = 0.1, double maxLifeTime = 3f, int MaxParticles = 1024, float _startScale = 1f, float _deltaScale = 0f, float gravity = 1f)
+        //public CircleEmitter(Color4 color, double velocityMagnitude = 1f, double emitDelay = 0.1, int MaxParticles = 1024, double maxLifeTime = 1f, float radius = 1f, int start_angle = 0, int end_angle = 360)
+		
+		public ParticleComponent(World world, double velocityMagnitude,int MaxParticles = 1024, float gravity = 1f,float _startScale = 1f, float _deltaScale = 0f)
 			: base()
 		{
 			HandledEvents = EventType.OnUpdate;
@@ -380,30 +423,26 @@ namespace Starmaze.Engine
 			actor.AddComponent(new Body());
 
 			//Particle Controller Properties
-			this.velocityMagnitude = velocityMagnitude;
-			this.maxLifeTime = maxLifeTime;
-			this.startScale = _startScale;
-			this.deltaScale = _deltaScale;
-			this.emitDelay = emitDelay;
-			this.MaxParticles = MaxParticles;
-			//emitter = new CircleEmitter(color, velocityMagnitude, emitDelay, MaxParticles,maxLifeTime,3,0,180);
-			controller = new ParticleController(new Vector2d(actor.Body.Position.X, actor.Body.Position.Y), maxLifeTime, gravity, startScale, deltaScale);
+            controller = new ParticleController(new Vector2d(actor.Body.Position.X, actor.Body.Position.Y), velocityMagnitude, gravity, _startScale, _deltaScale);
+            particle_group = new ParticleGroup(MaxParticles);
 
 			world.AddActor(actor);
 		}
 
-		public void setupEmitter(EmitterType type, Color4 color, float radius = 1f, int start_angle = 0, int end_angle = 360)
+		public void setupEmitter(ParticleEmitter emitter)
 		{
-			switch (type) {
+           /* switch (emitter)
+            {
 				case(EmitterType.Circle):
 					emitter = new CircleEmitter(color, velocityMagnitude, emitDelay, MaxParticles, maxLifeTime, radius, start_angle, end_angle);
 					break;
 				case (EmitterType.Line):
 					emitter = new LineEmitter(color, velocityMagnitude, emitDelay, MaxParticles, maxLifeTime, radius, start_angle);
 					break;
-			}
+			}*/
+            this.emitter = emitter;
 			Texture texture = Resources.TheResources.GetTexture("dot");
-			ParticleRenderState renderstate = new ParticleRenderState(texture, color, emitter.Particles, new Vector2(0.1f, 0.1f));
+            ParticleRenderState renderstate = new ParticleRenderState(texture, emitter.color, particle_group.Particles, new Vector2(0.1f, 0.1f));
 			actor.AddComponent(renderstate);
             
 		}
@@ -411,9 +450,9 @@ namespace Starmaze.Engine
 		public override void OnUpdate(object sender, FrameEventArgs e)
 		{
 			var dt = e.Time;
-			emitter.Update(dt);
-			((ParticleRenderState)actor.RenderState).particleList = emitter.Particles;
-			controller.Update(dt, ref emitter.Particles);
+			emitter.Update(dt,ref particle_group);
+            ((ParticleRenderState)actor.RenderState).particleList = particle_group.Particles;
+            controller.Update(dt, ref particle_group);
 		}
 
 	}

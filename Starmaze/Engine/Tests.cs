@@ -68,6 +68,25 @@ namespace Starmaze.Engine
 		}
 
 		[Test]
+		public void PlayTwoSoundsWithDelay()
+		{
+			s.PlaySound(Resources.TheResources.GetSound("Powers_Air_Wave_Large.wav"));
+			System.Threading.Thread.Sleep(500);
+			s.PlaySound(Resources.TheResources.GetSound("Powers_Air_Wave_Small.wav"));
+			Assert.True(true);
+		}
+
+
+		[Test]
+		public void PlayOneSoundTwice()
+		{
+			s.PlaySound(Resources.TheResources.GetSound("Powers_Air_Wave_Large.wav"));
+			System.Threading.Thread.Sleep(500);
+			s.PlaySound(Resources.TheResources.GetSound("Powers_Air_Wave_Large.wav"));
+			Assert.True(false);
+		}
+
+		[Test]
 		public void PlayBrokenSound()
 		{
 			s.PlaySound(Resources.TheResources.GetSound("ResampleTester.wav"));
@@ -78,6 +97,15 @@ namespace Starmaze.Engine
 		public void PlayMissingSound()
 		{
 			s.PlaySound(Resources.TheResources.GetSound("JOZXYQK.wav"));
+			Assert.True(true);
+		}
+
+
+		[Test]
+		public void PlaySoundWithVolume()
+		{
+			s.SetVolume(0.5f);
+			s.PlaySound(Resources.TheResources.GetSound("Powers_Air_Wave_Large.wav"));
 			Assert.True(true);
 		}
 	}
