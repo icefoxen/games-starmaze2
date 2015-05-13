@@ -38,7 +38,7 @@ namespace Starmaze.Engine
 		Dictionary<string, Texture> TextureCache;
 		Dictionary<string, Shader> ShaderCache;
 		Dictionary<string, VertexArray> ModelCache;
-		Dictionary<string, ISampleProvider> SoundCache;
+		Dictionary<string, CachedSound> SoundCache;
 		Dictionary<string, Texture> TextCache;
 		Dictionary<string, JObject> JsonCache;
 
@@ -51,7 +51,7 @@ namespace Starmaze.Engine
 			TextureCache = new Dictionary<string, Texture>();
 			ShaderCache = new Dictionary<string, Shader>();
 			ModelCache = new Dictionary<string, VertexArray>();
-			SoundCache = new Dictionary<string, ISampleProvider>();
+			SoundCache = new Dictionary<string, CachedSound>();
 			TextCache = new Dictionary<string, Texture>();
 			JsonCache = new Dictionary<string, JObject>();
 		}
@@ -229,31 +229,30 @@ namespace Starmaze.Engine
 			return json;
 		}
 
-		ISampleProvider LoadSound(string name)
+		CachedSound LoadSound(string name)
 		{
 			//var req_samples = Resources.Options.SoundSampleRate;
 			//var req_channels = Resources.Options.SoundChannels;
 
 			var fullPath = System.IO.Path.Combine(ResourceRoot, "sounds", name);
-			AudioFileReader input = new AudioFileReader(fullPath);
-			ISampleProvider sound = input.ToSampleProvider();
-			sound = CorrectSoundFile(sound);
+			CachedSound sound = new CachedSound(fullPath);
+			//sound = CorrectSoundFile(sound);
 			return sound;
 
 		}
 
-		public ISampleProvider GetSound(string name)
+		public CachedSound GetSound(string name)
 		{
 			return Get(SoundCache, LoadSound, name);
 		}
-
+		/*
 		public ISampleProvider CorrectSoundFile(ISampleProvider soundIn)
 		{
 
 			var resampler = new WdlResamplingSampleProvider(soundIn, Resources.Options.SoundSampleRate);
 			return (ISampleProvider)resampler;
 
-		}
+		}*/
 
 		/// <summary>
 		/// Preload any resources that take a long time to load; ie, all of them.
