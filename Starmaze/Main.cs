@@ -79,9 +79,13 @@ namespace Starmaze
 			Gui = new GUI(Util.LogicalScreenWidth, Util.LogicalScreenWidth / Options.AspectRatio,World, new Vector2(-55, 70));
 		    SetupEvents();
 
-			ParticleComponent p_component = new ParticleComponent(World, 10f, 1024, -3);
-			p_component.setupEmitter(new CircleEmitter(Color4.Red));
-			//player.AddComponent(p_component);
+			ParticleComponent p_component = new ParticleComponent(World, 10f, 1000,0, -3);
+			p_component.setupEmitter(new PointEmitter(Color4.Red,2,1,0.1,5),true);
+			player.AddComponent(p_component);
+
+            ParticleComponent c_component = new ParticleComponent(World, 10f, 1000, 0, -3);
+            c_component.setupEmitter(new CircleEmitter(Color4.Red,5), true);
+            player.AddComponent(c_component);
 
 			fpsTimer.Start();
 		}

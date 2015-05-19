@@ -224,9 +224,8 @@ namespace Starmaze.Engine
 		/// <param name="color"></param>
 		/// <param name="velocityMagnitude"></param>
 		/// <param name="emitDelay"></param>
-		/// <param name="MaxParticles"></param>
 		/// <param name="maxLifeTime"></param>
-		public CircleEmitter(Color4 color, float radius = 1f, int start_angle = 0, int end_angle = 360, double velocityMagnitude = 1f, double emitDelay = 0.1, int MaxParticles = 1024, double maxLifeTime = 1f)
+		public CircleEmitter(Color4 color, float radius = 5f, int start_angle = 0, int end_angle = 360, double velocityMagnitude = 3f, double emitDelay = 0.1,double maxLifeTime = 3f)
 		{
 			//Particle Emitter Properties
 			rand = new Random();
@@ -238,7 +237,6 @@ namespace Starmaze.Engine
 			this.start_angle = start_angle;
 			current_angle = start_angle;
 			this.end_angle = end_angle;
-			Particles = new List<Particle>(MaxParticles);
 		}
 
 		/// <summary>
@@ -248,24 +246,25 @@ namespace Starmaze.Engine
         public override void Update(double dt, ref ParticleGroup particle_group)
 		{
 			Vector2d position = Vector2d.Zero, angleVec = Vector2d.Zero;
-
+            float rand_radius = radius * (float)rand.NextDouble();
 			//current_angle = start_angle * Math.PI / 180;
 
 			lastTime += dt;
-			for (int i = 0; i <= 360 && lastTime >= nextTime; i += 10, current_angle++) {			//while (lastTime >= nextTime)
+			//for (int i = 0; i <= 360 && lastTime >= nextTime; i += 10, current_angle++) {			//while (lastTime >= nextTime)
 
-				if (current_angle > end_angle - 1) {
-					current_angle = start_angle;
-					nextTime += emitDelay;
-					break;
-				}
-
-				//angle = random.Next(start_angle, end_angle);
-				position = new Vector2d(radius * Math.Cos(current_angle * Math.PI / 180), radius * Math.Sin(current_angle * Math.PI / 180));
-				Vector2d.Normalize(ref position, out angleVec);
-				//Log.Message(String.Format("Particle Angle {0} , {1} , {2}", current_angle, position.X, position.Y));
-                particle_group.AddParticle(position, velocityMagnitude, color, angleVec, maxLifeTime);
+            current_angle++;
+			if (current_angle > end_angle - 1) {
+				current_angle = start_angle;
+				nextTime += emitDelay;
+				//break;
 			}
+
+			//angle = random.Next(start_angle, end_angle);
+            position = new Vector2d(rand_radius * Math.Cos(current_angle * Math.PI / 180), rand_radius * Math.Sin(current_angle * Math.PI / 180));
+			Vector2d.Normalize(ref position, out angleVec);
+			//Log.Message(String.Format("Particle Angle {0} , {1} , {2}", current_angle, position.X, position.Y));
+            particle_group.AddParticle(position, velocityMagnitude, color, angleVec, maxLifeTime);
+		//}
 		}
 
 	}
@@ -329,6 +328,7 @@ namespace Starmaze.Engine
         public float length;
         public int angle;
         public Vector2d velocity;
+        int direction = 1;
         /// <summary>
         /// 
         /// </summary>
@@ -340,7 +340,7 @@ namespace Starmaze.Engine
         /// <param name="length"></param>
         /// <param name="length"></param>
         /// <param name="end_angle"></param>
-        public PointEmitter(Color4 color, double xVelocity = 1f, double yVelocity = 1f, double emitDelay = 0.1, double maxLifeTime = 1f)
+        public PointEmitter(Color4 color, double xVelocity = 3f, double yVelocity = 3f, double emitDelay = 0.1, double maxLifeTime = 3f)
         {
             //Particle Emitter Properties
             rand = new Random();
@@ -357,10 +357,11 @@ namespace Starmaze.Engine
         /// <param name="dt"></param>
         public override void Update(double dt, ref ParticleGroup particle_group)
         {
-            double xV = rand.NextDouble() * velocity.X*(rand.NextDouble()*-1);
-            double yV = rand.NextDouble() * velocity.Y;
+            double xV = rand.NextDouble() * velocity.X*direction;
+            direction *= -1;
+            //double yV = rand.NextDouble() * velocity.Y;
             //Will Add Code Soon
-            Vector2d position = Vector2d.Zero, angleVec = new Vector2d(xV,yV);
+            Vector2d position = Vector2d.Zero, angleVec = new Vector2d(xV, velocity.Y);
          
             //current_angle = start_angle * Math.PI / 180;
 
