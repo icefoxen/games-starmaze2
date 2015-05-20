@@ -621,7 +621,7 @@ namespace Starmaze.Engine
 			//give each particle its own texture and apply the shader (enable, disable it)
 			foreach (var p in r.particleList) {
 				var pos = new Vector2((float)p.Position.X, (float)p.Position.Y);
-				var transform = new Transform(pos, r.Rotation, r.Scale);
+				var transform = new Transform(pos, r.Rotation,Vector2.One*p.scale);
 				var mat = transform.TransformMatrix(view.ProjectionMatrix);
                 
 				shader.UniformMatrix("projection", mat);
