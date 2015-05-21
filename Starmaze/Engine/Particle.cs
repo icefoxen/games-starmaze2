@@ -216,13 +216,74 @@ namespace Starmaze.Engine
 		}
 	}
 
-    public class ColorInterval
+    public class ColorFader
     {
         /*Make this store information the colors
          * and at what intervals those colors should be used
          * could do some hash table that used the interval as the key
          * Then input the key and output the color
          */
+        struct ColorFade
+        {
+            public double threshold;
+            public Color4 color;
+        }
+        Dictionary<double,Color4> ColorFadeList;
+        List<ColorFade> list;
+        ColorFade currentColor;
+        int index = 0;
+        double value;
+        /*Make the color intervals a linked list, after each threshold 
+         * load the next node
+         */ 
+        
+        /// <summary>
+        /// 
+        /// </summary>
+        public ColorFader()
+        {
+            ColorFadeList = new Dictionary<double,Color4>();
+            list = new List<ColorFade>();
+        }
+
+        /// <summary>
+        /// Adds a color and the threshold value to the ColorFader
+        /// </summary>
+        /// <param name="threshold">A double between 0 and 1. The threshold is what percent to show the color</param>
+        /// <param name="color">The Color to fade to</param>
+        public void Add(double threshold, Color4 color)
+        {
+            ColorFade cf;
+            int i =0;
+            while(i<list.Count)
+            {
+                cf=list[i];
+                if(threshold <= cf.threshold){
+                    break;
+                }
+                i++;
+            }
+            cf.color = color;
+            cf.threshold = threshold;
+            list.Insert(i,cf);
+           // ColorFadeList.Add(SMath.Clamp(threshold,0,1), color);
+        }
+
+        public void getColor()
+        {
+           
+        }
+
+        public void Update()
+        {
+
+            index++;
+           if (currentColor.threshold >= value && index < list.Count-1)
+           {
+               currentColor = list[index];
+               
+           }
+        }
     }
 	/// <summary>
 	/// The Base class for managing how the particles are first emmitted and in what kind of shape they emitt as
