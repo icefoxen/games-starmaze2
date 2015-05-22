@@ -106,7 +106,7 @@ namespace Starmaze.Engine
 		public readonly double MaxLife;
 		public float scale;
 		public Vector2d velocity;
-
+        public int cfIndex;
 
 		public Particle(Vector2d pos, double magnitude, Color4 color, Vector2d angle, double life = 5f, float s = 0.1f)
 		{
@@ -118,6 +118,7 @@ namespace Starmaze.Engine
 			Life = life;
 			scale = s;
 			velocity = Angle * velocityMagnitude;
+            cfIndex=0;
 		}
 	}
 
@@ -152,10 +153,10 @@ namespace Starmaze.Engine
             this.deltaScale = deltaScale;
 		}
 
+        // OPT: This could prolly be more efficient.
+        // But a core i5 handles 50k particles without much sweat, so, no sweat.
 		public void Update(double dt, ref ParticleGroup group)
-		{
-			// OPT: This could prolly be more efficient.
-			// But a core i5 handles 50k particles without much sweat, so, no sweat.
+		{			
             List<Particle> list = group.Particles;
             Color4 newColor;
             float fadeRate,colorRate = 0.2f * (float)dt;
@@ -187,7 +188,7 @@ namespace Starmaze.Engine
                           //p.Color = new Color4(red, green, blue, p.Color.A);
                         // newColor= SMath.Lerp(p.Color, endColor, 1);
                          //p.Color = newColor;
-                        
+                          endColor=group.colorFader.getNextColor(ref p);
                           p.Color = new Color4(p.Color.R - (p.Color.R - endColor.R) * colorRate,
                               p.Color.G - (p.Color.G - endColor.G) * colorRate,
                               p.Color.B - (p.Color.B - endColor.B) * colorRate, p.Color.A);
@@ -214,75 +215,81 @@ namespace Starmaze.Engine
 			// Log.Message(String.Format("Particle ({0}) V {0}", list[0].Position, list[0].Velocity));
 
 		}
+
 	}
 
+    /// <summary>
+    /// ColorFader manages a sorted list of ColorFades . When a particles life/maxlife is > a threshold,
+    /// the particle uses the next set of ColorFades
+    /// </summary>
     public class ColorFader
     {
-        /*Make this store information the colors
-         * and at what intervals those colors should be used
-         * could do some hash table that used the interval as the key
-         * Then input the key and output the color
-         */
+
+        /// <summary>
+        /// ColorFade holds a Color and a threshold
+        /// </summary>
         struct ColorFade
         {
             public double threshold;
             public Color4 color;
         }
-        Dictionary<double,Color4> ColorFadeList;
-        List<ColorFade> list;
-        ColorFade currentColor;
-        int index = 0;
-        double value;
-        /*Make the color intervals a linked list, after each threshold 
-         * load the next node
-         */ 
         
-        /// <summary>
-        /// 
-        /// </summary>
-        public ColorFader()
+        //The List of color fades
+        List<ColorFade> list;
+     
+       /// <summary>
+       /// ColorFader manages a sorted list of ColorFades . When a particles life/maxlife is > a threshold,
+       /// the particle uses the next set of ColorFades
+       /// </summary>
+       /// <param name="startColor">The Start Color for the ColorFader, has threshold 0</param>
+       /// <param name="nextColor">The Next Color in the ColorFader</param>
+       /// <param name="threshold">the threshold for Next Color</param>
+        public ColorFader(Color4 nextColor,double threshold)
         {
-            ColorFadeList = new Dictionary<double,Color4>();
-            list = new List<ColorFade>();
+            ColorFade next;
+            next.color = nextColor;
+            next.threshold = threshold;
+
+            //giving it a max of 5, don't think we should need more than that
+            list = new List<ColorFade>(5);
+            list.Insert(0, next);
         }
 
         /// <summary>
-        /// Adds a color and the threshold value to the ColorFader
+        /// Adds a color and the threshold value to the ColorFader. 
         /// </summary>
         /// <param name="threshold">A double between 0 and 1. The threshold is what percent to show the color</param>
         /// <param name="color">The Color to fade to</param>
         public void Add(double threshold, Color4 color)
         {
             ColorFade cf;
-            int i =0;
-            while(i<list.Count)
-            {
-                cf=list[i];
-                if(threshold <= cf.threshold){
-                    break;
-                }
-                i++;
-            }
             cf.color = color;
             cf.threshold = threshold;
+            
+            int i=0;
+            while(i<list.Count-1 && threshold > list[i].threshold)
+            {
+                i++;
+            }
             list.Insert(i,cf);
-           // ColorFadeList.Add(SMath.Clamp(threshold,0,1), color);
         }
 
-        public void getColor()
+        /// <summary>
+        /// Gets the Next Color for the particle to fade to. It also updates the particles Color Fader index
+        /// to if the particles life/maxlife > current ColorFade threshold
+        /// </summary>
+        /// <param name="particle"></param>
+        /// <returns>The next color for the particle to fade to</returns>
+   
+        public Color4 getNextColor(ref Particle particle)
         {
-           
-        }
+            double p_value = particle.Life / particle.MaxLife;
+            if (particle.cfIndex+1 <list.Count && p_value >= list[particle.cfIndex+1].threshold)
+            {
+                particle.cfIndex++;
+            }
 
-        public void Update()
-        {
-
-            index++;
-           if (currentColor.threshold >= value && index < list.Count-1)
-           {
-               currentColor = list[index];
-               
-           }
+            return list[particle.cfIndex].color;
         }
     }
 	/// <summary>
@@ -484,6 +491,7 @@ namespace Starmaze.Engine
     {
 
         public List<Particle> Particles;
+        public ColorFader colorFader;
 
         public ParticleGroup(int MaxParticles)
         {
@@ -542,26 +550,31 @@ namespace Starmaze.Engine
 			world.AddActor(actor);
 		}
 
-		public void setupEmitter(ParticleEmitter emitter,bool doFadeWithTime=false,bool changeColorWithTime=false, bool scaleWithTime =false)
-		{
-           /* switch (emitter)
-            {
-				case(EmitterType.Circle):
-					emitter = new CircleEmitter(color, velocityMagnitude, emitDelay, MaxParticles, maxLifeTime, radius, start_angle, end_angle);
-					break;
-				case (EmitterType.Line):
-					emitter = new LineEmitter(color, velocityMagnitude, emitDelay, MaxParticles, maxLifeTime, radius, start_angle);
-					break;
-			}*/
+        /// <summary>
+        /// Sets up a Particle Emitter. 
+        /// Can set for particles to fade into the background with time, to fade from multiple colors, and scale with time
+        /// </summary>
+        /// <param name="emitter"></param>
+        /// <param name="doFadeWithTime"></param>
+        /// <param name="colorFader"></param>
+        /// <param name="scaleWithTime"></param>
+        public void setupEmitter(ParticleEmitter emitter, bool doFadeWithTime = false, ColorFader colorFader = null, bool scaleWithTime = false)
+        {
             this.emitter = emitter;
-			Texture texture = Resources.TheResources.GetTexture("dot");
+            Texture texture = Resources.TheResources.GetTexture("dot");
             ParticleRenderState renderstate = new ParticleRenderState(texture, particle_group.Particles);
-			actor.AddComponent(renderstate);
+            actor.AddComponent(renderstate);
             controller.fadeWithTime = doFadeWithTime;
-            controller.changeColorWithTime = changeColorWithTime;
+            particle_group.colorFader = colorFader;
+            controller.changeColorWithTime = (colorFader != null);
             controller.scaleWithTime = scaleWithTime;
-		}
+        }
 
+        /// <summary>
+        /// Updates the particle emitter, the 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
 		public override void OnUpdate(object sender, FrameEventArgs e)
 		{
 			var dt = e.Time;
