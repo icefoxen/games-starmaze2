@@ -203,6 +203,12 @@ namespace Starmaze.Game
 					Owner.Body.PBody.ApplyLinearImpulse(new Microsoft.Xna.Framework.Vector2(500, 0));
 					//Owner.Body.AddVelocity(new Vector2d(5, 0));
 					break;
+				case InputAction.SoundUp:
+					Resources.Sound.Volume = Math.Min(Resources.Sound.Volume + 0.1f, 1.0f);
+					break;
+				case InputAction.SoundDown:
+					Resources.Sound.Volume = Math.Max(Resources.Sound.Volume - 0.1f, 0.0f);
+					break;
 			}
 		}
 

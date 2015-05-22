@@ -17,7 +17,7 @@ namespace Starmaze.Engine
 		private readonly MixingSampleProvider mixer;
 		private WaveFormat format;
 		//XXXX: The current volume implementation may cause problems with long sounds, like music.
-		private float volume;
+		public float Volume{get;set;}
 		public Sound (int sampleRate = 44100, int channelCount = 2, float volumeIn = 1.0f)
 		{
 			player = new WaveOutEvent();
@@ -26,7 +26,7 @@ namespace Starmaze.Engine
 			mixer.ReadFully = true;
 			player.Init(mixer);
 			player.Play();
-			volume = volumeIn;
+			Volume = volumeIn;
 		}
 
 		public void PlaySound(CachedSound input)
@@ -35,12 +35,12 @@ namespace Starmaze.Engine
 			var c = CorrectInput((ISampleProvider) samples);
 			//var v = new VolumeSampleProvider(CorrectInput(input));
 			var v = new VolumeSampleProvider(c);
-			v.Volume = volume;
+			v.Volume = Volume;
 			mixer.AddMixerInput(v);
 		}
-		public void SetVolume(float newVolume){
-			volume = newVolume;
-		}
+
+
+
 		private ISampleProvider CorrectInput(ISampleProvider input){
 			input = CorrectChannels(input);
 			//input = CorrectSampleRate(input);
