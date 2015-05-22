@@ -186,12 +186,15 @@ namespace Starmaze.Engine
                       {
                           group.colorFader.setColor(ref p, ref nextColor, ref colorRate);
                           colorRate *= (float)dt;
-                        
-                          p.Color = new Color4(p.Color.R - (p.Color.R - nextColor.R) * colorRate,
+
+                          p.Color.R -= (p.Color.R - nextColor.R) * colorRate;
+                          p.Color.G -= (p.Color.G - nextColor.G) * colorRate;
+                          p.Color.B -= (p.Color.B - nextColor.B) * colorRate;
+                          /*p.Color = new Color4(p.Color.R - (p.Color.R - nextColor.R) * colorRate,
                                p.Color.G - (p.Color.G - nextColor.G) * colorRate,
                                p.Color.B - (p.Color.B - nextColor.B) * colorRate, p.Color.A);
 
-                          /*float red = startColor.R - (endColor.R - startColor.R) * colorRate;
+                          float red = startColor.R - (endColor.R - startColor.R) * colorRate;
                           float green = startColor.G - (endColor.G - startColor.G) * colorRate;
                           float blue = startColor.B - (endColor.B - startColor.B) * colorRate;                            
                          p.Color = new Color4(red, green, blue, 1);*/
@@ -520,6 +523,8 @@ namespace Starmaze.Engine
 		ParticleController controller;
 		ParticleEmitter emitter;
         ParticleGroup particle_group;
+        public double velocityMagnitude;
+        public int maxParticles;
 
         //public CircleEmitter(Color4 color, double velocityMagnitude = 1f, double emitDelay = 0.1, int MaxParticles = 1024, double maxLifeTime = 1f, float radius = 1f, int start_angle = 0, int end_angle = 360)
 
