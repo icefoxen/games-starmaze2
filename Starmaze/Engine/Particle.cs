@@ -107,6 +107,10 @@ namespace Starmaze.Engine
 		public float scale;
 		public Vector2d velocity;
         public int cfIndex;
+        public double timeAlive
+        {
+            get { return MaxLife - Life; }
+        }
 
 		public Particle(Vector2d pos, double magnitude, Color4 color, Vector2d angle, double life = 5f, float s = 0.1f)
 		{
@@ -137,7 +141,6 @@ namespace Starmaze.Engine
         public bool fadeWithTime = false;
         public bool scaleWithTime = false;
         public bool changeColorWithTime = false;
-        public Color4 endColor=Color4.Blue;
 
 		public ParticleController()
 		{
@@ -160,6 +163,7 @@ namespace Starmaze.Engine
             List<Particle> list = group.Particles;
             Color4 newColor;
             float fadeRate,colorRate = 0.8f * (float)dt;
+            Color4  nextColor = Color4.White;
 
             for (int i = list.Count - 1; i > -1; i--)
              {
@@ -180,20 +184,17 @@ namespace Starmaze.Engine
                     }
                     if (changeColorWithTime)
                       {
-                          //colorRate = (float)(dt / p.MaxLife)*200;
-                     
-                          //float red = p.Color.R - (p.Color.R - endColor.R )*colorRate;
-                          //float green = p.Color.G - (p.Color.G - endColor.G) * colorRate;
-                         // float blue = p.Color.B - (p.Color.B - endColor.B) * colorRate;
-                          //p.Color = new Color4(red, green, blue, p.Color.A);
-                        // newColor= SMath.Lerp(p.Color, endColor, 1);
-                         //p.Color = newColor;
-                          colorRate = (float)(group.colorFader.getValueToThreshold(p) * dt);
-                          endColor=group.colorFader.getNextColor(ref p);
-                          p.Color = new Color4(p.Color.R - (p.Color.R - endColor.R) * colorRate,
-                              p.Color.G - (p.Color.G - endColor.G) * colorRate,
-                              p.Color.B - (p.Color.B - endColor.B) * colorRate, p.Color.A);
-                          //p.Color endColor, colorRate );
+                          group.colorFader.setColor(ref p, ref nextColor, ref colorRate);
+                          colorRate *= (float)dt;
+                        
+                          p.Color = new Color4(p.Color.R - (p.Color.R - nextColor.R) * colorRate,
+                               p.Color.G - (p.Color.G - nextColor.G) * colorRate,
+                               p.Color.B - (p.Color.B - nextColor.B) * colorRate, p.Color.A);
+
+                          /*float red = startColor.R - (endColor.R - startColor.R) * colorRate;
+                          float green = startColor.G - (endColor.G - startColor.G) * colorRate;
+                          float blue = startColor.B - (endColor.B - startColor.B) * colorRate;                            
+                         p.Color = new Color4(red, green, blue, 1);*/
                       }
                     //***Calculate the factors that will affect velocty***
                     //1. Applying gravity
@@ -237,25 +238,13 @@ namespace Starmaze.Engine
         
         //The List of color fades
         List<ColorFade> list;
-     
-       /// <summary>
-       /// ColorFader manages a sorted list of ColorFades . When a particles life/maxlife is > a threshold,
-       /// the particle uses the next set of ColorFades
-       /// </summary>
-       /// <param name="startColor">The Start Color for the ColorFader, has threshold 0</param>
-       /// <param name="nextColor">The Next Color in the ColorFader</param>
-       /// <param name="threshold">the threshold for Next Color</param>
-        public ColorFader(Color4 nextColor,double threshold)
-        {
-            ColorFade next;
-            //giving it a max of 5, don't think we should need more than that
-            list = new List<ColorFade>(5);
-
-            next.color = nextColor;
-            next.threshold = threshold;            
-            list.Insert(0, next);
-        }
-
+ 
+        /// <summary>
+        /// Makes a ColorFader, Must have the 1st ColorFader's threshold set to 0.
+        /// The order the Dictionary entries will be the order of the colors for the Fader (at least for now)
+        /// </summary>
+        /// <param name="dictionary"> double (the key and the threshold) is about how many seconds for the particle to completely become that color
+        /// , Color4 is the color for that </param>
         public ColorFader(Dictionary<double,Color4> dictionary)
         {
             ColorFade cf;
@@ -268,70 +257,24 @@ namespace Starmaze.Engine
                 list.Add(cf);
             }
         }
+ 
         /// <summary>
-        /// Adds a color and the threshold value to the ColorFader. 
-        /// </summary>
-        /// <param name="threshold">A double between 0 and 1. The threshold is what percent to show the color</param>
-        /// <param name="color">The Color to fade to</param>
-        public void Add(double threshold, Color4 color)
-        {
-            ColorFade cf;
-            cf.color = color;
-            cf.threshold = threshold;
-            list.Add(cf);
-        }
-
-        /// <summary>
-        /// Gets the Next Color for the particle to fade to. It also updates the particles Color Fader index
-        /// to if the particles life/maxlife > current ColorFade threshold
+        ///Sets the Next Color for the particle to fade to. It also updates the particles Color Fader index
+        ///and sets the rate to change between colors
         /// </summary>
         /// <param name="particle"></param>
-        /// <returns>The next color for the particle to fade to</returns>
-   
-        public Color4 getNextColor(ref Particle particle)
+        public void setColor(ref Particle particle,ref Color4 nextcolor,ref float colorRate)
         {
-            double p_value = (particle.MaxLife-particle.Life) / particle.MaxLife;
-            if (particle.cfIndex+1 <list.Count && p_value >= list[particle.cfIndex+1].threshold)
-            {
-                particle.cfIndex+=1;
-            }
-
-            return list[particle.cfIndex].color;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="particle"></param>
-        /// <returns></returns>
-        public Color4 getNextColor4(ref Particle particle)
-        {
-            if (particle.cfIndex + 1 < list.Count && (particle.MaxLife - particle.Life) >= list[particle.cfIndex + 1].threshold)
+            if (particle.cfIndex + 1 < list.Count && particle.timeAlive >= list[particle.cfIndex].threshold)
             {
                 particle.cfIndex += 1;
             }
 
-            return list[particle.cfIndex].color;
+            //colorRate = (float)((list[particle.cfIndex].threshold - particle.timeAlive) / list[particle.cfIndex].threshold);
+            colorRate = (float)(particle.MaxLife / (list[particle.cfIndex].threshold - list[particle.cfIndex-1].threshold));
+            nextcolor = list[particle.cfIndex].color;
         }
 
-        /// <summary>
-        /// Gets the percentage of how close the particle's life is to the next
-        /// </summary>
-        /// <param name="particle"></param>
-        /// <returns></returns>
-        public double getValueToThreshold(Particle particle)
-        {
-            if (particle.cfIndex + 1 >= list.Count)
-                return 1;
-            return (list[particle.cfIndex+1].threshold - list[particle.cfIndex].threshold) / list[particle.cfIndex+1].threshold;
-        }
-
-        public double getValueToThreshold2(Particle particle)
-        {
-            if (particle.cfIndex + 1 >= list.Count)
-                return 1;
-            return (list[particle.cfIndex + 1].threshold - particle.Life) / list[particle.cfIndex + 1].threshold;
-        }
     }
 	/// <summary>
 	/// The Base class for managing how the particles are first emmitted and in what kind of shape they emitt as
@@ -532,6 +475,9 @@ namespace Starmaze.Engine
     {
 
         public List<Particle> Particles;
+        /*ColorFader is in ParticleGroup so that it's accessible in ParticleRenderer's ParticleGroup
+         *and the Particle Group sent to Particle Controllers update 
+         */ 
         public ColorFader colorFader;
 
         public ParticleGroup(int MaxParticles)
