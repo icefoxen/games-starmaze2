@@ -159,7 +159,7 @@ namespace Starmaze.Engine
 		{			
             List<Particle> list = group.Particles;
             Color4 newColor;
-            float fadeRate,colorRate = 0.2f * (float)dt;
+            float fadeRate,colorRate = 0.8f * (float)dt;
 
             for (int i = list.Count - 1; i > -1; i--)
              {
@@ -188,6 +188,7 @@ namespace Starmaze.Engine
                           //p.Color = new Color4(red, green, blue, p.Color.A);
                         // newColor= SMath.Lerp(p.Color, endColor, 1);
                          //p.Color = newColor;
+                          colorRate = (float)(group.colorFader.getValueToThreshold(p) * dt);
                           endColor=group.colorFader.getNextColor(ref p);
                           p.Color = new Color4(p.Color.R - (p.Color.R - endColor.R) * colorRate,
                               p.Color.G - (p.Color.G - endColor.G) * colorRate,
@@ -247,14 +248,26 @@ namespace Starmaze.Engine
         public ColorFader(Color4 nextColor,double threshold)
         {
             ColorFade next;
-            next.color = nextColor;
-            next.threshold = threshold;
-
             //giving it a max of 5, don't think we should need more than that
             list = new List<ColorFade>(5);
+
+            next.color = nextColor;
+            next.threshold = threshold;            
             list.Insert(0, next);
         }
 
+        public ColorFader(Dictionary<double,Color4> dictionary)
+        {
+            ColorFade cf;
+            //giving it a max of 5, don't think we should need more than that
+            list = new List<ColorFade>(5);
+            foreach (var item in dictionary)
+            {
+                cf.color = item.Value;
+                cf.threshold = item.Key;
+                list.Add(cf);
+            }
+        }
         /// <summary>
         /// Adds a color and the threshold value to the ColorFader. 
         /// </summary>
@@ -265,13 +278,7 @@ namespace Starmaze.Engine
             ColorFade cf;
             cf.color = color;
             cf.threshold = threshold;
-            
-            int i=0;
-            while(i<list.Count-1 && threshold > list[i].threshold)
-            {
-                i++;
-            }
-            list.Insert(i,cf);
+            list.Add(cf);
         }
 
         /// <summary>
@@ -283,13 +290,47 @@ namespace Starmaze.Engine
    
         public Color4 getNextColor(ref Particle particle)
         {
-            double p_value = particle.Life / particle.MaxLife;
+            double p_value = (particle.MaxLife-particle.Life) / particle.MaxLife;
             if (particle.cfIndex+1 <list.Count && p_value >= list[particle.cfIndex+1].threshold)
             {
-                particle.cfIndex++;
+                particle.cfIndex+=1;
             }
 
             return list[particle.cfIndex].color;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="particle"></param>
+        /// <returns></returns>
+        public Color4 getNextColor4(ref Particle particle)
+        {
+            if (particle.cfIndex + 1 < list.Count && (particle.MaxLife - particle.Life) >= list[particle.cfIndex + 1].threshold)
+            {
+                particle.cfIndex += 1;
+            }
+
+            return list[particle.cfIndex].color;
+        }
+
+        /// <summary>
+        /// Gets the percentage of how close the particle's life is to the next
+        /// </summary>
+        /// <param name="particle"></param>
+        /// <returns></returns>
+        public double getValueToThreshold(Particle particle)
+        {
+            if (particle.cfIndex + 1 >= list.Count)
+                return 1;
+            return (list[particle.cfIndex+1].threshold - list[particle.cfIndex].threshold) / list[particle.cfIndex+1].threshold;
+        }
+
+        public double getValueToThreshold2(Particle particle)
+        {
+            if (particle.cfIndex + 1 >= list.Count)
+                return 1;
+            return (list[particle.cfIndex + 1].threshold - particle.Life) / list[particle.cfIndex + 1].threshold;
         }
     }
 	/// <summary>

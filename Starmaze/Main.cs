@@ -80,7 +80,10 @@ namespace Starmaze
 		    SetupEvents();
 
 			ParticleComponent p_component = new ParticleComponent(World, 2f, 1000,0,.1f);
-            p_component.setupEmitter(new PointEmitter(Color4.Red, 2, 1, 0.1, 5), false, new ColorFader(Color4.White,0.5), false);
+            Dictionary<double, Color4> colors = new Dictionary<double, Color4>();
+            colors.Add(1, Color4.White);
+            colors.Add(3, Color4.Blue);
+            p_component.setupEmitter(new PointEmitter(Color4.Red, 2, 1, 0.1, 5), false, new ColorFader(colors), false);
 			player.AddComponent(p_component);
 
           /*  ParticleComponent c_component = new ParticleComponent(World, 10f, 1000, 0, -3);
