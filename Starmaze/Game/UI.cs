@@ -13,13 +13,17 @@ namespace Starmaze.Game
 		Texture texture;
 		// Generics remove the need to do all the casts.
 		Dictionary<string, GUIText> guiHash;
+        public Dictionary<string, GUIText> GUIHash
+        {
+            get { return guiHash; }
+        }
         GUIText fps;
         bool showFPS=false;
 
-		public GUI(double width, double height, World world, Vector2 fps_pos)
+		public GUI(double width, double height, Vector2 fps_pos)
 		{
 			guiHash = new Dictionary<string, GUIText>();
-            fps = new GUIText(world, fps_pos, " ", 24);
+            fps = new GUIText(fps_pos, " ", 24);
             guiHash.Add("FPS", fps);
 
 		}
@@ -34,21 +38,6 @@ namespace Starmaze.Game
 			//((GUIRenderState)guiActor.RenderState).Texture = texture;
 		}
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="text"></param>
-		/// <param name="pos"></param>
-		/// <param name="fontsize"></param>
-		public void DrawString(string text, Vector2d pos, int fontsize = 24)
-		{
-           
-		}
-
-		public void LoadString(string name)
-		{
-			texture = Resources.TheResources.GetStringTexture(name);
-		}
 
 		/// <summary>
 		/// Creates a GUI Text object.
@@ -58,9 +47,9 @@ namespace Starmaze.Game
 		/// <param name="text"></param>
 		/// <param name="fontsize"></param>
 		/// <returns>The key for the GUIText created. The key can be used as the editGUIText parameter key to edit the GUIActor</returns>
-		public string CreateGUIText(World world, Vector2 pos, string text = "", int fontsize = 24)
+		public string CreateGUIText(Vector2 pos, string text = "", int fontsize = 24)
 		{
-			GUIText gActor = new GUIText(world, pos, text, fontsize);
+			GUIText gActor = new GUIText(pos, text, fontsize);
 
 			// Using + to concatenate strings causes more allocations,
 			string key = String.Format("{0}{1}", pos.X, pos.Y);
@@ -111,9 +100,13 @@ namespace Starmaze.Game
 	public class GUIText
 	{
 		Actor actor;
+        public Actor Actor
+        {
+            get { return actor; }
+        }
 		Texture texture;
 
-		public GUIText(World world, Vector2 pos, string text = "", int fontsize = 24)
+		public GUIText(Vector2 pos, string text = "", int fontsize = 24)
 		{
 			//Set up Actor
             actor = new Actor();
@@ -124,8 +117,6 @@ namespace Starmaze.Game
 			GUIRenderState guiRState = new GUIRenderState(texture);
 			guiRState.Scale = new Vector2(2.5f, 1);
 			actor.AddComponent(guiRState);
-
-			world.AddActor(actor);
 		}
 
 		public void DrawString(string text, int fontsize = 24)

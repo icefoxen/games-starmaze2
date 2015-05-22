@@ -228,6 +228,16 @@ namespace Starmaze.Engine
 			//Console.WriteLine("Got renderer {0} for actor {1}", renderer, act);
 			var rs = act.RenderState;
 			rs.Renderer.Add(rs);
+
+            foreach (Component comp in act.Components)
+            {
+                if (comp.RenderState != null) {
+                    rs = comp.RenderState;
+                    rs.Renderer.Add(comp.RenderState);
+                }
+                    
+            }
+
 			//foreach (var r in Renderers) {
 			//	Console.WriteLine("Renderer: {0}, total {1}", r, Renderers.Count);
 			//}

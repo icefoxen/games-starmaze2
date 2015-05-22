@@ -75,23 +75,21 @@ namespace Starmaze
 			//player.Body.AddGeom(new BoxGeom(new BBox(-5, -15, 5, 5)));
 			View = new ViewManager(Util.LogicalScreenWidth, Util.LogicalScreenWidth / Options.AspectRatio);
 			Camera = new FollowCam(player, Util.LogicalScreenWidth, Util.LogicalScreenWidth / Options.AspectRatio);
-			World = new World(player, map, "TestZone", "TestRoom1");
-			Gui = new GUI(Util.LogicalScreenWidth, Util.LogicalScreenWidth / Options.AspectRatio,World, new Vector2(-55, 70));
+			
+			Gui = new GUI(Util.LogicalScreenWidth, Util.LogicalScreenWidth / Options.AspectRatio, new Vector2(-55, 70));
 		    SetupEvents();
 
-			ParticleComponent p_component = new ParticleComponent(World, 40f, 1000,0,.1f);
+			ParticleComponent p_component = new ParticleComponent(40f, 1000,0,.1f);
+            player.AddComponent(p_component);
             Dictionary<double, Color4> colors = new Dictionary<double, Color4>();
             colors.Add(0, Color4.Red);
             colors.Add(3, Color4.Red);
             colors.Add(6, Color4.Yellow);
             colors.Add(10, Color4.Black);
             p_component.setupEmitter(new PointEmitter(Color4.Red, 1, 1, 0.1,10), false, new ColorFader(colors),false);
-			player.AddComponent(p_component);
-
-          /*  ParticleComponent c_component = new ParticleComponent(World, 10f, 1000, 0, -3);
-            c_component.setupEmitter(new CircleEmitter(Color4.Red,5), true);
-            player.AddComponent(c_component);*/
-
+			
+            World = new World(player, map, "TestZone", "TestRoom1");
+            World.AddActor(Gui.GUIHash["FPS"].Actor);
 			fpsTimer.Start();
 		}
 

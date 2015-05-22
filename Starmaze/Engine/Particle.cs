@@ -133,6 +133,11 @@ namespace Starmaze.Engine
 	public class ParticleController
 	{
 		private Vector2d position;
+        public Vector2d Position
+        {
+            get { return position; }
+            set { position = value; }
+        }
 		private float startScale = 1.0f;
 		//add scaling over time begining at start scale
 		private float deltaScale = 0.0f;
@@ -144,14 +149,12 @@ namespace Starmaze.Engine
 
 		public ParticleController()
 		{
-			position = Vector2d.Zero;
 			startScale = 1f;
 			deltaScale = 0f;
 		}
 
 		public ParticleController(Vector2d position, double velocity_Magnitude, float gravity = 1.0f,float deltaScale = 0f)
 		{
-			this.position = position;
 			this.gravity = gravity;
             this.deltaScale = deltaScale;
 		}
@@ -472,7 +475,7 @@ namespace Starmaze.Engine
     }
 
     /// <summary>
-    /// 
+    /// An object that draws a ParticleGroup.
     /// </summary>
     public class ParticleGroup
     {
@@ -482,17 +485,18 @@ namespace Starmaze.Engine
          *and the Particle Group sent to Particle Controllers update 
          */ 
         public ColorFader colorFader;
-
+        public Body Body;
+        
         public ParticleGroup(int MaxParticles)
         {
-
             Particles = new List<Particle>(MaxParticles);
-
         }
 
         public void AddParticle(Vector2d pos, double velocityMagnitude, Color4 color, Vector2d angle, double age = 1.0)
         {
-            Particles.Add(new Particle(pos, velocityMagnitude, color, angle, age));
+            Util.ConvertVector2(Body.PBody.Position);
+            
+            Particles.Add(new Particle(new Vector2d(pos.X + Body.Position.X, pos.Y + Body.Position.Y), velocityMagnitude, color, angle, age));
             //Log.Message(String.Format("Particle ({0}) V {0}", pos, vel));
         }
 
@@ -509,9 +513,8 @@ namespace Starmaze.Engine
         }
 
     }
-	/// <summary>
-	/// An object that draws a ParticleGroup.
-	/// </summary>
+	
+   
 
 	/// <summary>
 	/// A component that emits particles.
@@ -519,47 +522,65 @@ namespace Starmaze.Engine
 	// XXX: Exactly to integrate the ParticleRenderer with the Renderer pipeline is something I need to think about.
 	class ParticleComponent : Component
 	{
-		Actor actor;
 		ParticleController controller;
 		ParticleEmitter emitter;
         ParticleGroup particle_group;
         public double velocityMagnitude;
         public int maxParticles;
+        public float gravity,deltaScale;
+        public ColorFader colorFader = null;
+        public bool doFadeWithTime = false, scaleWithTime = false;
 
-        //public CircleEmitter(Color4 color, double velocityMagnitude = 1f, double emitDelay = 0.1, int MaxParticles = 1024, double maxLifeTime = 1f, float radius = 1f, int start_angle = 0, int end_angle = 360)
-
-        public ParticleComponent(World world, double velocityMagnitude, int MaxParticles = 1024, float gravity = 1f, float _deltaScale=0f)
-			: base()
-		{
-			HandledEvents = EventType.OnUpdate;
-			actor = new Actor();
-			actor.AddComponent(new Body());
-
-			//Particle Controller Properties
-            controller = new ParticleController(new Vector2d(actor.Body.Position.X, actor.Body.Position.Y), velocityMagnitude, gravity, _deltaScale);
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="_velocityMagnitude"></param>
+        /// <param name="MaxParticles"></param>
+        /// <param name="_gravity"></param>
+        /// <param name="_deltaScale"></param>
+        public ParticleComponent(double _velocityMagnitude, int MaxParticles = 1024, float _gravity = 1f, float _deltaScale = 0f)
+            : base()
+        {
+            HandledEvents = EventType.OnUpdate;
+            //Setting these for Serialization purposes
+            this.velocityMagnitude = _velocityMagnitude;
+            this.maxParticles = MaxParticles;
+            this.gravity = _gravity;
+            this.deltaScale = _deltaScale;
+            //Particle Controller Properties
+            controller = new ParticleController(Vector2d.One, _velocityMagnitude, _gravity, _deltaScale);
             particle_group = new ParticleGroup(MaxParticles);
 
-			world.AddActor(actor);
-		}
+            Texture texture = Resources.TheResources.GetTexture("dot");
+            this.RenderState = new ParticleRenderState(texture, particle_group.Particles);
+        }
 
         /// <summary>
         /// Sets up a Particle Emitter. 
         /// Can set for particles to fade into the background with time, to fade from multiple colors, and scale with time
         /// </summary>
-        /// <param name="emitter"></param>
-        /// <param name="doFadeWithTime"></param>
-        /// <param name="colorFader"></param>
-        /// <param name="scaleWithTime"></param>
-        public void setupEmitter(ParticleEmitter emitter, bool doFadeWithTime = false, ColorFader colorFader = null, bool scaleWithTime = false)
+        /// <param name="_emitter"></param>
+        /// <param name="_doFadeWithTime"></param>
+        /// <param name="_colorFader"></param>
+        /// <param name="_scaleWithTime"></param>
+        public void setupEmitter(ParticleEmitter _emitter, bool _doFadeWithTime = false, ColorFader _colorFader = null, bool _scaleWithTime = false)
         {
-            this.emitter = emitter;
-            Texture texture = Resources.TheResources.GetTexture("dot");
-            ParticleRenderState renderstate = new ParticleRenderState(texture, particle_group.Particles);
-            actor.AddComponent(renderstate);
-            controller.fadeWithTime = doFadeWithTime;
-            particle_group.colorFader = colorFader;
-            controller.changeColorWithTime = (colorFader != null);
-            controller.scaleWithTime = scaleWithTime;
+            this.emitter = _emitter;
+           /* Texture texture = Resources.TheResources.GetTexture("dot");
+            this.RenderState = new ParticleRenderState(texture, particle_group.Particles);
+            */
+            //AddComponent(this.RenderState);
+            particle_group.Body = Owner.Body;
+            //Particle Controlling options
+            controller.fadeWithTime = _doFadeWithTime;
+            particle_group.colorFader = _colorFader;
+            controller.changeColorWithTime = (_colorFader != null);
+            controller.scaleWithTime = _scaleWithTime;
+
+            //setting these for Serialization purposes
+            this.doFadeWithTime = _doFadeWithTime;
+            this.colorFader = _colorFader;
+            this.scaleWithTime = _scaleWithTime;
         }
 
         /// <summary>
@@ -571,7 +592,7 @@ namespace Starmaze.Engine
 		{
 			var dt = e.Time;
 			emitter.Update(dt,ref particle_group);
-            ((ParticleRenderState)actor.RenderState).particleList = particle_group.Particles;
+            ((ParticleRenderState)this.RenderState).particleList = particle_group.Particles;
             controller.Update(dt, ref particle_group);
 		}
 

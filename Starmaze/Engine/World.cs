@@ -52,9 +52,6 @@ namespace Starmaze.Engine
 //			AddActor(act);
 //
 //			grp = new ParticleGroup();
-			cont = new ParticleController();
-			rend = new ParticleRenderer();
-			//emit = new ParticleEmitter(0.001);
 		}
 
 		/// <summary>
