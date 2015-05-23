@@ -229,14 +229,13 @@ namespace Starmaze.Engine
 			var rs = act.RenderState;
 			rs.Renderer.Add(rs);
 
-            foreach (Component comp in act.Components)
-            {
-                if (comp.RenderState != null) {
-                    rs = comp.RenderState;
-                    rs.Renderer.Add(comp.RenderState);
-                }
+			foreach (Component comp in act.Components) {
+				if (comp.RenderState != null) {
+					rs = comp.RenderState;
+					rs.Renderer.Add(comp.RenderState);
+				}
                     
-            }
+			}
 
 			//foreach (var r in Renderers) {
 			//	Console.WriteLine("Renderer: {0}, total {1}", r, Renderers.Count);
@@ -631,7 +630,7 @@ namespace Starmaze.Engine
 			//give each particle its own texture and apply the shader (enable, disable it)
 			foreach (var p in r.particleList) {
 				var pos = new Vector2((float)p.Position.X, (float)p.Position.Y);
-				var transform = new Transform(pos, r.Rotation,Vector2.One*p.scale);
+				var transform = new Transform(pos, r.Rotation, Vector2.One * p.scale);
 				var mat = transform.TransformMatrix(view.ProjectionMatrix);
                 
 				shader.UniformMatrix("projection", mat);

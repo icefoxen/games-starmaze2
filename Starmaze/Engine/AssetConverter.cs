@@ -252,120 +252,120 @@ namespace Starmaze.Engine
 		}
 	}
 
-    public class ParticleEmitterAssestConverter : IAssetConverter
-    {
+	public class ParticleEmitterAssestConverter : IAssetConverter
+	{
 
-        readonly string[] props = {
+		readonly string[] props = {
 			
 		};
-        //World world, double velocityMagnitude, int MaxParticles = 1024, float gravity = 1f, float _deltaScale=0f
-        //ParticleEmitter emitter, bool doFadeWithTime = false, ColorFader colorFader = null, bool scaleWithTime = false
-        public JToken Save(object o)
-        {
-            SaveLoad.PreSaveIfPossible(o);
-            var emitter = o as ParticleEmitter;
-            Log.Assert(emitter != null, "Should be impossible");
-            var json = SaveLoad.SaveProperties(o, props);
+		//World world, double velocityMagnitude, int MaxParticles = 1024, float gravity = 1f, float _deltaScale=0f
+		//ParticleEmitter emitter, bool doFadeWithTime = false, ColorFader colorFader = null, bool scaleWithTime = false
+		public JToken Save(object o)
+		{
+			SaveLoad.PreSaveIfPossible(o);
+			var emitter = o as ParticleEmitter;
+			Log.Assert(emitter != null, "Should be impossible");
+			var json = SaveLoad.SaveProperties(o, props);
             
-            return json;
-        }
+			return json;
+		}
 
-        public object Load(JToken json)
-        {
-            var obj = new CircleEmitter(OpenTK.Graphics.Color4.Red);
+		public object Load(JToken json)
+		{
+			var obj = new CircleEmitter(OpenTK.Graphics.Color4.Red);
 
-            SaveLoad.LoadProperties(obj, props, json);
-            SaveLoad.PostLoadIfPossible(obj);
-            return obj;
-        }
-    }
+			SaveLoad.LoadProperties(obj, props, json);
+			SaveLoad.PostLoadIfPossible(obj);
+			return obj;
+		}
+	}
 
-    public class ColorFaderAssestConverter : IAssetConverter
-    {
-        readonly string[] props = {
+	public class ColorFaderAssestConverter : IAssetConverter
+	{
+		readonly string[] props = {
 			"ColorFades",
 		};
 
-        public JToken Save(object o)
-        {
-            SaveLoad.PreSaveIfPossible(o);
-            var colorfader = o as ColorFader;
-            Log.Assert(colorfader != null, "Should be impossible");
-            var json = SaveLoad.SaveProperties(o, props);
-            json["ColorFades"] = SaveLoad.SaveList<ColorFader.ColorFade>(colorfader.ColorFaders);
+		public JToken Save(object o)
+		{
+			SaveLoad.PreSaveIfPossible(o);
+			var colorfader = o as ColorFader;
+			Log.Assert(colorfader != null, "Should be impossible");
+			var json = SaveLoad.SaveProperties(o, props);
+			json["ColorFades"] = SaveLoad.SaveList<ColorFader.ColorFade>(colorfader.ColorFaders);
             
-            return json;
-        }
+			return json;
+		}
 
-        public object Load(JToken json)
-        {
-            var colorFades = SaveLoad.LoadList<ColorFader.ColorFade>(json["ColorFades"].Value<JArray>()) as List<ColorFader.ColorFade>;
+		public object Load(JToken json)
+		{
+			var colorFades = SaveLoad.LoadList<ColorFader.ColorFade>(json["ColorFades"].Value<JArray>()) as List<ColorFader.ColorFade>;
 
-            //Need to create AssestConverters for these!!
-            var obj = new ColorFader(colorFades);
+			//Need to create AssestConverters for these!!
+			var obj = new ColorFader(colorFades);
 
-            SaveLoad.LoadProperties(obj, props, json);
-            SaveLoad.PostLoadIfPossible(obj);
-            return obj;
-        }
-    }
+			SaveLoad.LoadProperties(obj, props, json);
+			SaveLoad.PostLoadIfPossible(obj);
+			return obj;
+		}
+	}
 
-    public class ParticleComponentAssestConverter : IAssetConverter
-    {
-        readonly string[] props = {
+	public class ParticleComponentAssestConverter : IAssetConverter
+	{
+		readonly string[] props = {
 			"velocityMagnitude",
-            "MaxParticles",
+			"MaxParticles",
 			"gravity",
-            "deltaScale",
-            "ParticleEmitter",
-            "doFadeWithTime",
-            "ColorFader",
-            "scaleWithTime",
+			"deltaScale",
+			"ParticleEmitter",
+			"doFadeWithTime",
+			"ColorFader",
+			"scaleWithTime",
 		};
-        //World world, double velocityMagnitude, int MaxParticles = 1024, float gravity = 1f, float _deltaScale=0f
-        //ParticleEmitter emitter, bool doFadeWithTime = false, ColorFader colorFader = null, bool scaleWithTime = false
-        public JToken Save(object o)
-        {
-            SaveLoad.PreSaveIfPossible(o);
-            var particle_component = o as ParticleComponent;
-            Log.Assert(particle_component != null, "Should be impossible");
-            var json = SaveLoad.SaveProperties(o, props);
-            json["velocityMagnitude"] = SaveLoad.Save(particle_component.velocityMagnitude);
-            json["MaxParticles"] = SaveLoad.Save(particle_component.maxParticles);
-            json["gravity"] = SaveLoad.Save(particle_component.gravity);
-            json["deltaScale"] = SaveLoad.Save(particle_component.deltaScale);
-            json["doFadeWithTime"] = SaveLoad.Save(particle_component.doFadeWithTime);
-            json["scaleWithTime"] = SaveLoad.Save(particle_component.scaleWithTime);
+		//World world, double velocityMagnitude, int MaxParticles = 1024, float gravity = 1f, float _deltaScale=0f
+		//ParticleEmitter emitter, bool doFadeWithTime = false, ColorFader colorFader = null, bool scaleWithTime = false
+		public JToken Save(object o)
+		{
+			SaveLoad.PreSaveIfPossible(o);
+			var particle_component = o as ParticleComponent;
+			Log.Assert(particle_component != null, "Should be impossible");
+			var json = SaveLoad.SaveProperties(o, props);
+			json["velocityMagnitude"] = SaveLoad.Save(particle_component.velocityMagnitude);
+			json["MaxParticles"] = SaveLoad.Save(particle_component.maxParticles);
+			json["gravity"] = SaveLoad.Save(particle_component.gravity);
+			json["deltaScale"] = SaveLoad.Save(particle_component.deltaScale);
+			json["doFadeWithTime"] = SaveLoad.Save(particle_component.doFadeWithTime);
+			json["scaleWithTime"] = SaveLoad.Save(particle_component.scaleWithTime);
 
-            //Need to create AssestConverters for these!!
-            json["ColorFader"] = SaveLoad.Save(particle_component.doFadeWithTime);
-            json["ParticleEmitter"] = SaveLoad.Save(particle_component.scaleWithTime);
-            return json;
-        }
+			//Need to create AssestConverters for these!!
+			json["ColorFader"] = SaveLoad.Save(particle_component.doFadeWithTime);
+			json["ParticleEmitter"] = SaveLoad.Save(particle_component.scaleWithTime);
+			return json;
+		}
 
-        public object Load(JToken json)
-        {
-            var vel_mag = (double)SaveLoad.Load(json["velocityMagnitude"].Value<JValue>());
-            var max_p = (int)SaveLoad.Load(json["MaxParticles"].Value<JValue>());
-            var grav = (float)SaveLoad.Load(json["gravity"].Value<JValue>());
-            var delScale = (float)SaveLoad.Load(json["deltaScale"].Value<JValue>());
-            var fadeTime = (bool)SaveLoad.Load(json["doFadeWithTime"].Value<JValue>());
-            var scaleTime = (bool)SaveLoad.Load(json["scaleWithTime"].Value<JValue>());
+		public object Load(JToken json)
+		{
+			var vel_mag = (double)SaveLoad.Load(json["velocityMagnitude"].Value<JValue>());
+			var max_p = (int)SaveLoad.Load(json["MaxParticles"].Value<JValue>());
+			var grav = (float)SaveLoad.Load(json["gravity"].Value<JValue>());
+			var delScale = (float)SaveLoad.Load(json["deltaScale"].Value<JValue>());
+			var fadeTime = (bool)SaveLoad.Load(json["doFadeWithTime"].Value<JValue>());
+			var scaleTime = (bool)SaveLoad.Load(json["scaleWithTime"].Value<JValue>());
 
-            //Need to create AssestConverters for these!!
-            var obj = new ParticleComponent(vel_mag,max_p,grav,delScale);
-            var emitter = SaveLoad.Load(json["ParticleEmitter"].Value<JObject>()) as ParticleEmitter;
-            var colorFader = SaveLoad.Load(json["ColorFader"].Value<JObject>()) as ColorFader;
+			//Need to create AssestConverters for these!!
+			var obj = new ParticleComponent(vel_mag, max_p, grav, delScale);
+			var emitter = SaveLoad.Load(json["ParticleEmitter"].Value<JObject>()) as ParticleEmitter;
+			var colorFader = SaveLoad.Load(json["ColorFader"].Value<JObject>()) as ColorFader;
 
-            obj.setupEmitter(emitter, fadeTime, colorFader, scaleTime);
+			obj.setupEmitter(emitter, fadeTime, colorFader, scaleTime);
 
-            SaveLoad.LoadProperties(obj, props, json);
-            SaveLoad.PostLoadIfPossible(obj);
-            return obj;
-        }
-    }
-	
-    public static class SaveLoad
+			SaveLoad.LoadProperties(obj, props, json);
+			SaveLoad.PostLoadIfPossible(obj);
+			return obj;
+		}
+	}
+
+	public static class SaveLoad
 	{
 		// XXX: Dependency inversion here, try to fix someday.
 		static readonly Dictionary<Type, IAssetConverter> AssetConverters = new Dictionary<Type, IAssetConverter> {
@@ -378,10 +378,10 @@ namespace Starmaze.Engine
 			{ typeof(TextureAtlas), new TextureAtlasAssetConverter() },
 			{ typeof(Room), new RoomAssetConverter() },
 			{ typeof(Zone), new ZoneAssetConverter() },
-            { typeof(ParticleComponent),new ParticleComponentAssestConverter()},
-			{ typeof(ParticleEmitter),new ParticleEmitterAssestConverter()},
-			{ typeof(ColorFader),new ColorFaderAssestConverter()},			
-            { typeof(Starmaze.Game.Life), new Starmaze.Game.LifeAssetConverter() },
+			{ typeof(ParticleComponent),new ParticleComponentAssestConverter() },
+			{ typeof(ParticleEmitter),new ParticleEmitterAssestConverter() },
+			{ typeof(ColorFader),new ColorFaderAssestConverter() },			
+			{ typeof(Starmaze.Game.Life), new Starmaze.Game.LifeAssetConverter() },
 			{ typeof(Starmaze.Game.Energy), new Starmaze.Game.EnergyAssetConverter() },
 			{ typeof(Starmaze.Game.InputController), new Starmaze.Game.InputControllerAssetConverter() },
 			{ typeof(Starmaze.Game.TimedLife), new Starmaze.Game.TimedLifeAssetConverter() },

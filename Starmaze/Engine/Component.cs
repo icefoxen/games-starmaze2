@@ -24,7 +24,7 @@ namespace Starmaze.Engine
 	{
 		public Actor Owner;
 		public EventType HandledEvents;
-        public RenderState RenderState=null;
+		public RenderState RenderState = null;
 
 		public Component()
 		{

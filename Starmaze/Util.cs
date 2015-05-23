@@ -97,10 +97,10 @@ namespace Starmaze
 			return new OpenTK.Vector2(vec.X, vec.Y);
 		}
 
-        public static OpenTK.Vector2d ConvertVector2d(Microsoft.Xna.Framework.Vector2 vec)
-        {
-            return new OpenTK.Vector2d((double)vec.X, (double)vec.Y);
-        }
+		public static OpenTK.Vector2d ConvertVector2d(Microsoft.Xna.Framework.Vector2 vec)
+		{
+			return new OpenTK.Vector2d((double)vec.X, (double)vec.Y);
+		}
 
 		public static Microsoft.Xna.Framework.Vector2 ConvertVector2(OpenTK.Vector2d vec)
 		{

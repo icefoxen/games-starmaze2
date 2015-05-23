@@ -77,19 +77,19 @@ namespace Starmaze
 			Camera = new FollowCam(player, Util.LogicalScreenWidth, Util.LogicalScreenWidth / Options.AspectRatio);
 			
 			Gui = new GUI(Util.LogicalScreenWidth, Util.LogicalScreenWidth / Options.AspectRatio, new Vector2(-55, 70));
-		    SetupEvents();
+			SetupEvents();
 
-			ParticleComponent p_component = new ParticleComponent(40f, 1000,0,.1f);
-            player.AddComponent(p_component);
-            Dictionary<double, Color4> colors = new Dictionary<double, Color4>();
-            colors.Add(0, Color4.Red);
-            colors.Add(3, Color4.Red);
-            colors.Add(6, Color4.Yellow);
-            colors.Add(10, Color4.Black);
-            p_component.setupEmitter(new PointEmitter(Color4.Red, 1, 1, 0.1,10), false, new ColorFader(colors),false);
+			ParticleComponent p_component = new ParticleComponent(40f, 1000, 0, .1f);
+			player.AddComponent(p_component);
+			Dictionary<double, Color4> colors = new Dictionary<double, Color4>();
+			colors.Add(0, Color4.Red);
+			colors.Add(3, Color4.Red);
+			colors.Add(6, Color4.Yellow);
+			colors.Add(10, Color4.Transparent);
+			p_component.setupEmitter(new PointEmitter(Color4.Red, 1, 1, 0.1, 10), false, new ColorFader(colors), false);
 			
-            World = new World(player, map, "TestZone", "TestRoom1");
-            World.AddActor(Gui.GUIHash["FPS"].Actor);
+			World = new World(player, map, "TestZone", "TestRoom1");
+			World.AddActor(Gui.GUIHash["FPS"].Actor);
 			fpsTimer.Start();
 		}
 
@@ -121,13 +121,12 @@ namespace Starmaze
 			if (e.Key == OpenTK.Input.Key.Escape ||
 			    (e.Key == OpenTK.Input.Key.F4 && e.Alt)) {
 				Exit();
-			}
-            else if (!e.IsRepeat) {
+			} else if (!e.IsRepeat) {
 				var keyaction = Options.KeyBinding.Action(e.Key);
 				if (keyaction != InputAction.Unbound) {
 					World.HandleKeyDown(keyaction);
 				}
-                Gui.ToggleFPS(keyaction == InputAction.ToggleFPS);
+				Gui.ToggleFPS(keyaction == InputAction.ToggleFPS);
                
 			}
 		}
@@ -154,7 +153,7 @@ namespace Starmaze
 			if (fpsTimer.ElapsedMilliseconds > (fpsInterval * 1000)) {
 				fpsTimer.Restart();
 				Log.Message("FPS: {0}", frames / fpsInterval);
-                Gui.updateFPS(String.Format("FPS: {0:00}",(frames / fpsInterval)));
+				Gui.updateFPS(String.Format("FPS: {0:00}", (frames / fpsInterval)));
 				frames = 0;
 			}
 		}
