@@ -174,6 +174,7 @@ namespace Starmaze.Engine
 					p.Color.R -= (p.Color.R - nextColor.R) * colorRate;
 					p.Color.G -= (p.Color.G - nextColor.G) * colorRate;
 					p.Color.B -= (p.Color.B - nextColor.B) * colorRate;
+					p.Color.A -= (p.Color.A - nextColor.A) * colorRate;
 					/*p.Color = new Color4(p.Color.R - (p.Color.R - nextColor.R) * colorRate,
                                p.Color.G - (p.Color.G - nextColor.G) * colorRate,
                                p.Color.B - (p.Color.B - nextColor.B) * colorRate, p.Color.A);
