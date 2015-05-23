@@ -252,6 +252,64 @@ namespace Starmaze.Engine
 		}
 	}
 
+    public class ParticleEmitterAssestConverter : IAssetConverter
+    {
+
+        readonly string[] props = {
+			
+		};
+        //World world, double velocityMagnitude, int MaxParticles = 1024, float gravity = 1f, float _deltaScale=0f
+        //ParticleEmitter emitter, bool doFadeWithTime = false, ColorFader colorFader = null, bool scaleWithTime = false
+        public JToken Save(object o)
+        {
+            SaveLoad.PreSaveIfPossible(o);
+            var emitter = o as ParticleEmitter;
+            Log.Assert(emitter != null, "Should be impossible");
+            var json = SaveLoad.SaveProperties(o, props);
+            
+            return json;
+        }
+
+        public object Load(JToken json)
+        {
+            var obj = new CircleEmitter(OpenTK.Graphics.Color4.Red);
+
+            SaveLoad.LoadProperties(obj, props, json);
+            SaveLoad.PostLoadIfPossible(obj);
+            return obj;
+        }
+    }
+
+    public class ColorFaderAssestConverter : IAssetConverter
+    {
+        readonly string[] props = {
+			"ColorFades",
+		};
+
+        public JToken Save(object o)
+        {
+            SaveLoad.PreSaveIfPossible(o);
+            var colorfader = o as ColorFader;
+            Log.Assert(colorfader != null, "Should be impossible");
+            var json = SaveLoad.SaveProperties(o, props);
+            json["ColorFades"] = SaveLoad.SaveList<ColorFader.ColorFade>(colorfader.ColorFaders);
+            
+            return json;
+        }
+
+        public object Load(JToken json)
+        {
+            var colorFades = SaveLoad.LoadList<ColorFader.ColorFade>(json["ColorFades"].Value<JArray>()) as List<ColorFader.ColorFade>;
+
+            //Need to create AssestConverters for these!!
+            var obj = new ColorFader(colorFades);
+
+            SaveLoad.LoadProperties(obj, props, json);
+            SaveLoad.PostLoadIfPossible(obj);
+            return obj;
+        }
+    }
+
     public class ParticleComponentAssestConverter : IAssetConverter
     {
         readonly string[] props = {
@@ -306,7 +364,8 @@ namespace Starmaze.Engine
             return obj;
         }
     }
-	public static class SaveLoad
+	
+    public static class SaveLoad
 	{
 		// XXX: Dependency inversion here, try to fix someday.
 		static readonly Dictionary<Type, IAssetConverter> AssetConverters = new Dictionary<Type, IAssetConverter> {
@@ -320,7 +379,9 @@ namespace Starmaze.Engine
 			{ typeof(Room), new RoomAssetConverter() },
 			{ typeof(Zone), new ZoneAssetConverter() },
             { typeof(ParticleComponent),new ParticleComponentAssestConverter()},
-			{ typeof(Starmaze.Game.Life), new Starmaze.Game.LifeAssetConverter() },
+			{ typeof(ParticleEmitter),new ParticleEmitterAssestConverter()},
+			{ typeof(ColorFader),new ColorFaderAssestConverter()},			
+            { typeof(Starmaze.Game.Life), new Starmaze.Game.LifeAssetConverter() },
 			{ typeof(Starmaze.Game.Energy), new Starmaze.Game.EnergyAssetConverter() },
 			{ typeof(Starmaze.Game.InputController), new Starmaze.Game.InputControllerAssetConverter() },
 			{ typeof(Starmaze.Game.TimedLife), new Starmaze.Game.TimedLifeAssetConverter() },

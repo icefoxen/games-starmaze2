@@ -138,8 +138,6 @@ namespace Starmaze.Engine
             get { return position; }
             set { position = value; }
         }
-		private float startScale = 1.0f;
-		//add scaling over time begining at start scale
 		private float deltaScale = 0.0f;
 		//add scaling over time by delta scale
 		private float gravity = 1.0f;
@@ -149,7 +147,6 @@ namespace Starmaze.Engine
 
 		public ParticleController()
 		{
-			startScale = 1f;
 			deltaScale = 0f;
 		}
 
@@ -236,7 +233,7 @@ namespace Starmaze.Engine
         /// <summary>
         /// ColorFade holds a Color and a threshold
         /// </summary>
-        struct ColorFade
+        public struct ColorFade
         {
             public double threshold;
             public Color4 color;
@@ -244,7 +241,10 @@ namespace Starmaze.Engine
         
         //The List of color fades
         List<ColorFade> list;
- 
+        public List<ColorFade> ColorFaders
+        {
+            get { return list; }
+        }
         /// <summary>
         /// Makes a ColorFader, Must have the 1st ColorFader's threshold set to 0.
         /// The order the Dictionary entries will be the order of the colors for the Fader (at least for now)
@@ -262,6 +262,11 @@ namespace Starmaze.Engine
                 cf.threshold = item.Key;
                 list.Add(cf);
             }
+        }
+
+        public ColorFader(List<ColorFade> colorFades)
+        {
+            list = colorFades;
         }
  
         /// <summary>
@@ -281,6 +286,18 @@ namespace Starmaze.Engine
             nextcolor = list[particle.cfIndex].color;
         }
 
+        /// <summary>
+        /// Returns a Dictionary<double,Color4> of all the colors with their threshold
+        /// </summary>
+        /// <returns>A dictionary of the Colors and their thresholds </returns>
+        public Dictionary<double,Color4> getColorFaders()
+        {
+            Dictionary<double, Color4> dictionary = new Dictionary<double, Color4>();
+            
+            foreach (ColorFade colorfade in list)
+                dictionary.Add(colorfade.threshold, colorfade.color);
+            return dictionary;
+        }
     }
 	/// <summary>
 	/// The Base class for managing how the particles are first emmitted and in what kind of shape they emitt as
@@ -486,7 +503,7 @@ namespace Starmaze.Engine
          */ 
         public ColorFader colorFader;
         public Body Body;
-        
+        Vector2d position=Vector2d.Zero;
         public ParticleGroup(int MaxParticles)
         {
             Particles = new List<Particle>(MaxParticles);
@@ -494,12 +511,18 @@ namespace Starmaze.Engine
 
         public void AddParticle(Vector2d pos, double velocityMagnitude, Color4 color, Vector2d angle, double age = 1.0)
         {
-            Util.ConvertVector2(Body.PBody.Position);
-            
-            Particles.Add(new Particle(new Vector2d(pos.X + Body.Position.X, pos.Y + Body.Position.Y), velocityMagnitude, color, angle, age));
+            Particles.Add(new Particle(pos + position, velocityMagnitude, color, angle, age));
             //Log.Message(String.Format("Particle ({0}) V {0}", pos, vel));
         }
 
+        public void Update()
+        {
+            //position.X = Body.Position.X;
+            //position.Y = Body.Position.Y;
+            //position = Util.ConvertVector2d(Body.PBody.Position);
+            //Log.Message(" " + position);
+            
+        }
         /// <summary>
         /// 
         /// </summary>
@@ -591,6 +614,7 @@ namespace Starmaze.Engine
 		public override void OnUpdate(object sender, FrameEventArgs e)
 		{
 			var dt = e.Time;
+            particle_group.Update();
 			emitter.Update(dt,ref particle_group);
             ((ParticleRenderState)this.RenderState).particleList = particle_group.Particles;
             controller.Update(dt, ref particle_group);

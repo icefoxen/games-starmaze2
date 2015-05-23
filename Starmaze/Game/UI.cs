@@ -10,7 +10,6 @@ namespace Starmaze.Game
 {
 	public class GUI
 	{
-		Texture texture;
 		// Generics remove the need to do all the casts.
 		Dictionary<string, GUIText> guiHash;
         public Dictionary<string, GUIText> GUIHash
