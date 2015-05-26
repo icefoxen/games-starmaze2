@@ -28,10 +28,7 @@ namespace Starmaze.Engine
 		public event EventHandler<InputAction> OnKeyDown;
 		public event EventHandler<InputAction> OnKeyUp;
 		public event EventHandler<EventArgs> OnDeath;
-		//		public ParticleGroup grp;
-		ParticleController cont;
-		ParticleRenderer rend;
-		//ParticleEmitter emit;
+
 		Actor player;
 		//FarseerPhysics.Dynamics.Body bod;
 
@@ -45,13 +42,6 @@ namespace Starmaze.Engine
 			player.AddComponent(new Body());
 			this.player = player;
 
-//			var act = new Actor();
-//			act.Body = new FBody(act, bodyType: BodyType.Static);
-//			act.Body.Position = new Vector2d(0, -30);
-//			act.RenderState = new ModelRenderState(act, Starmaze.Content.Images.FilledRectCenter(0, 0, 10, 5, Color4.Red));
-//			AddActor(act);
-//
-//			grp = new ParticleGroup();
 		}
 
 		/// <summary>

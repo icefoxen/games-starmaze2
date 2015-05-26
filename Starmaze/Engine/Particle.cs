@@ -45,10 +45,13 @@ namespace Starmaze.Engine
 
 
 	/// <summary>
-	/// Updates the motion and state for a  List of Particles. Handles the Logic
+	/// Updates the motion and state changes for a ParticleGroup.
+	/// Also handles emission.
 	/// </summary>
 	public class ParticleController
 	{
+		ParticleEmitter Shape;
+
 		public Vector2d Position { get;	set; }
 
 		float deltaScale = 0.0f;
@@ -116,8 +119,9 @@ namespace Starmaze.Engine
 				p.Life -= dt;
 				list[i] = p;
 
-				if (p.Life < 0)
-					list = group.Remove(i);
+				if (p.Life < 0) {
+					group.Remove(i);
+				}
 			}
 			// Log.Message(String.Format("Particle ({0}) V {0}", list[0].Position, list[0].Velocity));
 
@@ -249,10 +253,6 @@ namespace Starmaze.Engine
 			this.end_angle = end_angle;
 		}
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="dt"></param>
 		public override void Update(double dt, ref ParticleGroup particle_group)
 		{
 			Vector2d position = Vector2d.Zero, angleVec = Vector2d.Zero;
@@ -279,9 +279,6 @@ namespace Starmaze.Engine
 
 	}
 
-	/// <summary>
-	/// 
-	/// </summary>
 	public class LineEmitter : ParticleEmitter
 	{
 		public float length;
@@ -386,10 +383,7 @@ namespace Starmaze.Engine
 				Vector2d.Normalize(ref angleVec, out angleVec);
 				particle_group.AddParticle(position, angleVec, color, maxLifeTime);
                 
-			} /*
-               * Need velocuty magnitude
-               * need position
-               */
+			}
 		}
 
 	}
@@ -434,15 +428,13 @@ namespace Starmaze.Engine
 		}
 
 		/// <summary>
-		/// 
+		/// Removes a particle 
 		/// </summary>
-		/// <param name="i">the Index to remove at</param>
-		/// <returns>the updated particle list with the removed item</returns>
-		public List<Particle> Remove(int i)
+		/// <param name="i">the index of the particle to remove</param>
+		public void Remove(int i)
 		{
 			Particles[i] = Particles[Particles.Count - 1];
 			Particles.RemoveAt(Particles.Count - 1);
-			return Particles;
 		}
 
 	}

@@ -263,7 +263,7 @@ namespace Starmaze.Engine
 		public JToken Save(object o)
 		{
 			SaveLoad.PreSaveIfPossible(o);
-			var emitter = o as ParticleEmitter;
+			var emitter = o as ParticleEmitterShape;
 			Log.Assert(emitter != null, "Should be impossible");
 			var json = SaveLoad.SaveProperties(o, props);
             
@@ -354,7 +354,7 @@ namespace Starmaze.Engine
 
 			//Need to create AssestConverters for these!!
 			var obj = new ParticleComponent(vel_mag, max_p, grav, delScale);
-			var emitter = SaveLoad.Load(json["ParticleEmitter"].Value<JObject>()) as ParticleEmitter;
+			var emitter = SaveLoad.Load(json["ParticleEmitter"].Value<JObject>()) as ParticleEmitterShape;
 			var colorFader = SaveLoad.Load(json["ColorFader"].Value<JObject>()) as ColorFader;
 
 			obj.setupEmitter(emitter, fadeTime, colorFader, scaleTime);
@@ -379,7 +379,7 @@ namespace Starmaze.Engine
 			{ typeof(Room), new RoomAssetConverter() },
 			{ typeof(Zone), new ZoneAssetConverter() },
 			{ typeof(ParticleComponent),new ParticleComponentAssestConverter() },
-			{ typeof(ParticleEmitter),new ParticleEmitterAssestConverter() },
+			{ typeof(ParticleEmitterShape),new ParticleEmitterAssestConverter() },
 			{ typeof(ColorFader),new ColorFaderAssestConverter() },			
 			{ typeof(Starmaze.Game.Life), new Starmaze.Game.LifeAssetConverter() },
 			{ typeof(Starmaze.Game.Energy), new Starmaze.Game.EnergyAssetConverter() },
