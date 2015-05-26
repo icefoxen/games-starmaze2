@@ -263,7 +263,7 @@ namespace Starmaze.Engine
 		public JToken Save(object o)
 		{
 			SaveLoad.PreSaveIfPossible(o);
-			var emitter = o as ParticleEmitterShape;
+			var emitter = o as ParticleEmitter;
 			Log.Assert(emitter != null, "Should be impossible");
 			var json = SaveLoad.SaveProperties(o, props);
             
@@ -330,10 +330,10 @@ namespace Starmaze.Engine
 			var particle_component = o as ParticleComponent;
 			Log.Assert(particle_component != null, "Should be impossible");
 			var json = SaveLoad.SaveProperties(o, props);
-			json["velocityMagnitude"] = SaveLoad.Save(particle_component.velocityMagnitude);
+			//json["velocityMagnitude"] = SaveLoad.Save(particle_component.velocityMagnitude);
 			json["MaxParticles"] = SaveLoad.Save(particle_component.maxParticles);
-			json["gravity"] = SaveLoad.Save(particle_component.gravity);
-			json["deltaScale"] = SaveLoad.Save(particle_component.deltaScale);
+			//json["gravity"] = SaveLoad.Save(particle_component.gravity);
+			//json["deltaScale"] = SaveLoad.Save(particle_component.deltaScale);
 			json["doFadeWithTime"] = SaveLoad.Save(particle_component.doFadeWithTime);
 			json["scaleWithTime"] = SaveLoad.Save(particle_component.scaleWithTime);
 
@@ -354,7 +354,7 @@ namespace Starmaze.Engine
 
 			//Need to create AssestConverters for these!!
 			var obj = new ParticleComponent(vel_mag, max_p, grav, delScale);
-			var emitter = SaveLoad.Load(json["ParticleEmitter"].Value<JObject>()) as ParticleEmitterShape;
+			var emitter = SaveLoad.Load(json["ParticleEmitter"].Value<JObject>()) as ParticleEmitter;
 			var colorFader = SaveLoad.Load(json["ColorFader"].Value<JObject>()) as ColorFader;
 
 			obj.setupEmitter(emitter, fadeTime, colorFader, scaleTime);
@@ -379,7 +379,7 @@ namespace Starmaze.Engine
 			{ typeof(Room), new RoomAssetConverter() },
 			{ typeof(Zone), new ZoneAssetConverter() },
 			{ typeof(ParticleComponent),new ParticleComponentAssestConverter() },
-			{ typeof(ParticleEmitterShape),new ParticleEmitterAssestConverter() },
+			{ typeof(ParticleEmitter),new ParticleEmitterAssestConverter() },
 			{ typeof(ColorFader),new ColorFaderAssestConverter() },			
 			{ typeof(Starmaze.Game.Life), new Starmaze.Game.LifeAssetConverter() },
 			{ typeof(Starmaze.Game.Energy), new Starmaze.Game.EnergyAssetConverter() },

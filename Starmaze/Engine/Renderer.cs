@@ -135,17 +135,17 @@ namespace Starmaze.Engine
         the particle system in the render system. So I do not know the impact it can have
          * on render speed
          */
-		public List<Particle> particleList;
+		public ParticleGroup ParticleGroup;
 		public float Rotation;
 		public Vector2 Scale;
 		public Texture texture;
 
-		public ParticleRenderState(Texture tex, List<Particle> list, Vector2? scale = null, float rotation = 0.0f)
+		public ParticleRenderState(Texture tex, ParticleGroup group, Vector2? scale = null, float rotation = 0.0f)
 			: base("ParticleRenderer")
 		{
 			texture = tex;
 			Log.Assert(texture != null);
-			particleList = list;
+			ParticleGroup = group;
 			Rotation = rotation;
 			Scale = scale ?? Vector2.One;
 		}
@@ -611,7 +611,7 @@ namespace Starmaze.Engine
 	/// </summary>
 	public class ParticleRenderer : Renderer<ParticleRenderState>
 	{
-		VertexArray model;
+		readonly VertexArray model;
 
 		public ParticleRenderer()
 		{
@@ -628,9 +628,9 @@ namespace Starmaze.Engine
             var mat = transform.TransformMatrix(view.ProjectionMatrix);
             */
 			//give each particle its own texture and apply the shader (enable, disable it)
-			foreach (var p in r.particleList) {
+			foreach (var p in r.ParticleGroup.Particles) {
 				var pos = new Vector2((float)p.Position.X, (float)p.Position.Y);
-				var transform = new Transform(pos, r.Rotation, Vector2.One * p.scale);
+				var transform = new Transform(pos, r.Rotation, Vector2.One * p.Scale);
 				var mat = transform.TransformMatrix(view.ProjectionMatrix);
                 
 				shader.UniformMatrix("projection", mat);
