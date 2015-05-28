@@ -619,9 +619,20 @@ namespace Starmaze.Engine
 		{
 			var typeName = json["type"].Value<string>();
 			Log.Assert(typeName != null);
-			var typ = Type.GetType(typeName);
+			var typ= Type.GetType(typeName);
+
+            //Made these special switch cases for Color4 and ColorFade
+            //because Type.GetType(typeName) would only return null 
+            switch (typeName)
+            {
+                case "OpenTK.Graphics.Color4":
+                    typ = typeof(OpenTK.Graphics.Color4);break;
+                case "Starmaze.Engine.ColorFader+ColorFade":
+                    typ = typeof(ColorFader.ColorFade);break;
+            }
             
-			Log.Assert(typ != null || typeName =="OpenTK.Graphics.Color4");
+            
+            Log.Assert(typ != null );
 			return DispatchLoad(json, typ);
 			//			if (IsJValue(typ)) {
 			//				return null; // XXX: Hmmm.
@@ -665,7 +676,8 @@ namespace Starmaze.Engine
 			IAssetConverter saveLoader;
 			if (AssetConverters.TryGetValue(typ, out saveLoader)) {
 				return saveLoader.Load(o);
-			} else {
+			} 
+            else{
 				var msg = String.Format("Could not find function to load type {0}", typ);
 				throw new JsonSerializationException(msg);
 			}

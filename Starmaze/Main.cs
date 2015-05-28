@@ -80,15 +80,15 @@ namespace Starmaze
 			Gui = new GUI(Util.LogicalScreenWidth, Util.LogicalScreenWidth / Options.AspectRatio, new Vector2(-55, 70));
 			SetupEvents();
 
-          //var p_component = new ParticleComponent(40f, 5, 0, 0.025f);
-          //  player.AddComponent(p_component);
-          //  var colors = new Dictionary<double, Color4>();
-          //  colors.Add(5,new Color4(1f,1f,0f,1f));
-          //  colors.Add(8, new Color4(0f,0f,0f, 0.0f));
-          //  p_component.setupEmitter(new PointEmitter(new Color4(1f,0f, 0f, 1f), new Vector2d(1.25, 1), 2,0.045, 10), new ColorFader(colors), _scaleWithTime: true);
-            
-          //  var saveCfg = SaveLoad.Save(player);
-          //  Log.Message("" + saveCfg);
+            //var p_component = new ParticleComponent(40f, 5, 0, 0.025f);
+            //player.AddComponent(p_component);
+            //var colors = new Dictionary<double, Color4>();
+            //colors.Add(5, new Color4(1f, 1f, 0f, 1f));
+            //colors.Add(8, new Color4(0f, 0f, 0f, 0.0f));
+            //p_component.setupEmitter(new PointEmitter(new Color4(1f, 0f, 0f, 1f), new Vector2d(1.25, 1), 2, 0.045, 10), new ColorFader(colors), _scaleWithTime: true);
+
+            //var saveCfg = SaveLoad.Save(player);
+            //Log.Message("" + saveCfg);
             World = new World(player, map, "TestZone", "TestRoom1");
 			World.AddActor(Gui.GUIHash["FPS"].Actor);
 			fpsTimer.Start();

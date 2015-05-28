@@ -147,7 +147,7 @@ namespace Starmaze.Engine
 		/// </summary>
 		public struct ColorFade
 		{
-            public double FadeTime { get; set; }
+            public double FadeTime {get; set; }
 			public Color4 Color{get;set;}
 		}
         
@@ -474,12 +474,13 @@ namespace Starmaze.Engine
             this.RenderState = new ParticleRenderState(texture, particle_group.Particles);
             */
 			//AddComponent(this.RenderState);
-			particleGroup.Body = Owner.Body;
+            //XXX: Once physics is complete, get the position information from Owner's Body
+            particleGroup.Body = new Body();
 			//Particle Controlling options
 			//controller.fadeWithTime = _doFadeWithTime;
 			particleGroup.colorFader = _colorFader;
 			controller.changeColorWithTime = (_colorFader != null);
-            if (controller.changeColorWithTime)
+            if (controller.changeColorWithTime && _colorFader.FadeList[0].Color != emitter.Color && _colorFader.FadeList[0].FadeTime != 0)
             {
                 particleGroup.colorFader.insertColorFader(0, 0, emitter.Color);
             }
