@@ -71,7 +71,8 @@ namespace Starmaze
 			Resources.Init(Options);
 			var map = BuildTestLevel();
 			var actCfg = Resources.TheResources.GetJson("player");
-			var player = SaveLoad.Load<Actor>(actCfg);
+            //var actCfg = Resources.TheResources.GetJson("test");			
+            var player = SaveLoad.Load<Actor>(actCfg);
 			//player.Body.AddGeom(new BoxGeom(new BBox(-5, -15, 5, 5)));
 			View = new ViewManager(Util.LogicalScreenWidth, Util.LogicalScreenWidth / Options.AspectRatio);
 			Camera = new FollowCam(player, Util.LogicalScreenWidth, Util.LogicalScreenWidth / Options.AspectRatio);
@@ -79,15 +80,16 @@ namespace Starmaze
 			Gui = new GUI(Util.LogicalScreenWidth, Util.LogicalScreenWidth / Options.AspectRatio, new Vector2(-55, 70));
 			SetupEvents();
 
-			var p_component = new ParticleComponent(40f, 5, 0, 0.025f);
-			player.AddComponent(p_component);
-			var colors = new Dictionary<double, Color4>();
-            colors.Add(5,new Color4(1f,1f,0f,1f));
-            colors.Add(8, new Color4(0f,0f,0f, 0.0f));
-            p_component.setupEmitter(new PointEmitter(new Color4(1f,0f, 0f, 1f), new Vector2d(1.25, 1), 0.1, 10), new ColorFader(colors), _scaleWithTime: true);
-			
-			
-			World = new World(player, map, "TestZone", "TestRoom1");
+          //var p_component = new ParticleComponent(40f, 5, 0, 0.025f);
+          //  player.AddComponent(p_component);
+          //  var colors = new Dictionary<double, Color4>();
+          //  colors.Add(5,new Color4(1f,1f,0f,1f));
+          //  colors.Add(8, new Color4(0f,0f,0f, 0.0f));
+          //  p_component.setupEmitter(new PointEmitter(new Color4(1f,0f, 0f, 1f), new Vector2d(1.25, 1), 2,0.045, 10), new ColorFader(colors), _scaleWithTime: true);
+            
+          //  var saveCfg = SaveLoad.Save(player);
+          //  Log.Message("" + saveCfg);
+            World = new World(player, map, "TestZone", "TestRoom1");
 			World.AddActor(Gui.GUIHash["FPS"].Actor);
 			fpsTimer.Start();
 		}

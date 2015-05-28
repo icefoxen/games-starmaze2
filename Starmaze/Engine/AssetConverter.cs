@@ -81,7 +81,25 @@ namespace Starmaze.Engine
         }
     }
 
+    public class ColorFadeAssetConverter : IAssetConverter
+    {
+        public JToken Save(object o)
+        {
+            var obj = (Starmaze.Engine.ColorFader.ColorFade)o;
+            var json = SaveLoad.JObjectOfType(o);
+            json["Color"] = SaveLoad.Save(obj.Color);
+            json["FadeTime"] = SaveLoad.Save(obj.FadeTime);
+            return json;
+        }
 
+        public object Load(JToken json)
+        {
+            var obj = new Starmaze.Engine.ColorFader.ColorFade();
+            obj.Color = (OpenTK.Graphics.Color4)SaveLoad.Load(json["Color"].Value<JObject>());
+            obj.FadeTime = json["FadeTime"].Value<double>();
+            return obj;
+        }
+    }
 	public class BodyAssetConverter : IAssetConverter
 	{
 		readonly string[] props = {
@@ -273,7 +291,7 @@ namespace Starmaze.Engine
 		}
 	}
 
-    public class CircleEmitterAssestConverter : IAssetConverter
+    public class CircleEmitterAssetConverter : IAssetConverter
 	{
 		readonly string[] props = {
 		    "Color",
@@ -298,12 +316,12 @@ namespace Starmaze.Engine
         {
 
             var color = (OpenTK.Graphics.Color4)SaveLoad.Load(json["Color"].Value<JObject>());
-            var radius = (float)SaveLoad.Load(json["radius"].Value<JValue>());
-            var start_angle = (int)SaveLoad.Load(json["start_angle"].Value<JValue>());
-            var end_angle = (int)SaveLoad.Load(json["end_angle"].Value<JValue>());
-            var maxLifeTime = (double)SaveLoad.Load(json["maxLifeTime"].Value<JValue>());
-            var emitDelay = (double)SaveLoad.Load(json["emitDelay"].Value<JValue>());
-            var velocityMagnitude = (double)SaveLoad.Load(json["velocityMagnitude"].Value<JValue>());
+            var radius = json["radius"].Value<float>();
+            var start_angle = json["start_angle"].Value<int>();
+            var end_angle = json["end_angle"].Value<int>();
+            var maxLifeTime = json["maxLifeTime"].Value<double>();
+            var emitDelay = json["emitDelay"].Value<double>();
+            var velocityMagnitude = json["velocityMagnitude"].Value<double>();
 
             var obj = new CircleEmitter(color,radius,start_angle,end_angle,velocityMagnitude,emitDelay,maxLifeTime);
             SaveLoad.LoadProperties(obj, props, json);
@@ -312,10 +330,10 @@ namespace Starmaze.Engine
         }
     }
 
-    public class PointEmitterAssestConverter : IAssetConverter
+    public class PointEmitterAssetConverter : IAssetConverter
     {
         readonly string[] props = {
-		    "Color",     
+            "Color",
             "range",
             "velocityMagnitude",
             "emitDelay",
@@ -334,20 +352,20 @@ namespace Starmaze.Engine
         public object Load(JToken json)
         {
 
-            var color = (OpenTK.Graphics.Color4)SaveLoad.Load(json["Color"].Value<JObject>());
+           /* var color = (OpenTK.Graphics.Color4)SaveLoad.Load(json["Color"].Value<JObject>());
             var range = (Vector2d)SaveLoad.Load(json["range"].Value<JObject>());
-            var maxLifeTime = (double)SaveLoad.Load(json["maxLifeTime"].Value<JValue>());
-            var emitDelay = (double)SaveLoad.Load(json["emitDelay"].Value<JValue>());
-            var velocityMagnitude = (double)SaveLoad.Load(json["velocityMagnitude"].Value<JValue>());
+            var maxLifeTime = json["maxLifeTime"].Value<double>();
+            var emitDelay = json["emitDelay"].Value<double>();
+            var velocityMagnitude = json["velocityMagnitude"].Value<double>();*/
 
-            var obj = new PointEmitter(color, range,emitDelay, maxLifeTime);
+            var obj = new PointEmitter();
             SaveLoad.LoadProperties(obj, props, json);
             SaveLoad.PostLoadIfPossible(obj);
             return obj;
         }
     }
 
-    public class LineEmitterAssestConverter : IAssetConverter
+    public class LineEmitterAssetConverter : IAssetConverter
     {
         readonly string[] props = {
 		    "Color",     
@@ -371,11 +389,11 @@ namespace Starmaze.Engine
 		{
 
             var color = (OpenTK.Graphics.Color4)SaveLoad.Load(json["Color"].Value<JObject>());
-            var length = (float)SaveLoad.Load(json["length"].Value<JValue>());
-            var angle = (int)SaveLoad.Load(json["angle"].Value<JValue>());
-            var velocityMagnitude = (double)SaveLoad.Load(json["velocityMagnitude"].Value<JValue>());
-            var maxLifeTime = (double)SaveLoad.Load(json["maxLifeTime"].Value<JValue>());
-            var emitDelay = (double)SaveLoad.Load(json["emitDelay"].Value<JValue>());
+            var length = json["length"].Value<float>();
+            var angle = json["angle"].Value<int>();
+            var velocityMagnitude = json["velocityMagnitude"].Value<double>();
+            var maxLifeTime = json["maxLifeTime"].Value<double>();
+            var emitDelay = json["emitDelay"].Value<double>();
 
             var obj = new LineEmitter(color,length,angle,velocityMagnitude,emitDelay, maxLifeTime);
 			SaveLoad.LoadProperties(obj, props, json);
@@ -384,10 +402,9 @@ namespace Starmaze.Engine
 		}
 	}
 
-	public class ColorFaderAssestConverter : IAssetConverter
+	public class ColorFaderAssetConverter : IAssetConverter
 	{
 		readonly string[] props = {
-			//"ColorFades",
 		};
 
 		public JToken Save(object o)
@@ -396,31 +413,29 @@ namespace Starmaze.Engine
 			var colorfader = o as ColorFader;
 			Log.Assert(colorfader != null, "Should be impossible");
 			var json = SaveLoad.SaveProperties(o, props);
-			json["ColorFades"] = SaveLoad.SaveList<ColorFader.ColorFade>(colorfader.ColorFaders);
+            json["FadeList"] = SaveLoad.SaveList<ColorFader.ColorFade>(colorfader.FadeList);
 			return json;
 		}
 
 		public object Load(JToken json)
 		{
-			var colorFades = SaveLoad.LoadList<ColorFader.ColorFade>(json["ColorFades"].Value<JArray>()) as List<ColorFader.ColorFade>;
+			var FadeList = SaveLoad.LoadList<ColorFader.ColorFade>(json["FadeList"].Value<JArray>()) as List<ColorFader.ColorFade>;
 
 			//Need to create AssestConverters for these!!
-			var obj = new ColorFader(colorFades);
-
-			SaveLoad.LoadProperties(obj, props, json);
+			var obj = new ColorFader();
+            obj.FadeList = FadeList;
 			SaveLoad.PostLoadIfPossible(obj);
 			return obj;
 		}
 	}
 
-	public class ParticleComponentAssestConverter : IAssetConverter
+	public class ParticleComponentAssetConverter : IAssetConverter
 	{
 		readonly string[] props = {
 			"velocityMagnitude",
 			"MaxParticles",
 			"gravity",
 			"deltaScale",
-			"doFadeWithTime",
 			"scaleWithTime",
 		};
         
@@ -431,19 +446,18 @@ namespace Starmaze.Engine
 			Log.Assert(particle_component != null, "Should be impossible");
 			var json = SaveLoad.SaveProperties(o, props);
 			//Need to create AssestConverters for these!!
-            json["ColorFader"] = SaveLoad.Save(particle_component.colorFader);
+            json["ColorFader"] = SaveLoad.Save(particle_component.ColorFader);
             json["ParticleEmitter"] = SaveLoad.Save(particle_component.emitter);
 			return json;
 		}
 
 		public object Load(JToken json)
 		{
-			var vel_mag = (double)SaveLoad.Load(json["velocityMagnitude"].Value<JValue>());
-			var max_p = (int)SaveLoad.Load(json["MaxParticles"].Value<JValue>());
-			var grav = (float)SaveLoad.Load(json["gravity"].Value<JValue>());
-			var delScale = (float)SaveLoad.Load(json["deltaScale"].Value<JValue>());
-			var fadeTime = (bool)SaveLoad.Load(json["doFadeWithTime"].Value<JValue>());
-			var scaleTime = (bool)SaveLoad.Load(json["scaleWithTime"].Value<JValue>());
+            var vel_mag = json["velocityMagnitude"].Value<double>();
+			var max_p = json["MaxParticles"].Value<int>();
+			var grav = json["gravity"].Value<float>();
+			var delScale = json["deltaScale"].Value<float>();
+			var scaleTime = json["scaleWithTime"].Value<bool>();
 
 			//Need to create AssestConverters for these!!
 			var obj = new ParticleComponent(vel_mag, max_p, grav, delScale);
@@ -472,11 +486,12 @@ namespace Starmaze.Engine
 			{ typeof(TextureAtlas), new TextureAtlasAssetConverter() },
 			{ typeof(Room), new RoomAssetConverter() },
 			{ typeof(Zone), new ZoneAssetConverter() },
-			{ typeof(ParticleComponent),new ParticleComponentAssestConverter() },
-			{ typeof(CircleEmitter),new CircleEmitterAssestConverter()},
-			{ typeof(PointEmitter),new PointEmitterAssestConverter()},
-            { typeof(LineEmitter),new LineEmitterAssestConverter()},
-			{ typeof(ColorFader),new ColorFaderAssestConverter() },			
+			{ typeof(ParticleComponent),new ParticleComponentAssetConverter() },
+			{ typeof(CircleEmitter),new CircleEmitterAssetConverter()},
+			{ typeof(PointEmitter),new PointEmitterAssetConverter()},
+            { typeof(LineEmitter),new LineEmitterAssetConverter()},
+			{ typeof(ColorFader),new ColorFaderAssetConverter() },			
+			{ typeof(Starmaze.Engine.ColorFader.ColorFade),new ColorFadeAssetConverter() },		
 			{ typeof(Starmaze.Game.Life), new Starmaze.Game.LifeAssetConverter() },
 			{ typeof(Starmaze.Game.Energy), new Starmaze.Game.EnergyAssetConverter() },
 			{ typeof(Starmaze.Game.InputController), new Starmaze.Game.InputControllerAssetConverter() },
@@ -605,7 +620,8 @@ namespace Starmaze.Engine
 			var typeName = json["type"].Value<string>();
 			Log.Assert(typeName != null);
 			var typ = Type.GetType(typeName);
-			Log.Assert(typ != null);
+            
+			Log.Assert(typ != null || typeName =="OpenTK.Graphics.Color4");
 			return DispatchLoad(json, typ);
 			//			if (IsJValue(typ)) {
 			//				return null; // XXX: Hmmm.

@@ -147,17 +147,19 @@ namespace Starmaze.Engine
 		/// </summary>
 		public struct ColorFade
 		{
-			public double FadeTime;
-			public Color4 Color;
+            public double FadeTime { get; set; }
+			public Color4 Color{get;set;}
 		}
         
 		//The List of color fades
-		readonly List<ColorFade> FadeList;
+		public List<ColorFade> FadeList {get;set;}
         public float ColorRate;
         public Color4 nextColor = Color4.White;
-		public List<ColorFade> ColorFaders {
-			get { return FadeList; }
-		}
+
+
+        public ColorFader()
+        {
+        }
 
 		/// <summary>
 		/// Makes a ColorFader, Must have the 1st ColorFader's threshold set to 0.
@@ -167,7 +169,7 @@ namespace Starmaze.Engine
 		/// , Color4 is the color for that </param>
 		public ColorFader(Dictionary<double,Color4> dictionary)
 		{
-			ColorFade cf;
+			ColorFade cf = new ColorFade();
 			//giving it a starting capacity of 4, don't think we should need more than that
 			FadeList = new List<ColorFade>(4);
 			foreach (var item in dictionary) {
@@ -190,7 +192,7 @@ namespace Starmaze.Engine
         /// <param name="Color"></param>
         public void insertColorFader(int index, double time, Color4 Color)
         {
-            ColorFade newFade;
+            ColorFade newFade=new ColorFade();
             newFade.FadeTime=time;
             newFade.Color = Color;
             FadeList.Insert(index,newFade);
@@ -239,8 +241,15 @@ namespace Starmaze.Engine
 		public double velocityMagnitude{get;set;}
         public double maxLifeTime{get;set;}
         public double emitDelay {get;set;}
-		public List<Particle> Particles;
-        public Color4 Color {get;set;} 
+        public Color4 Color {get;set;}
+        public ParticleEmitter(Color4 Color,double velocityMagnitude = 3f, double emitDelay = 0.1, double maxLifeTime = 3f)
+        {
+            this.Color = Color;
+            this.velocityMagnitude = velocityMagnitude;
+            this.emitDelay = emitDelay;
+            this.maxLifeTime = maxLifeTime;
+            rand = new Random();
+        }
 		public abstract void Update(double dt, ParticleGroup particle_group);
 
 	}
@@ -255,14 +264,10 @@ namespace Starmaze.Engine
         public int end_angle {get;set;}
         int current_angle;
 
-		public CircleEmitter(Color4 color, float radius = 5f, int start_angle = 0, int end_angle = 360, double velocityMagnitude = 3f, double emitDelay = 0.1, double maxLifeTime = 3f)
-		{
+		public CircleEmitter(Color4 Color, float radius = 5f, int start_angle = 0, int end_angle = 360, double velocityMagnitude = 3f, double emitDelay = 0.1, double maxLifeTime = 3f)
+		:base(Color,velocityMagnitude,emitDelay,maxLifeTime)
+        {
 			//Particle Emitter Properties
-			rand = new Random();
-			this.Color = color;
-			this.velocityMagnitude = velocityMagnitude;
-			this.emitDelay = emitDelay;
-			this.maxLifeTime = maxLifeTime;
 			this.radius = radius;
 			this.start_angle = start_angle;
 			current_angle = start_angle;
@@ -300,14 +305,10 @@ namespace Starmaze.Engine
         public float length { get; set; }
         public int angle { get; set; }
 
-		public LineEmitter(Color4 color, float length = 1f, int angle = 0, double velocityMagnitude = 1f, double emitDelay = 0.1, double maxLifeTime = 1f)
-		{
-			//Particle Emitter Properties
-			rand = new Random();
-			this.Color = color;
-			this.velocityMagnitude = velocityMagnitude;
-			this.emitDelay = emitDelay;
-			this.maxLifeTime = maxLifeTime;
+		public LineEmitter(Color4 Color, float length = 1f, int angle = 0, double velocityMagnitude = 3f, double emitDelay = 0.1, double maxLifeTime = 1f)
+            : base(Color, velocityMagnitude, emitDelay, maxLifeTime)
+        {
+			//Particle Emitter Properties			
 			this.length = length;
 			this.angle = angle;
 		}
@@ -340,15 +341,16 @@ namespace Starmaze.Engine
         public Vector2d range { get; set; }
 		int direction = 1;
 
-        public PointEmitter(Color4 color, Vector2d range, double emitDelay = 0.1, double maxLifeTime = 3f)
-		{
+        public PointEmitter()
+            : base(Color4.White)
+        {
+        }
+
+        public PointEmitter(Color4 Color, Vector2d range,double velocityMagnitude=3f, double emitDelay = 0.1, double maxLifeTime = 3f)
+            : base(Color, velocityMagnitude, emitDelay, maxLifeTime)
+        {
 			//Particle Emitter Properties
-			rand = new Random();
-            this.Color = color;
-			this.emitDelay = emitDelay;
-			this.maxLifeTime = maxLifeTime;
             this.range = range;
-            velocityMagnitude = Math.Sqrt(range.X * range.X + range.Y * range.Y);
 		}
 
 		public override void Update(double dt, ParticleGroup particle_group)
@@ -432,10 +434,13 @@ namespace Starmaze.Engine
 		public ParticleEmitter emitter;
 		ParticleGroup particleGroup;
         public double velocityMagnitude {get;set;}
-        public int maxParticles { get; set; }
+        public int MaxParticles { get; set; }
         public float gravity{get;set;}
         public float deltaScale{get;set;}
-		public ColorFader colorFader = null;
+        public ColorFader ColorFader
+        {
+            get { return particleGroup.colorFader; }
+        }
         public bool doFadeWithTime {get;set;}
         public bool scaleWithTime { get; set; }
 
@@ -445,7 +450,7 @@ namespace Starmaze.Engine
 			HandledEvents = EventType.OnUpdate;
 			//Setting these for Serialization purposes
 			//this.velocityMagnitude = _velocityMagnitude;
-			this.maxParticles = MaxParticles;
+			this.MaxParticles = MaxParticles;
 			//Particle Controller Properties
 			controller = new ParticleController(Vector2d.One, _velocityMagnitude, _gravity, _deltaScale);
 			particleGroup = new ParticleGroup(MaxParticles);
@@ -480,10 +485,6 @@ namespace Starmaze.Engine
             }
 			controller.scaleWithTime = _scaleWithTime;
 
-//			//setting these for Serialization purposes
-//			this.doFadeWithTime = _doFadeWithTime;
-//			this.colorFader = _colorFader;
-//			this.scaleWithTime = _scaleWithTime;
 		}
 
 		/// <summary>
