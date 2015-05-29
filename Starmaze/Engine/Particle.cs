@@ -388,8 +388,7 @@ namespace Starmaze.Engine
          *and the Particle Group sent to Particle Controllers update 
          */
 		public ColorFader colorFader;
-		public Body Body;
-		Vector2d position = Vector2d.Zero;
+		public Vector2d Position = Vector2d.Zero;
 
 		public ParticleGroup(int MaxParticles)
 		{
@@ -403,7 +402,7 @@ namespace Starmaze.Engine
 
 		public void AddParticle(Vector2d pos, Vector2d velocity, Color4 color, double life = 1.0)
 		{
-			Particles.Add(new Particle(pos + position, velocity: velocity, color: color, life: life));
+            Particles.Add(new Particle(pos + Position, velocity: velocity, color: color, life: life));
 			//Log.Message(String.Format("Particle ({0}) V {0}", pos, vel));
 		}
 
@@ -475,7 +474,7 @@ namespace Starmaze.Engine
             */
 			//AddComponent(this.RenderState);
             //XXX: Once physics is complete, get the position information from Owner's Body
-            particleGroup.Body = new Body();
+            
 			//Particle Controlling options
 			//controller.fadeWithTime = _doFadeWithTime;
 			particleGroup.colorFader = _colorFader;
@@ -496,8 +495,9 @@ namespace Starmaze.Engine
 		public override void OnUpdate(object sender, FrameEventArgs e)
 		{
 			var dt = e.Time;
-			emitter.Update(dt, particleGroup);
-			controller.Update(dt, particleGroup);
+            particleGroup.Position = Util.ConvertVector2d(Owner.Body.PBody.Position);
+            emitter.Update(dt, particleGroup);
+            controller.Update(dt, particleGroup);
 		}
 
 	}
