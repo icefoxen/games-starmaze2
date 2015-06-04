@@ -111,6 +111,17 @@ namespace Starmaze.Engine
 			Assert.True(true);
 		}
 	}
+	[TestFixture]
+	public class MathTests
+	{
+		[Test]
+		public void Mod(){
+			for (int i = -10; i <= 10; i++) {
+				Log.Message("{0} % 4 = {1}",i,i%4);
+			}
+		}
+	}
+
 
 	[TestFixture]
 	public class SerializationTests

@@ -332,7 +332,7 @@ namespace Starmaze.Engine
 		// And explicit destruction because that matters too.
 		static ResourceLoader _TheResources;
 		public static GameOptions Options;
-		public static Sound Sound;//XXXX: Sound might want to be it's own singleton instead
+		public static Sound Sound;//XXX: Sound might want to be it's own singleton instead
 		public static ResourceLoader TheResources {
 			get {
 				Log.Assert(_TheResources != null, "Attempting to get null Resources object");
@@ -355,7 +355,7 @@ namespace Starmaze.Engine
 			_TheResources = new ResourceLoader();
 			Options = GOptions;
 			_TheResources.Preload();
-			Sound = new Sound(); //XXXX: Sound might want to be it's own singleton instead
+			Sound = new Sound(); //XXX: Sound might want to be it's own singleton instead
 			return _TheResources;
 		}
 

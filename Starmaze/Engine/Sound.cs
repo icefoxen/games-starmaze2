@@ -16,7 +16,7 @@ namespace Starmaze.Engine
 		private readonly IWavePlayer player;
 		private readonly MixingSampleProvider mixer;
 		private WaveFormat format;
-		//XXXX: The current volume implementation may cause problems with long sounds, like music.
+		//XXX: The current volume implementation may cause problems with long sounds, like music.
 		public float Volume{get;set;}
 		public Sound (int sampleRate = 44100, int channelCount = 2, float volumeIn = 1.0f)
 		{
