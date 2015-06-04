@@ -210,8 +210,15 @@ namespace Starmaze.Game
 			var currentOrder = (int)CurrentPower.Ordering;
 			var powerCount = (int)PowerIndex.Count;
 			do {
-				// XXX: Double-check that modulo of a negative number works the way we want.
-				currentOrder = (currentOrder - 1) % powerCount;
+				// : Double-check that modulo of a negative number works the way we want.
+				// It doesn't, so I'm fixing this
+				// old logic: currentOrder = (currentOrder - 1) % powerCount;
+				// XXXX:  This isn't tested yet because I'm not sure how to test it.
+				currentOrder = currentOrder - 1;
+				while(currentOrder<0 && powerCount>0){
+					currentOrder = currentOrder + powerCount;
+				}
+				currentOrder = currentOrder % powerCount;
 			} while(!Powers.ContainsKey((PowerIndex)currentOrder));
 			SetCurrentPower(Powers[(PowerIndex)currentOrder]);
 		}
